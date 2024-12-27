@@ -21,6 +21,9 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+      "complexity": {
+        "noUselessConstructor": "off"
+      },
       "style": {
         "useConst": "off",
         "noParameterAssign": "off",

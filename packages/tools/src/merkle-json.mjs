@@ -1,3 +1,4 @@
+// Supercedes NPM package merkle-json
 // BEGIN  http://www.myersdaily.org/joseph/javascript/md5.js
 function md5cycle(x, k) {
 	let a = x[0],

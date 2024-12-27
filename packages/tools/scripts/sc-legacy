@@ -1,0 +1,170 @@
+#!/usr/bin/bash
+DBNAME=dpd.db
+SCRIPT=`basename $0`
+DIRNAME=`dirname $0`
+BASH_JS_STDOUT=/tmp/$SCRIPT-cmd
+
+node - <<'JS' $DIRNAME $SCRIPT "$@" #> $BASH_JS_STDOUT
+const util = require('util');
+const fs = require('fs');
+const unzipper = require("unzip-stream");
+const fsp = fs.promises;
+const path = require('path');
+const exec = util.promisify(require('child_process').exec);
+let [ NODE, DASH, DIRNAME, SCRIPT, ...args] = process.argv;
+const MAX_BUFFER = 10 * 1024 * 1024;
+
+const msg = `${SCRIPT}:`;
+
+function help() {
+  console.error(`
+NAME
+  ${SCRIPT} - fetch legacy (HTML) document from SuttaCentral.net
+
+SYNOPSIS
+  ${SCRIPT} SUTTA_ID...
+
+DESCRIPTION
+  Fetch legacy HTML document from SuttaCentral.net
+
+  -?, --help
+    print this help text
+
+  -l, --lang LANG
+    two-letter language code (e.g., fr, de)
+
+  -a, --author AUTHOR
+    SuttaCentral author id (e.g., sujato)
+  
+  -mb, --max-buffer MAXBUFFER
+    Maximum MB of downloaded content (default: 10)
+
+  -v, --verbose
+    print more information to stderr
+
+  SUTTA_ID...
+    Space-separated list of suttas (e.g., mn8)
+
+EXAMPLES
+  ${SCRIPT} -l fr -a mohan mn8
+`);
+  process.exit(0);
+}
+
+function parseArgs() {
+  const msg = `${SCRIPT}.parseArgs:`;
+  // default values
+  let dbg = 0;
+  let langDflt;
+  let authorDflt;
+  let maxBuffer = MAX_BUFFER;
+
+  let sutta_ids = [];
+  for (let i=0; i<args.length; i++) {
+    let arg = args[i];
+    switch (arg) {
+      case '-?':
+      case '--help':
+        help();
+        break;
+      case '-mb':
+      case '--max-buffer':
+        maxBuffer = Number(args[++i])*1024*1024;
+        break;
+      case '-l':
+      case '--lang':
+        langDflt = args[++i];
+        break;
+      case '-a':
+      case '--author':
+        authorDflt = args[++i];
+        break;
+      case "--verbose":
+      case "-v":
+        dbg = 1;
+        break;
+      case "--very-verbose":
+      case "-vv":
+        dbg = 2;
+        break;
+      default:
+        if (arg.at(0) === "-") {
+          console.error(`${msg} [ERROR] ignoring ${arg}`);
+          help();
+        } else {
+          sutta_ids.push(arg);
+        }
+        break;
+    }
+  }
+  if (sutta_ids.length < 1) {
+    help();
+  }
+
+  let result = {
+    dbg,
+    sutta_ids,
+    langDflt,
+    authorDflt,
+    maxBuffer,
+  }
+  return result;
+}
+let {
+  dbg,
+  sutta_ids,
+  langDflt,
+  authorDflt,
+  maxBuffer,
+} = parseArgs();
+if (sutta_ids.length===0) {
+  help();
+}
+if (authorDflt == null) {
+  switch (langDflt) {
+    case 'fr':
+      authorDflt = 'wijayaratna';
+      break;
+  }
+}
+dbg && console.error(msg, Object.assign({
+  NODE,DASH, DIRNAME, SCRIPT, sutta_ids, langDflt, authorDflt,
+  maxBuffer,
+}));
+
+async function main() {
+  const msg = `${SCRIPT}.main:`;
+
+  for (let i=0; i<sutta_ids.length; i++) {
+    let si = sutta_ids[i];
+    console.error(msg, si);
+    let [ 
+      sutta_id, 
+      lang = langDflt, 
+      author = authorDflt, 
+    ] = si.split('/');
+    let url = [
+      'https://suttacentral.net/api/suttas',
+      sutta_id,
+      `${author}?lang=${lang}`,
+    ].join('/');
+    let cmd = `curl ${url}`;
+    console.error(msg, cmd);
+    let { stdout, stderr } = await exec(cmd, {maxBuffer});
+    console.error(msg, '[1]stdout', stdout.length);
+    let json = JSON.parse(stdout);
+    let lines = json.translation.text.split('\n');
+    json.translation.text = lines;
+    console.log(JSON.stringify(json.translation,null,2));
+  }
+}
+
+(async function() {
+  try {
+    await main();
+  } catch(e) {
+    console.error(msg, e);
+  }
+})()
+
+JS
