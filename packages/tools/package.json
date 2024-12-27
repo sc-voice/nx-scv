@@ -1,0 +1,40 @@
+{
+  "name": "@sc-voice/text-tools",
+  "version": "1.0.0",
+  "description": "Toxt utilities for SC-Voice",
+  "main": "main.mjs",
+  "files": [
+    "LICENSE",
+    "index.mjs",
+    "package.json",
+    "README.md",
+    "src"
+  ],
+  "scripts": {
+    "test": "npm run test:verbose",
+    "test:test": "mocha --config test/mocha-config.json",
+    "test:verbose": "mocha --inline-diffs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sc-voice/ms-dpd.git"
+  },
+  "keywords": [
+    "SC-Voice",
+    "Text utilities",
+    "merkle-json",
+    "Javascript"
+  ],
+  "author": "Karl Lew",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sc-voice/text-tools/issues"
+  },
+  "homepage": "https://github.com/sc-voice/text-tools#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "eslint": "^9.17.0",
+    "should": "^13.2.3"
+  }
+}
