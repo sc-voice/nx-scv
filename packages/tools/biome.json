@@ -20,7 +20,18 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+      "style": {
+        "useConst": "off",
+        "noParameterAssign": "off",
+        "useTemplate": "off",
+        "useSingleVarDeclarator": "off",
+        "noUselessElse": "off"
+      },
+      "suspicious": {
+        "noDoubleEquals": "off",
+        "useIsArray": "off"
+      }
 		}
 	},
 	"javascript": {

@@ -1,6 +1,6 @@
 // BEGIN  http://www.myersdaily.org/joseph/javascript/md5.js
 function md5cycle(x, k) {
-	var a = x[0],
+	let a = x[0],
 		b = x[1],
 		c = x[2],
 		d = x[3];
@@ -102,14 +102,14 @@ function ii(a, b, c, d, x, s, t) {
 
 function md51(s) {
 	//txt = '';
-	var n = s.length,
+	let n = s.length,
 		state = [1732584193, -271733879, -1732584194, 271733878],
 		i;
 	for (i = 64; i <= s.length; i += 64) {
 		md5cycle(state, md5blk(s.substring(i - 64, i)));
 	}
 	s = s.substring(i - 64);
-	var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+	let tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 	for (i = 0; i < s.length; i++)
 		tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
 	tail[i >> 2] |= 0x80 << ((i % 4) << 3);
@@ -139,7 +139,7 @@ function md51(s) {
  **/
 function md5blk(s) {
 	/* I figured global was faster.   */
-	var md5blks = [],
+	let md5blks = [],
 		i; /* Andy King said do it this way. */
 	for (i = 0; i < 64; i += 4) {
 		md5blks[i >> 2] =
@@ -151,10 +151,10 @@ function md5blk(s) {
 	return md5blks;
 }
 
-var hex_chr = "0123456789abcdef".split("");
+const hex_chr = "0123456789abcdef".split("");
 
 function rhex(n) {
-	var s = "",
+	let s = "",
 		j = 0;
 	for (; j < 4; j++)
 		s += hex_chr[(n >> (j * 8 + 4)) & 0x0f] + hex_chr[(n >> (j * 8)) & 0x0f];
@@ -162,7 +162,7 @@ function rhex(n) {
 }
 
 function hex(x) {
-	for (var i = 0; i < x.length; i++) x[i] = rhex(x[i]);
+	for (let i = 0; i < x.length; i++) x[i] = rhex(x[i]);
 	return x.join("");
 }
 
@@ -182,7 +182,7 @@ function add32(a, b) {
 
 if (md5("hello") != "5d41402abc4b2a76b9719d911017c592") {
 	function add32(x, y) {
-		var lsw = (x & 0xffff) + (y & 0xffff),
+		let lsw = (x & 0xffff) + (y & 0xffff),
 			msw = (x >> 16) + (y >> 16) + (lsw >> 16);
 		return (msw << 16) | (lsw & 0xffff);
 	}
@@ -198,7 +198,7 @@ export default class MerkleJson {
 		if (typeof value === "string") {
 			return md5(value);
 		} else if (value instanceof Array) {
-			var acc = "";
+			let acc = "";
 			acc = value.reduce((a, v) => a + this.hash(v, cached), acc);
 			return this.hash(acc, cached);
 		} else if (typeof value === "number") {
@@ -220,8 +220,8 @@ export default class MerkleJson {
 			if (cached && value[this.hashTag]) {
 				return value[this.hashTag];
 			}
-			var keys = Object.keys(value).sort();
-			var acc = keys.reduce((a, k) => {
+			let keys = Object.keys(value).sort();
+			let acc = keys.reduce((a, k) => {
 				return k === this.hashTag ? a : a + k + ":" + this.hash(value[k]) + ",";
 			}, "");
 			return this.hash(acc);
@@ -231,7 +231,7 @@ export default class MerkleJson {
 
 	stringify(value) {
 		if (value instanceof Array) {
-			var body = value.reduce((a, v) => {
+			let body = value.reduce((a, v) => {
 				return a ? `${a},${this.stringify(v)}` : `${this.stringify(v)}`;
 			}, "");
 			return `[${body}]`;
@@ -243,16 +243,15 @@ export default class MerkleJson {
 			if (typeof value.toJSON === "function") {
 				value = JSON.parse(JSON.stringify(value));
 			}
-			var keys = Object.keys(value).sort();
-			var body = keys.reduce((a, k) => {
+			let keys = Object.keys(value).sort();
+			let body = keys.reduce((a, k) => {
 				return a
 					? `${a},"${k}":${this.stringify(value[k])}`
 					: `"${k}":${this.stringify(value[k])}`;
 			}, "");
 			return `{${body}}`;
-		} else {
-			return JSON.stringify(value);
 		}
-		throw new Error("hash() not supported:" + typeof value);
+
+    return JSON.stringify(value);
 	}
 } // class MerkleJson
