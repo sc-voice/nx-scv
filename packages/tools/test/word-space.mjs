@@ -27,22 +27,18 @@ const MN8_MOHAN = [
   "<h1 class='sutta-title'>8. Le déracinement</h1>",
   "</header>",
   "<p><span class='evam'>Ainsi ai-je entendu :</span> une fois le Bienheureux séjournait dans le parc d’Anāthapiṇḍika, au bois de Jeta, près de la ville de Sāvatthi.</p>",
-  "<p>En ce temps-là, un jour, l’Āyasmanta Mahā-Cunda, s’étant levé de son repos solitaire de l’après-midi, s’approcha de l’endroit où se trouvait le Bienheureux.",
-  "S’étant approché, il rendit hommage au Bienheureux et s’assit à l’écart sur un côté. ",
-  "S’étant assis à l’écart sur un côté, l’Āyasmanta Mahā-Cunda dit au Bienheureux :</p>",
-  "<p>« Vénéré, si toutes ces opinions diverses concernant la théorie du Soi ou concernant la théorie du monde se produisent chez les gens, sont-elles éliminées tout au début chez un bhikkhu lorsqu’il réfléchit correctement ?",
-  "Ainsi, y a-t-il un abandon de ces opinions ? »</p>",
+  "<p>En ce temps-là, un jour, l’Āyasmanta Mahā-Cunda, s’étant levé de son repos solitaire de l’après-midi, s’approcha de l’endroit où se trouvait le Bienheureux. S’étant approché, il rendit hommage au Bienheureux et s’assit à l’écart sur un côté. S’étant assis à l’écart sur un côté, l’Āyasmanta Mahā-Cunda dit au Bienheureux :</p>",
+  "<p>« Vénéré, si toutes ces opinions diverses concernant la théorie du Soi ou concernant la théorie du monde se produisent chez les gens, sont-elles éliminées tout au début chez un bhikkhu lorsqu’il réfléchit correctement ? Ainsi, y a-t-il un abandon de ces opinions ? »</p>",
   "<p>Le Bienheureux dit : « Ô Cunda, si toutes ces opinions diverses concernant la théorie du Soi ou concernant la théorie du monde se produisent chez les gens, lorsqu’on voit le lieu où ces diverses opinions se produisent, où ces diverses opinions restent installées, où ces diverses opinions circulent, lorsqu’on le voit selon la réalité tel qu’il est : « Ceci n’est pas à moi, ceci n’est pas moi, ceci n’est pas mon Soi », alors chez lui, ces mêmes opinions disparaissent, ces mêmes opinions sont abandonnées.</p>",
-  "<p>Se voit, Ô Cunda, la situation où un certain bhikkhu, s’étant séparé du désir, s’étant séparé des pensées inefficaces, entre dans le premier <i lang='pli' translate='no'>jhāna</i> pourvu de raisonnement et de réflexion, qui est joie et bonheur, né de la séparation des choses mauvaises et il y demeure.",
-  "Chez lui peut se produire une pensée orgueilleuse en se disant : “Je demeure en ayant déraciné <span class='add'>[les souillures mentales]</span>”.",
-  "Ces <i lang='pli' translate='no'>jhānas</i>, ô Cunda, ne sont pas appelés “les états déracinés <span class='add'>[des souillures mentales]</span>” dans cette discipline noble.",
-  "Par contre, dans cette discipline noble, ils sont appelés “les demeures heureuses où l’on vit dans cette vie présente”.</p>",
+  "<p>Se voit, Ô Cunda, la situation où un certain bhikkhu, s’étant séparé du désir, s’étant séparé des pensées inefficaces, entre dans le premier <i lang='pli' translate='no'>jhāna</i> pourvu de raisonnement et de réflexion, qui est joie et bonheur, né de la séparation des choses mauvaises et il y demeure. Chez lui peut se produire une pensée orgueilleuse en se disant : “Je demeure en ayant déraciné <span class='add'>[les souillures mentales]</span>”. Ces <i lang='pli' translate='no'>jhānas</i>, ô Cunda, ne sont pas appelés “les états déracinés <span class='add'>[des souillures mentales]</span>” dans cette discipline noble. Par contre, dans cette discipline noble, ils sont appelés “les demeures heureuses où l’on vit dans cette vie présente”.</p>",
 ];
 
 const wsTest = new WordSpace({
   wordMap: {
     "Bienheureux": "Bouddha",
     "Mahācunda": "Cunda",
+    "bhikkhu": "monastique",
+    "opinions": "croyances",
   }
 });
 
@@ -73,7 +69,7 @@ describe('word-space', ()=>{
     }));
     should(v.length).equal(7);
   });
-  it("TESTTESTstring2Vector() Bienheureux", ()=>{
+  it("string2Vector() Bienheureux", ()=>{
     let v = wsTest.string2Vector("le Bienheureux dit");
     should.deepEqual(v, new Vector({
       bouddha: 1,
@@ -125,7 +121,7 @@ describe('word-space', ()=>{
     should(wxyz.similar(xyz)).equal(0.8660254037844387);
   });
   it("similar() mn8:1.2", ()=>{
-    let mn8mohan = MN8_MOHAN[4];
+    let mn8mohan = "<p><span class='evam'>Ainsi ai-je entendu :</span> une fois le Bienheureux séjournait dans le parc d’Anāthapiṇḍika, au bois de Jeta, près de la ville de Sāvatthi.</p>";
     let vmohan = wsTest.string2Vector(mn8mohan);
     let scoreMax = 0;
     let dbg = 0;
@@ -146,10 +142,10 @@ describe('word-space', ()=>{
     dbg && console.log(scan);
     should(scan.match).equal('mn8:1.2');
   });
-  it("TESTTESTsimilar() mn8:1.2", ()=>{
+  it("similar() mn8:1.2", ()=>{
     const msg = "test.WordSpace@148";
     let dbg = 0;
-    let mn8mohan = MN8_MOHAN[5];
+    let mn8mohan = "<p>En ce temps-là, un jour, l’Āyasmanta Mahā-Cunda, s’étant levé de son repos solitaire de l’après-midi, s’approcha de l’endroit où se trouvait le Bienheureux. S’étant approché, il rendit hommage au Bienheureux et s’assit à l’écart sur un côté. S’étant assis à l’écart sur un côté, l’Āyasmanta Mahā-Cunda dit au Bienheureux :</p>";
     let vmohan = wsTest.string2Vector(mn8mohan);
     let vmn8_expected = wsTest.string2Vector(MN8_NOE["mn8:2.1"]);
     let scoreMax = 0;
@@ -169,5 +165,55 @@ describe('word-space', ()=>{
     }, {similar:{}});
     dbg && console.log(msg, scan);
     should(scan.match).equal('mn8:2.1');
+  });
+  it("similar() mn8:3.3", ()=>{
+    const msg = "test.WordSpace@148";
+    let dbg = 0;
+    let mn8Expected = "Est-ce que, dès le début, en y prêtant attention, un monastique parvient à renoncer à ces croyances, à se libérer de ces conceptions ? » ";
+    let vmn8Expected = wsTest.string2Vector(MN8_NOE["mn8:2.1"]);
+    let scoreMax = 0;
+    let mn8mohan = "<p>« Vénéré, si toutes ces opinions diverses concernant la théorie du Soi ou concernant la théorie du monde se produisent chez les gens, sont-elles éliminées tout au début chez un bhikkhu lorsqu’il réfléchit correctement ? Ainsi, y a-t-il un abandon de ces opinions ? »</p>";
+    let vmohan = wsTest.string2Vector(mn8mohan);
+    dbg>1 && console.log(msg, 'vmn8Expected', vmn8Expected, vmohan);
+    let scan = Object.keys(MN8_NOE).reduce((a,k)=>{
+      let segText = MN8_NOE[k];
+      let vmn8 = wsTest.string2Vector(segText);
+      let score = vmn8.similar(vmohan);
+      a.similar[k] = score;
+      if (scoreMax < score) {
+        scoreMax = score;
+        a.match = k;
+        dbg && console.log(msg, 'better', k, score, 
+          vmohan.intersect(vmn8));
+      }
+      return a;
+    }, {similar:{}});
+    dbg>1 && console.log(msg, scan);
+    should(scan.match).equal('mn8:3.3');
+  });
+  it("TESTTESTsimilar() mn8:3.6", ()=>{
+    const msg = "test.WordSpace@148";
+    let dbg = 0;
+    let mn8Expected = "Un monastique renonce à ces croyances et se libère de ces conceptions en percevant avec clarté, grâce à la juste sagesse, leur origine, leur fondement et leur mécanisme, en réalisant : « Ceci n’est pas à moi, je ne suis pas cela, ce n’est pas mon soi. › ";
+    let vmn8Expected = wsTest.string2Vector(MN8_NOE["mn8:2.1"]);
+    let scoreMax = 0;
+    let mn8mohan = "<p>Le Bienheureux dit : « Ô Cunda, si toutes ces opinions diverses concernant la théorie du Soi ou concernant la théorie du monde se produisent chez les gens, lorsqu’on voit le lieu où ces diverses opinions se produisent, où ces diverses opinions restent installées, où ces diverses opinions circulent, lorsqu’on le voit selon la réalité tel qu’il est : « Ceci n’est pas à moi, ceci n’est pas moi, ceci n’est pas mon Soi », alors chez lui, ces mêmes opinions disparaissent, ces mêmes opinions sont abandonnées.</p>";
+    let vmohan = wsTest.string2Vector(mn8mohan);
+    dbg>1 && console.log(msg, 'vmn8Expected', vmn8Expected, vmohan);
+    let scan = Object.keys(MN8_NOE).reduce((a,k)=>{
+      let segText = MN8_NOE[k];
+      let vmn8 = wsTest.string2Vector(segText);
+      let score = vmn8.similar(vmohan);
+      a.similar[k] = score;
+      if (scoreMax < score) {
+        scoreMax = score;
+        a.match = k;
+        dbg && console.log(msg, 'better', k, score, 
+          vmohan.intersect(vmn8));
+      }
+      return a;
+    }, {similar:{}});
+    dbg>1 && console.log(msg, scan);
+    should(scan.match).equal('mn8:3.6');
   });
 });
