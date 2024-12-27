@@ -31,10 +31,9 @@
     "url": "https://github.com/sc-voice/text-tools/issues"
   },
   "homepage": "https://github.com/sc-voice/text-tools#readme",
-  "dependencies": {
-  },
   "devDependencies": {
     "eslint": "^9.17.0",
+    "mocha": "^11.0.1",
     "should": "^13.2.3"
   }
 }
