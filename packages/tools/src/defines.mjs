@@ -1,2 +1,1 @@
-export const DBG = {
-}
+export const DBG = {};
