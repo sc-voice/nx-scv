@@ -2,7 +2,7 @@
   "name": "@sc-voice/text-tools",
   "version": "1.1.0",
   "description": "Toxt utilities for SC-Voice",
-  "main": "main.mjs",
+  "main": "index.mjs",
   "files": [
     "LICENSE",
     "index.mjs",

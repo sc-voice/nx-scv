@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-//import { SuttaCentralId } from 'scv-esm/main.mjs';
-import { Unicode } from '../index.mjs';
+import { 
+  SuttaCentralId, 
+  Unicode,
+} from '../index.mjs';
 
 export default class SegDoc {
 	constructor(opts = {}) {
@@ -14,7 +16,7 @@ export default class SegDoc {
 
 	scids() {
 		let result = Object.keys(this.segMap);
-		//result.sort(SuttaCentralId.compareLow);
+		result.sort(SuttaCentralId.compareLow);
 		return result;
 	}
 
