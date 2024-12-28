@@ -1,5 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
 let SYMBOLS = {
 	0: {
 		name: 'digit',

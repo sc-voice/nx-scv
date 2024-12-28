@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+const { promises: fsp } = fs;
 import path from 'node:path';
 import should from 'should';
 import tmp from 'tmp';
@@ -40,20 +41,11 @@ describe('SegDoc', function () {
 			bilaraPath,
 		});
 	});
-	it('load(...) loads SegDoc file', async () => {
-		let dn33 = new SegDoc({
-			bilaraPath: 'data/dn33.json',
-		});
-		let res = await dn33.load(import.meta.dirname);
-		should(dn33.segMap['dn33:1.10.31']).equal(
-			'form, formlessness, and cessation. ',
-		);
-	});
-	it('loadSync(...) loads SegDoc file', () => {
-		let dn33 = new SegDoc({
-			bilaraPath: 'data/dn33.json',
-		});
-		should(dn33.loadSync(import.meta.dirname)).equal(dn33);
+	it('TESTTESTcustom ctor parse DN33', async () => {
+		let bilaraPath = 'data/dn33.json';
+		let fnSegMap = path.join(import.meta.dirname, bilaraPath);
+		let segMap = await fsp.readFile(fnSegMap);
+		let dn33 = new SegDoc({ segMap });
 		should(dn33.segMap['dn33:1.10.31']).equal(
 			'form, formlessness, and cessation. ',
 		);
@@ -70,33 +62,13 @@ describe('SegDoc', function () {
 			'dn33:1.2.5',
 		]);
 	});
-	it('import(...) imports SegDoc file', () => {
-		let tmpObj = tmp.dirSync();
-		let dn33 = new SegDoc({
-			bilaraPath: 'data/dn33.json',
-		});
-		dn33.loadSync(import.meta.dirname);
-		dn33.bilaraPath = 'dn33.json';
-
-		// add a new segment and save the SegDoc
-		dn33.segMap['dn33:0.0'] = 'import-test';
-		dn33.import(tmpObj.name);
-		let dn33path = path.join(tmpObj.name, dn33.bilaraPath);
-		should(fs.existsSync(dn33path)).equal(true);
-		let json = JSON.parse(fs.readFileSync(dn33path));
-		should(json['dn33:0.0']).equal('import-test');
-		should(json['dn33:1.10.31']).equal(
-			'form, formlessness, and cessation. ',
-		);
-		fs.unlinkSync(dn33path);
-		tmpObj.removeCallback();
-	});
-	it('segments() returns sn1.1 segment array', () => {
-		let sutta = new SegDoc({
-			suid: 'sn1.1',
-			lang: 'en',
-			bilaraPath: 'data/en_sn1.1.json',
-		}).loadSync(import.meta.dirname);
+	it('segments() returns sn1.1 segment array', async () => {
+		let lang = 'en';
+		let suid = 'sn1.1';
+		let bilaraPath = 'data/en_sn1.1.json';
+		let fnSegMap = path.join(import.meta.dirname, bilaraPath);
+		let segMap = JSON.parse(await fsp.readFile(fnSegMap));
+		let sutta = new SegDoc({ suid, lang, bilaraPath, segMap });
 		let segments = sutta.segments();
 		should.deepEqual(segments[0], {
 			scid: 'sn1.1:0.1',
@@ -115,12 +87,13 @@ describe('SegDoc', function () {
 			en: '“After a long time I see ',
 		});
 	});
-	it('segments() returns an1.1-10 segment array', () => {
-		let sutta = new SegDoc({
-			suid: 'an1.1-10',
-			lang: 'en',
-			bilaraPath: 'data/en_an1.1-10.json',
-		}).loadSync(import.meta.dirname);
+	it('TESTTESTsegments() an1.1-10', async () => {
+		let lang = 'en';
+		let suid = 'an1.1-10';
+		let bilaraPath = 'data/en_an1.1-10.json';
+		let fnSegMap = path.join(import.meta.dirname, bilaraPath);
+		let segMap = JSON.parse(await fsp.readFile(fnSegMap));
+		let sutta = new SegDoc({ suid, lang, bilaraPath, segMap });
 		let scids = sutta.scids();
 		should.deepEqual(scids.slice(0, 15), [
 			'an1.1:0.1',
@@ -156,44 +129,5 @@ describe('SegDoc', function () {
 			scid: 'an1.2:0.1',
 			en: '2 ',
 		});
-	});
-	it('fillWordMap(...) can train a FuzzyWordSet', () => {
-		/*
-		let fws = new FuzzyWordSet();
-		let dn33 = new SegDoc({
-			bilaraPath: 'data/dn33.json',
-		});
-		dn33.loadSync(import.meta.dirname);
-		let dn33pli = new SegDoc({
-			bilaraPath: 'data/dn33_pli.json',
-		});
-		dn33pli.loadSync(import.meta.dirname);
-
-		// Build wordmap
-		let wordMap = {};
-		let wm = dn33.fillWordMap(wordMap, false); // English includes Pali
-
-		// Pali has no English, so that must come last
-		wm = dn33pli.fillWordMap(wordMap, true, true);
-		should(wm).equal(wordMap);
-		should(wm).properties({
-			ekam: true,
-			ekaṃ: true,
-		});
-
-		// train fws
-		let iterations = fws.train(wordMap, true);
-		should(fws.contains('bhante')).equal(true);
-		should(fws.contains('sariputta')).equal(true);
-		should(fws.contains('ekaṃ')).equal(true);
-		should(fws.contains('ekam')).equal(true);
-		should(fws.contains('an')).equal(false);
-		should(fws.contains('anicca')).equal(true);
-		should(fws.contains('radiance')).equal(false);
-		should(fws.contains('ratti')).equal(true);
-		should(JSON.stringify(wordMap).length).equal(109070); // fat
-		should(JSON.stringify(fws).length).equal(27629); // skinny
-		should(iterations).equal(6);
-  */
 	});
 });

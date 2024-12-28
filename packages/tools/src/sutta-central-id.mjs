@@ -113,8 +113,8 @@ export default class SuttaCentralId {
 	static partNumber(part, id) {
 		const msg = 'SuttaCentralId.partNumber() ';
 		let n = Number(part);
-    let n0;
-    let n1;
+		let n0;
+		let n1;
 		if (Number.isNaN(n)) {
 			let caretParts = part.split('^');
 			let [c0, c1] = caretParts;
@@ -333,7 +333,7 @@ export default class SuttaCentralId {
 	add(...args) {
 		let prefix = this.nikaya;
 		let id = this.scid.substring(prefix.length);
-    let id2;
+		let id2;
 		let colonParts = id.split(':');
 		if (colonParts.length > 1) {
 			// segment id
