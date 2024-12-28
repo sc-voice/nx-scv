@@ -152,19 +152,21 @@ function md5blk(s) {
 	return md5blks;
 }
 
-const hex_chr = "0123456789abcdef".split("");
+const hex_chr = '0123456789abcdef'.split('');
 
 function rhex(n) {
-	let s = "",
+	let s = '',
 		j = 0;
 	for (; j < 4; j++)
-		s += hex_chr[(n >> (j * 8 + 4)) & 0x0f] + hex_chr[(n >> (j * 8)) & 0x0f];
+		s +=
+			hex_chr[(n >> (j * 8 + 4)) & 0x0f] +
+			hex_chr[(n >> (j * 8)) & 0x0f];
 	return s;
 }
 
 function hex(x) {
 	for (let i = 0; i < x.length; i++) x[i] = rhex(x[i]);
-	return x.join("");
+	return x.join('');
 }
 
 function md5(s) {
@@ -181,7 +183,7 @@ function add32(a, b) {
 	return (a + b) & 0xffffffff;
 }
 
-if (md5("hello") != "5d41402abc4b2a76b9719d911017c592") {
+if (md5('hello') != '5d41402abc4b2a76b9719d911017c592') {
 	function add32(x, y) {
 		let lsw = (x & 0xffff) + (y & 0xffff),
 			msw = (x >> 16) + (y >> 16) + (lsw >> 16);
@@ -192,56 +194,60 @@ if (md5("hello") != "5d41402abc4b2a76b9719d911017c592") {
 
 export default class MerkleJson {
 	constructor(opts = {}) {
-		this.hashTag = opts.hashTag || "merkleHash";
+		this.hashTag = opts.hashTag || 'merkleHash';
 	}
 
 	hash(value, cached = true) {
-		if (typeof value === "string") {
+		if (typeof value === 'string') {
 			return md5(value);
 		} else if (value instanceof Array) {
-			let acc = "";
+			let acc = '';
 			acc = value.reduce((a, v) => a + this.hash(v, cached), acc);
 			return this.hash(acc, cached);
-		} else if (typeof value === "number") {
-			value = value + "";
+		} else if (typeof value === 'number') {
+			value = value + '';
 			return this.hash(value);
 		} else if (value instanceof Date) {
 			return this.hash(value.toJSON());
 		} else if (value === false) {
-			return this.hash("false");
+			return this.hash('false');
 		} else if (value === true) {
-			return this.hash("true");
+			return this.hash('true');
 		} else if (value === null) {
-			return this.hash("null");
+			return this.hash('null');
 		} else if (value === undefined) {
-			return this.hash("undefined");
-		} else if (typeof value === "function") {
+			return this.hash('undefined');
+		} else if (typeof value === 'function') {
 			return this.hash(value.toString());
-		} else if (typeof value === "object") {
+		} else if (typeof value === 'object') {
 			if (cached && value[this.hashTag]) {
 				return value[this.hashTag];
 			}
 			let keys = Object.keys(value).sort();
 			let acc = keys.reduce((a, k) => {
-				return k === this.hashTag ? a : a + k + ":" + this.hash(value[k]) + ",";
-			}, "");
+				return k === this.hashTag
+					? a
+					: a + k + ':' + this.hash(value[k]) + ',';
+			}, '');
 			return this.hash(acc);
 		}
-		throw new Error("hash() not supported:" + typeof value);
+		throw new Error('hash() not supported:' + typeof value);
 	}
 
 	stringify(value) {
 		if (value instanceof Array) {
 			let body = value.reduce((a, v) => {
-				return a ? `${a},${this.stringify(v)}` : `${this.stringify(v)}`;
-			}, "");
+				return a
+					? `${a},${this.stringify(v)}`
+					: `${this.stringify(v)}`;
+			}, '');
 			return `[${body}]`;
 		} else if (value instanceof Date) {
 			return `"${value.toJSON()}"`;
 		} else if (value === null) {
 			return JSON.stringify(value);
-		} else if (typeof value === "object") {
-			if (typeof value.toJSON === "function") {
+		} else if (typeof value === 'object') {
+			if (typeof value.toJSON === 'function') {
 				value = JSON.parse(JSON.stringify(value));
 			}
 			let keys = Object.keys(value).sort();
@@ -249,10 +255,10 @@ export default class MerkleJson {
 				return a
 					? `${a},"${k}":${this.stringify(value[k])}`
 					: `"${k}":${this.stringify(value[k])}`;
-			}, "");
+			}, '');
 			return `{${body}}`;
 		}
 
-    return JSON.stringify(value);
+		return JSON.stringify(value);
 	}
 } // class MerkleJson

@@ -22,14 +22,19 @@
 		"rules": {
 			"recommended": true,
       "complexity": {
+        "noForEach": "off",
         "noUselessConstructor": "off"
       },
       "style": {
         "useConst": "off",
         "noParameterAssign": "off",
         "useTemplate": "off",
+        "noUnusedTemplateLiteral": "off",
         "useSingleVarDeclarator": "off",
         "noUselessElse": "off"
+      },
+      "performance": {
+        "noDelete": "off"
       },
       "suspicious": {
         "noDoubleEquals": "off",
