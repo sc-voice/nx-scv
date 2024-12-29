@@ -62,14 +62,8 @@ export default class BilaraPath {
 
 	static pathParts(bilaraPath) {
 		let bpParts = bilaraPath.split('/');
-    let fname = bpParts.pop();
-    let [
-      type,
-      lang,
-      author_uid,
-      category,
-      collection,
-    ] = bpParts;
+		let fname = bpParts.pop();
+		let [type, lang, author_uid, category, collection] = bpParts;
 		let suid = fname.replace(/_.*$/, '');
 		let suttaRef = `${suid}/${lang}/${author_uid}`;
 		return {
