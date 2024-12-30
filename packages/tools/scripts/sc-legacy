@@ -12,6 +12,7 @@ const path = require('path');
 const exec = util.promisify(require('child_process').exec);
 let [ NODE, DASH, DIRNAME, SCRIPT, ...args] = process.argv;
 const MAX_BUFFER = 10 * 1024 * 1024;
+const INDEX_PATH = './index.mjs';
 
 const msg = `${SCRIPT}:`;
 
@@ -32,11 +33,23 @@ DESCRIPTION
   -l, --lang LANG
     two-letter language code (e.g., fr, de)
 
-  -a, --author AUTHOR
-    SuttaCentral author id (e.g., sujato)
+  -aa, --author-aligned AUTHOR
+    SuttaCentral aligned author id (e.g., noeismet)
+  
+  -al, --author-legacy AUTHOR
+    SuttaCentral legacy author id (e.g., wijayaratna)
   
   -mb, --max-buffer MAXBUFFER
     Maximum MB of downloaded content (default: 10)
+
+  -fl, --format-legacy 
+    Format output as legacy JSON from SuttaCentra api endpoint.
+
+  -os, --out-stdout
+    Send output to stdout
+
+  -od, --out-dir DIR_ROOT
+    Send output to directory DIR_ROOT (e.g., local/ebt-data)
 
   -v, --verbose
     print more information to stderr
@@ -45,7 +58,8 @@ DESCRIPTION
     Space-separated list of suttas (e.g., mn8)
 
 EXAMPLES
-  ${SCRIPT} -l fr -a mohan mn8
+  ${SCRIPT} -l fr -al wijayaratna -aa noeismet -ol mn8
+  ${SCRIPT} -l fr -ol mn8
 `);
   process.exit(0);
 }
@@ -55,8 +69,12 @@ function parseArgs() {
   // default values
   let dbg = 0;
   let langDflt;
-  let authorDflt;
+  let authorLegacy;
+  let authorAligned;
   let maxBuffer = MAX_BUFFER;
+  let format = 'legacy';
+  let outType = 'stdout';
+  let outDir = 'local';
 
   let sutta_ids = [];
   for (let i=0; i<args.length; i++) {
@@ -74,9 +92,26 @@ function parseArgs() {
       case '--lang':
         langDflt = args[++i];
         break;
-      case '-a':
-      case '--author':
-        authorDflt = args[++i];
+      case '-al':
+      case '--author-legacy':
+        authorLegacy = args[++i];
+        break;
+      case '-aa':
+      case '--author-aligned':
+        authorAligned = args[++i];
+        break;
+      case '-fl':
+      case '--format-legacy':
+        format = 'legacy';
+        break;
+      case '-os':
+      case '--out-stdout':
+        outType = 'stdout';
+        break;
+      case '-od':
+      case '--out-dir':
+        outType = 'dir';
+        outDir = args[++i];
         break;
       case "--verbose":
       case "-v":
@@ -104,8 +139,12 @@ function parseArgs() {
     dbg,
     sutta_ids,
     langDflt,
-    authorDflt,
+    authorLegacy,
+    authorAligned,
     maxBuffer,
+    format,
+    outDir,
+    outType,
   }
   return result;
 }
@@ -113,26 +152,47 @@ let {
   dbg,
   sutta_ids,
   langDflt,
-  authorDflt,
+  authorLegacy,
+  authorAligned,
   maxBuffer,
+  format,
+  outType,
+  outDir,
 } = parseArgs();
 if (sutta_ids.length===0) {
   help();
 }
-if (authorDflt == null) {
+if (authorLegacy == null) {
   switch (langDflt) {
     case 'fr':
-      authorDflt = 'wijayaratna';
+      authorLegacy = 'wijayaratna';
+      break;
+  }
+}
+if (authorAligned == null) {
+  switch (langDflt) {
+    case 'fr':
+      authorAligned = 'noeismet';
       break;
   }
 }
 dbg && console.error(msg, Object.assign({
-  NODE,DASH, DIRNAME, SCRIPT, sutta_ids, langDflt, authorDflt,
-  maxBuffer,
+  NODE,DASH, DIRNAME, SCRIPT, sutta_ids, 
+  langDflt, authorLegacy, authorAligned,
+  outType, outDir, maxBuffer,
 }));
+
+async function outLegacy(outPath, json) {
+  const msg = `${SCRIPT}.outLegacy:`;
+  await fs.promises.mkdir(path.dirname(outPath), {recursive:true});
+  let output = JSON.stringify(json.translation,null,2);
+  await fs.promises.writeFile(outPath, output);
+}
 
 async function main() {
   const msg = `${SCRIPT}.main:`;
+  console.log(msg, INDEX_PATH);
+  const { BilaraPath } = await import(INDEX_PATH);
 
   for (let i=0; i<sutta_ids.length; i++) {
     let si = sutta_ids[i];
@@ -140,7 +200,7 @@ async function main() {
     let [ 
       sutta_id, 
       lang = langDflt, 
-      author = authorDflt, 
+      author = authorLegacy, 
     ] = si.split('/');
     let url = [
       'https://suttacentral.net/api/suttas',
@@ -154,7 +214,24 @@ async function main() {
     let json = JSON.parse(stdout);
     let lines = json.translation.text.split('\n');
     json.translation.text = lines;
-    console.log(JSON.stringify(json.translation,null,2));
+    let output;
+    switch (format) {
+      case 'legacy': 
+      default:
+        output = json;
+        break;
+    }
+    switch (outType) {
+      case 'dir': {
+        let bp = BilaraPath.legacyPath(sutta_id, lang, authorLegacy);
+        let outPath = path.join(outDir, bp);
+        outLegacy(outPath, output);
+      } break;
+      case 'stdout':
+      default:
+        console.log(JSON.stringify(output, null, 2));
+        break;
+    } break;
   }
 }
 

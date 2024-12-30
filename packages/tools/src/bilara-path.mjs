@@ -42,6 +42,10 @@ export default class BilaraPath {
     ].join('/');
   }
 
+  static legacyPath(mid, lang, auth) {
+    return [`${mid}_legacy-${lang}-${auth}.json`].join('/');
+  }
+
   static translationPath(mid, lang, auth) {
     return [
       'translation',

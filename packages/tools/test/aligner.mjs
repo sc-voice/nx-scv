@@ -14,7 +14,9 @@ const MN8_NOE = JSON.parse(
 );
 const MN8_SRC_DOC = new SegDoc({ segMap: MN8_NOE });
 const MN8_MOHAN_JSON = JSON.parse(
-  fs.readFileSync(path.join(TEST_DATA, 'mn8-fr.json')),
+  fs.readFileSync(
+    path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json'),
+  ),
 );
 const MN8_MOHAN = MN8_MOHAN_JSON.text;
 const MN8_LEG_DOC = LegacyDoc.create(MN8_MOHAN_JSON);
