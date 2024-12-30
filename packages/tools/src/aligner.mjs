@@ -5,74 +5,17 @@ import WordSpace from './word-space.mjs';
 
 let alignmentCtor = false;
 
-class Alignment {
-  constructor(opts = {}) {
-    const msg = 'Alignment.ctor:';
-    if (!alignmentCtor) {
-      throw new Error(`${msg} createAlignment()?`);
-    }
-
-    Object.assign(this, opts);
-    Object.defineProperty(this, "lang", {
-      get: ()=>this.aligner.lang,
-    });
-    Object.defineProperty(this, "scanSize", {
-      get: ()=>this.aligner.scanSize,
-    });
-    Object.defineProperty(this, "groupSize", {
-      get: ()=>this.aligner.groupSize,
-    });
-    Object.defineProperty(this, "minScore", {
-      get: ()=>this.aligner.minScore,
-    });
-    Object.defineProperty(this, "wordSpace", {
-      get: ()=>this.aligner.wordSpace,
-    });
-  }
-
-  legacySegId(legacyText, iStart = 0) {
-    const msg = 'Alignment.legacySegId:';
-    const dbg = 0;
-    let { segIds, vSegDoc, wordSpace, scanSize, minScore } = this;
-    let vLegacy = wordSpace.string2Vector(legacyText);
-    let scoreMax = 0;
-    let scoreId;
-    for (let i = 0; i < scanSize; i++) {
-      let segId = segIds[iStart + i];
-      if (segId == null) {
-        break;
-      }
-      let vSeg = vSegDoc[segId];
-      let score = vLegacy.similar(vSeg);
-      if (minScore <= score && scoreMax < score) {
-        scoreMax = score;
-        scoreId = segId;
-      }
-    }
-
-    if (scoreId == null) {
-      return undefined;
-    }
-    let vSeg = vSegDoc[scoreId];
-    let intersection = vLegacy.intersect(vSeg);
-    return {
-      score: scoreMax,
-      segId: scoreId,
-      intersection,
-    };
-  }
-}
-
 export default class Aligner {
   constructor(opts = {}) {
     const msg = 'Aligner.ctor:';
     let {
-      authorAligned,
-      authorLegacy,
-      groupSize = 2, // comparison group size
-      lang,
+      authorAligned, // author of segment aligned document
+      authorLegacy, // author of legacy document
+      groupSize = 1, // comparison group size
+      groupDecay = 0.5, // group exponential decay
+      lang, // 2-letter ISO language (en, fr, es, pt)
       minScore = 0.1, // minimum alignment score
-      scanSize = 10,  // maximum segments to scan for alignment
+      scanSize = 10, // maximum segments to scan for alignment
       wordSpace,
     } = opts;
     if (wordSpace == null) {
@@ -86,6 +29,7 @@ export default class Aligner {
       authorAligned,
       authorLegacy,
       groupSize,
+      groupDecay,
       lang,
       minScore,
       scanSize,
@@ -100,10 +44,7 @@ export default class Aligner {
   createAlignment(opts = {}) {
     const msg = 'Alignment.createAlignment:';
     const dbg = 0;
-    let {
-      legacyDoc,
-      segDoc,
-    } = opts;
+    let { legacyDoc, segDoc } = opts;
     if (!(legacyDoc instanceof LegacyDoc)) {
       throw new Error(`${msg} LegacyDoc?`);
     }
@@ -131,7 +72,7 @@ export default class Aligner {
 
   segDocVectors(segDoc) {
     const msg = 'Aligner.segDocVectors';
-    let { groupSize, wordSpace } = this;
+    let { groupDecay, groupSize, wordSpace } = this;
     let { segMap } = segDoc;
     let segIds = Object.keys(segMap);
     let iLastSeg = segIds.length - 1;
@@ -145,8 +86,13 @@ export default class Aligner {
       if (segGroup.length > groupSize) {
         segGroup.pop();
       }
-      let groupText = segGroup.join(' ');
-      vectorMap[segId] = wordSpace.string2Vector(groupText);
+      let scale = 1;
+      let vGroup = segGroup.reduce((a, seg, i) => {
+        let vScale = wordSpace.string2Vector(seg, scale);
+        scale *= groupDecay;
+        return a.add(vScale);
+      }, new WordSpace.Vector());
+      vectorMap[segId] = vGroup;
     }
     return vectorMap;
   }
@@ -187,5 +133,66 @@ export default class Aligner {
 			{ similar: {} },
 		);
     */
+  }
+}
+
+class Alignment {
+  constructor(opts = {}) {
+    const msg = 'Alignment.ctor:';
+    if (!alignmentCtor) {
+      throw new Error(`${msg} createAlignment()?`);
+    }
+
+    Object.assign(this, opts);
+    Object.defineProperty(this, 'lang', {
+      get: () => this.aligner.lang,
+    });
+    Object.defineProperty(this, 'scanSize', {
+      get: () => this.aligner.scanSize,
+    });
+    Object.defineProperty(this, 'groupSize', {
+      get: () => this.aligner.groupSize,
+    });
+    Object.defineProperty(this, 'groupDecay', {
+      get: () => this.aligner.groupDecay,
+    });
+    Object.defineProperty(this, 'minScore', {
+      get: () => this.aligner.minScore,
+    });
+    Object.defineProperty(this, 'wordSpace', {
+      get: () => this.aligner.wordSpace,
+    });
+  }
+
+  legacySegId(legacyText, iStart = 0) {
+    const msg = 'Alignment.legacySegId:';
+    const dbg = 0;
+    let { segIds, vSegDoc, wordSpace, scanSize, minScore } = this;
+    let vLegacy = wordSpace.string2Vector(legacyText);
+    let scoreMax = 0;
+    let scoreId;
+    for (let i = 0; i < scanSize; i++) {
+      let segId = segIds[iStart + i];
+      if (segId == null) {
+        break;
+      }
+      let vSeg = vSegDoc[segId];
+      let score = vLegacy.similar(vSeg);
+      if (minScore <= score && scoreMax < score) {
+        scoreMax = score;
+        scoreId = segId;
+      }
+    }
+
+    if (scoreId == null) {
+      return undefined;
+    }
+    let vSeg = vSegDoc[scoreId];
+    let intersection = vLegacy.intersect(vSeg);
+    return {
+      score: scoreMax,
+      segId: scoreId,
+      intersection,
+    };
   }
 }

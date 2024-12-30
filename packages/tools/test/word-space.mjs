@@ -35,7 +35,7 @@ describe('word-space', () => {
     should.deepEqual(ws.wordMap, wordMap);
     should(ws.wordMap).not.equal(wordMap);
   });
-  it('string2Vector() FOX', () => {
+  it('TESTTESTstring2Vector() FOX', () => {
     let v = wsTest.string2Vector(FOX);
     should.deepEqual(
       v,
@@ -51,6 +51,23 @@ describe('word-space', () => {
       }),
     );
     should(v.length).equal(7);
+
+    let scale = 0.8;
+    let v8 = wsTest.string2Vector(FOX, scale);
+    should.deepEqual(
+      v8,
+      new Vector({
+        // a: 1*scale, // minWord
+        brown: 1 * scale,
+        fence: 1 * scale,
+        fox: 2 * scale,
+        jumped: 1 * scale,
+        over: 1 * scale,
+        quick: 1 * scale,
+        the: 1 * scale,
+      }),
+    );
+    should(v8.length).equal(7);
   });
   it('string2Vector() Bienheureux', () => {
     let v = wsTest.string2Vector('le Bienheureux dit');
@@ -62,6 +79,12 @@ describe('word-space', () => {
       }),
     );
     should(v.length).equal(2);
+  });
+  it('add()', () => {
+    let v1 = new Vector({ a: 1, b: 2 });
+    let v2 = new Vector({ b: 10, c: 10 });
+    let v3 = v1.add(v2);
+    should.deepEqual(v3, new Vector({ a: 1, b: 12, c: 10 }));
   });
   it('norm()', () => {
     let a = new Vector({ a: 2 });

@@ -26,6 +26,17 @@ class Vector extends Object {
     return Math.sqrt(sumSqr);
   }
 
+  add(vec2) {
+    let keys = Object.keys(vec2);
+    return keys.reduce((a, k) => {
+      let v2 = vec2[k];
+      if (v2) {
+        a[k] = (a[k] || 0) + v2;
+      }
+      return a;
+    }, new Vector(this));
+  }
+
   dot(vec2) {
     let keys = Object.keys(this);
     return keys.reduce((a, k) => {
@@ -103,7 +114,7 @@ export default class WordSpace {
     return Vector;
   }
 
-  string2Vector(str) {
+  string2Vector(str, scale = 1) {
     const msg = 'WordSpace.string2Vector:';
     let dbg = 0;
     let { normalize, minWord, wordMap } = this;
@@ -119,7 +130,7 @@ export default class WordSpace {
         w = wordMap[w].toLowerCase();
       }
       if (w.length >= minWord) {
-        a[w] = (a[w] || 0) + 1;
+        a[w] = (a[w] || 0) + scale;
       }
       return a;
     }, new Vector());
