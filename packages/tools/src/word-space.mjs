@@ -38,6 +38,10 @@ class Vector extends Object {
   }
 
   dot(vec2) {
+    const msg = 'WordSpace.dot:';
+    if (vec2 == null) {
+      throw new Error(`${msg} vec2?`);
+    }
     let keys = Object.keys(this);
     return keys.reduce((a, k) => {
       let v1 = this[k];
@@ -61,6 +65,10 @@ class Vector extends Object {
   }
 
   similar(vec2) {
+    const msg = 'WordSpace.similar:';
+    if (vec2 == null) {
+      throw new Error(`${msg} vec2?`);
+    }
     let d = this.dot(vec2);
     let norm1 = this.norm();
     let norm2 = vec2.norm();
@@ -116,6 +124,9 @@ export default class WordSpace {
 
   string2Vector(str, scale = 1) {
     const msg = 'WordSpace.string2Vector:';
+    if (str == null) {
+      throw new Error(`${msg} str?`);
+    }
     let dbg = 0;
     let { normalize, minWord, wordMap } = this;
     let sNorm = normalize(str)

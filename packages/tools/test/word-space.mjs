@@ -37,7 +37,7 @@ describe('word-space', () => {
     should.deepEqual(ws.wordMap, wordMap);
     should(ws.wordMap).not.equal(wordMap);
   });
-  it('TESTTESTstring2Vector() FOX', () => {
+  it('string2Vector() FOX', () => {
     let v = wsTest.string2Vector(FOX);
     should.deepEqual(
       v,
@@ -227,7 +227,7 @@ describe('word-space', () => {
     dbg > 1 && console.log(msg, scan);
     should(scan.match).equal('mn8:3.3');
   });
-  it('TESTTESTsimilar() mn8:3.6', () => {
+  it('similar() mn8:3.6', () => {
     const msg = 'test.WordSpace@148';
     let dbg = 0;
     let mn8Expected =
@@ -263,7 +263,7 @@ describe('word-space', () => {
     dbg > 1 && console.log(msg, scan);
     should(scan.match).equal('mn8:3.6');
   });
-  it('TESTTESTnormalizeFR()', () => {
+  it('normalizeFR()', () => {
     let { normalizeFR } = WordSpace;
     should(normalizeFR('L’effacement de')).equal('effacement de');
     should(normalizeFR('de L’effacement')).equal('de effacement');

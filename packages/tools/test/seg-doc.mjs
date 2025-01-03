@@ -41,7 +41,7 @@ describe('SegDoc', function () {
       bilaraPath,
     });
   });
-  it('TESTTESTcustom ctor parse DN33', async () => {
+  it('custom ctor parse DN33', async () => {
     let bilaraPath = 'data/dn33.json';
     let fnSegMap = path.join(import.meta.dirname, bilaraPath);
     let segMap = await fsp.readFile(fnSegMap);
@@ -87,7 +87,7 @@ describe('SegDoc', function () {
       en: '“After a long time I see ',
     });
   });
-  it('TESTTESTsegments() an1.1-10', async () => {
+  it('segments() an1.1-10', async () => {
     let lang = 'en';
     let suid = 'an1.1-10';
     let bilaraPath = 'data/en_an1.1-10.json';

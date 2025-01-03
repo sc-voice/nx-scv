@@ -12,6 +12,8 @@ const MN8_NOE = JSON.parse(
     path.join(TEST_DATA, 'mn8_translation-fr-noeismet.json'),
   ),
 );
+const MN8_MLD_PATH = path.join(TEST_DATA, 'mn8-fr-noeismet.mld.json');
+const MN8_MLD = JSON.parse(fs.readFileSync(MN8_MLD_PATH));
 const MN8_SRC_DOC = new SegDoc({ segMap: MN8_NOE });
 const MN8_MOHAN_JSON = JSON.parse(
   fs.readFileSync(
@@ -25,14 +27,15 @@ const WSTEST_CONFIG = JSON.parse(
 );
 const WSTEST = new WordSpace(WSTEST_CONFIG);
 
+let testId = '';
 describe('Aligner', () => {
   it('default ctor', () => {
-    let al = new Aligner();
-    should(al.wordSpace).instanceOf(WordSpace);
-    should(al.groupSize).equal(1);
-    should(al.groupDecay).equal(0.5);
-    should(al.minScore).equal(0.1);
-    should(al.scanSize).equal(10);
+    let aligner = new Aligner();
+    should(aligner.wordSpace).instanceOf(WordSpace);
+    should(aligner.groupSize).equal(1);
+    should(aligner.groupDecay).equal(0.5);
+    should(aligner.minScore).equal(0.1);
+    should(aligner.scanSize).equal(10);
   });
   it('custom ctor', () => {
     let lang = 'fr';
@@ -42,7 +45,7 @@ describe('Aligner', () => {
     let scanSize = 11;
     let authorLegacy = 'legacy-author';
     let authorAligned = 'aligned-author';
-    let al = new Aligner({
+    let aligner = new Aligner({
       authorAligned,
       authorLegacy,
       groupSize,
@@ -51,17 +54,17 @@ describe('Aligner', () => {
       scanSize,
       wordSpace,
     });
-    should(al.wordSpace).equal(wordSpace);
-    should(al.groupSize).equal(groupSize);
-    should(al.groupDecay).equal(groupDecay);
-    should(al.scanSize).equal(scanSize);
-    should(al.lang).equal(lang);
-    should(al.wordSpace.lang).equal(lang);
+    should(aligner.wordSpace).equal(wordSpace);
+    should(aligner.groupSize).equal(groupSize);
+    should(aligner.groupDecay).equal(groupDecay);
+    should(aligner.scanSize).equal(scanSize);
+    should(aligner.lang).equal(lang);
+    should(aligner.wordSpace.lang).equal(lang);
   });
   it('segDocVectors groupSize:1', () => {
     let groupSize = 1;
     let wordSpace = WSTEST;
-    let al = new Aligner({ wordSpace, groupSize });
+    let aligner = new Aligner({ wordSpace, groupSize });
     let segDoc = {
       segMap: {
         s1: 'one',
@@ -69,7 +72,7 @@ describe('Aligner', () => {
         s3: 'three',
       },
     };
-    let vectors = al.segDocVectors(segDoc);
+    let vectors = aligner.segDocVectors(segDoc);
     should.deepEqual(vectors.s1, new Vector({ one: 1 }));
     should.deepEqual(vectors.s2, new Vector({ two: 1 }));
     should.deepEqual(vectors.s3, new Vector({ three: 1 }));
@@ -78,7 +81,7 @@ describe('Aligner', () => {
     let groupSize = 2;
     let groupDecay = 0.7;
     let wordSpace = WSTEST;
-    let al = new Aligner({ wordSpace, groupSize, groupDecay });
+    let aligner = new Aligner({ wordSpace, groupSize, groupDecay });
     let segDoc = {
       segMap: {
         s1: 'one',
@@ -86,7 +89,7 @@ describe('Aligner', () => {
         s3: 'three',
       },
     };
-    let vectors = al.segDocVectors(segDoc);
+    let vectors = aligner.segDocVectors(segDoc);
     should.deepEqual(
       vectors.s1,
       new Vector({ one: 1, two: groupDecay }),
@@ -101,7 +104,7 @@ describe('Aligner', () => {
     let groupSize = 3;
     let groupDecay = 0.7;
     let wordSpace = WSTEST;
-    let al = new Aligner({ wordSpace, groupSize, groupDecay });
+    let aligner = new Aligner({ wordSpace, groupSize, groupDecay });
     let segDoc = {
       segMap: {
         s1: 'one',
@@ -110,7 +113,7 @@ describe('Aligner', () => {
         s4: 'four',
       },
     };
-    let vectors = al.segDocVectors(segDoc);
+    let vectors = aligner.segDocVectors(segDoc);
     let groupDecay2 = groupDecay * groupDecay;
     should.deepEqual(
       vectors.s1,
@@ -127,8 +130,8 @@ describe('Aligner', () => {
     should.deepEqual(vectors.s4, new Vector({ four: 1 }));
   });
   it('align2SegDoc()', () => {
-    let al = new Aligner({ wordSpace: WSTEST });
-    al.align2SegDoc(MN8_LEG_DOC, MN8_SRC_DOC);
+    let aligner = new Aligner({ wordSpace: WSTEST });
+    aligner.align2SegDoc(MN8_LEG_DOC, MN8_SRC_DOC);
   });
 });
 
@@ -169,8 +172,8 @@ describe('Alignment', () => {
       3: 'mn8:1.2',
     });
   });
-  it('TESTTESTlegacySegId() groupDecay:0', () => {
-    const msg = 'ALIGNER.groupSize1:';
+  it('legacySegId() groupDecay:0', () => {
+    const msg = 'ALIGNER.groupDecay0:';
     let legacyDoc = MN8_LEG_DOC;
     let segDoc = MN8_SRC_DOC;
     let dbg = 0;
@@ -231,11 +234,12 @@ describe('Alignment', () => {
         res.map((r) => ({ segId: r.segId, score: r.score })),
       );
   });
-  it('TESTTESTlegacySegId() groupDecay', () => {
-    const msg = 'ALIGNER.groupSize1:';
+  testId = 'leg-groupSize1';
+  it(`legacySegId() ${testId}`, () => {
+    const msg = `ALIGNER.${testId}:`;
     let legacyDoc = MN8_LEG_DOC;
     let segDoc = MN8_SRC_DOC;
-    let dbg = 0;
+    let dbg = 1;
     let groupSize = 2;
     let groupDecay = 0.8;
     let lang = 'fr';
@@ -298,5 +302,148 @@ describe('Alignment', () => {
           intersection: r.intersection,
         })),
       );
+  });
+  it("fetchMLDoc()", async()=>{
+    const msg = 'ALIGNER@303:';
+    let lang = 'fr';
+    let authorAligned = 'noeismet';
+    let aligner = new Aligner({lang, authorAligned});
+    let mld = await aligner.fetchMLDoc('mn8');
+    console.log(msg, 'mld', mld);
+  });
+  it('mlDocVectors groupSize:1', () => {
+    let groupSize = 1;
+    let wordSpace = WSTEST;
+    let alignPali = true;
+    let aligner = new Aligner({ wordSpace, groupSize, alignPali });
+    let mld = {
+      "bilaraPaths": [],
+      "author_uid": "noeismet",
+      "sutta_uid": "mn8",
+      "lang": "fr",
+      segMap: {
+        s1: {
+          "scid": "mn8:0.1",
+          "pli": "onePli",
+          "fr": "onefr",
+          "ref": "oneref",
+        },
+        s2: {
+          "scid": "mn8:0.2",
+          "pli": "twopli",
+          "fr": "twofr",
+          "ref": "tworef",
+        },
+        s3: {
+          "scid": "mn8:0.3",
+          "pli": "threepli",
+          "fr": "threefr",
+          "ref": "threeref",
+        },
+      },
+    };
+    let vectors = aligner.mlDocVectors(mld);
+    should.deepEqual(vectors.s1, new Vector({ onefr: 1, onepli: 1}));
+    should.deepEqual(vectors.s2, new Vector({ twofr: 1, twopli: 1 }));
+    should.deepEqual(vectors.s3, new Vector({ threefr: 1, threepli: 1 }));
+  });
+  testId = 'mld-groupDecay0';
+  it(`TESTTESTlegacySegId() ${testId}`, () => {
+    const msg = `ALIGNER.${testId}:`;
+    let legacyDoc = MN8_LEG_DOC;
+    let mlDoc = MN8_MLD;
+    let dbg = 1;
+    let groupSize = 2;
+    let groupDecay = 0; // equivalent to groupSize 1;
+    let lang = 'fr';
+    let alignPali = 0; // pointless
+    let wordSpace = WSTEST;
+    let aligner = new Aligner({
+      lang,
+      groupSize,
+      groupDecay,
+      wordSpace,
+      alignPali,
+    });
+    let { lines } = legacyDoc;
+    let nLines = 15; 
+    console.log(msg, 'TBD nLines', lines.length);
+    let alt = aligner.createAlignment({ legacyDoc, mlDoc });
+    let { segIds } = alt;
+    let iStart = 0;
+    let iLine = 0;
+    let res = [];
+    let rPrev;
+    for (let iLine=0; iLine<30; iLine++) {
+      let line = lines[iLine];
+      if (rPrev) {
+        let { segId, score, intersection } = rPrev;
+        let iFound = segIds.indexOf(segId);
+        if (iFound >= 0) {
+          iStart = iFound+1;
+        } else {
+          console.error(msg, 'iFound?', {iLine, segId});
+        }
+      }
+      let scidStart = segIds[iStart];
+      let r = alt.legacySegId(lines[iLine], iStart);
+      rPrev = r;
+      if (r) {
+        res.push(r);
+        let { score, segId, intersection } = r;
+        if (iLine === nLines) {
+          console.log(msg, {iLine, iStart, scidStart, segId, line, intersection});
+        }
+      } else {
+        console.log(msg, 'UNMATCHED', {iStart, scidStart, line, iLine, score});
+        throw new Error(`${msg} unmatched`);
+      }
+    }
+    if (dbg) {
+      console.log(msg, 'results');
+      0 && res.forEach((r,i)=>{
+        console.log('  ', i, r.segId, r.score.toFixed(3), 
+          JSON.stringify(r.intersection).replace(/[{}"]/g,''));
+      });
+    }
+    should(res[29].segId).equal('mn8:13.4');
+    should(res[29].score).above(0.1).below(0.2);
+    /*
+    dbg > 1 &&
+      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
+    res[iLine] = alt.legacySegId(lines[iLine], iStart);
+    should(res[iLine].intersection).properties({ effacement: 1 });
+    should(res[iLine].segId).equal('mn8:0.2');
+    should(res[iLine].score).above(0.5).below(0.8);
+
+    iStart = segIds.indexOf(res[iLine].segId) + 1;
+    iLine++;
+    dbg > 1 &&
+      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
+    res[iLine] = alt.legacySegId(lines[iLine], iStart);
+    should(res[iLine].segId).equal('mn8:1.2');
+    //should(res[iLine].segId).equal('mn8:1.1');
+    should(res[iLine].intersection).properties({ jeta: 1 });
+    should(res[iLine].score).above(0.3).below(0.5);
+
+    iStart = segIds.indexOf(res[iLine].segId) + 1;
+    iLine++;
+    dbg > 1 &&
+      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
+    res[iLine] = alt.legacySegId(lines[iLine], iStart);
+    should(res[iLine].segId).equal('mn8:2.1');
+    should(res[iLine].intersection).properties({ cunda: 2 });
+    should(res[iLine].score).above(0.1).below(0.2);
+
+    iStart = segIds.indexOf(res[iLine].segId) + 1;
+    iLine++;
+    dbg > 1 &&
+      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
+    res[iLine] = alt.legacySegId(lines[iLine], iStart);
+    should(res[iLine].segId).equal('mn8:3.3');
+    should(res[iLine].intersection).properties({ monastique: 1 });
+    should(res[iLine].score).above(0.2).below(0.3);
+    */
+
   });
 });

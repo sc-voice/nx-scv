@@ -35,7 +35,7 @@ const TEST_DOC = {
   ],
 };
 
-describe('TESTTESTlegacy-doc', () => {
+describe('legacy-doc', () => {
   it('default ctor', () => {
     let eCaught;
     try {
