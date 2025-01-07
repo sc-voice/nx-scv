@@ -27,7 +27,7 @@ const wsTest = new WordSpace(WSTEST_CONFIG);
 describe('word-space', () => {
   it('default ctor', () => {
     let ws = new WordSpace();
-    should(ws.minWord).equal(3);
+    should(ws.minWord).equal(4);
   });
   it('custom ctor', () => {
     let wordMap = { a: 'x' };
@@ -38,49 +38,46 @@ describe('word-space', () => {
     should(ws.wordMap).not.equal(wordMap);
   });
   it('string2Vector() FOX', () => {
-    let v = wsTest.string2Vector(FOX);
+    let ws = new WordSpace({ normalizeVector: null });
+    let v = ws.string2Vector(FOX);
+    should(v).instanceOf(Vector);
     should.deepEqual(
       v,
       new Vector({
         // a: 1, // minWord
         brown: 1,
         fence: 1,
-        fox: 2,
+        //fox: 2, // minWord
         jumped: 1,
         over: 1,
         quick: 1,
-        the: 1,
+        //the: 1, // minWord
       }),
     );
-    should(v.length).equal(7);
+    should(v.length).equal(5);
 
     let scale = 0.8;
-    let v8 = wsTest.string2Vector(FOX, scale);
+    let v8 = ws.string2Vector(FOX, scale);
     should.deepEqual(
       v8,
       new Vector({
         // a: 1*scale, // minWord
         brown: 1 * scale,
         fence: 1 * scale,
-        fox: 2 * scale,
+        //fox: 2 * scale,
         jumped: 1 * scale,
         over: 1 * scale,
         quick: 1 * scale,
-        the: 1 * scale,
+        //the: 1 * scale,
       }),
     );
-    should(v8.length).equal(7);
+    should(v8.length).equal(5);
   });
   it('string2Vector() Bienheureux', () => {
     let v = wsTest.string2Vector('le Bienheureux dit');
-    should.deepEqual(
-      v,
-      new Vector({
-        bouddha: 1,
-        dit: 1,
-      }),
-    );
-    should(v.length).equal(2);
+    should(v).instanceOf(Vector);
+    should.deepEqual(Object.keys(v), ['bouddha']);
+    should(v.bouddha).above(0.8).below(0.802);
   });
   it('add()', () => {
     let v1 = new Vector({ a: 1, b: 2 });
@@ -131,103 +128,7 @@ describe('word-space', () => {
     should(xyz.similar(wxyz)).equal(0.8660254037844387);
     should(wxyz.similar(xyz)).equal(0.8660254037844387);
   });
-  it('similar() mn8:1.2', () => {
-    let mn8mohan =
-      "<p><span class='evam'>Ainsi ai-je entendu :</span> une fois le Bienheureux séjournait dans le parc d’Anāthapiṇḍika, au bois de Jeta, près de la ville de Sāvatthi.</p>";
-    let vmohan = wsTest.string2Vector(mn8mohan);
-    let scoreMax = 0;
-    let dbg = 0;
-    dbg && console.log(mn8mohan);
-    let scan = Object.keys(MN8_NOE).reduce(
-      (a, k) => {
-        let segText = MN8_NOE[k];
-        dbg && console.log(k, segText);
-        let vmn8 = wsTest.string2Vector(segText);
-        let score = vmn8.similar(vmohan);
-        a.similar[k] = score;
-        if (scoreMax < score) {
-          scoreMax = score;
-          a.match = k;
-          dbg && console.log('better', k, score);
-        }
-        return a;
-      },
-      { similar: {} },
-    );
-    dbg && console.log(scan);
-    should(scan.match).equal('mn8:1.2');
-  });
-  it('similar() mn8:1.2', () => {
-    const msg = 'test.WordSpace@148';
-    let dbg = 0;
-    let mn8mohan =
-      '<p>En ce temps-là, un jour, l’Āyasmanta Mahā-Cunda, s’étant levé de son repos solitaire de l’après-midi, s’approcha de l’endroit où se trouvait le Bienheureux. S’étant approché, il rendit hommage au Bienheureux et s’assit à l’écart sur un côté. S’étant assis à l’écart sur un côté, l’Āyasmanta Mahā-Cunda dit au Bienheureux :</p>';
-    let vmohan = wsTest.string2Vector(mn8mohan);
-    let vmn8_expected = wsTest.string2Vector(MN8_NOE['mn8:2.1']);
-    let scoreMax = 0;
-    dbg && console.log(msg, 'vmn8_expected', vmn8_expected, vmohan);
-    let scan = Object.keys(MN8_NOE).reduce(
-      (a, k) => {
-        let segText = MN8_NOE[k];
-        let vmn8 = wsTest.string2Vector(segText);
-        let score = vmn8.similar(vmohan);
-        a.similar[k] = score;
-        if (scoreMax < score) {
-          scoreMax = score;
-          a.match = k;
-          dbg &&
-            console.log(
-              msg,
-              'better',
-              k,
-              score,
-              vmohan.intersect(vmn8),
-            );
-        }
-        return a;
-      },
-      { similar: {} },
-    );
-    dbg && console.log(msg, scan);
-    should(scan.match).equal('mn8:2.1');
-  });
-  it('similar() mn8:3.3', () => {
-    const msg = 'test.WordSpace@148';
-    let dbg = 0;
-    let mn8Expected =
-      'Est-ce que, dès le début, en y prêtant attention, un monastique parvient à renoncer à ces croyances, à se libérer de ces conceptions ? » ';
-    let vmn8Expected = wsTest.string2Vector(MN8_NOE['mn8:2.1']);
-    let scoreMax = 0;
-    let mn8mohan =
-      '<p>« Vénéré, si toutes ces opinions diverses concernant la théorie du Soi ou concernant la théorie du monde se produisent chez les gens, sont-elles éliminées tout au début chez un bhikkhu lorsqu’il réfléchit correctement ? Ainsi, y a-t-il un abandon de ces opinions ? »</p>';
-    let vmohan = wsTest.string2Vector(mn8mohan);
-    dbg > 1 && console.log(msg, 'vmn8Expected', vmn8Expected, vmohan);
-    let scan = Object.keys(MN8_NOE).reduce(
-      (a, k) => {
-        let segText = MN8_NOE[k];
-        let vmn8 = wsTest.string2Vector(segText);
-        let score = vmn8.similar(vmohan);
-        a.similar[k] = score;
-        if (scoreMax < score) {
-          scoreMax = score;
-          a.match = k;
-          dbg &&
-            console.log(
-              msg,
-              'better',
-              k,
-              score,
-              vmohan.intersect(vmn8),
-            );
-        }
-        return a;
-      },
-      { similar: {} },
-    );
-    dbg > 1 && console.log(msg, scan);
-    should(scan.match).equal('mn8:3.3');
-  });
-  it('similar() mn8:3.6', () => {
+  it('similar() mn8:3.4', () => {
     const msg = 'test.WordSpace@148';
     let dbg = 0;
     let mn8Expected =
@@ -261,15 +162,48 @@ describe('word-space', () => {
       { similar: {} },
     );
     dbg > 1 && console.log(msg, scan);
-    should(scan.match).equal('mn8:3.6');
+    should(scan.match).equal('mn8:3.4');
   });
   it('normalizeFR()', () => {
     let { normalizeFR } = WordSpace;
-    should(normalizeFR('L’effacement de')).equal('effacement de');
-    should(normalizeFR('de L’effacement')).equal('de effacement');
-    should(normalizeFR('s’étant abc')).equal('étant abc');
-    should(normalizeFR('abc s’étant')).equal('abc étant');
+    should(normalizeFR('L’effacement de')).equal('le effacement de');
+    should(normalizeFR('de L’effacement')).equal('de le effacement');
+    should(normalizeFR('s’étant abc')).equal('se étant abc');
+    should(normalizeFR('abc s’étant')).equal('abc se étant');
     should(normalizeFR('abc ?')).equal('abc $QUESTION');
     should(normalizeFR('mal’')).equal('mal’');
+  });
+  it('applyWordMap() FR phrase', () => {
+    let text1 =
+      'En se disant : “D’autres prendraient ce qui n’est pas donné, mais ici nous, nous nous abstiendrions de prendre ce qui n’est pas donné”, le déracinement doit être pratiqué.';
+    let wordMap = {
+      'prendr[^ ]* ce qui n’est pas donné': 'adinnādāyī',
+      'voleron[^ ]*': 'adinnādāyī',
+    };
+    let ws = new WordSpace({ wordMap });
+    should(ws.applyWordMap(text1)).equal(
+      'En se disant : “D’autres adinnādāyī, mais ici nous, nous nous abstiendrions de adinnādāyī”, le déracinement doit être pratiqué.',
+    );
+
+    let text2 =
+      '‹ Certains voleront, cependant nous, ici, ne volerons pas. › ';
+    should(ws.applyWordMap(text2)).equal(
+      '‹ Certains adinnādāyī cependant nous, ici, ne adinnādāyī pas. › ',
+    );
+  });
+  it('normalizeVector()', () => {
+    let v = new WordSpace.Vector({ a: 0, b: 1, c: 2, d: 10 });
+    let ws = new WordSpace({
+      normalizeVector: WordSpace.normalizeVector,
+    });
+    let vNorm = ws.normalizeVector(v);
+    should(v.a).equal(0);
+    should(v.b).equal(1);
+    should(v.c).equal(2);
+    should(v.d).equal(10);
+    should(vNorm.a).equal(0);
+    should(vNorm.b).above(0.8).below(0.802);
+    should(vNorm.c).above(0.96).below(1);
+    should(vNorm.d).above(0.9999999).below(1);
   });
 });

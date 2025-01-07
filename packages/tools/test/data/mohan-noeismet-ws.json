@@ -3,12 +3,26 @@
   "authorAligned": "noeismet",
   "lang": "fr",
   "wordMap": {
+    "violent[a-z]*": "vihiṁsakā",
+
     "Bienheureux": "Bouddha",
     "Mahācunda": "Cunda",
-    "bhikkhu": "monastique",
-    "déracinement": "effacement",
-    "opinions": "croyances",
-    "prendraient ce qui n’est pas donné": "voleront",
+    "déracinement": "sallekh",
+    "paroles rudes": "pharusa",
+    "opinions": "diṭṭh",
+    "points de vue incorrects": "micchādiṭṭh",
+    "pensées incorrectes": "micchāsaṅkapp",
+    "paroles incorrectes": "micchāvāc",
+    "d'actions incorrecte": "micchākammant",
+    "méchante[a-z]*": "byāpannacitt",
+    "paroles frivoles": "samphappalāp",
+    "tuer[a-z]*": "pāṇātipāt",
+    "cruel|blessant": "vihiṁsakā",
+    "prendr[a-z]* ce qui n’est pas donné": "adinnādāyī",
+    "continence": "brahmacārī",
+    "profér[a-z]* des mensonges": "musāvād",
+    "paroles calomnieuses": "pisuṇavāc",
+    "bavardages inutiles": "samphappalāp",
     "vivants": "vivantes"
   }
 }

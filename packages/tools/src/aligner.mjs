@@ -1,3 +1,4 @@
+import { DBG } from './defines.mjs';
 import LegacyDoc from './legacy-doc.mjs';
 import SegDoc from './seg-doc.mjs';
 import SuttaCentralId from './sutta-central-id.mjs';
@@ -24,12 +25,14 @@ export default class Aligner {
       groupDecay = 0.5, // group exponential decay
       lang, // 2-letter ISO language (en, fr, es, pt)
       minScore = 0.1, // minimum alignment score
+      minWord,
       scanSize = 10, // maximum segments to scan for alignment
       wordSpace,
-      scvEndpoint = "https://www.api.sc-voice.net/scv",
+      scvEndpoint = 'https://www.api.sc-voice.net/scv',
+      normalizeVector,
     } = opts;
     if (wordSpace == null) {
-      wordSpace = new WordSpace({ lang });
+      wordSpace = new WordSpace({ lang, minWord, normalizeVector });
     }
     if (lang == null) {
       lang = wordSpace.lang;
@@ -54,7 +57,7 @@ export default class Aligner {
   }
 
   async fetchMLDoc(scid) {
-    const msg = "Aligner.fetchMLDoc:";
+    const msg = 'Aligner.fetchMLDoc:';
     let { lang, scvEndpoint, authorAligned } = this;
     let url = [
       scvEndpoint,
@@ -67,7 +70,7 @@ export default class Aligner {
       let json = await res.json();
       let mld = json.mlDocs[0];
       return mld;
-    } catch(e) {
+    } catch (e) {
       console.error(msg, e);
       throw e;
     }
@@ -77,7 +80,7 @@ export default class Aligner {
     const msg = 'Alignment.createAlignment:';
     const dbg = 0;
     let { legacyDoc, segDoc, mlDoc } = opts;
-    let { lang, alignPali } = this;
+    let { lang } = this;
     if (!(legacyDoc instanceof LegacyDoc)) {
       throw new Error(`${msg} legacyDoc?`);
     }
@@ -87,20 +90,15 @@ export default class Aligner {
         throw new Error(`${msg} mlDoc=>segDoc?`);
       }
       segIds = Object.keys(mlDoc.segMap);
-      segDoc = segIds.reduce((a,id)=>{
+      segDoc = segIds.reduce((a, id) => {
         let seg = mlDoc.segMap[id];
         if (seg) {
           let langText = seg[lang] || '';
-          if (alignPali) {
-            let { pli='' } = seg;
-            a[id] = `${langText} ${pli}`;
-          } else {
-            a[id] = langText;
-          }
+          a[id] = langText;
         }
         return a;
       }, new SegDoc());
-      dbg>1 && console.log(msg, '[0.1]segDoc', segDoc);
+      dbg > 1 && console.log(msg, '[0.1]segDoc', segDoc);
     }
     if (!(segDoc instanceof SegDoc)) {
       throw new Error(`${msg} segDoc?`);
@@ -143,8 +141,8 @@ export default class Aligner {
         segGroup.pop();
       }
       let scale = 1;
-      let vGroup = segGroup.reduce((a, seg, i) => {
-        let vScale = wordSpace.string2Vector(seg, scale);
+      let vGroup = segGroup.reduce((a, text, i) => {
+        let vScale = wordSpace.string2Vector(text, scale);
         scale *= groupDecay;
         return a.add(vScale);
       }, new WordSpace.Vector());
@@ -155,31 +153,61 @@ export default class Aligner {
 
   mlDocVectors(mld) {
     const msg = 'Aligner.mlDocVectors';
+    const dbg = DBG.ML_DOC_VECTORS;
     let { alignPali, groupDecay, groupSize, wordSpace } = this;
+    let { wordMap } = wordSpace;
     let { segMap, lang } = mld;
-    let segIds = Object.keys(segMap);
-    let iLastSeg = segIds.length - 1;
+    let segs = Object.entries(segMap);
+    let iLastSeg = segs.length - 1;
+    let reList;
+
+    if (alignPali) {
+      let entries = Object.entries(wordMap);
+      reList = entries.reduce((a, e) => {
+        let [legacyText, paliText] = e;
+        if (paliText) {
+          a.set(paliText, new RegExp(`\\b${paliText}`, 'gi'));
+        }
+        return a;
+      }, new Map());
+    }
 
     let vectorMap = {};
     let segGroup = [];
-    for (let i = segIds.length; i-- > 0; ) {
-      let segId = segIds[i];
-      let seg = segMap[segId];
-      let segText = seg[lang] || '';
+    for (let i = segs.length; i-- > 0; ) {
+      let [segId, seg] = segs[i];
+      let { pli } = seg;
+      let segData = seg[lang] || '';
+      let vGroup = new WordSpace.Vector();
       if (alignPali) {
-        let { pli='' } = seg;
-        segText = `${segText} ${pli}`;
+        // for aligning Pali, we add all Pali words that
+        // occur in the Pali for a segment to the
+        // vector input text
+        let pliWords = [];
+        reList.forEach((re, paliText, map) => {
+          let nMatch = pli.match(re)?.length || 0;
+          if (nMatch) {
+            for (let i = 0; i < nMatch; i++) {
+              pliWords.push(paliText);
+            }
+          }
+        });
+        if (pliWords.length) {
+          segData += ' ' + pliWords.join(' ');
+          dbg === segId &&
+            console.log(msg, 'segData', segId, segData, );
+        }
       }
-      segGroup.unshift(segText);
+      segGroup.unshift(segData);
       if (segGroup.length > groupSize) {
         segGroup.pop();
       }
       let scale = 1;
-      let vGroup = segGroup.reduce((a, seg, i) => {
-        let vScale = wordSpace.string2Vector(segText, scale);
+      vGroup = segGroup.reduce((a, seg, i) => {
+        let vScale = wordSpace.string2Vector(segData, scale);
         scale *= groupDecay;
         return a.add(vScale);
-      }, new WordSpace.Vector());
+      }, vGroup);
       vectorMap[segId] = vGroup;
     }
     return vectorMap;
@@ -261,9 +289,13 @@ class Alignment {
     });
   }
 
-  legacySegId(legacyText, iStart = 0) {
+  legacySegId(legacyText, opts = {}) {
     const msg = 'Alignment.legacySegId:';
-    const dbg = 0;
+    const dbg = DBG.LEGACY_SEG_ID;
+    if (typeof opts === 'number') {
+      opts = { iStart: opts };
+    }
+    let { iStart } = opts;
     let { segIds, vSegDoc, wordSpace, scanSize, minScore } = this;
     let vLegacy = wordSpace.string2Vector(legacyText);
     let scoreMax = 0;
@@ -275,9 +307,17 @@ class Alignment {
       }
       let vSeg = vSegDoc[segId];
       if (vSeg == null) {
-        throw new Error(`${msg}segId[${segId}]? ${vSegDoc.length}`); 
+        throw new Error(`${msg}segId[${segId}]? ${vSegDoc.length}`);
       }
       let score = vLegacy.similar(vSeg);
+      (dbg > 0 || dbg === segId) &&
+        console.log(msg, {
+          segId,
+          score,
+          vSeg: JSON.stringify(vSeg),
+          vLegacy: JSON.stringify(vLegacy),
+          intersection: JSON.stringify(vLegacy.intersect(vSeg)),
+        });
       if (minScore <= score && scoreMax < score) {
         scoreMax = score;
         scoreId = segId;
@@ -293,6 +333,8 @@ class Alignment {
       score: scoreMax,
       segId: scoreId,
       intersection,
+      vLegacy,
+      vSeg,
     };
   }
 }

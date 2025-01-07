@@ -22,12 +22,15 @@ const MN8_MOHAN_JSON = JSON.parse(
 );
 const MN8_MOHAN = MN8_MOHAN_JSON.text;
 const MN8_LEG_DOC = LegacyDoc.create(MN8_MOHAN_JSON);
-const WSTEST_CONFIG = JSON.parse(
+const WS_MOHAN_CONFIG = JSON.parse(
   fs.readFileSync(path.join(TEST_DATA, 'mohan-noeismet-ws.json')),
 );
-const WSTEST = new WordSpace(WSTEST_CONFIG);
+const WS_MOHAN = new WordSpace(WS_MOHAN_CONFIG);
+const normalizeVector = (v) => v;
+const minWord = 3;
+const lang = 'fr';
+const wordSpace = new WordSpace({ lang, minWord, normalizeVector });
 
-let testId = '';
 describe('Aligner', () => {
   it('default ctor', () => {
     let aligner = new Aligner();
@@ -39,7 +42,6 @@ describe('Aligner', () => {
   });
   it('custom ctor', () => {
     let lang = 'fr';
-    let wordSpace = WSTEST;
     let groupSize = 3;
     let groupDecay = 0.7;
     let scanSize = 11;
@@ -62,9 +64,13 @@ describe('Aligner', () => {
     should(aligner.wordSpace.lang).equal(lang);
   });
   it('segDocVectors groupSize:1', () => {
+    let minWord = 3;
     let groupSize = 1;
-    let wordSpace = WSTEST;
-    let aligner = new Aligner({ wordSpace, groupSize });
+    let aligner = new Aligner({
+      minWord,
+      normalizeVector,
+      groupSize,
+    });
     let segDoc = {
       segMap: {
         s1: 'one',
@@ -78,10 +84,15 @@ describe('Aligner', () => {
     should.deepEqual(vectors.s3, new Vector({ three: 1 }));
   });
   it('segDocVectors groupSize:2', () => {
+    let minWord = 3;
     let groupSize = 2;
     let groupDecay = 0.7;
-    let wordSpace = WSTEST;
-    let aligner = new Aligner({ wordSpace, groupSize, groupDecay });
+    let aligner = new Aligner({
+      minWord,
+      normalizeVector,
+      groupSize,
+      groupDecay,
+    });
     let segDoc = {
       segMap: {
         s1: 'one',
@@ -101,10 +112,15 @@ describe('Aligner', () => {
     should.deepEqual(vectors.s3, new Vector({ three: 1 }));
   });
   it('segDocVectors groupSize:3', () => {
+    let minWord = 3;
     let groupSize = 3;
     let groupDecay = 0.7;
-    let wordSpace = WSTEST;
-    let aligner = new Aligner({ wordSpace, groupSize, groupDecay });
+    let aligner = new Aligner({
+      minWord,
+      groupSize,
+      groupDecay,
+      normalizeVector,
+    });
     let segDoc = {
       segMap: {
         s1: 'one',
@@ -130,7 +146,7 @@ describe('Aligner', () => {
     should.deepEqual(vectors.s4, new Vector({ four: 1 }));
   });
   it('align2SegDoc()', () => {
-    let aligner = new Aligner({ wordSpace: WSTEST });
+    let aligner = new Aligner({ wordSpace});
     aligner.align2SegDoc(MN8_LEG_DOC, MN8_SRC_DOC);
   });
 });
@@ -159,7 +175,6 @@ describe('Alignment', () => {
     let legacyDoc = MN8_LEG_DOC;
     let segDoc = MN8_SRC_DOC;
     let lang = 'fr';
-    let wordSpace = WSTEST;
     let aligner = new Aligner({ lang, wordSpace });
     let alt = aligner.createAlignment({ legacyDoc, segDoc });
     should(alt.legacyDoc).equal(legacyDoc);
@@ -172,278 +187,163 @@ describe('Alignment', () => {
       3: 'mn8:1.2',
     });
   });
-  it('legacySegId() groupDecay:0', () => {
-    const msg = 'ALIGNER.groupDecay0:';
-    let legacyDoc = MN8_LEG_DOC;
-    let segDoc = MN8_SRC_DOC;
-    let dbg = 0;
-    let groupSize = 2;
-    let groupDecay = 0; // equivalent to groupSize 1;
-    let lang = 'fr';
-    let wordSpace = WSTEST;
-    let aligner = new Aligner({
-      lang,
-      groupSize,
-      groupDecay,
-      wordSpace,
-    });
-    let alt = aligner.createAlignment({ legacyDoc, segDoc });
-    let { lines } = legacyDoc;
-    let { segIds } = alt;
-    let iStart = 0;
-    let iLine = 0;
-    let res = [];
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].intersection).properties({ effacement: 1 });
-    should(res[iLine].segId).equal('mn8:0.2');
-    should(res[iLine].score).above(0.5).below(0.8);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:1.2');
-    //should(res[iLine].segId).equal('mn8:1.1');
-    should(res[iLine].intersection).properties({ jeta: 1 });
-    should(res[iLine].score).above(0.3).below(0.5);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:2.1');
-    should(res[iLine].intersection).properties({ cunda: 2 });
-    should(res[iLine].score).above(0.1).below(0.2);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:3.3');
-    should(res[iLine].intersection).properties({ monastique: 1 });
-    should(res[iLine].score).above(0.2).below(0.3);
-
-    dbg &&
-      console.log(
-        msg,
-        res.map((r) => ({ segId: r.segId, score: r.score })),
-      );
-  });
-  testId = 'leg-groupSize1';
-  it(`legacySegId() ${testId}`, () => {
-    const msg = `ALIGNER.${testId}:`;
-    let legacyDoc = MN8_LEG_DOC;
-    let segDoc = MN8_SRC_DOC;
-    let dbg = 1;
-    let groupSize = 2;
-    let groupDecay = 0.8;
-    let lang = 'fr';
-    let wordSpace = WSTEST;
-    let aligner = new Aligner({
-      lang,
-      groupSize,
-      groupDecay,
-      wordSpace,
-    });
-    let alt = aligner.createAlignment({ legacyDoc, segDoc });
-    let { lines } = legacyDoc;
-    let { segIds } = alt;
-
-    let iStart = 0;
-    let iLine = 0;
-    let res = [];
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].intersection).properties({ effacement: 1 });
-    should(res[iLine].segId).equal('mn8:0.2');
-    //should(res[iLine].score).above(0.4).below(0.6);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:1.1');
-    should(res[iLine].intersection).properties({ jeta: groupDecay });
-    should(res[iLine].score).above(0.3).below(0.5);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:1.2');
-    should(res[iLine].intersection).properties({
-      cunda: 2 * groupDecay,
-    });
-    should(res[iLine].score).above(0.1).below(0.2);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:3.3');
-    should(res[iLine].intersection).properties({ monastique: 1 });
-    should(res[iLine].score).above(0.2).below(0.3);
-
-    dbg &&
-      console.log(
-        msg,
-        res.map((r) => ({
-          segId: r.segId,
-          score: r.score,
-          intersection: r.intersection,
-        })),
-      );
-  });
-  it("fetchMLDoc()", async()=>{
+  it('fetchMLDoc()', async () => {
     const msg = 'ALIGNER@303:';
     let lang = 'fr';
     let authorAligned = 'noeismet';
-    let aligner = new Aligner({lang, authorAligned});
+    let aligner = new Aligner({ lang, authorAligned });
     let mld = await aligner.fetchMLDoc('mn8');
     console.log(msg, 'mld', mld);
   });
-  it('mlDocVectors groupSize:1', () => {
-    let groupSize = 1;
-    let wordSpace = WSTEST;
+  it(`mlDocVectors() mldv-pali`, () => {
+    const msg = `ALIGNER.mldv-pali`;
+    let wordMap = {
+      LEGACY2: 'twopli',
+      legacy3: 'threepli',
+    };
+    let lang = 'fr';
+    let wordSpace = new WordSpace({ lang, wordMap, normalizeVector });
     let alignPali = true;
-    let aligner = new Aligner({ wordSpace, groupSize, alignPali });
+    let aligner = new Aligner({ wordSpace, alignPali });
     let mld = {
-      "bilaraPaths": [],
-      "author_uid": "noeismet",
-      "sutta_uid": "mn8",
-      "lang": "fr",
+      bilaraPaths: [],
+      author_uid: 'noeismet',
+      sutta_uid: 'mn8',
+      lang: 'fr',
       segMap: {
         s1: {
-          "scid": "mn8:0.1",
-          "pli": "onePli",
-          "fr": "onefr",
-          "ref": "oneref",
+          scid: 'mn8:0.1',
+          pli: 'onePli',
+          fr: 'onefr',
+          ref: 'oneref',
         },
         s2: {
-          "scid": "mn8:0.2",
-          "pli": "twopli",
-          "fr": "twofr",
-          "ref": "tworef",
+          scid: 'mn8:0.2',
+          pli: 'a twopli b xtwopli c',
+          fr: 'twofr',
+          ref: 'tworef',
         },
         s3: {
-          "scid": "mn8:0.3",
-          "pli": "threepli",
-          "fr": "threefr",
-          "ref": "threeref",
+          scid: 'mn8:0.3',
+          pli: 'a threeplix b threepliy c',
+          fr: 'threefr',
+          ref: 'threeref',
         },
       },
     };
     let vectors = aligner.mlDocVectors(mld);
-    should.deepEqual(vectors.s1, new Vector({ onefr: 1, onepli: 1}));
+    should.deepEqual(vectors.s1, new Vector({ onefr: 1 }));
     should.deepEqual(vectors.s2, new Vector({ twofr: 1, twopli: 1 }));
-    should.deepEqual(vectors.s3, new Vector({ threefr: 1, threepli: 1 }));
+    should.deepEqual(
+      vectors.s3,
+      new Vector({ threefr: 1, threepli: 2 }),
+    );
   });
-  testId = 'mld-groupDecay0';
-  it(`TESTTESTlegacySegId() ${testId}`, () => {
-    const msg = `ALIGNER.${testId}:`;
+  it(`legacySegId()ml-groupDecay0`, () => {
+    const msg = `ALIGNER.ml-groupDecay0:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
-    let dbg = 1;
-    let groupSize = 2;
-    let groupDecay = 0; // equivalent to groupSize 1;
+    let dbg = 0;
+    let alignPali = true;
     let lang = 'fr';
-    let alignPali = 0; // pointless
-    let wordSpace = WSTEST;
-    let aligner = new Aligner({
-      lang,
-      groupSize,
-      groupDecay,
-      wordSpace,
-      alignPali,
-    });
+    let wordSpace = WS_MOHAN;
+    let aligner = new Aligner({ lang, alignPali, wordSpace });
     let { lines } = legacyDoc;
-    let nLines = 15; 
-    console.log(msg, 'TBD nLines', lines.length);
     let alt = aligner.createAlignment({ legacyDoc, mlDoc });
     let { segIds } = alt;
     let iStart = 0;
     let iLine = 0;
     let res = [];
     let rPrev;
-    for (let iLine=0; iLine<30; iLine++) {
+    let scidExpected =
+      // biome-ignore format:
+      [ 'mn8:0.2', 'mn8:1.2', 'mn8:2.1', 'mn8:3.1', 'mn8:3.4', 
+      'mn8:4.4', 'mn8:5.4', "mn8:6.1", 'mn8:7.1', 'mn8:8.1', 
+      'mn8:9.1', 'mn8:10.1', 'mn8:11.1', 'mn8:12.2', 'mn8:12.3', 
+      'mn8:12.4', 'mn8:12.5', 'mn8:12.6', 'mn8:12.7', 'mn8:12.8', 
+      'mn8:12.9', 'mn8:12.10', 'mn8:12.11', 'mn8:12.12', 'mn8:12.13',
+      'mn8:12.14', 'mn8:12.15',
+    ];
+    let iEnd = scidExpected.length - 1;
+    dbg && console.log(msg, `TBD iEnd:${iEnd}/${lines.length}`);
+    for (let iLine = 0; iLine <= iEnd; iLine++) {
       let line = lines[iLine];
       if (rPrev) {
         let { segId, score, intersection } = rPrev;
         let iFound = segIds.indexOf(segId);
         if (iFound >= 0) {
-          iStart = iFound+1;
+          iStart = iFound + 1;
         } else {
-          console.error(msg, 'iFound?', {iLine, segId});
+          dbg && console.error(msg, 'iFound?', { iLine, segId });
         }
       }
       let scidStart = segIds[iStart];
-      let r = alt.legacySegId(lines[iLine], iStart);
+      let r = alt.legacySegId(line, iStart);
       rPrev = r;
       if (r) {
         res.push(r);
-        let { score, segId, intersection } = r;
-        if (iLine === nLines) {
-          console.log(msg, {iLine, iStart, scidStart, segId, line, intersection});
+        let { vLegacy, vSeg, score, segId, intersection } = r;
+        let scidExp = scidExpected[iLine];
+        let atEnd = iLine === iEnd;
+        let ok = scidExp == null || segId === scidExp;
+        if (!ok || atEnd) {
+          let { fr, pli, ref } = mlDoc.segMap[scidStart];
+          dbg &&
+            console.log(
+              msg,
+              ok ? 'ok' : 'ERROR', //biome-ignore format:
+              {
+                iLine,
+                iStart,
+                scidStart,
+                line,
+                fr,
+                pli,
+                ref,
+                segId,
+                scidExp,
+                intersection,
+                score,
+                vLegacy: JSON.stringify(vLegacy),
+                vSeg: JSON.stringify(vSeg),
+              },
+            );
+          should(segId).equal(scidExp);
         }
       } else {
-        console.log(msg, 'UNMATCHED', {iStart, scidStart, line, iLine, score});
+        console.log(
+          msg,
+          'UNMATCHED', // biome-ignore format:
+          { iStart, scidStart, line, iLine },
+        );
         throw new Error(`${msg} unmatched`);
       }
     }
-    if (dbg) {
-      console.log(msg, 'results');
-      0 && res.forEach((r,i)=>{
-        console.log('  ', i, r.segId, r.score.toFixed(3), 
-          JSON.stringify(r.intersection).replace(/[{}"]/g,''));
-      });
+  });
+  it(`re.exec`, () => {
+    const msg = `ALIGNER.re.exec`;
+
+    // Unexpected infinite loop!
+    let reInfinite = /\b/g;
+    let text = 'a b c';
+    should.deepEqual(reInfinite.exec(text), reInfinite.exec(text));
+
+    // Expected behavior
+    let reSane = /\bb/g;
+    console.log(msg, reSane.exec(text));
+    should(reSane.exec(text)).equal(null);
+
+    // Best behavior
+    should(text.match(reSane).length).equal(1);
+  });
+  it('exp', () => {
+    const msg = 'ALIGNER.exp:';
+    let dbg = 0;
+    let tau = 0.618034; // Golden ratio
+    let f = (t) => 1 - Math.exp(-t / tau);
+    for (let t = 0; t < 10; t++) {
+      dbg && console.log(msg, t, tau, f(t));
     }
-    should(res[29].segId).equal('mn8:13.4');
-    should(res[29].score).above(0.1).below(0.2);
-    /*
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].intersection).properties({ effacement: 1 });
-    should(res[iLine].segId).equal('mn8:0.2');
-    should(res[iLine].score).above(0.5).below(0.8);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:1.2');
-    //should(res[iLine].segId).equal('mn8:1.1');
-    should(res[iLine].intersection).properties({ jeta: 1 });
-    should(res[iLine].score).above(0.3).below(0.5);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:2.1');
-    should(res[iLine].intersection).properties({ cunda: 2 });
-    should(res[iLine].score).above(0.1).below(0.2);
-
-    iStart = segIds.indexOf(res[iLine].segId) + 1;
-    iLine++;
-    dbg > 1 &&
-      console.log(msg, `${iStart}:lines[${iLine}]`, lines[iLine]);
-    res[iLine] = alt.legacySegId(lines[iLine], iStart);
-    should(res[iLine].segId).equal('mn8:3.3');
-    should(res[iLine].intersection).properties({ monastique: 1 });
-    should(res[iLine].score).above(0.2).below(0.3);
-    */
-
+    should(f(1)).above(0.8).below(0.802);
   });
 });
