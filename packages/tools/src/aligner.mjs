@@ -113,6 +113,7 @@ export default class Aligner {
       aligner: this,
       legacyDoc,
       segDoc,
+      mlDoc,
       segIds,
       vSegDoc,
     };
@@ -295,8 +296,8 @@ class Alignment {
     if (typeof opts === 'number') {
       opts = { iStart: opts };
     }
-    let { iStart } = opts;
-    let { segIds, vSegDoc, wordSpace, scanSize, minScore } = this;
+    let { iStart, dbgSegId } = opts;
+    let { segIds, mlDoc, vSegDoc, wordSpace, scanSize, minScore } = this;
     let vLegacy = wordSpace.string2Vector(legacyText);
     let scoreMax = 0;
     let scoreId;
@@ -310,14 +311,18 @@ class Alignment {
         throw new Error(`${msg}segId[${segId}]? ${vSegDoc.length}`);
       }
       let score = vLegacy.similar(vSeg);
-      (dbg > 0 || dbg === segId) &&
-        console.log(msg, {
-          segId,
+      if (dbgSegId === segId) {
+        let seg = mlDoc && mlDoc.segMap[segId] || {};
+        let { pli } = seg;
+        console.log(msg, 'dbgSegId', {
+          seg, 
+          legacyText,
+          vLegacy: vLegacy.toString(),
+          vSeg: vSeg.toString(),
           score,
-          vSeg: JSON.stringify(vSeg),
-          vLegacy: JSON.stringify(vLegacy),
-          intersection: JSON.stringify(vLegacy.intersect(vSeg)),
+          intersection: vLegacy.toString(),
         });
+      }
       if (minScore <= score && scoreMax < score) {
         scoreMax = score;
         scoreId = segId;

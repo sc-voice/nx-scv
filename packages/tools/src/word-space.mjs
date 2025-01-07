@@ -17,7 +17,13 @@ class Vector extends Object {
   }
 
   toString() {
-    return JSON.stringify(this);
+    let sv = Object.entries(this).reduce((a,e)=>{
+      let [k,v] = e;
+      let vf = v.toFixed(3);
+      a.push( `${k}:${vf}`);
+      return a;
+    }, []);
+    return sv.join(',');
   }
 
   norm() {

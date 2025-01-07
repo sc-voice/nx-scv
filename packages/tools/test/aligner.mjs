@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
 import { Aligner, LegacyDoc, SegDoc, WordSpace } from '../index.mjs';
+import { DBG } from '../src/defines.mjs';
 const { Vector } = WordSpace;
 const { Alignment } = Aligner;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
@@ -239,11 +240,11 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`legacySegId()ml-groupDecay0`, () => {
-    const msg = `ALIGNER.ml-groupDecay0:`;
+  it(`TESTTESTlegacySegId() mn8`, () => {
+    const msg = `ALIGNER.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
-    let dbg = 0;
+    let dbg = DBG.MN8_MOHAN;
     let alignPali = true;
     let lang = 'fr';
     let wordSpace = WS_MOHAN;
@@ -262,10 +263,15 @@ describe('Alignment', () => {
       'mn8:9.1', 'mn8:10.1', 'mn8:11.1', 'mn8:12.2', 'mn8:12.3', 
       'mn8:12.4', 'mn8:12.5', 'mn8:12.6', 'mn8:12.7', 'mn8:12.8', 
       'mn8:12.9', 'mn8:12.10', 'mn8:12.11', 'mn8:12.12', 'mn8:12.13',
-      'mn8:12.14', 'mn8:12.15',
+      'mn8:12.14', 'mn8:12.15', 'mn8:12.16', 'mn8:12.17', 'mn8:12.18',
+      'mn8:12.19', 'mn8:12.20', 'mn8:12.21', 'mn8:12.22', 'mn8:12.23',
+      'mn8:12.24', 'mn8:12.25', 'mn8:12.26', 'mn8:12.27', 'mn8:12.28', 
+      'mn8:12.29', 'mn8:12.30', 'mn8:12.31', 'mn8:12.32', 'mn8:12.33', 
+      'mn8:12.34', 'mn8:12.35', 'mn8:12.36', 'mn8:12.37', 'mn8:12.38', 
+      'mn8:12.39', 'mn8:12.40', 'mn8:12.41', //'mn8:12.42', 'mn8:12.43',
+
     ];
     let iEnd = scidExpected.length - 1;
-    dbg && console.log(msg, `TBD iEnd:${iEnd}/${lines.length}`);
     for (let iLine = 0; iLine <= iEnd; iLine++) {
       let line = lines[iLine];
       if (rPrev) {
@@ -278,17 +284,17 @@ describe('Alignment', () => {
         }
       }
       let scidStart = segIds[iStart];
-      let r = alt.legacySegId(line, iStart);
+      let scidExp = scidExpected[iLine];
+      let r = alt.legacySegId(line, {iStart, dbgSegId:scidExp});
       rPrev = r;
       if (r) {
         res.push(r);
         let { vLegacy, vSeg, score, segId, intersection } = r;
-        let scidExp = scidExpected[iLine];
         let atEnd = iLine === iEnd;
         let ok = scidExp == null || segId === scidExp;
         if (!ok || atEnd) {
           let { fr, pli, ref } = mlDoc.segMap[scidStart];
-          dbg &&
+          dbg && 0 &&
             console.log(
               msg,
               ok ? 'ok' : 'ERROR', //biome-ignore format:
@@ -319,31 +325,6 @@ describe('Alignment', () => {
         throw new Error(`${msg} unmatched`);
       }
     }
-  });
-  it(`re.exec`, () => {
-    const msg = `ALIGNER.re.exec`;
-
-    // Unexpected infinite loop!
-    let reInfinite = /\b/g;
-    let text = 'a b c';
-    should.deepEqual(reInfinite.exec(text), reInfinite.exec(text));
-
-    // Expected behavior
-    let reSane = /\bb/g;
-    console.log(msg, reSane.exec(text));
-    should(reSane.exec(text)).equal(null);
-
-    // Best behavior
-    should(text.match(reSane).length).equal(1);
-  });
-  it('exp', () => {
-    const msg = 'ALIGNER.exp:';
-    let dbg = 0;
-    let tau = 0.618034; // Golden ratio
-    let f = (t) => 1 - Math.exp(-t / tau);
-    for (let t = 0; t < 10; t++) {
-      dbg && console.log(msg, t, tau, f(t));
-    }
-    should(f(1)).above(0.8).below(0.802);
+    dbg && console.log(msg, `TBD iEnd:${iEnd}/${lines.length}`);
   });
 });
