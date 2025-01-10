@@ -21,8 +21,8 @@ const MN8_MOHAN_JSON = JSON.parse(
     path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json'),
   ),
 );
-const MN8_MOHAN = MN8_MOHAN_JSON.text;
 const MN8_LEG_DOC = LegacyDoc.create(MN8_MOHAN_JSON);
+const MN8_MOHAN = MN8_MOHAN_JSON.text;
 const WS_MOHAN_CONFIG = JSON.parse(
   fs.readFileSync(path.join(TEST_DATA, 'mohan-noeismet-ws.json')),
 );
@@ -39,7 +39,7 @@ describe('Aligner', () => {
     should(aligner.groupSize).equal(1);
     should(aligner.groupDecay).equal(0.5);
     should(aligner.minScore).equal(0.1);
-    should(aligner.scanSize).equal(10);
+    should(aligner.scanSize).equal(undefined);
   });
   it('custom ctor', () => {
     let lang = 'fr';
@@ -147,7 +147,7 @@ describe('Aligner', () => {
     should.deepEqual(vectors.s4, new Vector({ four: 1 }));
   });
   it('align2SegDoc()', () => {
-    let aligner = new Aligner({ wordSpace});
+    let aligner = new Aligner({ wordSpace });
     aligner.align2SegDoc(MN8_LEG_DOC, MN8_SRC_DOC);
   });
 });
@@ -172,7 +172,7 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('createAlignment', () => {
+  it('TESTTESTcreateAlignment', () => {
     let legacyDoc = MN8_LEG_DOC;
     let segDoc = MN8_SRC_DOC;
     let lang = 'fr';
@@ -181,7 +181,12 @@ describe('Alignment', () => {
     should(alt.legacyDoc).equal(legacyDoc);
     should(alt.lang).equal(lang);
     should(alt.segDoc).equal(segDoc);
-    should(alt.segIds).properties({
+    let nLines = alt.legacyDoc.lines.length;
+    should(nLines).equal(67);
+    let nSegs = alt.scids.length;
+    should(nSegs).equal(127);
+    should(alt.scanSize).above(42).below(50);
+    should(alt.scids).properties({
       0: 'mn8:0.1',
       1: 'mn8:0.2',
       2: 'mn8:1.1',
@@ -240,20 +245,26 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`TESTTESTlegacySegId() mn8`, () => {
+  it(`TESTTESTlegacyScid() mn8`, () => {
     const msg = `ALIGNER.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
     let dbg = DBG.MN8_MOHAN;
     let alignPali = true;
     let lang = 'fr';
+    let scanSize = 43;
     let wordSpace = WS_MOHAN;
-    let aligner = new Aligner({ lang, alignPali, wordSpace });
+    let aligner = new Aligner({
+      scanSize,
+      lang,
+      alignPali,
+      wordSpace,
+    });
     let { lines } = legacyDoc;
     let alt = aligner.createAlignment({ legacyDoc, mlDoc });
-    let { segIds } = alt;
-    let iStart = 0;
-    let iLine = 0;
+    let { scids } = alt;
+    let iCurSeg = 0;
+    let iCurLine = 0;
     let res = [];
     let rPrev;
     let scidExpected =
@@ -268,63 +279,54 @@ describe('Alignment', () => {
       'mn8:12.24', 'mn8:12.25', 'mn8:12.26', 'mn8:12.27', 'mn8:12.28', 
       'mn8:12.29', 'mn8:12.30', 'mn8:12.31', 'mn8:12.32', 'mn8:12.33', 
       'mn8:12.34', 'mn8:12.35', 'mn8:12.36', 'mn8:12.37', 'mn8:12.38', 
-      'mn8:12.39', 'mn8:12.40', 'mn8:12.41', //'mn8:12.42', 'mn8:12.43',
-
+      'mn8:12.39', 'mn8:12.40', 'mn8:12.41', 'mn8:12.42', 'mn8:12.43',
+      'mn8:12.44', 'mn8:12.45', 'mn8:13.4', 'mn8:14.1', 'mn8:14.3',
+      'mn8:14.5', 'mn8:15.1', 'mn8:15.2', 'mn8:16.3', 'mn8:16.5',
+      'mn8:17.2',
+      'mn8:17.5',
+      'mn8:17.6',
     ];
-    let iEnd = scidExpected.length - 1;
-    for (let iLine = 0; iLine <= iEnd; iLine++) {
-      let line = lines[iLine];
+    let iEnd = lines.length - 1;
+    for (let iCurLine = 0; iCurLine <= iEnd; iCurLine++) {
+      let line = lines[iCurLine];
+      console.log(msg, iCurLine, line);
       if (rPrev) {
-        let { segId, score, intersection } = rPrev;
-        let iFound = segIds.indexOf(segId);
+        let { scid, score, intersection } = rPrev;
+        let iFound = scids.indexOf(scid);
         if (iFound >= 0) {
-          iStart = iFound + 1;
+          iCurSeg = iFound + 1;
         } else {
-          dbg && console.error(msg, 'iFound?', { iLine, segId });
+          dbg && console.error(msg, 'iFound?', { iCurLine, scid });
         }
       }
-      let scidStart = segIds[iStart];
-      let scidExp = scidExpected[iLine];
-      let r = alt.legacySegId(line, {iStart, dbgSegId:scidExp});
+      let curScid = scids[iCurSeg];
+      let scidExp = scidExpected[iCurLine];
+      let r = alt.legacyScid(line, {
+        dbg,
+        iCurLine,
+        iCurSeg,
+        scidExp,
+      });
       rPrev = r;
       if (r) {
         res.push(r);
-        let { vLegacy, vSeg, score, segId, intersection } = r;
-        let atEnd = iLine === iEnd;
-        let ok = scidExp == null || segId === scidExp;
-        if (!ok || atEnd) {
-          let { fr, pli, ref } = mlDoc.segMap[scidStart];
-          dbg && 0 &&
-            console.log(
-              msg,
-              ok ? 'ok' : 'ERROR', //biome-ignore format:
-              {
-                iLine,
-                iStart,
-                scidStart,
-                line,
-                fr,
-                pli,
-                ref,
-                segId,
-                scidExp,
-                intersection,
-                score,
-                vLegacy: JSON.stringify(vLegacy),
-                vSeg: JSON.stringify(vSeg),
-              },
-            );
-          should(segId).equal(scidExp);
-        }
       } else {
         console.log(
           msg,
           'UNMATCHED', // biome-ignore format:
-          { iStart, scidStart, line, iLine },
+          { iCurSeg, curScid, line, iCurLine },
         );
         throw new Error(`${msg} unmatched`);
       }
     }
-    dbg && console.log(msg, `TBD iEnd:${iEnd}/${lines.length}`);
+    if (dbg) {
+      let rLast = res.at(-1);
+      let iLast = scids.indexOf(rLast.scid);
+      let linesMatched = res.length;
+      let segsMatched = rLast ? iLast+1 : undefined;
+      console.log(msg, 
+        `TBD legacy-lines:${linesMatched}/${lines.length}`,
+        `aligned-segs:${segsMatched}/${scids.length}`);
+    }
   });
 });

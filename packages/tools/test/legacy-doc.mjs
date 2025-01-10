@@ -1,5 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import should from 'should';
 import { LegacyDoc } from '../index.mjs';
+const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
+const TEST_DATA = path.join(TEST_DIR, 'data');
 
 const TEST_DOC = {
   uid: 'mn8',
@@ -77,5 +81,26 @@ describe('legacy-doc', () => {
     should(LegacyDoc.filterHtml('<body asdf>')).equal(false);
     should(LegacyDoc.filterHtml('</body>')).equal(false);
     should(LegacyDoc.filterHtml('</head>')).equal(false);
+  });
+  it('TESTTESTmn8_legacy-fr', async () => {
+    const msg = 'LEGACYDOC.mn8_legacy-fr';
+    const MN8_LEG_LINES_PATH = path.join(
+      TEST_DATA,
+      'mn8_legacy-fr-wijayaratna-lines.json',
+    );
+    if (!fs.existsSync(MN8_LEG_LINES_PATH)) {
+      const MN8_MOHAN_JSON = JSON.parse(
+        fs.readFileSync(
+          path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json'),
+        ),
+      );
+      const MN8_LEG_DOC = LegacyDoc.create(MN8_MOHAN_JSON);
+      let { lines } = MN8_LEG_DOC;
+      console.log(msg, 'creating', MN8_LEG_LINES_PATH);
+      await fs.promises.writeFile(
+        MN8_LEG_LINES_PATH,
+        JSON.stringify(lines, null, 2),
+      );
+    }
   });
 });

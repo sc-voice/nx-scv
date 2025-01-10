@@ -17,10 +17,10 @@ class Vector extends Object {
   }
 
   toString() {
-    let sv = Object.entries(this).reduce((a,e)=>{
-      let [k,v] = e;
+    let sv = Object.entries(this).reduce((a, e) => {
+      let [k, v] = e;
       let vf = v.toFixed(3);
-      a.push( `${k}:${vf}`);
+      a.push(`${k}:${vf}`);
       return a;
     }, []);
     return sv.join(',');
@@ -132,7 +132,7 @@ export default class WordSpace {
       Object.keys(wordMap).map((pat) => {
         let rep = wordMap[pat];
         return {
-          re: new RegExp(pat, 'igm'),
+          re: new RegExp(pat, 'iugm'),
           rep,
         };
       })
@@ -141,9 +141,9 @@ export default class WordSpace {
 
   static normalizeFR(s) {
     return s
-      .replace(/\bd’/ig, 'de ')
-      .replace(/\bl’/ig, 'le ')
-      .replace(/\bs’/ig, 'se ')
+      .replace(/\bd’/gi, 'de ')
+      .replace(/\bl’/gi, 'le ')
+      .replace(/\bs’/gi, 'se ')
       .replace('?', '$QUESTION')
       .replace('!', '$EXCLAMATION')
       .trim();
