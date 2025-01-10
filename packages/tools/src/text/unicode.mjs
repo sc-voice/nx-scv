@@ -186,7 +186,7 @@ let ROMANIZE_MAP = {
   '\u016b': 'u',
 };
 
-export default class Unicode {
+export class Unicode {
   static get LSQUOTE() {
     return '\u2018';
   }

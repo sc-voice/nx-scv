@@ -1,7 +1,10 @@
 import should from 'should';
-import { BilaraPath } from '../index.mjs';
+import { Text } from '../../index.mjs';
+const {
+  BilaraPath,
+} = Text;
 
-describe('bilara-path', function () {
+describe('text/bilara-path', function () {
   let { translationPath, rootPath } = BilaraPath;
   this.timeout(1 * 1000);
 

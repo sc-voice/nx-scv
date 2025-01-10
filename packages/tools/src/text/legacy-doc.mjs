@@ -18,7 +18,7 @@ const HTML_FILTER = (() => {
   return new RegExp(pat);
 })();
 
-export default class LegacyDoc {
+export class LegacyDoc {
   constructor(opts = {}) {
     const msg = 'LegacyDoc.ctor:';
     if (!privateCtor) {

@@ -11,9 +11,8 @@
     "src"
   ],
   "scripts": {
-    "test": "npm run test:verbose",
-    "test:test": "mocha --config test/mocha-config.json",
-    "test:verbose": "mocha --inline-diffs"
+    "test": "mocha --inline-diffs --recursive",
+    "test:test": "mocha --config test/mocha-config.json --recursive"
   },
   "repository": {
     "type": "git",

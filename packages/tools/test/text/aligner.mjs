@@ -1,8 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
-import { Aligner, LegacyDoc, SegDoc, WordSpace } from '../index.mjs';
-import { DBG } from '../src/defines.mjs';
+import { Text } from '../../index.mjs';
+const { Aligner, LegacyDoc, SegDoc, WordSpace } = Text;
+import { DBG } from '../../src/text/defines.mjs';
 const { Vector } = WordSpace;
 const { Alignment } = Aligner;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
@@ -32,7 +33,7 @@ const minWord = 3;
 const lang = 'fr';
 const wordSpace = new WordSpace({ lang, minWord, normalizeVector });
 
-describe('Aligner', () => {
+describe('text/aligner', () => {
   it('default ctor', () => {
     let aligner = new Aligner();
     should(aligner.wordSpace).instanceOf(WordSpace);
@@ -172,7 +173,7 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('TESTTESTcreateAlignment', () => {
+  it('createAlignment', () => {
     let legacyDoc = MN8_LEG_DOC;
     let segDoc = MN8_SRC_DOC;
     let lang = 'fr';
@@ -245,7 +246,7 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`TESTTESTlegacyScid() mn8`, () => {
+  it(`legacyScid() mn8`, () => {
     const msg = `ALIGNER.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;

@@ -1,4 +1,4 @@
-export default class BilaraPath {
+export class BilaraPath {
   constructor(bilaraPath) {
     Object.assign(this, BilaraPath.pathParts(bilaraPath));
   }

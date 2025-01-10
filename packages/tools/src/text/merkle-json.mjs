@@ -192,7 +192,7 @@ if (md5('hello') != '5d41402abc4b2a76b9719d911017c592') {
 }
 // END  http://www.myersdaily.org/joseph/javascript/md5.js
 
-export default class MerkleJson {
+export class MerkleJson {
   constructor(opts = {}) {
     this.hashTag = opts.hashTag || 'merkleHash';
   }

@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
-import { LegacyDoc } from '../index.mjs';
+import { Text } from '../../index.mjs';
+const { LegacyDoc } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, 'data');
 
@@ -39,7 +40,7 @@ const TEST_DOC = {
   ],
 };
 
-describe('legacy-doc', () => {
+describe('text/legacy-doc', () => {
   it('default ctor', () => {
     let eCaught;
     try {
@@ -82,7 +83,7 @@ describe('legacy-doc', () => {
     should(LegacyDoc.filterHtml('</body>')).equal(false);
     should(LegacyDoc.filterHtml('</head>')).equal(false);
   });
-  it('TESTTESTmn8_legacy-fr', async () => {
+  it('mn8_legacy-fr', async () => {
     const msg = 'LEGACYDOC.mn8_legacy-fr';
     const MN8_LEG_LINES_PATH = path.join(
       TEST_DATA,

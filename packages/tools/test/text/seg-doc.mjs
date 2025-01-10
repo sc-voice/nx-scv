@@ -3,9 +3,10 @@ const { promises: fsp } = fs;
 import path from 'node:path';
 import should from 'should';
 import tmp from 'tmp';
-import { SegDoc } from '../index.mjs';
+import { Text } from '../../index.mjs';
+const { SegDoc } = Text;
 
-describe('SegDoc', function () {
+describe('text/seg-doc', function () {
   this.timeout(5 * 1000);
 
   it('default ctor', () => {

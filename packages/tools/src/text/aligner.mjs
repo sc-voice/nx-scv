@@ -1,8 +1,8 @@
 import { DBG } from './defines.mjs';
-import LegacyDoc from './legacy-doc.mjs';
-import SegDoc from './seg-doc.mjs';
-import SuttaCentralId from './sutta-central-id.mjs';
-import WordSpace from './word-space.mjs';
+import { LegacyDoc } from './legacy-doc.mjs';
+import { SegDoc } from './seg-doc.mjs';
+import { SuttaCentralId } from './sutta-central-id.mjs';
+import { WordSpace } from './word-space.mjs';
 
 // Although the use of Pali words in translations is common,
 // using Pali for segment alignment is a lot of work for little gain.
@@ -14,7 +14,7 @@ const ALIGN_PALI = false;
 
 let alignmentCtor = false;
 
-export default class Aligner {
+export class Aligner {
   constructor(opts = {}) {
     const msg = 'Aligner.ctor:';
     let {

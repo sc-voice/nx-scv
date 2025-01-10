@@ -89,7 +89,7 @@ class Vector extends Object {
   }
 }
 
-export default class WordSpace {
+export class WordSpace {
   constructor(opts = {}) {
     let {
       lang, // 2-letter code: fr, en, es, pt

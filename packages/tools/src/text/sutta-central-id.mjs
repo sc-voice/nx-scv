@@ -1,7 +1,7 @@
-import { DBG } from '../src/defines.mjs';
-import { default as BilaraPath } from './bilara-path.mjs';
+import { DBG } from './defines.mjs';
+import { BilaraPath } from './bilara-path.mjs';
 
-export default class SuttaCentralId {
+export class SuttaCentralId {
   constructor(scid = null) {
     if (scid == null) {
       throw new Error(`required scid:${scid}`);

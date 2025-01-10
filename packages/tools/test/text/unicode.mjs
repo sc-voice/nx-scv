@@ -1,12 +1,15 @@
 import should from 'should';
-import { Unicode } from '../index.mjs';
+import { Text } from '../../index.mjs';
+const {
+  Unicode,
+} = Text; 
 
-describe('unicode', () => {
+describe('text/unicode', () => {
   it('default ctor', () => {
     let u = new Unicode();
     should.deepEqual(Object.keys(u), []);
   });
-  it('romanize(text) returns romanized text', () => {
+  it('TESTTESTromanize(text) returns romanized text', () => {
     let u = new Unicode();
     should(u.LSQUOTE).equal(Unicode.LSQUOTE);
     should(u.LSQUOTE).equal('\u2018');

@@ -1,9 +1,10 @@
 import should from 'should';
-import { SuttaCentralId } from '../index.mjs';
-import { DBG } from '../src/defines.mjs';
+import { Text } from '../../index.mjs';
+const { SuttaCentralId } = Text;
+import { DBG } from '../../src/text/defines.mjs';
 
 typeof describe === 'function' &&
-  describe('sutta-central-id', function () {
+  describe('text/sutta-central-id', function () {
     const logLevel = false;
 
     const assertLess = (cmp, a, b) => {

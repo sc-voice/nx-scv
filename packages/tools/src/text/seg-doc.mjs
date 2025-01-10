@@ -1,6 +1,6 @@
-import { SuttaCentralId } from '../index.mjs';
+import { SuttaCentralId } from './sutta-central-id.mjs'
 
-export default class SegDoc {
+export class SegDoc {
   constructor(opts = {}) {
     let { suid, lang, author, bilaraPath, segMap = {} } = opts;
     if (typeof segMap === 'string' || segMap instanceof Buffer) {

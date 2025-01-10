@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
-import { MerkleJson } from '../index.mjs';
+import { Text } from '../../index.mjs';
+const {
+  MerkleJson,
+} = Text;
 
 // Supercedes NPM package merkle-json
-describe('merkle-json', () => {
+describe('text/merkle-json', () => {
   it('hash(string) calculates hash code', () => {
     let mj = new MerkleJson();
 

@@ -1,8 +1,2 @@
-export { default as Aligner } from './src/aligner.mjs';
-export { default as BilaraPath } from './src/bilara-path.mjs';
-export { default as LegacyDoc } from './src/legacy-doc.mjs';
-export { default as MerkleJson } from './src/merkle-json.mjs';
-export { default as SegDoc } from './src/seg-doc.mjs';
-export { default as SuttaCentralId } from './src/sutta-central-id.mjs';
-export { default as Unicode } from './src/unicode.mjs';
-export { default as WordSpace } from './src/word-space.mjs';
+export { Text } from './src/text/index.mjs';
+
