@@ -313,11 +313,12 @@ describe('Alignment', () => {
       if (r) {
         res.push(r);
       } else {
-        dbg && console.log(
-          msg,
-          'UNMATCHED', // biome-ignore format:
-          { iCurSeg, curScid, line, iCurLine },
-        );
+        dbg &&
+          console.log(
+            msg,
+            'UNMATCHED', // biome-ignore format:
+            { iCurSeg, curScid, line, iCurLine },
+          );
         throw new Error(`${msg} unmatched`);
       }
     }

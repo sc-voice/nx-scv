@@ -20,7 +20,7 @@ export class Fraction {
   }
 
   reduce() {
-    let { numerator:n, denominator:d, units,} = this; 
+    let { numerator: n, denominator: d, units } = this;
     if (Number.isInteger(n) && Number.isInteger(d)) {
       let g = Fraction.gcd(n, d);
       if (g) {
@@ -43,12 +43,12 @@ export class Fraction {
 
   add(f) {
     const msg = 'Fraction.add:';
-    let { numerator:n1, denominator:d1, units:u1 } = this;
-    let { numerator:n2, denominator:d2, units:u2 } = f;
+    let { numerator: n1, denominator: d1, units: u1 } = this;
+    let { numerator: n2, denominator: d2, units: u2 } = f;
     if (this.units !== f.units) {
       throw new Error(`${msg} units? ${u1}? ${u2}?`);
     }
 
-    return new Fraction(n1*d2 + n2*d1, d1*d2).reduce();
+    return new Fraction(n1 * d2 + n2 * d1, d1 * d2).reduce();
   }
 }

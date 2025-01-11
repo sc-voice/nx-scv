@@ -26,36 +26,36 @@ describe('TESTTESTscv-math/fraction', () => {
     should(f.value).equal(-123);
   });
   it('custom ctor 2/3', () => {
-    let f = new Fraction(2,3);
+    let f = new Fraction(2, 3);
     should(f.numerator).equal(2);
     should(f.denominator).equal(3);
     should(f.toString()).equal('2/3');
-    should(f.value).equal(2/3);
+    should(f.value).equal(2 / 3);
   });
   it('custom ctor 240/9', () => {
     let f = new Fraction(240, 9);
-    should(f.value).equal(240/9);
+    should(f.value).equal(240 / 9);
     should(f.numerator).equal(240);
     should(f.denominator).equal(9);
     should(f.toString()).equal('240/9');
   });
-  it('units', ()=>{
+  it('units', () => {
     let f = new Fraction(2, 3, 'lines');
     should(f.numerator).equal(2);
     should(f.denominator).equal(3);
     should(f.toString()).equal('2/3 lines');
-    should(f.value).equal(2/3);
+    should(f.value).equal(2 / 3);
   });
-  it('reduce() 240/9', ()=>{
+  it('reduce() 240/9', () => {
     let f = new Fraction(9, 240, 'cars');
     let fr = f.reduce(); // mutative
     should(fr.numerator).equal(3);
     should(fr.denominator).equal(80);
     should(fr.toString()).equal('3/80 cars');
-    should(fr.value).equal(9/240);
-    should(fr).equal(f); 
+    should(fr.value).equal(9 / 240);
+    should(fr).equal(f);
   });
-  it('add', ()=>{
+  it('add', () => {
     let f1 = new Fraction(30, 3);
     let f2 = new Fraction(9, 5);
     let f12 = f1.add(f2);
@@ -65,14 +65,17 @@ describe('TESTTESTscv-math/fraction', () => {
     let eCaught;
     try {
       f3.add(f1);
-    } catch(e) { eCaught = e; }
+    } catch (e) {
+      eCaught = e;
+    }
     should(eCaught.message).match(/units.*dollars.*undefined/);
     let f4 = new Fraction(30, 3, 'euros');
     eCaught = undefined;
     try {
       f3.add(f4);
-    } catch(e) { eCaught = e; }
+    } catch (e) {
+      eCaught = e;
+    }
     should(eCaught.message).match(/units.*dollars.*euros/);
   });
 });
-

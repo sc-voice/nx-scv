@@ -33,14 +33,16 @@ const TEST_DOC = {
     'se trouvait le Bienheureux. S’étant approché, il rendit hommage au',
     'Bienheureux et s’assit à l’écart sur un côté. S’étant assis à',
     'l’écart sur un côté, l’Āyasmanta Mahā-Cunda dit au',
-    'Bienheureux :</p>',
+    'Bienheureux :',
+    '<footer>test-footer</footer>',
+    '</p>',
     '</article>',
     '</body>',
     '</html>',
   ],
 };
 
-describe('text/legacy-doc', () => {
+describe('TESTTESTtext/legacy-doc', () => {
   it('default ctor', () => {
     let eCaught;
     try {
@@ -58,6 +60,7 @@ describe('text/legacy-doc', () => {
       author: 'Môhan Wijayaratna',
       author_uid: 'wijayaratna',
       title: 'Le déracinement',
+      footer: 'test-footer',
     });
     let [l0, l1, l2, l3] = ldoc.lines;
     should(l0).match(/^8. Le déracinement$/);
