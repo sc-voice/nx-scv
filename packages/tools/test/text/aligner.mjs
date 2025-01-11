@@ -196,11 +196,12 @@ describe('Alignment', () => {
   });
   it('fetchMLDoc()', async () => {
     const msg = 'ALIGNER@303:';
+    const dbg = DBG.FETCH_ML_DOC;
     let lang = 'fr';
     let authorAligned = 'noeismet';
     let aligner = new Aligner({ lang, authorAligned });
     let mld = await aligner.fetchMLDoc('mn8');
-    console.log(msg, 'mld', mld);
+    dbg && console.log(msg, 'mld', mld);
   });
   it(`mlDocVectors() mldv-pali`, () => {
     const msg = `ALIGNER.mldv-pali`;
@@ -290,7 +291,7 @@ describe('Alignment', () => {
     let iEnd = lines.length - 1;
     for (let iCurLine = 0; iCurLine <= iEnd; iCurLine++) {
       let line = lines[iCurLine];
-      console.log(msg, iCurLine, line);
+      dbg && console.log(msg, iCurLine, line);
       if (rPrev) {
         let { scid, score, intersection } = rPrev;
         let iFound = scids.indexOf(scid);
@@ -312,7 +313,7 @@ describe('Alignment', () => {
       if (r) {
         res.push(r);
       } else {
-        console.log(
+        dbg && console.log(
           msg,
           'UNMATCHED', // biome-ignore format:
           { iCurSeg, curScid, line, iCurLine },
@@ -324,10 +325,12 @@ describe('Alignment', () => {
       let rLast = res.at(-1);
       let iLast = scids.indexOf(rLast.scid);
       let linesMatched = res.length;
-      let segsMatched = rLast ? iLast+1 : undefined;
-      console.log(msg, 
+      let segsMatched = rLast ? iLast + 1 : undefined;
+      console.log(
+        msg,
         `TBD legacy-lines:${linesMatched}/${lines.length}`,
-        `aligned-segs:${segsMatched}/${scids.length}`);
+        `aligned-segs:${segsMatched}/${scids.length}`,
+      );
     }
   });
 });

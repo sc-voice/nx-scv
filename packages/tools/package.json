@@ -1,7 +1,7 @@
 {
-  "name": "@sc-voice/text-tools",
+  "name": "@sc-voice/tools",
   "version": "1.1.0",
-  "description": "Toxt utilities for SC-Voice",
+  "description": "Utilities for SC-Voice",
   "main": "index.mjs",
   "files": [
     "LICENSE",
@@ -16,20 +16,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sc-voice/text-tools.git"
+    "url": "git+https://github.com/sc-voice/tools.git"
   },
   "keywords": [
-    "SC-Voice",
-    "Text utilities",
+    "SC-Voice tools",
     "merkle-json",
     "Javascript"
   ],
   "author": "Karl Lew",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sc-voice/text-tools/issues"
+    "url": "https://github.com/sc-voice/tools/issues"
   },
-  "homepage": "https://github.com/sc-voice/text-tools#readme",
+  "homepage": "https://github.com/sc-voice/tools#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "eslint": "^9.17.0",

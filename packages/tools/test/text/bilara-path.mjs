@@ -1,8 +1,6 @@
 import should from 'should';
 import { Text } from '../../index.mjs';
-const {
-  BilaraPath,
-} = Text;
+const { BilaraPath } = Text;
 
 describe('text/bilara-path', function () {
   let { translationPath, rootPath } = BilaraPath;

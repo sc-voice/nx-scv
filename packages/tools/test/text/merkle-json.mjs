@@ -2,9 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
 import { Text } from '../../index.mjs';
-const {
-  MerkleJson,
-} = Text;
+const { MerkleJson } = Text;
 
 // Supercedes NPM package merkle-json
 describe('text/merkle-json', () => {

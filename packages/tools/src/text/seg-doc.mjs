@@ -1,4 +1,4 @@
-import { SuttaCentralId } from './sutta-central-id.mjs'
+import { SuttaCentralId } from './sutta-central-id.mjs';
 
 export class SegDoc {
   constructor(opts = {}) {

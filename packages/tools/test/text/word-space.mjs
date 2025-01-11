@@ -3,9 +3,7 @@ import should from 'should';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import { Text } from '../../index.mjs';
-const { 
-  WordSpace,
-} = Text;
+const { WordSpace } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, 'data');
 

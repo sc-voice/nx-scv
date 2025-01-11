@@ -1,8 +1,6 @@
 import should from 'should';
 import { Text } from '../../index.mjs';
-const {
-  Unicode,
-} = Text; 
+const { Unicode } = Text;
 
 describe('text/unicode', () => {
   it('default ctor', () => {
