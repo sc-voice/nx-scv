@@ -51,10 +51,10 @@ export class LegacyDoc {
       .replace(/<h.*sutta-title.>(.*)<\/h1> /, '$1')
       .split('<p>');
     let footer = [];
-    lines.forEach((line,i) => {
+    lines.forEach((line, i) => {
       if (/<footer>/.test(line)) {
         let f = line.replace(/.*<footer>(.*)<.footer>.*/, '$1');
-        footer.push(f); 
+        footer.push(f);
         lines[i] = line.replace(/<footer>.*<.footer>/, '');
       }
       lines[i] = lines[i].trim();

@@ -229,15 +229,11 @@ export class Aligner {
     return vectorMap;
   }
 
-  align2MLDoc(legacyDoc, mlDoc, opts={}) {
+  align2MLDoc(legacyDoc, mlDoc, opts = {}) {
     const msg = 'Aligner.align2MLDoc';
     let dbg = DBG.ALIGN_2_MLDOC;
-    let { 
-      scanSize, lang, alignPali, wordSpace 
-    } = this;
-    let {
-      scidExpected,
-    } = opts;
+    let { scanSize, lang, alignPali, wordSpace } = this;
+    let { scidExpected } = opts;
     let { segMap } = mlDoc;
     let scids = Object.keys(segMap);
     scids.sort(SuttaCentralId.compareLow);
@@ -295,9 +291,8 @@ export class Aligner {
     }
     return {
       details,
-    }
+    };
   }
-
 }
 
 class Alignment {
