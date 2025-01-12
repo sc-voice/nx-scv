@@ -351,8 +351,12 @@ describe('Alignment', () => {
     should(details[0].scid).equal('mn8:0.2');
     should(details[33].scid).equal('mn8:12.22');
     should(details[66].scid).equal('mn8:17.5');
-    dbg && console.log(msg, 
-      res.details.map((r,i)=>`[${i+1}] ${r.scid} (${r.score.toFixed(2)})`
-    ));
+    dbg &&
+      console.log(
+        msg,
+        res.details.map(
+          (r, i) => `[${i + 1}] ${r.scid} (${r.score.toFixed(2)})`,
+        ),
+      );
   });
 });
