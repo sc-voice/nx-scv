@@ -7,7 +7,7 @@ describe('text/unicode', () => {
     let u = new Unicode();
     should.deepEqual(Object.keys(u), []);
   });
-  it('TESTTESTromanize(text) returns romanized text', () => {
+  it('romanize(text) returns romanized text', () => {
     let u = new Unicode();
     should(u.LSQUOTE).equal(Unicode.LSQUOTE);
     should(u.LSQUOTE).equal('\u2018');

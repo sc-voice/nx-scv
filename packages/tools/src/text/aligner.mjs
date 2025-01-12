@@ -105,7 +105,7 @@ export class Aligner {
       dbg > 1 && console.log(msg, '[0.1]segDoc', segDoc);
     }
     if (!(segDoc instanceof SegDoc)) {
-      throw new Error(`${msg} segDoc?`);
+      throw new Error(`${msg} segDoc? ${segDoc} ${!!mlDoc}`);
     }
     let { segMap } = segDoc;
     scids = scids || Object.keys(segMap);
@@ -229,52 +229,75 @@ export class Aligner {
     return vectorMap;
   }
 
-  align2MLDoc(legacyDoc, mld) {
+  align2MLDoc(legacyDoc, mlDoc, opts={}) {
     const msg = 'Aligner.align2MLDoc';
-    let { wordSpace } = this;
-    let { segMap } = mld;
+    let dbg = DBG.ALIGN_2_MLDOC;
+    let { 
+      scanSize, lang, alignPali, wordSpace 
+    } = this;
+    let {
+      scidExpected,
+    } = opts;
+    let { segMap } = mlDoc;
     let scids = Object.keys(segMap);
     scids.sort(SuttaCentralId.compareLow);
-    let vMld = this.mlDocVectors(mld);
-  }
-
-  align2SegDoc(legacyDoc, segDoc) {
-    const msg = 'Aligner.align2SegDoc';
-    let { wordSpace } = this;
-    let scids = Object.keys(segDoc);
-    scids.sort(SuttaCentralId.compareLow);
-    let vSegDoc = this.segDocVectors(segDoc);
-    let dstMap = {};
+    let vMld = this.mlDocVectors(mlDoc);
     let { lines } = legacyDoc;
-    for (let i = 0; i < lines.length; i++) {
-      let scid = scids[i];
+    let alt = this.createAlignment({ legacyDoc, mlDoc });
+    let iCurSeg = 0;
+    let iCurLine = 0;
+    let details = [];
+    let rPrev;
+    let iEnd = lines.length - 1;
+    for (let iCurLine = 0; iCurLine <= iEnd; iCurLine++) {
+      let line = lines[iCurLine];
+      dbg && console.log(msg, iCurLine, line);
+      if (rPrev) {
+        let { scid, score, intersection } = rPrev;
+        let iFound = scids.indexOf(scid);
+        if (iFound >= 0) {
+          iCurSeg = iFound + 1;
+        } else {
+          dbg && console.error(msg, 'iFound?', { iCurLine, scid });
+        }
+      }
+      let curScid = scids[iCurSeg];
+      let scidExp = scidExpected?.[iCurLine];
+      let r = alt.legacyScid(line, {
+        dbg,
+        iCurLine,
+        iCurSeg,
+        scidExp,
+      });
+      rPrev = r;
+      if (r) {
+        details.push(r);
+      } else {
+        dbg &&
+          console.log(
+            msg,
+            'UNMATCHED', // biome-ignore format:
+            { iCurSeg, curScid, line, iCurLine },
+          );
+        throw new Error(`${msg} unmatched`);
+      }
     }
-
-    /*
-		let scan = scids.reduce(
-			(a, k) => {
-				let segText = segDoc.segMap[k];
-				let vmn8 = wordSpace.string2Vector(segText);
-				let score = vmn8.similar(vmohan);
-				a.similar[k] = score;
-				if (scoreMax < score) {
-					scoreMax = score;
-					a.match = k;
-					dbg &&
-						console.log(
-							msg,
-							'better',
-							k,
-							score,
-							vmohan.intersect(vmn8),
-						);
-				}
-				return a;
-			},
-			{ similar: {} },
-		);
-    */
+    if (dbg) {
+      let rLast = details.at(-1);
+      let iLast = scids.indexOf(rLast.scid);
+      let linesMatched = details.length;
+      let segsMatched = rLast ? iLast + 1 : undefined;
+      console.log(
+        msg,
+        `TBD legacy-lines:${linesMatched}/${lines.length}`,
+        `aligned-segs:${segsMatched}/${scids.length}`,
+      );
+    }
+    return {
+      details,
+    }
   }
+
 }
 
 class Alignment {
@@ -403,7 +426,6 @@ class Alignment {
           lastId,
           scanned,
           iCurSeg,
-          iCurLine,
           scoreId,
           scoreMax,
           unMatchedSegs,

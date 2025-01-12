@@ -2,7 +2,10 @@ import { SuttaCentralId } from './sutta-central-id.mjs';
 
 export class SegDoc {
   constructor(opts = {}) {
-    let { suid, lang, author, bilaraPath, segMap = {} } = opts;
+    let { 
+      header,
+      suid, lang, author, bilaraPath, segMap = {} 
+    } = opts;
     if (typeof segMap === 'string' || segMap instanceof Buffer) {
       segMap = JSON.parse(segMap);
     }
@@ -13,6 +16,10 @@ export class SegDoc {
       author,
       bilaraPath,
       segMap,
+    });
+
+    Object.defineProperty(this, "__header__", {
+      value: header,
     });
   }
 

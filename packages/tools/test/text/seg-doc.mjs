@@ -6,7 +6,7 @@ import tmp from 'tmp';
 import { Text } from '../../index.mjs';
 const { SegDoc } = Text;
 
-describe('text/seg-doc', function () {
+describe('TESTTESTtext/seg-doc', function () {
   this.timeout(5 * 1000);
 
   it('default ctor', () => {

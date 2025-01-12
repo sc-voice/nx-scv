@@ -147,10 +147,6 @@ describe('text/aligner', () => {
     );
     should.deepEqual(vectors.s4, new Vector({ four: 1 }));
   });
-  it('align2SegDoc()', () => {
-    let aligner = new Aligner({ wordSpace });
-    aligner.align2SegDoc(MN8_LEG_DOC, MN8_SRC_DOC);
-  });
 });
 
 describe('Alignment', () => {
@@ -333,5 +329,30 @@ describe('Alignment', () => {
         `aligned-segs:${segsMatched}/${scids.length}`,
       );
     }
+  });
+  it(`TESTTESTalign2MLDoc() align-mn8`, () => {
+    const msg = `ALIGNER.align-mn8:`;
+    let dbg = DBG.MN8_MOHAN;
+    let legacyDoc = MN8_LEG_DOC;
+    let mlDoc = MN8_MLD;
+    let alignPali = true;
+    let lang = 'fr';
+    let scanSize = 43;
+    let wordSpace = WS_MOHAN;
+    let aligner = new Aligner({
+      scanSize,
+      lang,
+      alignPali,
+      wordSpace,
+    });
+    let res = aligner.align2MLDoc(legacyDoc, mlDoc);
+    let { details } = res;
+    should(details.length).equal(67);
+    should(details[0].scid).equal('mn8:0.2');
+    should(details[33].scid).equal('mn8:12.22');
+    should(details[66].scid).equal('mn8:17.5');
+    dbg && console.log(msg, 
+      res.details.map((r,i)=>`[${i+1}] ${r.scid} (${r.score.toFixed(2)})`
+    ));
   });
 });

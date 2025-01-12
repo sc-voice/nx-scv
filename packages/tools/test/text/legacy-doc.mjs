@@ -42,7 +42,7 @@ const TEST_DOC = {
   ],
 };
 
-describe('TESTTESTtext/legacy-doc', () => {
+describe('text/legacy-doc', () => {
   it('default ctor', () => {
     let eCaught;
     try {
