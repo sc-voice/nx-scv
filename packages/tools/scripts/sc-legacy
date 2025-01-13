@@ -233,7 +233,7 @@ async function alignLegacy(json) {
   const { 
     Aligner,
     BilaraPath,
-    SegDoc, 
+    EbtDoc,
     LegacyDoc,
     WordSpace,
   } = await import(INDEX_PATH);
@@ -252,13 +252,14 @@ async function alignLegacy(json) {
 async function main() {
   const msg = `${SCRIPT}.main:`;
   console.log(msg, INDEX_PATH);
+  const { Text } = await import(INDEX_PATH);
   const { 
     Aligner,
     BilaraPath,
-    SegDoc, 
+    EbtDoc,
     LegacyDoc,
     WordSpace,
-  } = await import(INDEX_PATH);
+  } = Text;
   let aligner = new Aligner({
     lang,
     authorLegacy,

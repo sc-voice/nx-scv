@@ -10,7 +10,6 @@ import { BilaraPath } from './src/text/bilara-path.mjs';
 import { EbtDoc } from './src/text/ebt-doc.mjs';
 import { LegacyDoc } from './src/text/legacy-doc.mjs';
 import { MerkleJson } from './src/text/merkle-json.mjs';
-import { SegDoc } from './src/text/seg-doc.mjs';
 import { SuttaCentralId } from './src/text/sutta-central-id.mjs';
 import { Unicode } from './src/text/unicode.mjs';
 import { WordSpace } from './src/text/word-space.mjs';
@@ -21,7 +20,6 @@ export const Text = {
   EbtDoc,
   LegacyDoc,
   MerkleJson,
-  SegDoc,
   SuttaCentralId,
   Unicode,
   WordSpace,

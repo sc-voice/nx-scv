@@ -1,6 +1,5 @@
 import { DBG } from './defines.mjs';
 import { LegacyDoc } from './legacy-doc.mjs';
-import { SegDoc } from './seg-doc.mjs';
 import { EbtDoc } from './ebt-doc.mjs';
 import { SuttaCentralId } from './sutta-central-id.mjs';
 import { WordSpace } from './word-space.mjs';
@@ -90,21 +89,21 @@ export class Aligner {
       throw new Error(`${msg} legacyDoc?`);
     }
     let scids;
-    let segDoc = new SegDoc();
+    let ebtDoc = EbtDoc.create();
     if (mlDoc == null) {
       throw new Error(`${msg} mlDoc?`);
     }
     scids = Object.keys(mlDoc.segMap);
-    segDoc = scids.reduce((a, id) => {
+    ebtDoc = scids.reduce((a, id) => {
       let seg = mlDoc.segMap[id];
       if (seg) {
         let langText = seg[lang] || '';
         a[id] = langText;
       }
       return a;
-    }, segDoc);
-    dbg > 1 && console.log(msg, '[0.1]segDoc', segDoc);
-    let { segMap } = segDoc;
+    }, ebtDoc);
+    dbg > 1 && console.log(msg, '[0.1]ebtDoc', ebtDoc);
+    let { segMap } = ebtDoc;
     scids = scids || Object.keys(segMap);
     scids.sort(SuttaCentralId.compareLow);
     let nSegs = scids.length;
