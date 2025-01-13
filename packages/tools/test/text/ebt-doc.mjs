@@ -141,7 +141,8 @@ describe('TESTTESTtext/ebt-doc', function () {
     let author = 'test-author';
     let lang = 'test-lang';
     let suid = 'test-suid';
-    let segMap = { // jumbled order
+    let segMap = {
+      // jumbled order
       'test:2': 'test two',
       'test:3': 'test three',
       'test:1': 'test one',
@@ -155,9 +156,12 @@ describe('TESTTESTtext/ebt-doc', function () {
     });
     let bls = ebtDoc.toBilaraString();
     let json = JSON.parse(bls);
-    let { __header__, } = json;
+    let { __header__ } = json;
     should(__header__).properties({
-      suid, lang, author, bilaraPath, 
+      suid,
+      lang,
+      author,
+      bilaraPath,
     });
     should(json).properties(segMap);
   });
@@ -167,7 +171,8 @@ describe('TESTTESTtext/ebt-doc', function () {
     let author = 'test-author';
     let lang = 'test-lang';
     let suid = 'test-suid';
-    let segMap = { // jumbled order
+    let segMap = {
+      // jumbled order
       'test:2': 'test two',
       'test:3': 'test three',
       'test:1': 'test one',
@@ -180,10 +185,10 @@ describe('TESTTESTtext/ebt-doc', function () {
 
     let blsParent = parent.toBilaraString();
     let jsonParent = JSON.parse(blsParent);
-    let { __header__:hdrParent, } = jsonParent;
+    let { __header__: hdrParent } = jsonParent;
     should.deepEqual(hdrParent, {
-      author, 
-      lang, 
+      author,
+      lang,
       bilaraPath: 'parent.json', // saved
     });
 
@@ -199,12 +204,12 @@ describe('TESTTESTtext/ebt-doc', function () {
     // toBilaraString does not write out unchanged inherited keys
     let bls = ebtDoc.toBilaraString();
     let json = JSON.parse(bls);
-    let { __header__, } = json;
+    let { __header__ } = json;
     // write out header keys:
     //   * inherited keys if different than parent (lang, author)
     //   * non-inherited keys (suid, bilaraPath)
     // e.g., lang, author
-    should.deepEqual(__header__, { 
+    should.deepEqual(__header__, {
       suid, // non-inherited
       author: author2, // inherited
     });

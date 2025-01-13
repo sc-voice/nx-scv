@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
 import { Text } from '../../index.mjs';
-const { Aligner, LegacyDoc, SegDoc, WordSpace } = Text;
+const { Aligner, LegacyDoc, WordSpace } = Text;
 import { DBG } from '../../src/text/defines.mjs';
 const { Vector } = WordSpace;
 const { Alignment } = Aligner;
@@ -16,7 +16,6 @@ const MN8_NOE = JSON.parse(
 );
 const MN8_MLD_PATH = path.join(TEST_DATA, 'mn8-fr-noeismet.mld.json');
 const MN8_MLD = JSON.parse(fs.readFileSync(MN8_MLD_PATH));
-const MN8_SRC_DOC = new SegDoc({ segMap: MN8_NOE });
 const MN8_MOHAN_JSON = JSON.parse(
   fs.readFileSync(
     path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json'),
@@ -65,88 +64,6 @@ describe('text/aligner', () => {
     should(aligner.lang).equal(lang);
     should(aligner.wordSpace.lang).equal(lang);
   });
-  it('segDocVectors groupSize:1', () => {
-    let minWord = 3;
-    let groupSize = 1;
-    let aligner = new Aligner({
-      minWord,
-      normalizeVector,
-      groupSize,
-    });
-    let segDoc = {
-      segMap: {
-        s1: 'one',
-        s2: 'two',
-        s3: 'three',
-      },
-    };
-    let vectors = aligner.segDocVectors(segDoc);
-    should.deepEqual(vectors.s1, new Vector({ one: 1 }));
-    should.deepEqual(vectors.s2, new Vector({ two: 1 }));
-    should.deepEqual(vectors.s3, new Vector({ three: 1 }));
-  });
-  it('segDocVectors groupSize:2', () => {
-    let minWord = 3;
-    let groupSize = 2;
-    let groupDecay = 0.7;
-    let aligner = new Aligner({
-      minWord,
-      normalizeVector,
-      groupSize,
-      groupDecay,
-    });
-    let segDoc = {
-      segMap: {
-        s1: 'one',
-        s2: 'two',
-        s3: 'three',
-      },
-    };
-    let vectors = aligner.segDocVectors(segDoc);
-    should.deepEqual(
-      vectors.s1,
-      new Vector({ one: 1, two: groupDecay }),
-    );
-    should.deepEqual(
-      vectors.s2,
-      new Vector({ two: 1, three: groupDecay }),
-    );
-    should.deepEqual(vectors.s3, new Vector({ three: 1 }));
-  });
-  it('segDocVectors groupSize:3', () => {
-    let minWord = 3;
-    let groupSize = 3;
-    let groupDecay = 0.7;
-    let aligner = new Aligner({
-      minWord,
-      groupSize,
-      groupDecay,
-      normalizeVector,
-    });
-    let segDoc = {
-      segMap: {
-        s1: 'one',
-        s2: 'two',
-        s3: 'three',
-        s4: 'four',
-      },
-    };
-    let vectors = aligner.segDocVectors(segDoc);
-    let groupDecay2 = groupDecay * groupDecay;
-    should.deepEqual(
-      vectors.s1,
-      new Vector({ one: 1, two: groupDecay, three: groupDecay2 }),
-    );
-    should.deepEqual(
-      vectors.s2,
-      new Vector({ two: 1, three: groupDecay, four: groupDecay2 }),
-    );
-    should.deepEqual(
-      vectors.s3,
-      new Vector({ three: 1, four: groupDecay }),
-    );
-    should.deepEqual(vectors.s4, new Vector({ four: 1 }));
-  });
 });
 
 describe('Alignment', () => {
@@ -169,25 +86,29 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('createAlignment', () => {
+  it('TESTTESTcreateAlignment mn8', async() => {
     let legacyDoc = MN8_LEG_DOC;
-    let segDoc = MN8_SRC_DOC;
     let lang = 'fr';
+    let scanSize = Math.ceil((170-67)*0.8);
+    scanSize = 4;
     let aligner = new Aligner({ lang, wordSpace });
-    let alt = aligner.createAlignment({ legacyDoc, segDoc });
+    let mlDoc = await aligner.fetchMLDoc('mn8');
+    let alt = aligner.createAlignment({ legacyDoc, scanSize, mlDoc });
     should(alt.legacyDoc).equal(legacyDoc);
     should(alt.lang).equal(lang);
-    should(alt.segDoc).equal(segDoc);
+    should(alt.mlDoc).equal(mlDoc);
     let nLines = alt.legacyDoc.lines.length;
     should(nLines).equal(67);
     let nSegs = alt.scids.length;
-    should(nSegs).equal(127);
-    should(alt.scanSize).above(42).below(50);
+    should(nSegs).equal(170);
+    should(alt.scanSize).equal(scanSize);
     should(alt.scids).properties({
       0: 'mn8:0.1',
       1: 'mn8:0.2',
       2: 'mn8:1.1',
       3: 'mn8:1.2',
+      168: 'mn8:17.9',
+      169: 'mn8:17.10',
     });
   });
   it('fetchMLDoc()', async () => {
@@ -199,8 +120,8 @@ describe('Alignment', () => {
     let mld = await aligner.fetchMLDoc('mn8');
     dbg && console.log(msg, 'mld', mld);
   });
-  it(`mlDocVectors() mldv-pali`, () => {
-    const msg = `ALIGNER.mldv-pali`;
+  it(`mlDocVectors() mldv-pali-1`, () => {
+    const msg = `ALIGNER.mldv-pali-1`;
     let wordMap = {
       LEGACY2: 'twopli',
       legacy3: 'threepli',
@@ -238,6 +159,60 @@ describe('Alignment', () => {
     let vectors = aligner.mlDocVectors(mld);
     should.deepEqual(vectors.s1, new Vector({ onefr: 1 }));
     should.deepEqual(vectors.s2, new Vector({ twofr: 1, twopli: 1 }));
+    should.deepEqual(
+      vectors.s3,
+      new Vector({ threefr: 1, threepli: 2 }),
+    );
+  });
+  it(`TESTTESTmlDocVectors() mldv-pali-2`, () => {
+    const msg = `ALIGNER.mldv-pali-2`;
+    let wordMap = {
+      LEGACY2: 'twopli',
+      legacy3: 'threepli',
+    };
+    let lang = 'fr';
+    let wordSpace = new WordSpace({ lang, wordMap, normalizeVector });
+    let alignPali = true;
+    let groupSize = 2;
+    let groupDecay = 0.7;
+    let aligner = new Aligner({
+      wordSpace,
+      groupSize,
+      groupDecay,
+      alignPali,
+    });
+    let mld = {
+      bilaraPaths: [],
+      author_uid: 'noeismet',
+      sutta_uid: 'mn8',
+      lang: 'fr',
+      segMap: {
+        s1: {
+          scid: 'mn8:0.1',
+          pli: 'onePli',
+          fr: 'onefr',
+          ref: 'oneref',
+        },
+        s2: {
+          scid: 'mn8:0.2',
+          pli: 'a twopli b xtwopli c',
+          fr: 'twofr',
+          ref: 'tworef',
+        },
+        s3: {
+          scid: 'mn8:0.3',
+          pli: 'a threeplix b threepliy c',
+          fr: 'threefr',
+          ref: 'threeref',
+        },
+      },
+    };
+    let vectors = aligner.mlDocVectors(mld);
+    should.deepEqual(vectors.s1, new Vector({ onefr: 1.7 }));
+    should.deepEqual(
+      vectors.s2,
+      new Vector({ twofr: 1.7, twopli: 1.7 }),
+    );
     should.deepEqual(
       vectors.s3,
       new Vector({ threefr: 1, threepli: 2 }),

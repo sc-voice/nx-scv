@@ -1,6 +1,7 @@
 import { DBG } from './defines.mjs';
 import { LegacyDoc } from './legacy-doc.mjs';
 import { SegDoc } from './seg-doc.mjs';
+import { EbtDoc } from './ebt-doc.mjs';
 import { SuttaCentralId } from './sutta-central-id.mjs';
 import { WordSpace } from './word-space.mjs';
 
@@ -83,30 +84,26 @@ export class Aligner {
   createAlignment(opts = {}) {
     const msg = 'Alignment.createAlignment:';
     const dbg = 0;
-    let { legacyDoc, segDoc, mlDoc } = opts;
-    let { lang, scanSize } = this;
+    let { legacyDoc, mlDoc, scanSize = this.scanSize } = opts;
+    let { lang, } = this;
     if (!(legacyDoc instanceof LegacyDoc)) {
       throw new Error(`${msg} legacyDoc?`);
     }
     let scids;
-    if (mlDoc) {
-      if (segDoc) {
-        throw new Error(`${msg} mlDoc=>segDoc?`);
+    let segDoc = new SegDoc();
+    if (mlDoc == null) {
+      throw new Error(`${msg} mlDoc?`);
+    }
+    scids = Object.keys(mlDoc.segMap);
+    segDoc = scids.reduce((a, id) => {
+      let seg = mlDoc.segMap[id];
+      if (seg) {
+        let langText = seg[lang] || '';
+        a[id] = langText;
       }
-      scids = Object.keys(mlDoc.segMap);
-      segDoc = scids.reduce((a, id) => {
-        let seg = mlDoc.segMap[id];
-        if (seg) {
-          let langText = seg[lang] || '';
-          a[id] = langText;
-        }
-        return a;
-      }, new SegDoc());
-      dbg > 1 && console.log(msg, '[0.1]segDoc', segDoc);
-    }
-    if (!(segDoc instanceof SegDoc)) {
-      throw new Error(`${msg} segDoc? ${segDoc} ${!!mlDoc}`);
-    }
+      return a;
+    }, segDoc);
+    dbg > 1 && console.log(msg, '[0.1]segDoc', segDoc);
     let { segMap } = segDoc;
     scids = scids || Object.keys(segMap);
     scids.sort(SuttaCentralId.compareLow);
@@ -120,9 +117,7 @@ export class Aligner {
       scanSize = Math.ceil(Math.max(1, (nSegs - nLines) * 0.8));
     }
 
-    let vSegDoc = mlDoc
-      ? this.mlDocVectors(mlDoc)
-      : this.segDocVectors(segDoc);
+    let vMLDoc = this.mlDocVectors(mlDoc);
     const optsNorm = {
       aligner: this,
       legacyDoc,
@@ -130,8 +125,7 @@ export class Aligner {
       nAligned,
       scanSize,
       scids,
-      segDoc,
-      vSegDoc,
+      vMLDoc,
     };
 
     alignmentCtor = true;
@@ -139,33 +133,6 @@ export class Aligner {
     alignmentCtor = false;
 
     return alignment;
-  }
-
-  segDocVectors(segDoc) {
-    const msg = 'Aligner.segDocVectors';
-    let { groupDecay, groupSize, wordSpace } = this;
-    let { segMap } = segDoc;
-    let scids = Object.keys(segMap);
-    let iLastSeg = scids.length - 1;
-
-    let vectorMap = {};
-    let segGroup = [];
-    for (let i = scids.length; i-- > 0; ) {
-      let scid = scids[i];
-      let segText = segMap[scid];
-      segGroup.unshift(segText);
-      if (segGroup.length > groupSize) {
-        segGroup.pop();
-      }
-      let scale = 1;
-      let vGroup = segGroup.reduce((a, text, i) => {
-        let vScale = wordSpace.string2Vector(text, scale);
-        scale *= groupDecay;
-        return a.add(vScale);
-      }, new WordSpace.Vector());
-      vectorMap[scid] = vGroup;
-    }
-    return vectorMap;
   }
 
   mlDocVectors(mld) {
@@ -335,7 +302,7 @@ class Alignment {
       scidExp,
     } = opts;
     let // biome-ignore format:
-      { scids, mlDoc, legacyDoc, vSegDoc, wordSpace, scanSize, 
+      { scids, mlDoc, legacyDoc, vMLDoc, wordSpace, scanSize, 
         minScore, scidMap,
       } = this;
     let vLegacy = wordSpace.string2Vector(legacyText);
@@ -347,9 +314,9 @@ class Alignment {
       if (scid == null) {
         break;
       }
-      let vSeg = vSegDoc[scid];
+      let vSeg = vMLDoc[scid];
       if (vSeg == null) {
-        throw new Error(`${msg}scid[${scid}]? ${vSegDoc.length}`);
+        throw new Error(`${msg}scid[${scid}]? ${vMLDoc.length}`);
       }
       let score = vLegacy.similar(vSeg);
       if (dbg > 1 && scid === scidExp) {
@@ -400,7 +367,7 @@ class Alignment {
     if (scoreId && minScore <= scoreMax) {
       this.nAligned++;
       if (dbg) {
-        let vSeg = vSegDoc[scoreId];
+        let vSeg = vMLDoc[scoreId];
         let intersection = vLegacy.intersect(vSeg).toString();
         console.log(msg, `scoreMax-${scidExp}-ok`, {
           scoreId,
@@ -428,7 +395,7 @@ class Alignment {
         });
       return undefined;
     }
-    let vSeg = vSegDoc[scoreId];
+    let vSeg = vMLDoc[scoreId];
     let intersection = vLegacy.intersect(vSeg);
     return {
       score: scoreMax,
