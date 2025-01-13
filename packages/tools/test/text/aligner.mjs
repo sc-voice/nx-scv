@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
-import { Text } from '../../index.mjs';
+import { ScvMath, Text } from '../../index.mjs';
+const { Fraction } = ScvMath;
 const { Aligner, LegacyDoc, WordSpace } = Text;
-import { DBG } from '../../src/text/defines.mjs';
+import { DBG } from '../../src/defines.mjs';
 const { Vector } = WordSpace;
 const { Alignment } = Aligner;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
@@ -86,10 +87,10 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('TESTTESTcreateAlignment mn8', async() => {
+  it('TESTTESTcreateAlignment mn8', async () => {
     let legacyDoc = MN8_LEG_DOC;
     let lang = 'fr';
-    let scanSize = Math.ceil((170-67)*0.8);
+    let scanSize = Math.ceil((170 - 67) * 0.8);
     scanSize = 4;
     let aligner = new Aligner({ lang, wordSpace });
     let mlDoc = await aligner.fetchMLDoc('mn8');
@@ -218,7 +219,7 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`alignLine() mn8`, () => {
+  it(`TESTTESTalignLine() mn8`, () => {
     const msg = `ALIGNER.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
@@ -236,8 +237,6 @@ describe('Alignment', () => {
     let { lines } = legacyDoc;
     let alt = aligner.createAlignment({ legacyDoc, mlDoc });
     let { scids } = alt;
-    let iCurSeg = 0;
-    let iCurLine = 0;
     let res = [];
     let rPrev;
     let scidExpected =
@@ -260,35 +259,43 @@ describe('Alignment', () => {
       'mn8:17.6',
     ];
     let iEnd = lines.length - 1;
-    for (let iCurLine = 0; iCurLine <= iEnd; iCurLine++) {
-      let line = lines[iCurLine];
-      dbg && console.log(msg, iCurLine, line);
+    let lineCursor = new Fraction(0, lines.length);
+    let segCursor = new Fraction(0, scids.length);
+    while (lineCursor.difference < 0) {
+      let line = lines[lineCursor.numerator];
+      dbg && console.log(msg, lineCursor.toString(), line);
       if (rPrev) {
         let { scid, score, intersection } = rPrev;
         let iFound = scids.indexOf(scid);
         if (iFound >= 0) {
-          iCurSeg = iFound + 1;
+          segCursor.numerator = iFound + 1;
         } else {
-          dbg && console.error(msg, 'iFound?', { iCurLine, scid });
+          dbg &&
+            console.error(msg, 'iFound?', lineCursor.toString(), {
+              scid,
+            });
         }
       }
-      let curScid = scids[iCurSeg];
-      let scidExp = scidExpected[iCurLine];
+      let curScid = scids[segCursor.numerator];
+      let scidExp = scidExpected[lineCursor.numerator];
       let r = alt.alignLine(line, {
         dbg,
-        iCurLine,
-        iCurSeg,
+        lineCursor,
+        segCursor,
         scidExp,
       });
       rPrev = r;
       if (r) {
+        lineCursor.increment();
         res.push(r);
       } else {
         dbg &&
           console.log(
             msg,
             'UNMATCHED', // biome-ignore format:
-            { iCurSeg, curScid, line, iCurLine },
+            lineCursor.toString(),
+            segCursor.toString(),
+            { curScid, line },
           );
         throw new Error(`${msg} unmatched`);
       }
@@ -321,8 +328,8 @@ describe('Alignment', () => {
       wordSpace,
     });
     let res = aligner.align(legacyDoc, mlDoc);
-    let { progress, details } = res;
-    should(progress.denominator).equal(67);
+    let { lineCursor, details } = res;
+    should(lineCursor.denominator).equal(67);
     should(details.length).equal(67);
     should(details[0].scid).equal('mn8:0.2');
     should(details[33].scid).equal('mn8:12.22');

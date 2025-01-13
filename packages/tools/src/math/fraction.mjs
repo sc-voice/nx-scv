@@ -7,16 +7,40 @@ export class Fraction {
     });
   }
 
-  get value() {
-    let { numerator, denominator } = this;
-    return numerator / denominator;
-  }
-
   static gcd(a, b) {
     if (b === 0) {
       return a;
     }
     return Fraction.gcd(b, a % b);
+  }
+
+  get remainder() {
+    let { n, d } = this;
+    
+    return n % d;
+  }
+
+  get difference() {
+    let { n, d } = this;
+    return n - d;
+  }
+
+  get n() {
+    return this.numerator;
+  }
+
+  get d() {
+    return this.denominator;
+  }
+
+  get value() {
+    let { numerator, denominator } = this;
+    return numerator / denominator;
+  }
+
+  increment(delta=1){
+    this.numerator += Math.round(delta);
+    return this;
   }
 
   reduce() {

@@ -55,6 +55,33 @@ describe('TESTTESTscv-math/fraction', () => {
     should(fr.value).equal(9 / 240);
     should(fr).equal(f);
   });
+  it('TESTTESTremainder', () => {
+    let big = 240;
+    let small = 9;
+
+    let f1 = new Fraction(small, big);
+    should(f1.remainder).equal(small % big);
+
+    let f2 = new Fraction(big, small);
+    should(f2.remainder).equal(big % small);
+  });
+  it('TESTTESTdifference', () => {
+    for (let i = 0; i < 10; i++) {
+      let n = Math.round(Math.random() * 1000);
+      let d = Math.round(Math.random() * 1000);
+      let f = new Fraction(n, d);
+      should(f.difference).equal(n - d);
+    }
+  });
+  it('TESTTESTincrement()', () => {
+    const msg = 'FRACTION.increment:';
+    let f = new Fraction(1, 10);
+    should(f.increment()).equal(f);
+    should(f.numerator).equal(2);
+    f.increment(-7);
+    should(f.numerator).equal(-5);
+    should(f.denominator).equal(10);
+  });
   it('add', () => {
     let f1 = new Fraction(30, 3);
     let f2 = new Fraction(9, 5);

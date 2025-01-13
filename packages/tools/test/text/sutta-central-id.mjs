@@ -1,7 +1,7 @@
 import should from 'should';
 import { Text } from '../../index.mjs';
 const { SuttaCentralId } = Text;
-import { DBG } from '../../src/text/defines.mjs';
+import { DBG } from '../../src/defines.mjs';
 
 typeof describe === 'function' &&
   describe('text/sutta-central-id', function () {

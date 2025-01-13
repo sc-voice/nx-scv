@@ -1,4 +1,4 @@
-import { DBG } from './defines.mjs';
+import { DBG } from '../defines.mjs';
 
 class Vector extends Object {
   constructor(props) {
