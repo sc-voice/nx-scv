@@ -3,7 +3,7 @@ import should from 'should';
 import { ScvMath } from '../../index.mjs';
 const { Fraction } = ScvMath;
 
-describe('scv-math/fraction', () => {
+describe('TESTTESTscv-math/fraction', () => {
   it('default ctor', () => {
     let f = new Fraction();
     should(f.numerator).equal(undefined);

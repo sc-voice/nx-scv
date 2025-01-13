@@ -32,11 +32,15 @@ export class Fraction {
   }
 
   toString() {
-    let { units, numerator, denominator, value } = this;
-    let s =
-      value === Math.floor(value)
-        ? `${value}`
-        : `${numerator}/${denominator}`;
+    let { units, numerator:n, denominator:d, value } = this;
+    if (n == null || d == null) {
+      return `${n}/${d}`;
+    }
+    if (d < 0) {
+      d = -d;
+      n = -n;
+    }
+    let s = d === 1 ? `${n}` : `${n}/${d}`;
 
     return units ? `${s} ${units}` : s;
   }

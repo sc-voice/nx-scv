@@ -218,7 +218,7 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`legacyScid() mn8`, () => {
+  it(`alignLine() mn8`, () => {
     const msg = `ALIGNER.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
@@ -274,7 +274,7 @@ describe('Alignment', () => {
       }
       let curScid = scids[iCurSeg];
       let scidExp = scidExpected[iCurLine];
-      let r = alt.legacyScid(line, {
+      let r = alt.alignLine(line, {
         dbg,
         iCurLine,
         iCurSeg,
@@ -305,7 +305,7 @@ describe('Alignment', () => {
       );
     }
   });
-  it(`TESTTESTalign2MLDoc() align-mn8`, () => {
+  it(`TESTTESTalign() align-mn8`, () => {
     const msg = `ALIGNER.align-mn8:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;
@@ -320,8 +320,9 @@ describe('Alignment', () => {
       alignPali,
       wordSpace,
     });
-    let res = aligner.align2MLDoc(legacyDoc, mlDoc);
-    let { details } = res;
+    let res = aligner.align(legacyDoc, mlDoc);
+    let { progress, details } = res;
+    should(progress.denominator).equal(67);
     should(details.length).equal(67);
     should(details[0].scid).equal('mn8:0.2');
     should(details[33].scid).equal('mn8:12.22');

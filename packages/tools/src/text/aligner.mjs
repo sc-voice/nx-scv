@@ -1,4 +1,5 @@
 import { DBG } from './defines.mjs';
+import { Fraction } from '../math/fraction.mjs';
 import { LegacyDoc } from './legacy-doc.mjs';
 import { EbtDoc } from './ebt-doc.mjs';
 import { SuttaCentralId } from './sutta-central-id.mjs';
@@ -88,12 +89,14 @@ export class Aligner {
     if (!(legacyDoc instanceof LegacyDoc)) {
       throw new Error(`${msg} legacyDoc?`);
     }
-    let scids;
-    let ebtDoc = EbtDoc.create();
     if (mlDoc == null) {
       throw new Error(`${msg} mlDoc?`);
     }
-    scids = Object.keys(mlDoc.segMap);
+
+    let nLines = legacyDoc.lines.length;
+
+    let scids = Object.keys(mlDoc.segMap);
+    let ebtDoc = EbtDoc.create();
     ebtDoc = scids.reduce((a, id) => {
       let seg = mlDoc.segMap[id];
       if (seg) {
@@ -103,15 +106,11 @@ export class Aligner {
       return a;
     }, ebtDoc);
     dbg > 1 && console.log(msg, '[0.1]ebtDoc', ebtDoc);
-    let { segMap } = ebtDoc;
-    scids = scids || Object.keys(segMap);
     scids.sort(SuttaCentralId.compareLow);
     let nSegs = scids.length;
-    let nLines = legacyDoc.lines.length;
     if (nSegs < nLines) {
       throw new Error(`${msg} nSegs < nLines?`);
     }
-    let nAligned = 0;
     if (scanSize == null) {
       scanSize = Math.ceil(Math.max(1, (nSegs - nLines) * 0.8));
     }
@@ -121,7 +120,6 @@ export class Aligner {
       aligner: this,
       legacyDoc,
       mlDoc,
-      nAligned,
       scanSize,
       scids,
       vMLDoc,
@@ -195,8 +193,8 @@ export class Aligner {
     return vectorMap;
   }
 
-  align2MLDoc(legacyDoc, mlDoc, opts = {}) {
-    const msg = 'Aligner.align2MLDoc';
+  align(legacyDoc, mlDoc, opts = {}) {
+    const msg = 'Aligner.align';
     let dbg = DBG.ALIGN_2_MLDOC;
     let { scanSize, lang, alignPali, wordSpace } = this;
     let { scidExpected } = opts;
@@ -205,6 +203,7 @@ export class Aligner {
     scids.sort(SuttaCentralId.compareLow);
     let vMld = this.mlDocVectors(mlDoc);
     let { lines } = legacyDoc;
+    let progress = new Fraction(0, lines.length, 'lines');
     let alt = this.createAlignment({ legacyDoc, mlDoc });
     let iCurSeg = 0;
     let iCurLine = 0;
@@ -225,11 +224,12 @@ export class Aligner {
       }
       let curScid = scids[iCurSeg];
       let scidExp = scidExpected?.[iCurLine];
-      let r = alt.legacyScid(line, {
+      let r = alt.alignLine(line, {
         dbg,
         iCurLine,
         iCurSeg,
         scidExp,
+        progress,
       });
       rPrev = r;
       if (r) {
@@ -256,6 +256,7 @@ export class Aligner {
       );
     }
     return {
+      progress,
       details,
     };
   }
@@ -285,24 +286,25 @@ class Alignment {
       get: () => this.aligner.wordSpace,
     });
     Object.defineProperty(this, 'progress', {
-      get: () => `${this.nAligned}/${this.nLines}`,
+      get: () => new Fraction(0, this.nLines, 'lines'),
     });
   }
 
-  legacyScid(legacyText, opts = {}) {
-    const msg = 'Alignment.legacyScid:';
+  alignLine(legacyText, opts = {}) {
+    const msg = 'Alignment.alignLine:';
     if (typeof opts === 'number') {
       opts = { iCurSeg: opts };
     }
     let {
-      dbg = this.dbg || DBG.LEGACY_SEG_ID,
+      dbg = this.dbg || DBG.ALIGN_LINE,
       iCurLine,
       iCurSeg,
       scidExp,
+      progress,
     } = opts;
     let // biome-ignore format:
       { scids, mlDoc, legacyDoc, vMLDoc, wordSpace, scanSize, 
-        minScore, scidMap,
+        minScore, scidMap, 
       } = this;
     let vLegacy = wordSpace.string2Vector(legacyText);
     let scoreMax = 0;
@@ -363,19 +365,7 @@ class Alignment {
       }
     }
 
-    if (scoreId && minScore <= scoreMax) {
-      this.nAligned++;
-      if (dbg) {
-        let vSeg = vMLDoc[scoreId];
-        let intersection = vLegacy.intersect(vSeg).toString();
-        console.log(msg, `scoreMax-${scidExp}-ok`, {
-          scoreId,
-          scoreMax,
-          intersection,
-          progress: this.progress,
-        });
-      }
-    } else {
+    if (scoreId == null || scoreMax < minScore) {
       let iEnd = Math.min(scids.length, iCurSeg + scanSize) - 1;
       let lastId = scids[iEnd];
       let scanned = iEnd - iCurSeg + 1;
@@ -393,6 +383,18 @@ class Alignment {
           unMatchedLines,
         });
       return undefined;
+    }
+
+    progress && progress.numerator++;
+    if (dbg) {
+      let vSeg = vMLDoc[scoreId];
+      let intersection = vLegacy.intersect(vSeg).toString();
+      console.log(msg, `scoreMax-${scidExp}-ok`, {
+        scoreId,
+        scoreMax,
+        intersection,
+        progress: progress?.toString(),
+      });
     }
     let vSeg = vMLDoc[scoreId];
     let intersection = vLegacy.intersect(vSeg);
