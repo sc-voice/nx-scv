@@ -1,5 +1,13 @@
 export class Fraction {
-  constructor(numerator, denominator = 1, units = undefined) {
+  constructor(...args) {
+    //constructor(numerator, denominator = 1, units = undefined) {
+    const msg = 'Fraction.ctor:';
+    if (args[0] instanceof Fraction) {
+      let { numerator: n, denominator: d, units: u } = args[0];
+      args = [n, d, u];
+    }
+    let [numerator, denominator = 1, units = undefined] = args;
+
     Object.assign(this, {
       numerator,
       denominator,
@@ -16,13 +24,17 @@ export class Fraction {
 
   get remainder() {
     let { n, d } = this;
-    
+
     return n % d;
   }
 
   get difference() {
     let { n, d } = this;
     return n - d;
+  }
+
+  get percent() {
+    return (this.value * 100).toFixed(0) + '%';
   }
 
   get n() {
@@ -38,7 +50,7 @@ export class Fraction {
     return numerator / denominator;
   }
 
-  increment(delta=1){
+  increment(delta = 1) {
     this.numerator += Math.round(delta);
     return this;
   }
@@ -56,7 +68,7 @@ export class Fraction {
   }
 
   toString() {
-    let { units, numerator:n, denominator:d, value } = this;
+    let { units, numerator: n, denominator: d, value } = this;
     if (n == null || d == null) {
       return `${n}/${d}`;
     }

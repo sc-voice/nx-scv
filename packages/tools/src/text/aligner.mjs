@@ -1,8 +1,9 @@
-import { Fraction } from '../math/fraction.mjs';
 import { DBG } from '../defines.mjs';
+import { Fraction } from '../math/fraction.mjs';
 import { EbtDoc } from './ebt-doc.mjs';
 import { LegacyDoc } from './legacy-doc.mjs';
 import { SuttaCentralId } from './sutta-central-id.mjs';
+import { Unicode } from './unicode.mjs';
 import { WordSpace } from './word-space.mjs';
 
 // Although the use of Pali words in translations is common,
@@ -13,6 +14,31 @@ import { WordSpace } from './word-space.mjs';
 // is not recognized as a match for the uninflected "bhikkhu".
 const ALIGN_PALI = false;
 
+const STATE_OK = 'ok';
+const STATE_WARN = 'warn';
+const STATE_ERROR = 'error';
+const STATE_DONE = 'done';
+const {
+  GREEN_CHECKBOX,
+  LEFT_ARROW,
+  RIGHT_ARROW,
+  CHECKMARK,
+  ELLIPSIS,
+  WARNING,
+  RED_X,
+} = Unicode;
+const {
+  BLACK,
+  WHITE,
+  RED,
+  GREEN,
+  BLUE,
+  CYAN,
+  MAGENTA,
+  YELLOW,
+  NO_COLOR,
+} = Unicode.LINUX_COLOR;
+
 let alignmentCtor = false;
 
 export class Aligner {
@@ -22,14 +48,14 @@ export class Aligner {
       alignPali = ALIGN_PALI,
       authorAligned, // author of segment aligned document
       authorLegacy, // author of legacy document
-      dbg,
       groupDecay = 0.5, // group exponential decay
       groupSize = 1, // comparison group size
       lang, // 2-letter ISO language (en, fr, es, pt)
+      maxScanSize, // maximum segments to scan for alignment
+      minScanSize = 5, // minimum number of segments to scan
       minScore = 0.1, // minimum alignment score
       minWord,
       normalizeVector,
-      scanSize, // maximum segments to scan for alignment
       scidMap = {},
       scvEndpoint = 'https://www.api.sc-voice.net/scv',
       wordSpace,
@@ -42,7 +68,6 @@ export class Aligner {
     }
 
     Object.assign(this, {
-      dbg,
       alignPali,
       authorAligned,
       authorLegacy,
@@ -50,7 +75,8 @@ export class Aligner {
       groupDecay,
       lang,
       minScore,
-      scanSize,
+      minScanSize,
+      maxScanSize,
       scidMap,
       scvEndpoint,
       wordSpace,
@@ -59,6 +85,10 @@ export class Aligner {
 
   static get Alignment() {
     return Alignment;
+  }
+
+  static get Status() {
+    return Status;
   }
 
   async fetchMLDoc(scid) {
@@ -83,8 +113,15 @@ export class Aligner {
 
   createAlignment(opts = {}) {
     const msg = 'Alignment.createAlignment:';
-    const dbg = 0;
-    let { legacyDoc, mlDoc, scanSize = this.scanSize } = opts;
+    const dbg = DBG.CREATE_ALIGNMENT;
+    let {
+      legacyDoc,
+      mlDoc,
+      minScore = this.minScore,
+      minScanSize = this.minScanSize,
+      maxScanSize = this.maxScanSize,
+      scidsExp,
+    } = opts;
     let { lang } = this;
     if (!(legacyDoc instanceof LegacyDoc)) {
       throw new Error(`${msg} legacyDoc?`);
@@ -94,39 +131,37 @@ export class Aligner {
     }
 
     let nLines = legacyDoc.lines.length;
-
+    let lineCursor = new Fraction(0, nLines, 'lines');
     let scids = Object.keys(mlDoc.segMap);
-    let ebtDoc = EbtDoc.create();
-    ebtDoc = scids.reduce((a, id) => {
-      let seg = mlDoc.segMap[id];
-      if (seg) {
-        let langText = seg[lang] || '';
-        a[id] = langText;
-      }
-      return a;
-    }, ebtDoc);
-    dbg > 1 && console.log(msg, '[0.1]ebtDoc', ebtDoc);
-    scids.sort(SuttaCentralId.compareLow);
     let nSegs = scids.length;
+    scids.sort(SuttaCentralId.compareLow);
+    let segCursor = new Fraction(0, nSegs, 'segs');
     if (nSegs < nLines) {
-      throw new Error(`${msg} nSegs < nLines?`);
+      throw new Error(`${msg} nSegs:${nSegs} < nLines:${nLines}?`);
     }
-    if (scanSize == null) {
-      scanSize = Math.ceil(Math.max(1, (nSegs - nLines) * 0.8));
+    if (maxScanSize == null) {
+      maxScanSize = Math.ceil(Math.max(1, (nSegs - nLines) * 0.8));
+    }
+    if (minScanSize < 1) {
+      throw new Error(`${msg} minScanSize? ${minScanSize} `);
     }
 
-    let vMLDoc = this.mlDocVectors(mlDoc);
-    const optsNorm = {
+    const optsAlignment = {
       aligner: this,
+      ebtDoc: EbtDoc.create(),
       legacyDoc,
+      lineCursor,
       mlDoc,
-      scanSize,
+      minScore,
+      minScanSize,
+      maxScanSize,
       scids,
-      vMLDoc,
+      scidsExp,
+      segCursor,
+      vMLDoc: this.mlDocVectors(mlDoc),
     };
-
     alignmentCtor = true;
-    let alignment = new Alignment(optsNorm);
+    let alignment = new Alignment(optsAlignment);
     alignmentCtor = false;
 
     return alignment;
@@ -192,96 +227,6 @@ export class Aligner {
     }
     return vectorMap;
   }
-
-  align(legacyDoc, mlDoc, opts = {}) {
-    const msg = 'Aligner.align';
-    let dbg = DBG.ALIGN;
-    let { scanSize, lang, alignPali, wordSpace } = this;
-    let { scidExpected } = opts;
-    let { segMap } = mlDoc;
-    let scids = Object.keys(segMap);
-    scids.sort(SuttaCentralId.compareLow);
-    let vMld = this.mlDocVectors(mlDoc);
-    let { lines } = legacyDoc;
-    let alt = this.createAlignment({ legacyDoc, mlDoc });
-    let details = [];
-    let rPrev;
-    let iEnd = lines.length - 1;
-
-    let lineCursor = new Fraction(0, lines.length, 'lines');
-    let segCursor = new Fraction(0, scids.length, 'segments');
-    while (lineCursor.difference < 0) {
-      let line = lines[lineCursor.numerator];
-      dbg > 1 && console.log(msg, lineCursor.toString(), line);
-      if (rPrev) {
-        let { scid, score, intersection } = rPrev;
-        let iFound = scids.indexOf(scid);
-        if (iFound >= 0) {
-          segCursor.numerator = iFound + 1;
-        } else {
-          dbg && console.error(msg, 'iFound?', { lineCursor, scid });
-        }
-      }
-      let curScid = scids[segCursor.numerator];
-      let scidExp = scidExpected?.[lineCursor.numerator];
-      let r = alt.alignLine(line, {
-        dbg,
-        scidExp,
-        lineCursor,
-        segCursor,
-      });
-      rPrev = r;
-      if (r) {
-        let { score, scid, vSeg, intersection } = r;
-        lineCursor.increment();
-        if (dbg === 1) {
-          console.log(
-            msg,
-            [
-              '\u2713',
-              lineCursor.toString(),
-              '@',
-              scid,
-              `(${score.toFixed(2)})`,
-            ].join(' '),
-          );
-        } else if (dbg > 1) {
-          console.log(msg, `aligned ${scid}`, {
-            scid,
-            score,
-            intersection,
-            lineCursor: lineCursor.toString(),
-          });
-        }
-        details.push(r);
-      } else {
-        dbg &&
-          console.log(
-            msg,
-            'UNMATCHED', // biome-ignore format:
-            lineCursor.toString(),
-            segCursoor.toString(),
-            { curScid, line },
-          );
-        throw new Error(`${msg} unmatched`);
-      }
-    }
-    if (dbg) {
-      let rLast = details.at(-1);
-      let iLast = scids.indexOf(rLast.scid);
-      let linesMatched = details.length;
-      let segsMatched = rLast ? iLast + 1 : undefined;
-      console.log(
-        msg,
-        `TBD legacy-lines:${linesMatched}/${lines.length}`,
-        `aligned-segs:${segsMatched}/${scids.length}`,
-      );
-    }
-    return {
-      lineCursor,
-      details,
-    };
-  }
 }
 
 class Alignment {
@@ -295,50 +240,60 @@ class Alignment {
     Object.defineProperty(this, 'lang', {
       get: () => this.aligner.lang,
     });
-    Object.defineProperty(this, 'groupSize', {
-      get: () => this.aligner.groupSize,
-    });
-    Object.defineProperty(this, 'groupDecay', {
-      get: () => this.aligner.groupDecay,
-    });
-    Object.defineProperty(this, 'minScore', {
-      get: () => this.aligner.minScore,
-    });
     Object.defineProperty(this, 'wordSpace', {
       get: () => this.aligner.wordSpace,
     });
-    Object.defineProperty(this, 'progress', {
-      get: () => new Fraction(0, this.nLines, 'lines'),
+    Object.defineProperty(this, 'status', {
+      get: () => {
+        let { legacyDoc, history } = this;
+        if (history.length === 0) {
+          let { uid, lang, author_uid } = legacyDoc;
+          let text = `${uid}/${lang}/${author_uid} unaligned`;
+          return new Status(this, { text });
+        }
+        return history.at(-1);
+      },
     });
+
+    this.history = [];
+    let { legacyDoc } = this;
+  }
+
+  pushStatus(opts) {
+    let status = new Status(this, opts);
+    this.history.push(status);
+    return status;
   }
 
   alignLine(legacyText, opts = {}) {
     const msg = 'Alignment.alignLine:';
+    const dbg = DBG.ALIGN_LINE;
     if (typeof opts !== 'object') {
       throw new Error(`${msg} opts?`);
     }
-    let {
-      dbg = this.dbg || DBG.ALIGN_LINE,
-      lineCursor,
-      segCursor,
-      scidExp,
-      progress,
-    } = opts;
+    let { scidExp } = opts;
+    // biome-ignore format:
+    let { 
+      legacyDoc, lineCursor,
+      mlDoc, vMLDoc, segCursor, scids, 
+      wordSpace, maxScanSize, minScanSize,
+      minScore, scidMap, 
+    } = this;
     if (segCursor == null) {
       throw new Error(`${msg} segCursor?`);
     }
     if (lineCursor == null) {
       throw new Error(`${msg} lineCursor?`);
     }
-    let // biome-ignore format:
-      { scids, mlDoc, legacyDoc, vMLDoc, wordSpace, scanSize, 
-        minScore, scidMap, 
-      } = this;
     let vLegacy = wordSpace.string2Vector(legacyText);
     let scoreMax = 0;
-    let segMap = mlDoc?.segMap;
+    let segMap = mlDoc.segMap;
     let scoreId;
-    for (let i = 0; i < scanSize; i++) {
+    for (
+      let i = 0;
+      i < maxScanSize && (i < minScanSize || scoreMax < minScore);
+      i++
+    ) {
       let scid = scids[segCursor.numerator + i];
       if (scid == null) {
         break;
@@ -348,17 +303,31 @@ class Alignment {
         throw new Error(`${msg}scid[${scid}]? ${vMLDoc.length}`);
       }
       let score = vLegacy.similar(vSeg);
+      if (minScanSize <= i) {
+        // Scan exceeded minScanSize. We might be lost.
+        // Or maybe we got lucky and translator omitted many segments.
+        // For example, MN8 42 segments are skipped for Môhan
+        // biome-ignore format:
+        if (score) {
+          let percent = (score*100).toFixed(0);
+          let status = minScore <= score 
+            ? '\u001b[32m'
+            : '\u001b[31m';
+          dbg && console.log(msg, 
+            ` ${WARNING}${status} SCAN+${i} ${scid}🡘 ${percent}%`,
+            '\u001b[0m', // console color end
+            );
+        }
+      }
+      // biome-ignore format:
       if (dbg > 1 && scid === scidExp) {
         let seg = mlDoc?.segMap[scid] || {};
         let intersection = vLegacy.intersect(vSeg).toString();
         let { pli } = seg;
         console.log(msg, 'scidExp', {
-          seg,
-          legacyText,
-          vLegacy: vLegacy.toString(),
-          vSeg: vSeg.toString(),
-          score,
-          intersection,
+          legacyText, vLegacy: vLegacy.toString(),
+          seg, vSeg: vSeg.toString(),
+          score, intersection,
         });
       }
       if (scoreMax < score) {
@@ -367,26 +336,16 @@ class Alignment {
         if (dbg > 1 && scidExp) {
           let cmp = SuttaCentralId.compareLow(scoreId, scidExp);
           let intersection = vLegacy.intersect(vSeg).toString();
+          // biome-ignore format:
           if (cmp <= 0) {
-            console.log(msg, `scoreMax-${scidExp}`, {
-              scoreId,
-              scoreMax,
-              intersection,
-            });
+            console.log(msg, `scoreMax-${scidExp}`, 
+              { scoreId, scoreMax, intersection, });
           } else {
             let segExp = segMap && segMap[scidExp];
-            console.log(
-              msg,
-              `scoreMax-${scidExp}-MISMATCH?`,
+            console.log( msg, `scoreMax-${scidExp}-MISMATCH?`,
               segCursor.toString(),
               lineCursor.toString(),
-              {
-                scoreId,
-                segExp,
-                legacyText,
-                scoreMax,
-                intersection,
-              },
+              { scoreId, segExp, legacyText, scoreMax, intersection},
             );
           }
         }
@@ -395,28 +354,48 @@ class Alignment {
 
     if (scoreId == null || scoreMax < minScore) {
       let iEnd =
-        Math.min(scids.length, segCursor.numerator + scanSize) - 1;
+        Math.min(scids.length, segCursor.numerator + maxScanSize) - 1;
       let lastId = scids[iEnd];
       let scanned = iEnd - segCursor.numerator + 1;
-      dbg &&
-        console.log(
-          msg,
-          `UNMATCHED`,
-          {
-            legacyText,
-            lastId,
-            scanned,
-            scoreId,
-            scoreMax,
-          },
+      // biome-ignore format:
+      dbg && console.log( msg, `UNMATCHED`,
+          { legacyText, lastId, scanned, scoreId, scoreMax },
           segCursor.toString(),
           lineCursor.toString(),
         );
       return undefined;
     }
 
+    lineCursor.increment();
+    let iFound = scids.indexOf(scoreId);
+    if (iFound >= 0) {
+      segCursor.numerator = iFound + 1;
+    } else {
+      dbg &&
+        console.error(msg, `${ERROR} iFound?`, {
+          lineCursor,
+          scoreId,
+        });
+    }
     let vSeg = vMLDoc[scoreId];
     let intersection = vLegacy.intersect(vSeg);
+    let status = this.pushStatus({
+      score: scoreMax,
+      scid: scoreId,
+      intersection,
+      vLegacy,
+      vSeg,
+    });
+    dbg && console.log(msg, status.summary);
+    if (lineCursor.value === 1) {
+      let { uid, lang, author_uid } = this.legacyDoc;
+      this.pushStatus({
+        state: STATE_DONE,
+        text: `${uid}/${lang}/${author_uid} aligned`,
+      });
+      dbg && console.log(msg, this.status.summary);
+    }
+
     return {
       score: scoreMax,
       scid: scoreId,
@@ -424,5 +403,135 @@ class Alignment {
       vLegacy,
       vSeg,
     };
+  } // alignLine
+
+  alignAll() {
+    const msg = 'Alignment.alignAll:';
+    let dbg = DBG.ALIGN_ALL;
+    //bimoe-ignore format:
+    let {
+      aligner,
+      legacyDoc,
+      lineCursor,
+      mlDoc,
+      vMLDoc,
+      segCursor,
+      scidsExp,
+      minScanSize,
+      maxScanSize,
+    } = this;
+    let { lang, alignPali, wordSpace } = aligner;
+    let { segMap } = mlDoc;
+    let scids = Object.keys(segMap);
+    scids.sort(SuttaCentralId.compareLow);
+    let { lines } = legacyDoc;
+    let rPrev;
+    let iEnd = lines.length - 1;
+
+    while (lineCursor.difference < 0) {
+      let line = lines[lineCursor.numerator];
+      dbg > 1 && console.log(msg, lineCursor.toString(), line);
+      let curScid = scids[segCursor.numerator];
+      let scidExp = scidsExp?.[lineCursor.numerator];
+      let r = this.alignLine(line, { scidExp });
+      rPrev = r;
+      // biome-ignore format:
+      if (r == null) {
+        dbg && console.log( msg, 'UNMATCHED', 
+          lineCursor.toString(),
+          segCursor.toString(),
+          { curScid, line, minScanSize, maxScanSize },
+        );
+        throw new Error(`${msg} unmatched`);
+      }
+    }
+
+    // biome-ignore format:
+    return {
+      status: this.status.summary,
+    };
+  } // alignAll
+} // class Alignment
+
+class Status {
+  constructor(alignment, opts = {}) {
+    let { lineCursor, segCursor } = alignment;
+    let {
+      text,
+      scid,
+      state = STATE_OK,
+      score,
+      intersection,
+      vLegacy,
+      vSeg,
+    } = opts;
+
+    Object.assign(this, {
+      alignment,
+      intersection,
+      lineCursor: lineCursor && new Fraction(lineCursor),
+      text,
+      scid,
+      score,
+      segCursor: segCursor && new Fraction(segCursor),
+      state,
+      vLegacy,
+      vSeg,
+    });
+
+    Object.defineProperty(this, 'scorePercent', {
+      get: () =>
+        this.score == null
+          ? '--%'
+          : `${(100 * this.score)?.toFixed(0)}%`,
+    });
+    Object.defineProperty(this, 'lineCur', {
+      get: () => this?.lineCursor?.toString(),
+    });
+    Object.defineProperty(this, 'segCur', {
+      get: () => this?.segCursor?.toString(),
+    });
   }
-}
+
+  get summary() {
+    let { state, text, scid, scorePercent, lineCur, segCur, score } =
+      this;
+
+    let symbol;
+    switch (state) {
+      case STATE_ERROR:
+        symbol = RED_X;
+        break;
+      case STATE_WARN:
+        symbol = '${RED}\u26A0${NO_COLOR}';
+        break;
+      case STATE_DONE:
+        symbol = GREEN_CHECKBOX;
+        break;
+      case STATE_OK:
+      default:
+        symbol = `${GREEN}${CHECKMARK}${NO_COLOR}`;
+        break;
+    }
+
+    if (score == undefined) {
+      return [
+        symbol, 
+        text,
+        lineCur,
+        segCur,
+      ].join(' ');
+    }
+
+    let status = [
+      symbol,
+      text,
+      lineCur,
+      `${LEFT_ARROW}${scorePercent}${RIGHT_ARROW}`,
+      scid,
+      segCur,
+    ].join(' ');
+
+    return status;
+  }
+} // Status

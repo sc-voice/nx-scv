@@ -1,5 +1,5 @@
-import { BilaraPath } from './bilara-path.mjs';
 import { DBG } from '../defines.mjs';
+import { BilaraPath } from './bilara-path.mjs';
 
 export class SuttaCentralId {
   constructor(scid = null) {

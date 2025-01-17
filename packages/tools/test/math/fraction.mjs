@@ -17,6 +17,11 @@ describe('TESTTESTscv-math/fraction', () => {
     should(f.denominator).equal(1);
     should(f.toString()).equal('1');
     should(f.value).equal(1);
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
   });
   it('custom ctor -123', () => {
     let f = new Fraction(-123);

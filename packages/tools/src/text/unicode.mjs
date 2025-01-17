@@ -223,6 +223,41 @@ export class Unicode {
   static get u_MACRON() {
     return '\u016d'; /* UTF-8 c5ab */
   }
+  static get LEFT_ARROW() {
+    return '\u2190';
+  }
+  static get RIGHT_ARROW() {
+    return '\u2192';
+  }
+  static get LEFT_RIGHT_ARROW() {
+    return '\u2194';
+  }
+  static get CHECKMARK() {
+    return '\u2713';
+  }
+  static get WARNING() {
+    return '\u26A0';
+  }
+  static get RED_X() {
+    return '\u274c';
+  }
+  static get GREEN_CHECKBOX() {
+    return '\u2705';
+  }
+
+  static get LINUX_COLOR() {
+    return {
+      BLACK: '\u001b[30m',
+      RED: '\u001b[31m',
+      GREEN: '\u001b[32m',
+      YELLOW: '\u001b[33m',
+      BLUE: '\u001b[34m',
+      MAGENTA: '\u001b[35m',
+      CYAN: '\u001b[36m',
+      WHITE: '\u001b[37m',
+      NO_COLOR: '\u001b[0m',
+    };
+  }
 
   constructor(opts = {}) {
     if (opts.romanizeMap == null) {
