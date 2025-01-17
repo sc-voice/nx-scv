@@ -34,33 +34,40 @@ const lang = 'fr';
 const wordSpace = new WordSpace({ lang, minWord, normalizeVector });
 
 describe('text/aligner', () => {
-  it('default ctor', () => {
+  it('TESTTESTdefault ctor', () => {
     let aligner = new Aligner();
     should(aligner.wordSpace).instanceOf(WordSpace);
     should(aligner.groupSize).equal(1);
     should(aligner.groupDecay).equal(0.5);
     should(aligner.minScore).equal(0.1);
     should(aligner.maxScanSize).equal(undefined);
+    should(aligner.alignPali).equal(true);
   });
-  it('custom ctor', () => {
+  it('TESTTESTcustom ctor', () => {
     let lang = 'fr';
     let groupSize = 3;
     let groupDecay = 0.7;
+    let minScanSize = 2;
     let maxScanSize = 11;
     let authorLegacy = 'legacy-author';
     let authorAligned = 'aligned-author';
+    let alignPali = false;
     let aligner = new Aligner({
+      alignPali,
       authorAligned,
       authorLegacy,
       groupSize,
       groupDecay,
       lang,
+      minScanSize,
       maxScanSize,
       wordSpace,
     });
+    should(aligner.alignPali).equal(alignPali);
     should(aligner.wordSpace).equal(wordSpace);
     should(aligner.groupSize).equal(groupSize);
     should(aligner.groupDecay).equal(groupDecay);
+    should(aligner.minScanSize).equal(minScanSize);
     should(aligner.maxScanSize).equal(maxScanSize);
     should(aligner.lang).equal(lang);
     should(aligner.wordSpace.lang).equal(lang);
@@ -87,7 +94,7 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('TESTTESTcreateAlignment mn8', async () => {
+  it('createAlignment mn8', async () => {
     let legacyDoc = MN8_LEG_DOC;
     let lang = 'fr';
     let maxScanSize = Math.ceil((170 - 67) * 0.8);
@@ -136,8 +143,7 @@ describe('Alignment', () => {
     };
     let lang = 'fr';
     let wordSpace = new WordSpace({ lang, wordMap, normalizeVector });
-    let alignPali = true;
-    let aligner = new Aligner({ wordSpace, alignPali });
+    let aligner = new Aligner({ wordSpace });
     let mld = {
       bilaraPaths: [],
       author_uid: 'noeismet',
@@ -172,7 +178,7 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`TESTTESTmlDocVectors() mldv-pali-2`, () => {
+  it(`mlDocVectors() mldv-pali-2`, () => {
     const msg = `ALIGNER.mldv-pali-2`;
     let wordMap = {
       LEGACY2: 'twopli',
@@ -180,14 +186,12 @@ describe('Alignment', () => {
     };
     let lang = 'fr';
     let wordSpace = new WordSpace({ lang, wordMap, normalizeVector });
-    let alignPali = true;
     let groupSize = 2;
     let groupDecay = 0.7;
     let aligner = new Aligner({
       wordSpace,
       groupSize,
       groupDecay,
-      alignPali,
     });
     let mld = {
       bilaraPaths: [],
@@ -226,29 +230,22 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`alignLine() mn8`, () => {
+  it(`TESTTESTalignLine() mn8`, () => {
     const msg = `ALIGNER.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
     let dbg = DBG.MN8_MOHAN;
-    let alignPali = true;
     let lang = 'fr';
-    let maxScanSize = 43;
     let wordSpace = WS_MOHAN;
-    let aligner = new Aligner({
-      maxScanSize,
-      lang,
-      alignPali,
-      wordSpace,
-    });
+    let aligner = new Aligner({ lang, wordSpace });
     let { lines } = legacyDoc;
     let alt = aligner.createAlignment({ legacyDoc, mlDoc });
     let { scids, lineCursor, segCursor } = alt;
     let res = [];
     let rPrev;
-    let scidExpected =
-      // biome-ignore format:
-      [ 'mn8:0.2', 'mn8:1.2', 'mn8:2.1', 'mn8:3.1', 'mn8:3.4', 
+    // biome-ignore format:
+    let scidExpected = [
+      'mn8:0.2', 'mn8:1.2', 'mn8:2.1', 'mn8:3.1', 'mn8:3.4', 
       'mn8:4.4', 'mn8:5.4', "mn8:6.1", 'mn8:7.1', 'mn8:8.1', 
       'mn8:9.1', 'mn8:10.1', 'mn8:11.1', 'mn8:12.2', 'mn8:12.3', 
       'mn8:12.4', 'mn8:12.5', 'mn8:12.6', 'mn8:12.7', 'mn8:12.8', 
@@ -261,9 +258,7 @@ describe('Alignment', () => {
       'mn8:12.39', 'mn8:12.40', 'mn8:12.41', 'mn8:12.42', 'mn8:12.43',
       'mn8:12.44', 'mn8:12.45', 'mn8:13.4', 'mn8:14.1', 'mn8:14.3',
       'mn8:14.5', 'mn8:15.1', 'mn8:15.2', 'mn8:16.3', 'mn8:16.5',
-      'mn8:17.2',
-      'mn8:17.5',
-      'mn8:17.6',
+      'mn8:17.2', 'mn8:17.5', 'mn8:17.6',
     ];
     let iEnd = lines.length - 1;
     while (lineCursor.difference < 0) {
@@ -310,24 +305,14 @@ describe('Alignment', () => {
       );
     }
   });
-  it(`TESTTESTalignAll() align-mn8`, () => {
-    const msg = `ALIGNER.align-mn8:`;
+  it(`TESTTESTalignAll() align-mn8-ok`, () => {
+    const msg = `ALIGNER.align-mn8-ok:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
-    let alignPali = true;
     let lang = 'fr';
-    let minScanSize = undefined;
-    let maxScanSize = 43;
-    maxScanSize = undefined;
     let wordSpace = WS_MOHAN;
-    let aligner = new Aligner({
-      minScanSize,
-      maxScanSize,
-      lang,
-      alignPali,
-      wordSpace,
-    });
+    let aligner = new Aligner({ lang, wordSpace });
     let alignment = aligner.createAlignment({ legacyDoc, mlDoc });
     let res = alignment.alignAll();
     let { lineCursor, segCursor, history } = alignment;
@@ -338,5 +323,31 @@ describe('Alignment', () => {
     should(history.length).equal(68); // 67 lines + 1 summary
     should(res.status).match(/.*mn8.fr.wijayaratna aligned/u);
     should(alignment.status.summary).equal(res.status);
+  });
+  it(`TESTTESTalignAll() align-mn8-nomatch`, () => {
+    const msg = `ALIGNER.align-mn8-nomatch:`;
+    let dbg = DBG.MN8_MOHAN;
+    let legacyDoc = MN8_LEG_DOC;
+    let mlDoc = MN8_MLD;
+    let lang = 'fr';
+    let maxScanSize = 42;
+    let wordSpace = WS_MOHAN;
+    let aligner = new Aligner({ maxScanSize, lang, wordSpace });
+    let alignment = aligner.createAlignment({ legacyDoc, mlDoc });
+    let eCaught;
+    let res;
+    try {
+      let res = alignment.alignAll();
+    } catch (e) {
+      eCaught = e;
+    }
+    should(eCaught.message).match(/unmatched/);
+    let { lineCursor, segCursor, history } = alignment;
+    should(lineCursor.denominator).equal(67);
+    should(history.length).equal(66);
+    should(history[0].scid).equal('mn8:0.2');
+    should(history[33].scid).equal('mn8:12.22');
+    should(history[65].scid).equal('mn8:16.47');
+    should(alignment.status.state).equal('error');
   });
 });

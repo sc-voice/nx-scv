@@ -3,7 +3,7 @@ import should from 'should';
 import { ScvMath } from '../../index.mjs';
 const { Fraction } = ScvMath;
 
-describe('TESTTESTscv-math/fraction', () => {
+describe('scv-math/fraction', () => {
   it('default ctor', () => {
     let f = new Fraction();
     should(f.numerator).equal(undefined);
@@ -60,7 +60,7 @@ describe('TESTTESTscv-math/fraction', () => {
     should(fr.value).equal(9 / 240);
     should(fr).equal(f);
   });
-  it('TESTTESTremainder', () => {
+  it('remainder', () => {
     let big = 240;
     let small = 9;
 
@@ -70,7 +70,7 @@ describe('TESTTESTscv-math/fraction', () => {
     let f2 = new Fraction(big, small);
     should(f2.remainder).equal(big % small);
   });
-  it('TESTTESTdifference', () => {
+  it('difference', () => {
     for (let i = 0; i < 10; i++) {
       let n = Math.round(Math.random() * 1000);
       let d = Math.round(Math.random() * 1000);
@@ -78,7 +78,7 @@ describe('TESTTESTscv-math/fraction', () => {
       should(f.difference).equal(n - d);
     }
   });
-  it('TESTTESTincrement()', () => {
+  it('increment()', () => {
     const msg = 'FRACTION.increment:';
     let f = new Fraction(1, 10);
     should(f.increment()).equal(f);

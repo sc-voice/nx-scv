@@ -6,14 +6,6 @@ import { SuttaCentralId } from './sutta-central-id.mjs';
 import { Unicode } from './unicode.mjs';
 import { WordSpace } from './word-space.mjs';
 
-// Although the use of Pali words in translations is common,
-// using Pali for segment alignment is a lot of work for little gain.
-// Aligning to Pali doesn't work well because Pali words
-// are inflected. This matters because translators tend to
-// use uninflected words. For example, the inflection "bhikkhuno"
-// is not recognized as a match for the uninflected "bhikkhu".
-const ALIGN_PALI = false;
-
 const STATE_OK = 'ok';
 const STATE_WARN = 'warn';
 const STATE_ERROR = 'error';
@@ -45,7 +37,7 @@ export class Aligner {
   constructor(opts = {}) {
     const msg = 'Aligner.ctor:';
     let {
-      alignPali = ALIGN_PALI,
+      alignPali = true,
       authorAligned, // author of segment aligned document
       authorLegacy, // author of legacy document
       groupDecay = 0.5, // group exponential decay
@@ -352,21 +344,31 @@ class Alignment {
       }
     }
 
+    let vSeg = vMLDoc[scoreId];
+    let intersection = vLegacy.intersect(vSeg);
+
+    lineCursor.increment();
+
     if (scoreId == null || scoreMax < minScore) {
       let iEnd =
         Math.min(scids.length, segCursor.numerator + maxScanSize) - 1;
       let lastId = scids[iEnd];
       let scanned = iEnd - segCursor.numerator + 1;
       // biome-ignore format:
-      dbg && console.log( msg, `UNMATCHED`,
-          { legacyText, lastId, scanned, scoreId, scoreMax },
-          segCursor.toString(),
-          lineCursor.toString(),
-        );
+      this.pushStatus({
+        state: STATE_ERROR,
+        text: `${maxScanSize} UNMATCHED`,
+        legacyText,
+        score: scoreMax,
+        scid: scoreId,
+        intersection,
+        vLegacy,
+        vSeg,
+      });
+      dbg && console.log(msg, this.status.summary);
       return undefined;
     }
 
-    lineCursor.increment();
     let iFound = scids.indexOf(scoreId);
     if (iFound >= 0) {
       segCursor.numerator = iFound + 1;
@@ -377,32 +379,25 @@ class Alignment {
           scoreId,
         });
     }
-    let vSeg = vMLDoc[scoreId];
-    let intersection = vLegacy.intersect(vSeg);
     let status = this.pushStatus({
       score: scoreMax,
       scid: scoreId,
       intersection,
+      legacyText,
       vLegacy,
       vSeg,
     });
     dbg && console.log(msg, status.summary);
     if (lineCursor.value === 1) {
       let { uid, lang, author_uid } = this.legacyDoc;
-      this.pushStatus({
+      status = this.pushStatus({
         state: STATE_DONE,
         text: `${uid}/${lang}/${author_uid} aligned`,
       });
       dbg && console.log(msg, this.status.summary);
     }
 
-    return {
-      score: scoreMax,
-      scid: scoreId,
-      intersection,
-      vLegacy,
-      vSeg,
-    };
+    return status;
   } // alignLine
 
   alignAll() {
@@ -437,10 +432,11 @@ class Alignment {
       rPrev = r;
       // biome-ignore format:
       if (r == null) {
+        let { vSeg, vLegacy, intersection } = this.status;
         dbg && console.log( msg, 'UNMATCHED', 
           lineCursor.toString(),
           segCursor.toString(),
-          { curScid, line, minScanSize, maxScanSize },
+          { curScid, line, minScanSize, maxScanSize, vSeg, vLegacy, intersection },
         );
         throw new Error(`${msg} unmatched`);
       }
@@ -462,21 +458,23 @@ class Status {
       state = STATE_OK,
       score,
       intersection,
+      legacyText,
       vLegacy,
       vSeg,
     } = opts;
 
     Object.assign(this, {
       alignment,
-      intersection,
+      intersection: intersection?.toString(),
+      legacyText,
       lineCursor: lineCursor && new Fraction(lineCursor),
       text,
       scid,
       score,
       segCursor: segCursor && new Fraction(segCursor),
       state,
-      vLegacy,
-      vSeg,
+      vLegacy: vLegacy?.toString(),
+      vSeg: vSeg?.toString(),
     });
 
     Object.defineProperty(this, 'scorePercent', {
@@ -494,44 +492,56 @@ class Status {
   }
 
   get summary() {
-    let { state, text, scid, scorePercent, lineCur, segCur, score } =
-      this;
+    let {
+      alignment,
+      state,
+      text,
+      scid,
+      scorePercent,
+      lineCur,
+      segCur,
+      score,
+      legacyText = '',
+    } = this;
 
+    let status = [];
     let symbol;
+    let context = legacyText;
+    let { minScore } = alignment;
     switch (state) {
       case STATE_ERROR:
         symbol = RED_X;
+        text = `${RED}${text}${NO_COLOR}`;
         break;
       case STATE_WARN:
-        symbol = '${RED}\u26A0${NO_COLOR}';
+        symbol = '${CYAN}\u26A0${NO_COLOR}';
         break;
       case STATE_DONE:
         symbol = GREEN_CHECKBOX;
         break;
       case STATE_OK:
-      default:
         symbol = `${GREEN}${CHECKMARK}${NO_COLOR}`;
+        context = context.substring(0, 10) + ELLIPSIS;
+        break;
+      default:
+        symbol = RED_X;
+        text = `UNKNOWN STATE ${state}`;
         break;
     }
-
-    if (score == undefined) {
-      return [
-        symbol, 
-        text,
-        lineCur,
-        segCur,
-      ].join(' ');
+    status.push(symbol);
+    status.push(text);
+    if (score) {
+      scorePercent =
+        score < minScore
+          ? RED + scorePercent + RIGHT_ARROW + NO_COLOR
+          : GREEN + scorePercent + RIGHT_ARROW + NO_COLOR;
+      status.push(lineCur);
+      status.push(scorePercent);
+      status.push(scid);
+      status.push(segCur);
     }
+    context && status.push(context);
 
-    let status = [
-      symbol,
-      text,
-      lineCur,
-      `${LEFT_ARROW}${scorePercent}${RIGHT_ARROW}`,
-      scid,
-      segCur,
-    ].join(' ');
-
-    return status;
+    return status.join(' ');
   }
 } // Status

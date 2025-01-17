@@ -244,6 +244,12 @@ export class Unicode {
   static get GREEN_CHECKBOX() {
     return '\u2705';
   }
+  static get LEFT_GUILLEMET() {
+    return '\u00ab';
+  }
+  static get RIGHT_GUILLEMET() {
+    return '\u00bb';
+  }
 
   static get LINUX_COLOR() {
     return {

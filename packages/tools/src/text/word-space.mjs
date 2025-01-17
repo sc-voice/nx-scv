@@ -19,7 +19,7 @@ class Vector extends Object {
   toString() {
     let sv = Object.entries(this).reduce((a, e) => {
       let [k, v] = e;
-      let vf = v.toFixed(3);
+      let vf = v.toFixed(2);
       a.push(`${k}:${vf}`);
       return a;
     }, []);
@@ -141,6 +141,7 @@ export class WordSpace {
 
   static normalizeFR(s) {
     return s
+      .replace(/[«»]/gi, '')
       .replace(/\bd’/gi, 'de ')
       .replace(/\bl’/gi, 'le ')
       .replace(/\bs’/gi, 'se ')
