@@ -3,10 +3,11 @@ import path from 'node:path';
 import should from 'should';
 import { ScvMath, Text } from '../../index.mjs';
 const { Fraction } = ScvMath;
-const { Aligner, LegacyDoc, WordSpace } = Text;
+const { 
+  Aligner, Alignment, AlignmentStatus, LegacyDoc, WordSpace 
+} = Text;
 import { DBG } from '../../src/defines.mjs';
 const { Vector } = WordSpace;
-const { Alignment } = Aligner;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, 'data');
 
@@ -106,7 +107,7 @@ describe('Alignment', () => {
       maxScanSize,
       mlDoc,
     });
-    should(alt.status).instanceOf(Aligner.Status);
+    should(alt.status).instanceOf(AlignmentStatus);
     should(alt.history.length).equal(0);
     should(alt.status.summary).match(/mn8.fr.wijayaratna unaligned/);
     should(alt.legacyDoc).equal(legacyDoc);
@@ -348,6 +349,6 @@ describe('Alignment', () => {
     should(history[0].scid).equal('mn8:0.2');
     should(history[33].scid).equal('mn8:12.22');
     should(history[65].scid).equal('mn8:16.47');
-    should(alignment.status.state).equal('error');
+    should(alignment.status.state).equal(AlignmentStatus.STATE_ERROR);
   });
 });

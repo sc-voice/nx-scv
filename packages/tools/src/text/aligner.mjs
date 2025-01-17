@@ -75,14 +75,6 @@ export class Aligner {
     });
   }
 
-  static get Alignment() {
-    return Alignment;
-  }
-
-  static get Status() {
-    return Status;
-  }
-
   async fetchMLDoc(scid) {
     const msg = 'Aligner.fetchMLDoc:';
     let { lang, scvEndpoint, authorAligned } = this;
@@ -221,7 +213,7 @@ export class Aligner {
   }
 }
 
-class Alignment {
+export class Alignment {
   constructor(opts = {}) {
     const msg = 'Alignment.ctor:';
     if (!alignmentCtor) {
@@ -241,7 +233,7 @@ class Alignment {
         if (history.length === 0) {
           let { uid, lang, author_uid } = legacyDoc;
           let text = `${uid}/${lang}/${author_uid} unaligned`;
-          return new Status(this, { text });
+          return new AlignmentStatus(this, { text });
         }
         return history.at(-1);
       },
@@ -252,7 +244,7 @@ class Alignment {
   }
 
   pushStatus(opts) {
-    let status = new Status(this, opts);
+    let status = new AlignmentStatus(this, opts);
     this.history.push(status);
     return status;
   }
@@ -449,7 +441,7 @@ class Alignment {
   } // alignAll
 } // class Alignment
 
-class Status {
+export class AlignmentStatus {
   constructor(alignment, opts = {}) {
     let { lineCursor, segCursor } = alignment;
     let {
@@ -490,6 +482,11 @@ class Status {
       get: () => this?.segCursor?.toString(),
     });
   }
+
+  static get STATE_ERROR() { return STATE_ERROR }
+  static get STATE_DONE() { return STATE_DONE }
+  static get STATE_OK() { return STATE_OK }
+  static get STATE_WARN() { return STATE_WARN }
 
   get summary() {
     let {
@@ -544,4 +541,4 @@ class Status {
 
     return status.join(' ');
   }
-} // Status
+} // AlignmentStatus

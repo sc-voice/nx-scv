@@ -5,7 +5,9 @@ export const ScvMath = {
   Fraction,
 };
 
-import { Aligner } from './src/text/aligner.mjs';
+import { 
+  Aligner, Alignment, AlignmentStatus 
+} from './src/text/aligner.mjs';
 import { BilaraPath } from './src/text/bilara-path.mjs';
 import { EbtDoc } from './src/text/ebt-doc.mjs';
 import { LegacyDoc } from './src/text/legacy-doc.mjs';
@@ -16,6 +18,8 @@ import { WordSpace } from './src/text/word-space.mjs';
 
 export const Text = {
   Aligner,
+  Alignment,
+  AlignmentStatus,
   BilaraPath,
   EbtDoc,
   LegacyDoc,
