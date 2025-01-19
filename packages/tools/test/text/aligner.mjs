@@ -3,8 +3,13 @@ import path from 'node:path';
 import should from 'should';
 import { ScvMath, Text } from '../../index.mjs';
 const { Fraction } = ScvMath;
-const { 
-  Aligner, Alignment, AlignmentStatus, LegacyDoc, WordSpace 
+const {
+  Aligner,
+  Alignment,
+  AlignmentStatus,
+  EbtDoc,
+  LegacyDoc,
+  WordSpace,
 } = Text;
 import { DBG } from '../../src/defines.mjs';
 const { Vector } = WordSpace;
@@ -315,19 +320,33 @@ describe('Alignment', () => {
     let wordSpace = WS_MOHAN;
     let aligner = new Aligner({ lang, wordSpace });
     let alignment = aligner.createAlignment({ legacyDoc, mlDoc });
-    let res = alignment.alignAll();
-    let { lineCursor, segCursor, history } = alignment;
-    should(lineCursor.denominator).equal(67);
-    should(history[0].scid).equal('mn8:0.2');
-    should(history[33].scid).equal('mn8:12.22');
-    should(history[66].state).equal(AlignmentStatus.STATE_WARN);
-    //console.log(msg, 'HELLO', 67, history[67]);
-    should(history[67].scid).equal('mn8:17.1');
-    should(history.length).equal(70); // 67 lines + 1 summary
-    should(res.status).match(/.*mn8.fr.wijayaratna aligned/u);
-    should(alignment.status.summary).equal(res.status);
+    let ebtDoc = alignment.alignAll();
+
+    // A successful alignment returns an EbtDoc
+    should(ebtDoc).instanceOf(EbtDoc);
+    should(alignment.status.summary).match(
+      /.*mn8.fr.wijayaratna aligned/u,
+    );
+    let { suid, author, author_uid, bilaraPath, segMap } = ebtDoc;
+    should(ebtDoc.suid).equal('mn8');
+    should(ebtDoc.lang).equal(lang);
+    should(ebtDoc.author_uid).equal('wijayaratna');
+    should(ebtDoc.bilaraPath).equal(
+      'translation/fr/wijayaratna/sutta/mn/' +
+        'mn8_translation-fr-wijayaratna.json',
+    );
+    should(ebtDoc.author).equal('Môhan Wijayaratna');
+    should(segMap['mn8:0.2']).match(/8. le déracinement/iu);
+    should(segMap['mn8:12.22']).match(/torpeur/iu);
+    should(segMap['mn8:12.23']).match(/inquiétude/iu);
+    should(segMap['mn8:16.5']).match(/violence/); // translated
+    should(segMap['mn8:16.6']).equal(undefined); // not translated
+    should(segMap['mn8:16.47']).equal(undefined); // not translated
+    should(segMap['mn8:17.1']).match(
+      /Faites progresser votre mental/iu,
+    );
   });
-  it(`alignAll() align-mn8-nomatch`, () => {
+  it(`TESTTESTalignAll() align-mn8-nomatch`, () => {
     const msg = `TA4R.align-mn8-nomatch:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;
@@ -347,12 +366,27 @@ describe('Alignment', () => {
     should(eCaught.message).match(/unmatched/);
     let { lineCursor, segCursor, history } = alignment;
     should(lineCursor.denominator).equal(67);
+
+    // history provides information about each line alignment
     should(history.length).equal(67);
     should(history[0].scid).equal('mn8:0.2');
     should(history[33].scid).equal('mn8:12.22');
     should(history[65].state).equal(AlignmentStatus.STATE_WARN);
     should(history[66].scid).equal('mn8:16.47');
-    should(alignment.status.state).equal(AlignmentStatus.STATE_ERROR);
-    should(alignment.state).equal(AlignmentStatus.STATE_ERROR);
+    should(history.length).equal(67);
+
+    // The alignment status provides full error information
+    let { state, status } = alignment;
+    dbg && console.log(msg, history.at(-1));
+    should(status.iLine).equal(66);
+    should(status.intersection).match(/complète:0.64,pour:0.80/);
+    should(status.vLegacy).match(/complète:0.80/);
+    should(status.vSeg).match(/complète:0.80/);
+    should(status.score.toFixed(2)).equal('0.08');
+    should(status.segCursor.numerator).equal(118);
+    should(status.lineCursor.numerator).equal(65);
+    should(status.legacyText).match(/les pieds/);
+    should(status.state).equal(AlignmentStatus.STATE_ERROR);
+    should(state).equal(AlignmentStatus.STATE_ERROR);
   });
 });

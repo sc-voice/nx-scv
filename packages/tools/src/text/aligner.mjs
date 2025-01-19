@@ -128,9 +128,19 @@ export class Aligner {
       throw new Error(`${msg} minScanSize? ${minScanSize} `);
     }
 
+    let { sutta_uid:suid, docAuthor, bilaraPaths } = mlDoc;
+    let { author, author_uid } = legacyDoc;
+    let bilaraPath = bilaraPaths.reduce((a,p)=>{
+      if (p.includes(docAuthor)) {
+        a = p.replaceAll(docAuthor, author_uid);
+      }
+      return a;
+    });
+    let docOpts = { suid, lang, author, author_uid, bilaraPath };
+
     const optsAlignment = {
       aligner: this,
-      ebtDoc: EbtDoc.create(),
+      ebtDoc: EbtDoc.create(docOpts),
       legacyDoc,
       lineCursor,
       mlDoc,
@@ -284,7 +294,7 @@ export class Alignment {
         // For example, MN8 42 segments are skipped for Môhan
         if (score) {
           let percent = (score * 100).toFixed(0);
-          let linePos = `line ${lineCursor.n+1}`;
+          let linePos = `line ${lineCursor.n + 1}`;
           this.pushStatus({
             state: STATE_WARN,
             text: `SCAN+${i}`,
@@ -352,6 +362,7 @@ export class Alignment {
     }
 
     // STATE_OK: Current line matches current segment
+    ebtDoc.segMap[scoreId] = legacyText;
 
     lineCursor.increment();
     let iFound = scids.indexOf(scoreId);
@@ -391,17 +402,10 @@ export class Alignment {
   alignAll() {
     const msg = 'A7t.alignAll:';
     let dbg = DBG.ALIGN_ALL;
-    //bimoe-ignore format:
+    //biome-ignore format:
     let {
-      aligner,
-      legacyDoc,
-      lineCursor,
-      maxScanSize,
-      minScanSize,
-      mlDoc,
-      scidsExp,
-      segCursor,
-      vMLDoc,
+      aligner, ebtDoc, legacyDoc, lineCursor, maxScanSize, minScanSize,
+      mlDoc, scidsExp, segCursor, vMLDoc,
     } = this;
     let { lang, alignPali, wordSpace } = aligner;
     let { segMap } = mlDoc;
@@ -430,10 +434,7 @@ export class Alignment {
       }
     }
 
-    // biome-ignore format:
-    return {
-      status: this.status.summary,
-    };
+    return ebtDoc;
   } // alignAll
 } // class Alignment
 
@@ -449,7 +450,7 @@ export class AlignmentStatus {
       legacyText,
       vLegacy,
       vSeg,
-      iLine = lineCursor.n+1,
+      iLine = lineCursor.n + 1,
     } = opts;
 
     Object.assign(this, {
@@ -521,7 +522,6 @@ export class AlignmentStatus {
     switch (state) {
       case STATE_ERROR:
         symbol = RED_X;
-        text = text;
         color = RED;
         break;
       case STATE_WARN:
@@ -544,17 +544,18 @@ export class AlignmentStatus {
         color = RED;
         break;
     }
-    status.push(color+symbol);
+    status.push(color + symbol);
     status.push(text);
     if (score) {
       status.push(scid);
       status.push(`segs[${segCursor.n}]`);
-      status.push(score < minScore
-        ? RED + LEFT_ARROW + scorePercent + RIGHT_ARROW + color
-        : GREEN + LEFT_ARROW + scorePercent + RIGHT_ARROW + color
+      status.push(
+        score < minScore
+          ? RED + LEFT_ARROW + scorePercent + RIGHT_ARROW + color
+          : GREEN + LEFT_ARROW + scorePercent + RIGHT_ARROW + color,
       );
     }
-    context && status.push(context+NO_COLOR);
+    context && status.push(context + NO_COLOR);
 
     return status.join(' ');
   }

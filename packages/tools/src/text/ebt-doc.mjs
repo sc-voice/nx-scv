@@ -2,7 +2,7 @@ import { SuttaCentralId } from './sutta-central-id.mjs';
 
 let privateCtor = false;
 
-const INHERITED_KEYS = ['lang', 'author'];
+const INHERITED_KEYS = ['lang', 'author', 'author_uid'];
 
 const HDR_KEY = '__header__';
 
