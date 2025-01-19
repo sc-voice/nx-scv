@@ -29,3 +29,19 @@ export const Text = {
   WordSpace,
 };
 
+import { default as Sankey } from './src/graph/sankey.mjs';
+export const Graph = {
+  Sankey, 
+}
+
+import { default as MockDeepL } from 
+  './src/translate/mock-deepl.mjs';
+import { default as DeepLAdapter } from 
+  './src/translate/deepl-adapter.mjs';
+import { default as QuoteParser } from 
+  './src/translate/quote-parser.mjs';
+export const Translate = {
+  MockDeepL,
+  QuoteParser,
+  DeepLAdapter,
+}
