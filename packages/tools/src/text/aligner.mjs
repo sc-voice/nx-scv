@@ -48,7 +48,6 @@ export class Aligner {
       minScore = 0.1, // minimum alignment score
       minWord,
       normalizeVector,
-      scidMap = {},
       scvEndpoint = 'https://www.api.sc-voice.net/scv',
       wordSpace,
     } = opts;
@@ -69,7 +68,6 @@ export class Aligner {
       minScore,
       minScanSize,
       maxScanSize,
-      scidMap,
       scvEndpoint,
       wordSpace,
     });
@@ -96,7 +94,7 @@ export class Aligner {
   }
 
   createAlignment(opts = {}) {
-    const msg = 'Alignment.createAlignment:';
+    const msg = 'A7t.createAlignment:';
     const dbg = DBG.CREATE_ALIGNMENT;
     let {
       legacyDoc,
@@ -215,14 +213,18 @@ export class Aligner {
 
 export class Alignment {
   constructor(opts = {}) {
-    const msg = 'Alignment.ctor:';
+    const msg = 'A7t.ctor:';
     if (!alignmentCtor) {
       throw new Error(`${msg} createAlignment()?`);
     }
 
     Object.assign(this, opts);
+
     Object.defineProperty(this, 'lang', {
       get: () => this.aligner.lang,
+    });
+    Object.defineProperty(this, 'state', {
+      get: () => this.status.state,
     });
     Object.defineProperty(this, 'wordSpace', {
       get: () => this.aligner.wordSpace,
@@ -250,34 +252,23 @@ export class Alignment {
   }
 
   alignLine(legacyText, opts = {}) {
-    const msg = 'Alignment.alignLine:';
+    const msg = 'A7t.alignLine:';
     const dbg = DBG.ALIGN_LINE;
     if (typeof opts !== 'object') {
       throw new Error(`${msg} opts?`);
     }
-    let { scidExp } = opts;
+    let { dbgScid } = opts;
     // biome-ignore format:
-    let { 
-      legacyDoc, lineCursor,
-      mlDoc, vMLDoc, segCursor, scids, 
-      wordSpace, maxScanSize, minScanSize,
-      minScore, scidMap, 
+    let { ebtDoc, legacyDoc, lineCursor, maxScanSize, minScanSize,
+      minScore, mlDoc, scids, segCursor, vMLDoc, wordSpace,
     } = this;
-    if (segCursor == null) {
-      throw new Error(`${msg} segCursor?`);
-    }
-    if (lineCursor == null) {
-      throw new Error(`${msg} lineCursor?`);
-    }
     let vLegacy = wordSpace.string2Vector(legacyText);
     let scoreMax = 0;
     let segMap = mlDoc.segMap;
     let scoreId;
-    for (
-      let i = 0;
+    let scanning = (i) =>
       i < maxScanSize && (i < minScanSize || scoreMax < minScore);
-      i++
-    ) {
+    for (let i = 0; scanning(i); i++) {
       let scid = scids[segCursor.numerator + i];
       if (scid == null) {
         break;
@@ -291,24 +282,25 @@ export class Alignment {
         // Scan exceeded minScanSize. We might be lost.
         // Or maybe we got lucky and translator omitted many segments.
         // For example, MN8 42 segments are skipped for Môhan
-        // biome-ignore format:
         if (score) {
-          let percent = (score*100).toFixed(0);
-          let status = minScore <= score 
-            ? '\u001b[32m'
-            : '\u001b[31m';
-          dbg && console.log(msg, 
-            ` ${WARNING}${status} SCAN+${i} ${scid}🡘 ${percent}%`,
-            '\u001b[0m', // console color end
-            );
+          let percent = (score * 100).toFixed(0);
+          let linePos = `line ${lineCursor.n+1}`;
+          this.pushStatus({
+            state: STATE_WARN,
+            text: `SCAN+${i}`,
+            score,
+            scid,
+            legacyText,
+          });
+          dbg && console.log(msg, this.status.summary);
         }
       }
       // biome-ignore format:
-      if (dbg > 1 && scid === scidExp) {
+      if (dbg > 1 && scid === dbgScid) {
         let seg = mlDoc?.segMap[scid] || {};
         let intersection = vLegacy.intersect(vSeg).toString();
         let { pli } = seg;
-        console.log(msg, 'scidExp', {
+        console.log(msg, 'dbgScid', {
           legacyText, vLegacy: vLegacy.toString(),
           seg, vSeg: vSeg.toString(),
           score, intersection,
@@ -317,16 +309,16 @@ export class Alignment {
       if (scoreMax < score) {
         scoreMax = score;
         scoreId = scid;
-        if (dbg > 1 && scidExp) {
-          let cmp = SuttaCentralId.compareLow(scoreId, scidExp);
+        if (dbg > 1 && dbgScid) {
+          let cmp = SuttaCentralId.compareLow(scoreId, dbgScid);
           let intersection = vLegacy.intersect(vSeg).toString();
           // biome-ignore format:
           if (cmp <= 0) {
-            console.log(msg, `scoreMax-${scidExp}`, 
+            console.log(msg, `scoreMax-${dbgScid}`, 
               { scoreId, scoreMax, intersection, });
           } else {
-            let segExp = segMap && segMap[scidExp];
-            console.log( msg, `scoreMax-${scidExp}-MISMATCH?`,
+            let segExp = segMap && segMap[dbgScid];
+            console.log( msg, `scoreMax-${dbgScid}-MISMATCH?`,
               segCursor.toString(),
               lineCursor.toString(),
               { scoreId, segExp, legacyText, scoreMax, intersection},
@@ -334,12 +326,10 @@ export class Alignment {
           }
         }
       }
-    }
+    } // for
 
     let vSeg = vMLDoc[scoreId];
     let intersection = vLegacy.intersect(vSeg);
-
-    lineCursor.increment();
 
     if (scoreId == null || scoreMax < minScore) {
       let iEnd =
@@ -361,6 +351,9 @@ export class Alignment {
       return undefined;
     }
 
+    // STATE_OK: Current line matches current segment
+
+    lineCursor.increment();
     let iFound = scids.indexOf(scoreId);
     if (iFound >= 0) {
       segCursor.numerator = iFound + 1;
@@ -378,13 +371,16 @@ export class Alignment {
       legacyText,
       vLegacy,
       vSeg,
+      iLine: lineCursor.n,
     });
     dbg && console.log(msg, status.summary);
     if (lineCursor.value === 1) {
       let { uid, lang, author_uid } = this.legacyDoc;
+      let lineCur = lineCursor.toString();
       status = this.pushStatus({
         state: STATE_DONE,
-        text: `${uid}/${lang}/${author_uid} aligned`,
+        text: `${uid}/${lang}/${author_uid} aligned ${lineCur}`,
+        context: lineCursor.toString(),
       });
       dbg && console.log(msg, this.status.summary);
     }
@@ -393,19 +389,19 @@ export class Alignment {
   } // alignLine
 
   alignAll() {
-    const msg = 'Alignment.alignAll:';
+    const msg = 'A7t.alignAll:';
     let dbg = DBG.ALIGN_ALL;
     //bimoe-ignore format:
     let {
       aligner,
       legacyDoc,
       lineCursor,
-      mlDoc,
-      vMLDoc,
-      segCursor,
-      scidsExp,
-      minScanSize,
       maxScanSize,
+      minScanSize,
+      mlDoc,
+      scidsExp,
+      segCursor,
+      vMLDoc,
     } = this;
     let { lang, alignPali, wordSpace } = aligner;
     let { segMap } = mlDoc;
@@ -419,8 +415,8 @@ export class Alignment {
       let line = lines[lineCursor.numerator];
       dbg > 1 && console.log(msg, lineCursor.toString(), line);
       let curScid = scids[segCursor.numerator];
-      let scidExp = scidsExp?.[lineCursor.numerator];
-      let r = this.alignLine(line, { scidExp });
+      let dbgScid = scidsExp?.[lineCursor.numerator];
+      let r = this.alignLine(line, { dbgScid });
       rPrev = r;
       // biome-ignore format:
       if (r == null) {
@@ -453,10 +449,11 @@ export class AlignmentStatus {
       legacyText,
       vLegacy,
       vSeg,
+      iLine = lineCursor.n+1,
     } = opts;
 
     Object.assign(this, {
-      alignment,
+      iLine,
       intersection: intersection?.toString(),
       legacyText,
       lineCursor: lineCursor && new Fraction(lineCursor),
@@ -469,6 +466,9 @@ export class AlignmentStatus {
       vSeg: vSeg?.toString(),
     });
 
+    Object.defineProperty(this, 'alignment', {
+      value: alignment,
+    });
     Object.defineProperty(this, 'scorePercent', {
       get: () =>
         this.score == null
@@ -483,10 +483,18 @@ export class AlignmentStatus {
     });
   }
 
-  static get STATE_ERROR() { return STATE_ERROR }
-  static get STATE_DONE() { return STATE_DONE }
-  static get STATE_OK() { return STATE_OK }
-  static get STATE_WARN() { return STATE_WARN }
+  static get STATE_ERROR() {
+    return STATE_ERROR;
+  }
+  static get STATE_DONE() {
+    return STATE_DONE;
+  }
+  static get STATE_OK() {
+    return STATE_OK;
+  }
+  static get STATE_WARN() {
+    return STATE_WARN;
+  }
 
   get summary() {
     let {
@@ -496,48 +504,57 @@ export class AlignmentStatus {
       scid,
       scorePercent,
       lineCur,
+      lineCursor,
       segCur,
+      segCursor,
       score,
       legacyText = '',
+      iLine,
     } = this;
 
     let status = [];
     let symbol;
-    let context = legacyText;
+    let color = NO_COLOR;
+    let context = legacyText ? `${iLine}:` + legacyText : '';
     let { minScore } = alignment;
+    let CTX_LEN = 25;
     switch (state) {
       case STATE_ERROR:
         symbol = RED_X;
-        text = `${RED}${text}${NO_COLOR}`;
+        text = text;
+        color = RED;
         break;
       case STATE_WARN:
-        symbol = '${CYAN}\u26A0${NO_COLOR}';
+        color = YELLOW;
+        symbol = WARNING + ' ';
+        context = context.substring(0, CTX_LEN) + ELLIPSIS;
         break;
       case STATE_DONE:
-        symbol = GREEN_CHECKBOX;
+        symbol = CHECKMARK + ' ';
+        color = WHITE;
         break;
       case STATE_OK:
-        symbol = `${GREEN}${CHECKMARK}${NO_COLOR}`;
-        context = context.substring(0, 10) + ELLIPSIS;
+        symbol = CHECKMARK;
+        context = context.substring(0, CTX_LEN) + ELLIPSIS;
+        color = NO_COLOR;
         break;
       default:
         symbol = RED_X;
         text = `UNKNOWN STATE ${state}`;
+        color = RED;
         break;
     }
-    status.push(symbol);
+    status.push(color+symbol);
     status.push(text);
     if (score) {
-      scorePercent =
-        score < minScore
-          ? RED + scorePercent + RIGHT_ARROW + NO_COLOR
-          : GREEN + scorePercent + RIGHT_ARROW + NO_COLOR;
-      status.push(lineCur);
-      status.push(scorePercent);
       status.push(scid);
-      status.push(segCur);
+      status.push(`segs[${segCursor.n}]`);
+      status.push(score < minScore
+        ? RED + LEFT_ARROW + scorePercent + RIGHT_ARROW + color
+        : GREEN + LEFT_ARROW + scorePercent + RIGHT_ARROW + color
+      );
     }
-    context && status.push(context);
+    context && status.push(context+NO_COLOR);
 
     return status.join(' ');
   }

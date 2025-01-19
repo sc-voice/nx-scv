@@ -128,7 +128,7 @@ describe('Alignment', () => {
     });
   });
   it('fetchMLDoc()', async () => {
-    const msg = 'ALIGNER@303:';
+    const msg = 'TA4R@303:';
     const dbg = DBG.FETCH_ML_DOC;
     let lang = 'fr';
     let authorAligned = 'noeismet';
@@ -137,7 +137,7 @@ describe('Alignment', () => {
     dbg && console.log(msg, 'mld', mld);
   });
   it(`mlDocVectors() mldv-pali-1`, () => {
-    const msg = `ALIGNER.mldv-pali-1`;
+    const msg = `TA4R.mldv-pali-1`;
     let wordMap = {
       LEGACY2: 'twopli',
       legacy3: 'threepli',
@@ -180,7 +180,7 @@ describe('Alignment', () => {
     );
   });
   it(`mlDocVectors() mldv-pali-2`, () => {
-    const msg = `ALIGNER.mldv-pali-2`;
+    const msg = `TA4R.mldv-pali-2`;
     let wordMap = {
       LEGACY2: 'twopli',
       legacy3: 'threepli',
@@ -232,7 +232,7 @@ describe('Alignment', () => {
     );
   });
   it(`TESTTESTalignLine() mn8`, () => {
-    const msg = `ALIGNER.mn8:`;
+    const msg = `TA4R.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
     let dbg = DBG.MN8_MOHAN;
@@ -276,8 +276,8 @@ describe('Alignment', () => {
         }
       }
       let curScid = scids[segCursor.numerator];
-      let scidExp = scidExpected[lineCursor.numerator];
-      let r = alt.alignLine(line, { dbg, scidExp });
+      let dbgScid = scidExpected[lineCursor.numerator];
+      let r = alt.alignLine(line, { dbg, dbgScid });
       rPrev = r;
       if (r) {
         lineCursor.increment();
@@ -307,7 +307,7 @@ describe('Alignment', () => {
     }
   });
   it(`TESTTESTalignAll() align-mn8-ok`, () => {
-    const msg = `ALIGNER.align-mn8-ok:`;
+    const msg = `TA4R.align-mn8-ok:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
@@ -320,13 +320,15 @@ describe('Alignment', () => {
     should(lineCursor.denominator).equal(67);
     should(history[0].scid).equal('mn8:0.2');
     should(history[33].scid).equal('mn8:12.22');
-    should(history[66].scid).equal('mn8:17.5');
-    should(history.length).equal(68); // 67 lines + 1 summary
+    should(history[66].state).equal(AlignmentStatus.STATE_WARN);
+    //console.log(msg, 'HELLO', 67, history[67]);
+    should(history[67].scid).equal('mn8:17.1');
+    should(history.length).equal(70); // 67 lines + 1 summary
     should(res.status).match(/.*mn8.fr.wijayaratna aligned/u);
     should(alignment.status.summary).equal(res.status);
   });
-  it(`TESTTESTalignAll() align-mn8-nomatch`, () => {
-    const msg = `ALIGNER.align-mn8-nomatch:`;
+  it(`alignAll() align-mn8-nomatch`, () => {
+    const msg = `TA4R.align-mn8-nomatch:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
@@ -345,10 +347,12 @@ describe('Alignment', () => {
     should(eCaught.message).match(/unmatched/);
     let { lineCursor, segCursor, history } = alignment;
     should(lineCursor.denominator).equal(67);
-    should(history.length).equal(66);
+    should(history.length).equal(67);
     should(history[0].scid).equal('mn8:0.2');
     should(history[33].scid).equal('mn8:12.22');
-    should(history[65].scid).equal('mn8:16.47');
+    should(history[65].state).equal(AlignmentStatus.STATE_WARN);
+    should(history[66].scid).equal('mn8:16.47');
     should(alignment.status.state).equal(AlignmentStatus.STATE_ERROR);
+    should(alignment.state).equal(AlignmentStatus.STATE_ERROR);
   });
 });
