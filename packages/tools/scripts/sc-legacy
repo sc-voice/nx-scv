@@ -2,9 +2,8 @@
 DBNAME=dpd.db
 SCRIPT=`basename $0`
 DIRNAME=`dirname $0`
-BASH_JS_STDOUT=/tmp/$SCRIPT-cmd
 
-node - <<'JS' $DIRNAME $SCRIPT "$@" #> $BASH_JS_STDOUT
+node - <<'JS' $DIRNAME $SCRIPT "$@" 
 const util = require('util');
 const fs = require('fs');
 const fsp = fs.promises;

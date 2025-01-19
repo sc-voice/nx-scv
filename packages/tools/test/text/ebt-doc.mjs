@@ -2,7 +2,6 @@ import fs from 'node:fs';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import should from 'should';
-import tmp from 'tmp';
 import { Text } from '../../index.mjs';
 const { EbtDoc } = Text;
 
