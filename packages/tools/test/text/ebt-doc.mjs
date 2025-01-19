@@ -6,7 +6,7 @@ import tmp from 'tmp';
 import { Text } from '../../index.mjs';
 const { EbtDoc } = Text;
 
-describe('text/ebt-doc', function () {
+describe('TESTTESTtext/ebt-doc', function () {
   this.timeout(5 * 1000);
 
   it('default ctor', () => {
@@ -17,34 +17,36 @@ describe('text/ebt-doc', function () {
       segMap: {},
       suid: undefined,
       bilaraPath: undefined,
+      wordSpace: undefined,
     });
   });
   it('custom ctor', () => {
     let suid = 'dn33';
     let lang = 'en';
-    let author = 'sujato';
+    let author = 'Bhikkhu Sujato';
+    let author_uid = 'sujato';
     let scid = 'dn33:0.1';
     let customKey = 'test-custom'; // ignored
+    let wordSpace = { test: 'word-space' };
     let segMap = {
       [scid]: 'test dn33',
     };
     let bilaraPath = 'test-path';
-    let sd = EbtDoc.create({
+    let ed = EbtDoc.create({
       author,
+      author_uid,
+      bilaraPath,
+      customKey,
       lang,
       segMap,
       suid,
-      bilaraPath,
-      customKey,
+      wordSpace,
     });
-    should(sd).properties({
-      author: 'sujato',
-      lang: 'en',
-      segMap,
-      suid: 'dn33',
-      bilaraPath,
+    should(ed).properties({
+      author, author_uid, lang, segMap, suid, bilaraPath,
     });
-    should(sd.customKey).equal(undefined);
+    should.deepEqual(ed.wordSpace, wordSpace);
+    should(ed.customKey).equal(undefined);
   });
   it('custom ctor parse DN33', async () => {
     let bilaraPath = 'data/dn33.json';
@@ -136,7 +138,7 @@ describe('text/ebt-doc', function () {
     });
   });
   it('toBilaraString 1', () => {
-    const msg = 'EBTDOC.toBilaraString.1:';
+    const msg = 'TE4c.toBilaraString.1:';
     let bilaraPath = 'test.json';
     let author = 'test-author';
     let lang = 'test-lang';
@@ -166,7 +168,7 @@ describe('text/ebt-doc', function () {
     should(json).properties(segMap);
   });
   it('toBilaraString() 2:parent', () => {
-    const msg = 'EBTDOC.toBilaraString.2:';
+    const msg = 'TE4c.toBilaraString.2:';
     let bilaraPath = 'test.json';
     let author = 'test-author';
     let lang = 'test-lang';

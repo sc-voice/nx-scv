@@ -2,13 +2,15 @@ import { SuttaCentralId } from './sutta-central-id.mjs';
 
 let privateCtor = false;
 
-const INHERITED_KEYS = ['lang', 'author', 'author_uid'];
+const INHERITED_KEYS = [
+  'lang', 'author', 'author_uid', 'wordSpace'
+];
 
 const HDR_KEY = '__header__';
 
 export class EbtDoc {
   constructor(opts) {
-    const msg = 'EbtDoc.ctor:';
+    const msg = 'E4c.ctor:';
     if (!privateCtor) {
       throw new Error(`${msg} create()!`);
     }
@@ -24,7 +26,7 @@ export class EbtDoc {
   }
 
   static create(opts = {}) {
-    const msg = 'EbtDoc.create:';
+    const msg = 'E4c.create:';
     let { suid, bilaraPath, segMap = {}, parent = {} } = opts;
     if (segMap == null) {
       throw new Error(`${msg} segMap?`);
@@ -48,7 +50,7 @@ export class EbtDoc {
   }
 
   static fromBilaraString(str, parent) {
-    const msg = 'EbtDoc.fromBilaraString:';
+    const msg = 'E4c.fromBilaraString:';
     let json = JSON.parse(str);
     let { [HDR_KEY]: header } = json;
     let { suid, bilaraPath } = header;
@@ -86,7 +88,7 @@ export class EbtDoc {
   }
 
   toBilaraString() {
-    const msg = 'EbtDoc.toBilaraString:';
+    const msg = 'E4c.toBilaraString:';
     let { segMap, parent } = this;
     let scids = this.scids();
     let keys = Object.keys(this);

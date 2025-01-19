@@ -50,7 +50,7 @@ class Vector extends Object {
   }
 
   dot(vec2) {
-    const msg = 'WordSpace.dot:';
+    const msg = 'V4r.dot:';
     if (vec2 == null) {
       throw new Error(`${msg} vec2?`);
     }
@@ -77,7 +77,7 @@ class Vector extends Object {
   }
 
   similar(vec2) {
-    const msg = 'WordSpace.similar:';
+    const msg = 'V4r.similar:';
     if (vec2 == null) {
       throw new Error(`${msg} vec2?`);
     }
@@ -87,7 +87,7 @@ class Vector extends Object {
     let den = norm1 * norm2;
     return den ? d / den : 0;
   }
-}
+} // Vector
 
 export class WordSpace {
   constructor(opts = {}) {
@@ -151,7 +151,7 @@ export class WordSpace {
   }
 
   applyWordMap(text) {
-    const msg = 'WordSpace.applyWordMap:';
+    const msg = 'W7e.applyWordMap:';
     const dbg = DBG.APPLY_WORD_MAP;
     let { wordMap, reWordMap } = this;
     if (reWordMap == null) {
@@ -184,7 +184,7 @@ export class WordSpace {
   }
 
   string2Vector(str, scale = 1) {
-    const msg = 'WordSpace.string2Vector:';
+    const msg = 'W7e.string2Vector:';
     if (str == null) {
       throw new Error(`${msg} str?`);
     }
@@ -210,4 +210,4 @@ export class WordSpace {
 
     return v;
   }
-}
+} // WordSpace

@@ -62,7 +62,7 @@ ESCRIPTION
     Send output to stdout
 
   -od, --out-dir DIR_ROOT
-    Send output to directory DIR_ROOT (./local);
+    Send output to directory DIR_ROOT (stdout)
 
   -v, --verbose
     print more information to stderr
@@ -72,6 +72,7 @@ ESCRIPTION
 
 EXAMPLES
   ${SCRIPT} -l fr -al wijayaratna -aa noeismet -fl mn8
+  ${SCRIPT} -l fr -al wijayaratna -aa noeismet -fa mn8
   ${SCRIPT} -l fr -aa noeismet -fm mn8
   ${SCRIPT} -l fr -fl mn8
 `);
@@ -232,6 +233,8 @@ async function alignLegacy(json) {
   let { uid: sutta_id } = suttaplex;
   const { 
     Aligner,
+    Alignment,
+    AlignmentStatus,
     BilaraPath,
     EbtDoc,
     LegacyDoc,
@@ -246,7 +249,13 @@ async function alignLegacy(json) {
   let { ok, status} = res;
   let legacyJson = await res.json();
   let legacyHtml = legacyJson.translation.text;
-  console.log(msg, {ok, status, urlLegacy, legacyHtml});
+  console.log(msg, {lang, sutta_id}, wordSpace);
+  //let aligner = new Aligner({ lang, wordSpace });
+  //let mlDoc = await aligner.fetchMLDoc(sutta_id);
+  //let legacyDoc = MN8_LEG_DOC;
+  //let wordSpace = WS_MOHAN;
+  //let alignment = aligner.createAlignment({ legacyDoc, mlDoc });
+  //let ebtDoc = alignment.alignAll();
 }
 
 async function main() {
@@ -255,6 +264,8 @@ async function main() {
   const { Text } = await import(INDEX_PATH);
   const { 
     Aligner,
+    Alignment,
+    AlignmentStatus,
     BilaraPath,
     EbtDoc,
     LegacyDoc,
@@ -316,7 +327,8 @@ async function main() {
           case 'aligned':
           default: {
             let bp = BilaraPath.legacyPath(sutta_id, lang, authorLegacy);
-            let outPath = path.join(outDir||'local/ebt-data', bp);
+            let outPath = path.join(outDir||`local/${SCRIPT}`, bp);
+            fs.mkdirSync(outPath, {recursive:true});
             outLegacy(outPath, output);
           } break;
         }

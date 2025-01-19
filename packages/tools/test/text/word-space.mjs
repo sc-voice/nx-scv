@@ -129,8 +129,8 @@ describe('text/word-space', () => {
     should(xyz.similar(wxyz)).equal(0.8660254037844387);
     should(wxyz.similar(xyz)).equal(0.8660254037844387);
   });
-  it('similar() mn8:3.4', () => {
-    const msg = 'test.WordSpace@148';
+  it('similar-mn8:3.4', () => {
+    const msg = 'TW7e.similar-mn8:3.4:';
     let dbg = 0;
     let mn8Expected =
       'Un monastique renonce à ces croyances et se libère de ces conceptions en percevant avec clarté, grâce à la juste sagesse, leur origine, leur fondement et leur mécanisme, en réalisant : « Ceci n’est pas à moi, je ne suis pas cela, ce n’est pas mon soi. › ';
