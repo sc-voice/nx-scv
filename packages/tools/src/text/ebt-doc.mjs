@@ -3,7 +3,7 @@ import { SuttaCentralId } from './sutta-central-id.mjs';
 let privateCtor = false;
 
 const INHERITED_KEYS = [
-  'lang', 'author', 'author_uid', 'wordSpace'
+  'lang', 'author', 'author_uid', 'wordSpace', 'footer',
 ];
 
 const HDR_KEY = '__header__';
@@ -27,7 +27,9 @@ export class EbtDoc {
 
   static create(opts = {}) {
     const msg = 'E4c.create:';
-    let { suid, bilaraPath, segMap = {}, parent = {} } = opts;
+    let { 
+      segMap = {}, parent = {}, suid, bilaraPath, 
+    } = opts;
     if (segMap == null) {
       throw new Error(`${msg} segMap?`);
     }

@@ -40,7 +40,7 @@ const lang = 'fr';
 const wordSpace = new WordSpace({ lang, minWord, normalizeVector });
 
 describe('text/aligner', () => {
-  it('TESTTESTdefault ctor', () => {
+  it('default ctor', () => {
     let aligner = new Aligner();
     should(aligner.wordSpace).instanceOf(WordSpace);
     should(aligner.groupSize).equal(1);
@@ -49,7 +49,7 @@ describe('text/aligner', () => {
     should(aligner.maxScanSize).equal(undefined);
     should(aligner.alignPali).equal(true);
   });
-  it('TESTTESTcustom ctor', () => {
+  it('custom ctor', () => {
     let lang = 'fr';
     let groupSize = 3;
     let groupDecay = 0.7;
@@ -236,7 +236,7 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it(`TESTTESTalignLine() mn8`, () => {
+  it(`alignLine() mn8`, () => {
     const msg = `TA4R.mn8:`;
     let legacyDoc = MN8_LEG_DOC;
     let mlDoc = MN8_MLD;
@@ -311,7 +311,7 @@ describe('Alignment', () => {
       );
     }
   });
-  it(`TESTTESTalignAll() align-mn8-ok`, () => {
+  it(`alignAll() align-mn8-ok`, () => {
     const msg = `TA4R.align-mn8-ok:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;
@@ -357,13 +357,10 @@ describe('Alignment', () => {
     let aligner = new Aligner({ maxScanSize, lang, wordSpace });
     let alignment = aligner.createAlignment({ legacyDoc, mlDoc });
     let eCaught;
-    let res;
-    try {
-      let res = alignment.alignAll();
-    } catch (e) {
-      eCaught = e;
-    }
-    should(eCaught.message).match(/unmatched/);
+    let res = alignment.alignAll();
+    should(res).equal(null);
+    should(alignment.status.state).equal('error');
+    should(alignment.status.text).match(/UNMATCHED/);
     let { lineCursor, segCursor, history } = alignment;
     should(lineCursor.denominator).equal(67);
 

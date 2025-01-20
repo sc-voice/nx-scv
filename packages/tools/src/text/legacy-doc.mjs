@@ -1,3 +1,5 @@
+import { DBG } from '../defines.mjs';
+
 let privateCtor = false;
 
 const HTML_FILTER = (() => {
@@ -35,13 +37,38 @@ export class LegacyDoc {
     return true;
   }
 
-  static create(rawDoc) {
+  static async fetchLegacy(opts = {}) {
+    const msg = 'L7c.fetch:';
+    const dbg = DBG.FETCH_LEGACY;
+    let {
+      endPoint = 'https://suttacentral.net/api/suttas',
+      sutta_uid,
+      lang,
+      author,
+      maxBuffer = 10 * 1024 * 1024,
+    } = opts;
+    let url = [endPoint, sutta_uid, `${author}?lang=${lang}`].join(
+      '/',
+    );
+    let res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`${msg} {res.status} ${url}`);
+    }
+    let json = await res.json();
+    let { translation } = json;
+    return LegacyDoc.create(translation);
+  }
+
+  static create(translation) {
     const msg = 'LegacyDoc.create:';
     if (typeof legacy === 'string') {
       legacy = JSON.parse(legacy);
     }
 
-    let { uid, lang, title, author, author_uid, text } = rawDoc;
+    let { uid, lang, title, author, author_uid, text } = translation;
+    if (typeof text === 'string') {
+      text = text.split('\n');
+    }
 
     let para;
     let lines = text.filter((line) => !HTML_FILTER.test(line));

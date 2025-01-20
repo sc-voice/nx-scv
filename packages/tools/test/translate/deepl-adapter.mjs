@@ -52,7 +52,7 @@ const {
       targetLang: 'de',
     });
   });
-  it("TESTTESTuploadGlossary() EN", async()=>{
+  it("uploadGlossary() EN", async()=>{
     const msg = "TD3l.uploadGlossary-en:";
     let dlt = await DeepLAdapter.create();
     let { translator } = dlt;
@@ -268,7 +268,7 @@ const {
     should(res[0]).equal(
       `Eu digo: "Está a dizer: "Eu disse Reino Unido!"?`);
   })
-  it("TESTTESTuploadGlossary() DE", async()=>{
+  it("uploadGlossary() DE", async()=>{
     const msg = "TD3l.uploadGlossar-de:";
     let dlt = await DeepLAdapter.create();
     let { translator } = dlt;

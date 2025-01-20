@@ -1,28 +1,28 @@
-import fs from "fs";
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const QUOTE  = '“'; // Quotation mark
-const APOS   = "'"; // Apostrophe/single-quote
+const QUOTE = '“'; // Quotation mark
+const APOS = "'"; // Apostrophe/single-quote
 const LSQUOT = '‘'; // Left single quote
 const RSQUOT = '’'; // \u2019 Right single quote, curly apostrophe
 const LDGUIL = '«'; // Left double guillemet
 const RDGUIL = '»'; // Right double guillemet
-const LGUIL  = '\u2039'; // Left guillemet
-const RGUIL  = '\u203a'; // Right guillemet
-const NBSP   = '\u00a0'; // non-breaking space
-const THNSP  = '\u2009'; // thin space
+const LGUIL = '\u2039'; // Left guillemet
+const RGUIL = '\u203a'; // Right guillemet
+const NBSP = '\u00a0'; // non-breaking space
+const THNSP = '\u2009'; // thin space
 const LDQUOT = '“'; // Left double quote
 const RDQUOT = '”'; // Right double quote
 const ELLIPSIS = '…';
 
-const FR_QUOTES = '«\|»\|“\|”\|‘\|’';
+const FR_QUOTES = '«|»|“|”|‘|’';
 const RE_POST_APOS = /^\w/;
 
-// Deepl 
-const LQ1 = '<l1/>'; 
+// Deepl
+const LQ1 = '<l1/>';
 const LQ2 = '<l2/>';
 const LQ3 = '<l3/>';
 const LQ4 = '<l4/>';
@@ -34,8 +34,8 @@ const ELL = '<ell/>';
 
 import { DBG } from '../defines.mjs';
 
-export default class QuoteParser {
-  constructor(opts={}) {
+export class QuoteParser {
+  constructor(opts = {}) {
     const msg = 'QuoteParser.ctor()';
     const dbg = DBG.QUOTE;
     let {
@@ -54,65 +54,72 @@ export default class QuoteParser {
 
     switch (lang) {
       case 'en-uk': // UK quote nesting
-        openQuotes = openQuotes || [ LSQUOT, LDQUOT, LSQUOT, LDQUOT ];
-        closeQuotes = closeQuotes || [ RSQUOT, RDQUOT, RSQUOT, RDQUOT ];
+        openQuotes = openQuotes || [LSQUOT, LDQUOT, LSQUOT, LDQUOT];
+        closeQuotes = closeQuotes || [RSQUOT, RDQUOT, RSQUOT, RDQUOT];
         break;
       case 'pt-br':
       case 'en-us':
-      case 'en': // American quote nesting 
-        openQuotes = openQuotes || [ LDQUOT, LSQUOT, LDQUOT, LSQUOT ];
-        closeQuotes = closeQuotes || [ RDQUOT, RSQUOT, RDQUOT, RSQUOT ];
+      case 'en': // American quote nesting
+        openQuotes = openQuotes || [LDQUOT, LSQUOT, LDQUOT, LSQUOT];
+        closeQuotes = closeQuotes || [RDQUOT, RSQUOT, RDQUOT, RSQUOT];
         break;
       case 'nl':
-        openQuotes = openQuotes || [ LDQUOT, LDQUOT,LDQUOT,  LDQUOT, ];
-        closeQuotes = closeQuotes || [ RDQUOT, RDQUOT,RDQUOT,  RDQUOT, ];
+        openQuotes = openQuotes || [LDQUOT, LDQUOT, LDQUOT, LDQUOT];
+        closeQuotes = closeQuotes || [RDQUOT, RDQUOT, RDQUOT, RDQUOT];
         break;
       case 'it':
       case 'es':
       case 'pt':
       case 'pt-pt':
-        openQuotes = openQuotes || [ LDGUIL, LDQUOT, LSQUOT, LDQUOT ];
-        closeQuotes = closeQuotes || [ RDGUIL, RDQUOT, RSQUOT, RDQUOT ];
+        openQuotes = openQuotes || [LDGUIL, LDQUOT, LSQUOT, LDQUOT];
+        closeQuotes = closeQuotes || [RDGUIL, RDQUOT, RSQUOT, RDQUOT];
         break;
       case 'fr-eu':
-        openQuotes = openQuotes || 
-          [ LDGUIL+THNSP, LDQUOT, LSQUOT, ];
-        closeQuotes = closeQuotes || 
-          [ THNSP+RDGUIL, RDQUOT, RSQUOT, ];
+        openQuotes = openQuotes || [LDGUIL + THNSP, LDQUOT, LSQUOT];
+        closeQuotes = closeQuotes || [THNSP + RDGUIL, RDQUOT, RSQUOT];
         break;
       case 'fr':
-        openQuotes = openQuotes || 
-          [ LDGUIL+THNSP, LGUIL+THNSP, LDQUOT, LSQUOT, ];
-        closeQuotes = closeQuotes || 
-          [ THNSP+RDGUIL, THNSP+RGUIL, RDQUOT, RSQUOT, ];
+        openQuotes = openQuotes || [
+          LDGUIL + THNSP,
+          LGUIL + THNSP,
+          LDQUOT,
+          LSQUOT,
+        ];
+        closeQuotes = closeQuotes || [
+          THNSP + RDGUIL,
+          THNSP + RGUIL,
+          RDQUOT,
+          RSQUOT,
+        ];
         break;
-      default: {
-        if (lang.endsWith('-deepl')) {
-          openQuotes = openQuotes || [ LQ1, LQ2, LQ3, LQ4 ];
-          closeQuotes = closeQuotes || [ RQ1, RQ2, RQ3, RQ4 ];
-          apostrophe = APOS;
-        } else {
-          let emsg = `${msg} unsupported language:${lang}`;
-          throw new Error(emsg);
+      default:
+        {
+          if (lang.endsWith('-deepl')) {
+            openQuotes = openQuotes || [LQ1, LQ2, LQ3, LQ4];
+            closeQuotes = closeQuotes || [RQ1, RQ2, RQ3, RQ4];
+            apostrophe = APOS;
+          } else {
+            let emsg = `${msg} unsupported language:${lang}`;
+            throw new Error(emsg);
+          }
         }
-      } break;
+        break;
     }
-    
-    let quoteMap = {};
-    let allQuotes = [...openQuotes, ...closeQuotes ]
-      .reduce((a,q)=>{
-        if (quoteMap[q] == null) {
-          quoteMap[q] = true;
-          a.push(q);
-        }
 
-        return a;
-      },[]);
+    let quoteMap = {};
+    let allQuotes = [...openQuotes, ...closeQuotes].reduce((a, q) => {
+      if (quoteMap[q] == null) {
+        quoteMap[q] = true;
+        a.push(q);
+      }
+
+      return a;
+    }, []);
     let rexSplit = new RegExp(`(${allQuotes.join('|')})`);
     let rexQuotes = new RegExp(`(${allQuotes.join('|')})`, 'g');
-    for (let i=0; i<maxLevel; i++) {
-      openQuotes[i] = openQuotes[i] || openQuotes[i-1];
-      closeQuotes[i] = closeQuotes[i] || closeQuotes[i-1];
+    for (let i = 0; i < maxLevel; i++) {
+      openQuotes[i] = openQuotes[i] || openQuotes[i - 1];
+      closeQuotes[i] = closeQuotes[i] || closeQuotes[i - 1];
     }
 
     let rexPreApos = QuoteParser.loadApostrophe(lang);
@@ -143,8 +150,9 @@ export default class QuoteParser {
     let rex;
     try {
       let text = fs.readFileSync(fpath).toString().trim();
-      let lines = text.split("’\n")
-        .map(line=>line && `\\b${line}$`);
+      let lines = text
+        .split('’\n')
+        .map((line) => line && `\\b${line}$`);
       rex = new RegExp(lines.join('|'), 'ig');
       dbg && console.log(msg, `[1]${lang}`, rex);
     } catch (e) {
@@ -154,7 +162,7 @@ export default class QuoteParser {
   }
 
   static testcaseQ2EN(lang) {
-    const {LQ1, LQ2, LQ3, LQ4, RQ1, RQ2, RQ3, RQ4} = QuoteParser;
+    const { LQ1, LQ2, LQ3, LQ4, RQ1, RQ2, RQ3, RQ4 } = QuoteParser;
     return [
       // LQ1 in preceding segment
       `${LQ2}I say, `,
@@ -162,12 +170,12 @@ export default class QuoteParser {
       `${LQ4}I said ${lang}!${RQ4}`,
       `?${RQ3}.`,
       `${RQ2}`,
-      `${RQ1}`, // closing 
+      `${RQ1}`, // closing
     ].join('');
   }
 
   static testcaseDepthEN(lang) {
-    const {LQ1, LQ2, LQ3, LQ4, RQ1, RQ2, RQ3, RQ4} = QuoteParser;
+    const { LQ1, LQ2, LQ3, LQ4, RQ1, RQ2, RQ3, RQ4 } = QuoteParser;
     return [
       `${LQ1}`,
       `${LQ2}I say, `,
@@ -179,12 +187,12 @@ export default class QuoteParser {
     ].join('');
   }
 
-  static testcaseElderlyEN(opts={}) {
+  static testcaseElderlyEN(opts = {}) {
     let {
-      lang='messenger',
-      lQuote='',
-      rQuote='',
-      gods='gods',
+      lang = 'messenger',
+      lQuote = '',
+      rQuote = '',
+      gods = 'gods',
     } = opts;
     return [
       lQuote,
@@ -198,13 +206,13 @@ export default class QuoteParser {
     ].join('');
   }
 
-  static testcaseSickEN(opts={}) {
+  static testcaseSickEN(opts = {}) {
     let {
-      lang='sickness',
-      lQuote1='',
-      rQuote1='',
-      rQuote2='',
-      apos="'",
+      lang = 'sickness',
+      lQuote1 = '',
+      rQuote1 = '',
+      rQuote2 = '',
+      apos = "'",
     } = opts;
     return [
       lQuote1,
@@ -217,12 +225,12 @@ export default class QuoteParser {
     ].join('');
   }
 
-  static testcaseMisterEN(opts={}) {
+  static testcaseMisterEN(opts = {}) {
     let {
-      lang='messenger',
-      lQuote='',
-      rQuote='',
-      gods='gods',
+      lang = 'messenger',
+      lQuote = '',
+      rQuote = '',
+      gods = 'gods',
     } = opts;
     return [
       lQuote,
@@ -231,22 +239,18 @@ export default class QuoteParser {
     ].join('');
   }
 
-  static testcaseQuotesEN(opts={}) {
-    let {
-      lang='mind',
-      lQuote='',
-      rQuote='',
-    } = opts;
-    return `${lQuote}Listen and apply your ${lang} well, I will speak.${rQuote}`;o
+  static testcaseQuotesEN(opts = {}) {
+    let { lang = 'mind', lQuote = '', rQuote = '' } = opts;
+    return `${lQuote}Listen and apply your ${lang} well, I will speak.${rQuote}`;
   }
 
-  static testcaseDonationEN(opts={}) {
+  static testcaseDonationEN(opts = {}) {
     let {
-      lang='religious',
-      people='kinds of people',
-      lQuote='',
-      rQuote='',
-      apos="'",
+      lang = 'religious',
+      people = 'kinds of people',
+      lQuote = '',
+      rQuote = '',
+      apos = "'",
     } = opts;
     return [
       `${lQuote}These are two ${people} in the world`,
@@ -255,12 +259,12 @@ export default class QuoteParser {
     ].join(' ');
   }
 
-  static testcaseEllipsisEN(lang, opts=QuoteParser) {
+  static testcaseEllipsisEN(lang, opts = QuoteParser) {
     const {
-      prefix='They understand: ',
-      lQuote=LDQUOT, 
-      rQuote=RDQUOT, 
-      ellipsis=` ${ELLIPSIS} `,
+      prefix = 'They understand: ',
+      lQuote = LDQUOT,
+      rQuote = RDQUOT,
+      ellipsis = ` ${ELLIPSIS} `,
     } = opts;
     return [
       prefix,
@@ -279,74 +283,122 @@ export default class QuoteParser {
     ].join('');
   }
 
-  static testcaseThinking_EN(lang, opts={}) {
-    const {LQ1, RQ1, } = QuoteParser;
-    let {lQuote=LQ1, rQuote=RQ1 } = opts;
+  static testcaseThinking_EN(lang, opts = {}) {
+    const { LQ1, RQ1 } = QuoteParser;
+    let { lQuote = LQ1, rQuote = RQ1 } = opts;
 
     return [
       `Thinking, `,
       `${lQuote}I${APOS}ve done ${lang} `,
       `things by way of body, speech, and mind`,
-      `${rQuote}, they${APOS}re mortified.`
+      `${rQuote}, they${APOS}re mortified.`,
     ].join('');
   }
 
-  static get APOS() { return APOS; }
-  static get ELLIPSIS() { return ELLIPSIS; }
-  static get ELL() { return ELL; }
-  static get LDQUOT() { return LDQUOT; }
-  static get RDQUOT() { return RDQUOT; }
-  static get LSQUOT() { return LSQUOT; }
-  static get RSQUOT() { return RSQUOT; }
-  static get LGUIL() { return LGUIL; }
-  static get RGUIL() { return RGUIL; }
-  static get LDGUIL() { return LDGUIL; }
-  static get RDGUIL() { return RDGUIL; }
-  static get NBSP() { return NBSP; }
-  static get THNSP() { return THNSP; }
-  static get QUOTE() { return QUOTE; }
-  static get LQ1() { return LQ1; }
-  static get LQ2() { return LQ2; }
-  static get LQ3() { return LQ3; }
-  static get LQ4() { return LQ4; }
-  static get RQ1() { return RQ1; }
-  static get RQ2() { return RQ2; }
-  static get RQ3() { return RQ3; }
-  static get RQ4() { return RQ4; }
+  static get APOS() {
+    return APOS;
+  }
+  static get ELLIPSIS() {
+    return ELLIPSIS;
+  }
+  static get ELL() {
+    return ELL;
+  }
+  static get LDQUOT() {
+    return LDQUOT;
+  }
+  static get RDQUOT() {
+    return RDQUOT;
+  }
+  static get LSQUOT() {
+    return LSQUOT;
+  }
+  static get RSQUOT() {
+    return RSQUOT;
+  }
+  static get LGUIL() {
+    return LGUIL;
+  }
+  static get RGUIL() {
+    return RGUIL;
+  }
+  static get LDGUIL() {
+    return LDGUIL;
+  }
+  static get RDGUIL() {
+    return RDGUIL;
+  }
+  static get NBSP() {
+    return NBSP;
+  }
+  static get THNSP() {
+    return THNSP;
+  }
+  static get QUOTE() {
+    return QUOTE;
+  }
+  static get LQ1() {
+    return LQ1;
+  }
+  static get LQ2() {
+    return LQ2;
+  }
+  static get LQ3() {
+    return LQ3;
+  }
+  static get LQ4() {
+    return LQ4;
+  }
+  static get RQ1() {
+    return RQ1;
+  }
+  static get RQ2() {
+    return RQ2;
+  }
+  static get RQ3() {
+    return RQ3;
+  }
+  static get RQ4() {
+    return RQ4;
+  }
 
   // ...APOS...
   testcaseGratificationEN(lang) {
     const apos = this.apostrophe;
-    const [ LQ1, LQ2, LQ3, LQ4 ] = this.openQuotes;
-    const [ RQ1, RQ2, RQ3, RQ4 ] = this.closeQuotes;
+    const [LQ1, LQ2, LQ3, LQ4] = this.openQuotes;
+    const [RQ1, RQ2, RQ3, RQ4] = this.closeQuotes;
 
-    return `‘But reverends, what${apos}s the gratification, `+
-      `the drawback, and the escape when it comes to ${lang}`;
+    return (
+      `‘But reverends, what${apos}s the gratification, ` +
+      `the drawback, and the escape when it comes to ${lang}`
+    );
   }
 
   // ...APOS...
   testcasePleasuresEN(lang) {
     const apos = this.apostrophe;
-    const [ LQ1, LQ2, LQ3, LQ4 ] = this.openQuotes;
-    const [ RQ1, RQ2, RQ3, RQ4 ] = this.closeQuotes;
+    const [LQ1, LQ2, LQ3, LQ4] = this.openQuotes;
+    const [RQ1, RQ2, RQ3, RQ4] = this.closeQuotes;
 
-    return `understand ${lang} pleasures${apos} `+
-      `gratification, drawback, and escape`;
+    return (
+      `understand ${lang} pleasures${apos} ` +
+      `gratification, drawback, and escape`
+    );
   }
 
   // ...APOS...RQ1 RQ2
   testcaseSquirrelsEN(lang) {
     const apos = this.apostrophe;
-    const [ LQ1, LQ2, LQ3, LQ4 ] = this.openQuotes;
-    const [ RQ1, RQ2, RQ3, RQ4 ] = this.closeQuotes;
+    const [LQ1, LQ2, LQ3, LQ4] = this.openQuotes;
+    const [RQ1, RQ2, RQ3, RQ4] = this.closeQuotes;
 
     return `the ${lang} squirrels${apos} feeding ground${RQ2}${RQ1}`;
   }
 
   // LQ2.....RQ2 RQ1
   testcaseRebirthEN(lang) {
-    const [ LQ1, LQ2, LQ3, LQ4 ] = this.openQuotes;
-    const [ RQ1, RQ2, RQ3, RQ4 ] = this.closeQuotes;
+    const [LQ1, LQ2, LQ3, LQ4] = this.openQuotes;
+    const [RQ1, RQ2, RQ3, RQ4] = this.closeQuotes;
     return [
       //`${LQ1}`,
       `${LQ2}I understand: `,
@@ -362,19 +414,17 @@ export default class QuoteParser {
   // ... RQ2
   testcaseFeelingsEN(lang) {
     const apos = this.apostrophe;
-    const [ RQ1, RQ2, RQ3, RQ4 ] = this.closeQuotes;
+    const [RQ1, RQ2, RQ3, RQ4] = this.closeQuotes;
     return [
-      `what${apos}s the escape from that ${lang} feeling?${RQ2}`  
+      `what${apos}s the escape from that ${lang} feeling?${RQ2}`,
     ].join('');
   }
 
   // ... RQ1
   testcaseReligionsEN(lang) {
-    const [ LQ1, LQ2, LQ3, LQ4 ] = this.openQuotes;
-    const [ RQ1, RQ2, RQ3, RQ4 ] = this.closeQuotes;
-    return [
-      `Why don't we visit ${lang} religions?${RQ1} `,
-    ].join('');
+    const [LQ1, LQ2, LQ3, LQ4] = this.openQuotes;
+    const [RQ1, RQ2, RQ3, RQ4] = this.closeQuotes;
+    return [`Why don't we visit ${lang} religions?${RQ1} `].join('');
   }
 
   testcaseApostropheEN(lang) {
@@ -387,20 +437,18 @@ export default class QuoteParser {
     return `Le jouet de l${apostrophe}enfant ${lang}`;
   }
 
-  scan(text, level=this.level) {
+  scan(text, level = this.level) {
     const msg = 'QuoteParser.scan()';
     const dbg = DBG.QUOTE;
     const dbgv = DBG.VERBOSE && dbg;
-    let { 
-      rexQuotes, openQuotes, closeQuotes, maxLevel,
-    } = this;
+    let { rexQuotes, openQuotes, closeQuotes, maxLevel } = this;
     let quotes = 0;
-    let execRes;
-    while ((execRes=rexQuotes.exec(text)) !== null) {
+    let execRes = rexQuotes.exec(text);
+    for (; execRes != null; execRes = rexQuotes.exec(text)) {
       let match = execRes[0];
       dbgv && console.log(msg, match);
       quotes++;
-      if (match === closeQuotes[level-1]) {
+      if (match === closeQuotes[level - 1]) {
         level--;
         if (level < 0) {
           let emsg = `${msg} unmatched close quote: ${text}`;
@@ -421,8 +469,8 @@ export default class QuoteParser {
       }
     }
 
-    return { 
-      level, 
+    return {
+      level,
       quotes,
     };
   }
@@ -444,7 +492,7 @@ export default class QuoteParser {
   isApostrophe(context) {
     const msg = 'QuoteParser.isApostrophe()';
     const dbg = 0;
-    const [ before, quote, after ] = context;
+    const [before, quote, after] = context;
     let { rexPreApos } = this;
 
     if (quote !== RSQUOT) {
@@ -468,23 +516,23 @@ export default class QuoteParser {
     return false;
   }
 
-  convertQuotes(text='', qpSwap, level=this.level) {
+  convertQuotes(text = '', qpSwap = text, level = this.level) {
     const msg = 'QuoteParser.convertQuotes()';
     const dbg = 0 || DBG.VERBOSE;
-    let { 
-      openQuotes:srcOpen, 
-      closeQuotes:srcClose, 
-      apostrophe:srcApos,
+    let {
+      openQuotes: srcOpen,
+      closeQuotes: srcClose,
+      apostrophe: srcApos,
       rexSplit,
       maxLevel,
     } = this;
-    if (qpSwap == null || text=='') {
+    if (qpSwap == null || text == '') {
       return text;
     }
     let {
-      openQuotes:swapOpen,
-      closeQuotes:swapClose,
-      apostrophe:swapApos,
+      openQuotes: swapOpen,
+      closeQuotes: swapClose,
+      apostrophe: swapApos,
     } = qpSwap;
 
     let dstParts = [];
@@ -492,20 +540,21 @@ export default class QuoteParser {
     dbg && console.log(msg, '[1]srcParts', srcParts);
     let lastPart;
     let nextPart = srcParts[0];
-    for (let i=0; i<srcParts.length; i++) {
+    for (let i = 0; i < srcParts.length; i++) {
       let part = nextPart;
       let srcOpenQuote = srcOpen[level];
-      let srcCloseQuote = srcClose[level-1];
+      let srcCloseQuote = srcClose[level - 1];
 
-      if (i%2 === 0) {
+      if (i % 2 === 0) {
         dbg && console.log(msg, `[2]text@${i}`, part);
       } else if (part === srcCloseQuote) {
-        let nextPart = srcParts[i+1];
-        let context = [srcParts[i-1], part, nextPart];
+        let nextPart = srcParts[i + 1];
+        let context = [srcParts[i - 1], part, nextPart];
         if (this.isApostrophe(context)) {
-          dbg && console.log(msg, `[3]apos@${i}`, {part, nextPart});
+          dbg && console.log(msg, `[3]apos@${i}`, { part, nextPart });
         } else {
-          dbg && console.log(msg, `[4]close@${i}`, {part, nextPart});
+          dbg &&
+            console.log(msg, `[4]close@${i}`, { part, nextPart });
           level--;
           part = swapClose[level];
           if (level < 0) {
@@ -524,25 +573,28 @@ export default class QuoteParser {
           throw new Error(emsg);
         }
       } else {
-        dbg && console.log(msg, `[6]skip@${i}`, level, 
-          `"${part}"`, 
-        );
+        dbg && console.log(msg, `[6]skip@${i}`, level, `"${part}"`);
         // not a quote
       }
-      dstParts.push(part)
+      dstParts.push(part);
       lastPart = part;
-      nextPart = srcParts[i+1];
+      nextPart = srcParts[i + 1];
     }
     this.level = level;
 
-    let aposParts =  dstParts.join('').split(srcApos);
-    dbg && console.log(msg, '[7]aposParts', 
-      aposParts, swapApos.charCodeAt(0));
+    let aposParts = dstParts.join('').split(srcApos);
+    dbg &&
+      console.log(
+        msg,
+        '[7]aposParts',
+        aposParts,
+        swapApos.charCodeAt(0),
+      );
 
     return aposParts.join(swapApos);
   }
 
-  #checkQuoteLevel(text='', startLevel=0) {
+  #checkQuoteLevel(text = '', startLevel = 0) {
     const msg = `qp-${this.lang}.#checkQuoteLevel()`;
     const dbg = DBG.QUOTE;
     const dbgv = dbg && DBG.VERBOSE;
@@ -554,30 +606,42 @@ export default class QuoteParser {
     let error;
 
     if (parts.length === 1) {
-      dbg && console.log(msg, `[1]no-quotes${startLevel}`, 
-        text.substring(0,50), '...');
+      dbg &&
+        console.log(
+          msg,
+          `[1]no-quotes${startLevel}`,
+          text.substring(0, 50),
+          '...',
+        );
     }
-    for (let i=1; !error && i<parts.length; i+=2) {
+    for (let i = 1; !error && i < parts.length; i += 2) {
       let part = parts[i]; // parts with odd indices are quotes
-      let context = [parts[i-1], part, parts[i+1]];
+      let context = [parts[i - 1], part, parts[i + 1]];
 
-      if (part === openQuotes[endLevel]) { // sync ok
+      if (part === openQuotes[endLevel]) {
+        // sync ok
         endLevel++;
-        dbg && console.log(msg, `[2]open${endLevel}`, 
-          context.join('|'));
-      } else if (part === closeQuotes[endLevel-1]) {
+        dbg &&
+          console.log(msg, `[2]open${endLevel}`, context.join('|'));
+      } else if (part === closeQuotes[endLevel - 1]) {
         if (this.isApostrophe(context)) {
           dbgv && console.log(msg, `[3]apos`, context.join('|'));
         } else {
-          dbg && console.log(msg, `[4]close${endLevel}`, 
-            context.join('|'));
+          dbg &&
+            console.log(
+              msg,
+              `[4]close${endLevel}`,
+              context.join('|'),
+            );
           endLevel--;
         }
       } else if (this.isApostrophe(context)) {
         dbgv && console.log(msg, `[5]apos`, context.join('|'));
-      } else { // sync fail
+      } else {
+        // sync fail
         let emsg = `${msg} ERROR [${startLevel}?${text}]`;
-        dbg && console.log(msg, `[6]SYNC?`, {startLevel, i, context, }); 
+        dbg &&
+          console.log(msg, `[6]SYNC?`, { startLevel, i, context });
         error = new Error(emsg);
       }
     }
@@ -585,16 +649,16 @@ export default class QuoteParser {
       error,
       startLevel,
       endLevel,
-    }
+    };
   }
 
-  syncQuoteLevel(text='', startLevel=0) {
+  syncQuoteLevel(text = '', startLevel = 0) {
     const msg = `qp-${this.lang}.syncQuoteLevel()`;
     const dbg = DBG.QUOTE;
     let { maxLevel } = this;
-    let check  = this.#checkQuoteLevel(text, startLevel);
+    let check = this.#checkQuoteLevel(text, startLevel);
     if (check.error) {
-      for (let i=1; check.error && i<maxLevel; i++) {
+      for (let i = 1; check.error && i < maxLevel; i++) {
         let tryLevel = (startLevel + i) % maxLevel;
         check = this.#checkQuoteLevel(text, tryLevel);
       }
@@ -605,11 +669,13 @@ export default class QuoteParser {
       }
 
       // Synchronized, but source document might be in error
-      console.log(msg, '[2]SYNC?', 
+      console.log(
+        msg,
+        '[2]SYNC?',
         `level ${startLevel}=>${check.startLevel}`,
-        `\n  |${text}|`);
+        `\n  |${text}|`,
+      );
     }
     return check;
   }
-
 }

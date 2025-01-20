@@ -5,7 +5,7 @@ import should from 'should';
 import { Text } from '../../index.mjs';
 const { EbtDoc } = Text;
 
-describe('TESTTESTtext/ebt-doc', function () {
+describe('text/ebt-doc', function () {
   this.timeout(5 * 1000);
 
   it('default ctor', () => {

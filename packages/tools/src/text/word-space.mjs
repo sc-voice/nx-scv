@@ -63,7 +63,7 @@ class Vector extends Object {
     }, 0);
   }
 
-  intersect(vec2) {
+  intersect(vec2={}) {
     let keys = Object.keys(this);
     return keys.reduce((a, k) => {
       let v1 = this[k];

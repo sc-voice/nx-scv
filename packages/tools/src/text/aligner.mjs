@@ -40,6 +40,7 @@ export class Aligner {
       alignPali = true,
       authorAligned, // author of segment aligned document
       authorLegacy, // author of legacy document
+      dbgScid,
       groupDecay = 0.5, // group exponential decay
       groupSize = 1, // comparison group size
       lang, // 2-letter ISO language (en, fr, es, pt)
@@ -62,6 +63,7 @@ export class Aligner {
       alignPali,
       authorAligned,
       authorLegacy,
+      dbgScid,
       groupSize,
       groupDecay,
       lang,
@@ -97,6 +99,7 @@ export class Aligner {
     const msg = 'A7t.createAlignment:';
     const dbg = DBG.CREATE_ALIGNMENT;
     let {
+      dbgScid = this.dbgScid,
       legacyDoc,
       mlDoc,
       minScore = this.minScore,
@@ -112,7 +115,8 @@ export class Aligner {
       throw new Error(`${msg} mlDoc?`);
     }
 
-    let nLines = legacyDoc.lines.length;
+    let { author, author_uid, lines, footer } = legacyDoc;
+    let nLines = lines.length;
     let lineCursor = new Fraction(0, nLines, 'lines');
     let scids = Object.keys(mlDoc.segMap);
     let nSegs = scids.length;
@@ -128,18 +132,20 @@ export class Aligner {
       throw new Error(`${msg} minScanSize? ${minScanSize} `);
     }
 
-    let { sutta_uid:suid, docAuthor, bilaraPaths } = mlDoc;
-    let { author, author_uid } = legacyDoc;
-    let bilaraPath = bilaraPaths.reduce((a,p)=>{
+    let { sutta_uid: suid, docAuthor, bilaraPaths } = mlDoc;
+    let bilaraPath = bilaraPaths.reduce((a, p) => {
       if (p.includes(docAuthor)) {
         a = p.replaceAll(docAuthor, author_uid);
       }
       return a;
     });
-    let docOpts = { suid, lang, author, author_uid, bilaraPath };
+    let docOpts = { 
+      suid, lang, author, author_uid, bilaraPath, footer,
+    }
 
     const optsAlignment = {
       aligner: this,
+      dbgScid,
       ebtDoc: EbtDoc.create(docOpts),
       legacyDoc,
       lineCursor,
@@ -267,7 +273,7 @@ export class Alignment {
     if (typeof opts !== 'object') {
       throw new Error(`${msg} opts?`);
     }
-    let { dbgScid } = opts;
+    let { dbgScid = this.dbgScid } = opts;
     // biome-ignore format:
     let { ebtDoc, legacyDoc, lineCursor, maxScanSize, minScanSize,
       minScore, mlDoc, scids, segCursor, vMLDoc, wordSpace,
@@ -281,6 +287,7 @@ export class Alignment {
     for (let i = 0; scanning(i); i++) {
       let scid = scids[segCursor.numerator + i];
       if (scid == null) {
+        console.log(error, '[1]scid?', segCursor.toString());
         break;
       }
       let vSeg = vMLDoc[scid];
@@ -417,7 +424,6 @@ export class Alignment {
 
     while (lineCursor.difference < 0) {
       let line = lines[lineCursor.numerator];
-      dbg > 1 && console.log(msg, lineCursor.toString(), line);
       let curScid = scids[segCursor.numerator];
       let dbgScid = scidsExp?.[lineCursor.numerator];
       let r = this.alignLine(line, { dbgScid });
@@ -425,12 +431,12 @@ export class Alignment {
       // biome-ignore format:
       if (r == null) {
         let { vSeg, vLegacy, intersection } = this.status;
-        dbg && console.log( msg, 'UNMATCHED', 
+        dbg && console.log(msg, 'UNMATCHED', 
           lineCursor.toString(),
           segCursor.toString(),
           { curScid, line, minScanSize, maxScanSize, vSeg, vLegacy, intersection },
         );
-        throw new Error(`${msg} unmatched`);
+        return null;
       }
     }
 

@@ -207,4 +207,13 @@ describe('text/word-space', () => {
     should(vNorm.c).above(0.96).below(1);
     should(vNorm.d).above(0.9999999).below(1);
   });
+  it('intersect', ()=>{
+    const msg = 'TW8e.intersect:';
+    let ws = new WordSpace({normalizeVector:null, minWord:1});
+    let v1 = ws.string2Vector('a b');
+    let v2 = ws.string2Vector('b c');
+    let i12 = v1.intersect(v2);
+    should.deepEqual(i12, new WordSpace.Vector({b:1}));
+    should.deepEqual(v1.intersect(), new WordSpace.Vector({}));
+  });
 });
