@@ -136,10 +136,12 @@ describe('text/ebt-doc', function () {
       en: '2 ',
     });
   });
-  it('toBilaraString 1', () => {
+  it('TESTTESTtoBilaraString 1', () => {
     const msg = 'TE4c.toBilaraString.1:';
     let bilaraPath = 'test.json';
     let author = 'test-author';
+    let author_uid = 'test-author-uid';
+    let footer = 'test-footer';
     let lang = 'test-lang';
     let suid = 'test-suid';
     let segMap = {
@@ -149,27 +151,33 @@ describe('text/ebt-doc', function () {
       'test:1': 'test one',
     };
     let ebtDoc = EbtDoc.create({
-      suid,
       author,
-      lang,
+      author_uid,
       bilaraPath,
+      footer,
+      lang,
       segMap,
+      suid,
     });
     let bls = ebtDoc.toBilaraString();
     let json = JSON.parse(bls);
     let { __header__ } = json;
     should(__header__).properties({
-      suid,
-      lang,
       author,
+      author_uid,
       bilaraPath,
+      footer,
+      lang,
+      suid,
     });
     should(json).properties(segMap);
   });
-  it('toBilaraString() 2:parent', () => {
+  it('TESTTESTtoBilaraString() 2:parent', () => {
     const msg = 'TE4c.toBilaraString.2:';
-    let bilaraPath = 'test.json';
+    let bilaraPath = 'test-bilarapath';
     let author = 'test-author';
+    let author_uid = 'test-author-uid';
+    let footer = 'test-footer';
     let lang = 'test-lang';
     let suid = 'test-suid';
     let segMap = {
@@ -180,8 +188,10 @@ describe('text/ebt-doc', function () {
     };
     let parent = EbtDoc.create({
       author,
-      lang,
+      author_uid,
       bilaraPath: 'parent.json',
+      footer,
+      lang,
     });
 
     let blsParent = parent.toBilaraString();
@@ -189,16 +199,21 @@ describe('text/ebt-doc', function () {
     let { __header__: hdrParent } = jsonParent;
     should.deepEqual(hdrParent, {
       author,
-      lang,
+      author_uid,
       bilaraPath: 'parent.json', // saved
+      footer,
+      lang,
     });
 
     let author2 = 'test-author2';
+    let footer2 = 'test-footer2';
     let ebtDoc = EbtDoc.create({
-      author: author2, // different
-      suid,
-      segMap,
-      //bilaraPath, // not saved
+      author, // unchanged => inheritable
+      author_uid, // unchanged => inheritable
+      bilaraPath, // never inheritable
+      footer: footer2, // child override
+      suid, // never inheritable
+      segMap, // not in header
       parent,
     });
 
@@ -211,8 +226,11 @@ describe('text/ebt-doc', function () {
     //   * non-inherited keys (suid, bilaraPath)
     // e.g., lang, author
     should.deepEqual(__header__, {
+      // author_uid, // inherited
+      // author, // inherited
+      bilaraPath,
+      footer: footer2, // child override
       suid, // non-inherited
-      author: author2, // inherited
     });
 
     // fromBilaraString() implements parent inheritance
