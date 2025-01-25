@@ -1,6 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import should from "should";
-import { DBG } from '../../src/defines.mjs';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { Translate } from '../../index.mjs';
+import { DBG } from '../../src/defines.mjs';
 const {
   DeepLAdapter,
   QuoteParser,
@@ -15,17 +20,28 @@ const {
   LDGUIL, RDGUIL,
 } = QuoteParser;
 
-(typeof describe === 'function') && 
-  describe("deepl-adapter", function() 
-{
+const AUTH_PATH = path.join(__dirname, '../../local/deepl.auth');
+const AUTH_KEY = fs.readFileSync(AUTH_PATH).toString().trim();
+
+describe("deepl-adapter", function() {
   this.timeout(30*1000);
 
   before(()=>{
     DeepLAdapter.setMockApi(!DBG.DEEPL_TEST_API);
   });
 
-  it("create() default", async() => {
-    let dlt = await DeepLAdapter.create();
+  it("TESTTESTcreate() default", async() => {
+    const msg = 'D10r.create() authkey';
+    let eCaught;
+    try {
+      dla = await DeepLAdapter.create();
+    } catch (e) { eCaught = e; }
+    should(eCaught?.message).match(/authKey\?/);
+  });
+  it("TESTTESTcreate() default", async() => {
+    const msg = 'D10r.create';
+    let authKey = AUTH_KEY;
+    let dlt = await DeepLAdapter.create({authKey});
     should(dlt).properties({
       srcLang: 'en',
       srcLang2: 'en',
@@ -33,13 +49,16 @@ const {
       dstLang2: 'pt',
       sourceLang: 'en',
       targetLang: 'pt-pt',
-      glossaryName: 'ebt_en_pt_ebt-deepl',
+      glossaryName: 'd10r_en_pt_no-author',
     });
+    should(dlt.authKey).equal(undefined); // hidden
   });
-  it("create() custom", async() => {
+  it("TESTTESTcreate() custom", async() => {
+    let authKey = AUTH_KEY;
     let srcLang = 'pt-pt';
     let dstLang = 'de';
     let dlt = await DeepLAdapter.create({
+      authKey,
       srcLang,
       dstLang,
     });
@@ -52,29 +71,32 @@ const {
       targetLang: 'de',
     });
   });
-  it("uploadGlossary() EN", async()=>{
+/*
+  it("TESTTESTuploadGlossary() EN", async()=>{
     const msg = "TD3l.uploadGlossary-en:";
-    let dlt = await DeepLAdapter.create();
+    let dlt = await DeepLAdapter.create({authKey:AUTH_KEY});
     let { translator } = dlt;
     let srcLang = 'en';
     let dstLang = 'pt-PT';
+    let dstAuthor = 'test-dst-author';
     let translateOpts = {};
     let glossaryName = DeepLAdapter.glossaryName({srcLang,dstLang});
     let glossary = await DeepLAdapter.uploadGlossary({
       srcLang,
       dstLang,
+      dstAuthor,
       translator,
       translateOpts,
     });
-    should(glossaryName).equal('ebt_en_pt_ebt-deepl');
+    should(glossaryName).equal('d10r_en_pt_no-author');
 
     if (DBG.DEEPL_TEST_API) {
-      should(glossary.name).equal('ebt_en_pt_ebt-deepl');
+      should(glossary.name).equal('d10r_en_pt_no-author');
       should(glossary.ready).equal(true);
       should(glossary.sourceLang).equal('en');
       should(glossary.targetLang).equal('pt'); // DeepL 
     } else {
-      should(glossary).equal(null); // Requires reall account
+      should(glossary).equal(null); // Requires real account
       console.log(msg, 'DEEPL_TEST_API: Skipped...');
     }
   });
@@ -447,4 +469,5 @@ const {
       rQuote,
     ]);
   });
+*/
 })

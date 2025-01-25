@@ -107,20 +107,25 @@ describe('text/legacy-doc', () => {
       );
     }
   });
-  it('fetchLegacy-mn8-fr', async() =>{
+  it('fetchLegacy-mn8-fr', async () => {
     const msg = 'TL7c.fetchLegacy-mn8-fr:';
     let sutta_uid = 'mn8';
     let lang = 'fr';
     let author = 'wijayaratna';
-    let legacyDoc = 
-      await LegacyDoc.fetchLegacy({sutta_uid, lang, author});
+    let legacyDoc = await LegacyDoc.fetchLegacy({
+      sutta_uid,
+      lang,
+      author,
+    });
     should(legacyDoc.uid).equal(sutta_uid);
     should(legacyDoc.lang).equal(lang);
     should(legacyDoc.author_uid).equal(author);
     should(legacyDoc.author).equal('Môhan Wijayaratna');
     should(legacyDoc.footer).match(/Môhan.*Ismet/);
     should(legacyDoc.lines.at(0)).match(/8. Le déracinement/);
-    should(legacyDoc.lines.at(-1)).match(/Ainsi parla le Bienheureux./);
+    should(legacyDoc.lines.at(-1)).match(
+      /Ainsi parla le Bienheureux./,
+    );
     should(legacyDoc.lines.length).equal(67);
   });
 });

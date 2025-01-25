@@ -100,7 +100,7 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('createAlignment mn8', async () => {
+  it('TESTTESTcreateAlignment mn8', async () => {
     let legacyDoc = MN8_LEG_DOC;
     let lang = 'fr';
     let maxScanSize = Math.ceil((170 - 67) * 0.8);
@@ -346,7 +346,7 @@ describe('Alignment', () => {
       /Faites progresser votre mental/iu,
     );
   });
-  it(`TESTTESTalignAll() align-mn8-nomatch`, () => {
+  it(`alignAll() align-mn8-nomatch`, () => {
     const msg = `TA4R.align-mn8-nomatch:`;
     let dbg = DBG.MN8_MOHAN;
     let legacyDoc = MN8_LEG_DOC;

@@ -42,7 +42,12 @@ describe('text/ebt-doc', function () {
       wordSpace,
     });
     should(ed).properties({
-      author, author_uid, lang, segMap, suid, bilaraPath,
+      author,
+      author_uid,
+      lang,
+      segMap,
+      suid,
+      bilaraPath,
     });
     should.deepEqual(ed.wordSpace, wordSpace);
     should(ed.customKey).equal(undefined);
@@ -136,7 +141,7 @@ describe('text/ebt-doc', function () {
       en: '2 ',
     });
   });
-  it('TESTTESTtoBilaraString 1', () => {
+  it('toBilaraString 1', () => {
     const msg = 'TE4c.toBilaraString.1:';
     let bilaraPath = 'test.json';
     let author = 'test-author';
@@ -172,7 +177,7 @@ describe('text/ebt-doc', function () {
     });
     should(json).properties(segMap);
   });
-  it('TESTTESTtoBilaraString() 2:parent', () => {
+  it('toBilaraString() 2:parent', () => {
     const msg = 'TE4c.toBilaraString.2:';
     let bilaraPath = 'test-bilarapath';
     let author = 'test-author';

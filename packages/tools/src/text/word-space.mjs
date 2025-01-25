@@ -63,7 +63,7 @@ class Vector extends Object {
     }, 0);
   }
 
-  intersect(vec2={}) {
+  intersect(vec2 = {}) {
     let keys = Object.keys(this);
     return keys.reduce((a, k) => {
       let v1 = this[k];
@@ -89,26 +89,21 @@ class Vector extends Object {
   }
 } // Vector
 
-export class WordSpace {
-  constructor(opts = {}) {
-    let {
-      lang, // 2-letter code: fr, en, es, pt
-      minWord = 4, // minimum word length
-      normalize,
-      normalizeVector = WordSpace.normalizeVector,
-      wordMap = {}, // word replacement map
-      reWordMap,
-    } = opts;
-
-    wordMap = Object.keys(wordMap).reduce((a, w) => {
+export class WordMapTransformer {
+  // DEPRECATED
+  constructor(oWordMap = {}, opts = {}) {
+    let wordMap = Object.keys(oWordMap).reduce((a, w) => {
       let wLow = w.toLowerCase();
-      a[wLow] = wordMap[w].toLowerCase();
+      a[wLow] = oWordMap[w].toLowerCase();
       return a;
     }, {});
+
+    let { lang = 'en', normalize } = opts;
+
     if (!normalize) {
       switch (lang) {
         case 'fr':
-          normalize = WordSpace.normalizeFR;
+          normalize = WordMapTransformer.normalizeFR;
           break;
         default:
           normalize = (s) => s;
@@ -116,27 +111,8 @@ export class WordSpace {
       }
     }
 
-    Object.assign(this, {
-      lang,
-      minWord,
-      normalize,
-      normalizeVector,
-      reWordMap,
-      wordMap,
-    });
-  }
-
-  static compileWordMap(wordMap) {
-    return (
-      wordMap &&
-      Object.keys(wordMap).map((pat) => {
-        let rep = wordMap[pat];
-        return {
-          re: new RegExp(pat, 'iugm'),
-          rep,
-        };
-      })
-    );
+    this.wordMap = wordMap;
+    this.normalize = normalize;
   }
 
   static normalizeFR(s) {
@@ -150,22 +126,79 @@ export class WordSpace {
       .trim();
   }
 
-  applyWordMap(text) {
-    const msg = 'W7e.applyWordMap:';
-    const dbg = DBG.APPLY_WORD_MAP;
-    let { wordMap, reWordMap } = this;
+  #compileWordMap() {
+    let { wordMap } = this;
+    return Object.keys(wordMap).map((pat) => {
+      let rep = wordMap[pat];
+      return {
+        re: new RegExp(pat, 'iugm'),
+        rep,
+      };
+    });
+  }
+
+  transform(text) {
+    const msg = 'W16r.transform:';
+    const dbg = DBG.WORD_MAP_TRANSFORMER;
+    let { wordMap, reWordMap, normalize } = this;
     if (reWordMap == null) {
-      reWordMap = WordSpace.compileWordMap(wordMap);
+      reWordMap = this.#compileWordMap();
       this.reWordMap = reWordMap;
     }
     dbg && console.log(msg, { text });
-    let rslt = text;
+    let textMapped = text;
     for (let i = 0; i < reWordMap.length; i++) {
       let { re, rep } = reWordMap[i];
-      rslt = rslt.replaceAll(re, rep);
-      dbg && console.log(msg, { i, rslt, re });
+      textMapped = textMapped.replaceAll(re, rep);
+      dbg && console.log(msg, { i, textMapped, re });
     }
+    let rslt = normalize(textMapped)
+      .toLowerCase()
+      .trim()
+      .replace(/[-]/g, ' ')
+      .replace(/[.,_:;"'“”‘’!?]/g, '');
     return rslt;
+  }
+}
+
+export class WordSpace {
+  constructor(opts = {}) {
+    let {
+      lang, // 2-letter code: fr, en, es, pt
+      minWord = 4, // minimum word length
+      normalize,
+      normalizeVector = WordSpace.normalizeVector,
+      transformText,
+      transformer,
+      reWordMap,
+    } = opts;
+
+    if (transformer == null) {
+      let wordMap = opts.wordMap;
+      transformer = new WordMapTransformer(wordMap, {
+        lang,
+        normalize,
+      });
+      if (transformText == null) {
+        transformText = (text) => transformer.transform(text);
+      }
+    }
+    Object.defineProperty(this, 'transformText', {
+      value: transformText,
+    });
+
+    Object.assign(this, {
+      lang,
+      minWord,
+      normalizeVector,
+      reWordMap,
+      transformer,
+      wordMap: opts.wordMap, // DEPRECATED
+    });
+  }
+
+  static get WordMapTransformer() {
+    return WordMapTransformer;
   }
 
   static get Vector() {
@@ -189,13 +222,8 @@ export class WordSpace {
       throw new Error(`${msg} str?`);
     }
     let dbg = 0;
-    let { normalize, normalizeVector, minWord, wordMap } = this;
-    let sWordMap = this.applyWordMap(str);
-    let sNorm = normalize(sWordMap)
-      .toLowerCase()
-      .trim()
-      .replace(/[-]/g, ' ')
-      .replace(/[.,_:;"'“”‘’!?]/g, '');
+    let { normalize, normalizeVector, minWord } = this;
+    let sNorm = this.transformText(str);
     let words = sNorm.split(' ');
     let v = words.reduce((a, w) => {
       if (w.length >= minWord) {

@@ -1,10 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const cwd = process.cwd();
-
 import * as deepl from 'deepl-node';
 import { DBG } from '../defines.mjs';
 import { MockDeepL } from './mock-deepl.mjs';
@@ -14,13 +7,16 @@ const TRANSLATE_OPTS = {
   tag_handling: 'xml',
   formality: 'more',
 };
+const DST_AUTHOR = 'no-author';
 
 let mockApi = DBG.MOCK_DEEPL;
 
 export class DeepLAdapter {
+  #authKey;
+
   constructor(opts = {}) {
     let {
-      authFile,
+      authKey,
       glossary,
       glossaryName,
       initialized,
@@ -36,7 +32,7 @@ export class DeepLAdapter {
 
     let emsg = 'use DeepLAdapter.create()';
     let check = 1;
-    if (null == authFile) throw new Error(`${emsg} ${check}`);
+    if (null == authKey) throw new Error(`${emsg} ${check}`);
     check++;
     if (null == dstLang2) throw new Error(`${emsg} ${check}`);
     check++;
@@ -55,8 +51,9 @@ export class DeepLAdapter {
     if (null == translator) throw new Error(`${emsg} ${check}`);
     check++;
 
+    this.#authKey = authKey;
+
     Object.assign(this, {
-      authFile,
       dstLang,
       dstLang2,
       glossary,
@@ -69,12 +66,6 @@ export class DeepLAdapter {
       translateOpts: JSON.parse(JSON.stringify(translateOpts)),
       translator,
     });
-  }
-
-  static authKey(opts = {}) {
-    let { authFile = path.join(cwd, 'local/deepl.auth') } = opts;
-
-    return fs.readFileSync(authFile).toString().trim();
   }
 
   static srcDstLangs(opts = {}) {
@@ -104,7 +95,7 @@ export class DeepLAdapter {
   static glossaryName(opts = {}) {
     const msg = 'D10r.glossaryName()';
     const dbg = DBG.GLOSSARY;
-    let { dstAuthor = 'ebt-deepl' } = opts;
+    let { dstAuthor = DST_AUTHOR } = opts;
     let {
       dstLang,
       dstLang2, // bilara-data lang
@@ -112,7 +103,7 @@ export class DeepLAdapter {
       srcLang,
     } = DeepLAdapter.srcDstLangs(opts);
     let name =
-      `ebt_${srcLang2}_${dstLang2}_${dstAuthor}`.toLowerCase();
+      `D10r_${srcLang2}_${dstLang2}_${dstAuthor}`.toLowerCase();
     dbg && console.log(msg, name);
     return name;
   }
@@ -121,12 +112,12 @@ export class DeepLAdapter {
     const msg = 'D10r.create()';
     const dbg = DBG.GLOSSARY;
     let {
-      authFile = path.join(cwd, 'local/deepl.auth'),
+      authKey,
       srcLang,
       srcLang2,
       dstLang,
       dstLang2,
-      dstAuthor = 'ebt-deepl',
+      dstAuthor = DST_AUTHOR,
       sourceLang,
       targetLang,
       translateOpts = TRANSLATE_OPTS,
@@ -134,10 +125,12 @@ export class DeepLAdapter {
       translator,
     } = DeepLAdapter.srcDstLangs(opts);
     dbg && console.log(msg, '[1]opts', opts);
+    if (authKey == null) {
+      throw new Error(`${msg} authKey?`);
+    }
     sourceLang = sourceLang || DeepLAdapter.deeplLang(srcLang);
     targetLang = targetLang || DeepLAdapter.deeplLang(dstLang);
     if (translator == null) {
-      let authKey = DeepLAdapter.authKey({ authFile });
       dbg && console.log(msg, '[2]new deepl.Translator()');
       let deeplOpts = {};
       translator = mockApi
@@ -187,7 +180,7 @@ export class DeepLAdapter {
     let initialized = true;
 
     let ctorOpts = {
-      authFile,
+      authKey,
       dstLang,
       dstLang2,
       glossary,

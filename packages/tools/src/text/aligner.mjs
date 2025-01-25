@@ -4,7 +4,10 @@ import { EbtDoc } from './ebt-doc.mjs';
 import { LegacyDoc } from './legacy-doc.mjs';
 import { SuttaCentralId } from './sutta-central-id.mjs';
 import { Unicode } from './unicode.mjs';
-import { WordSpace } from './word-space.mjs';
+import { 
+  WordMapTransformer,
+  WordSpace 
+} from './word-space.mjs';
 
 const STATE_OK = 'ok';
 const STATE_WARN = 'warn';
@@ -33,9 +36,35 @@ const {
 
 let alignmentCtor = false;
 
+class PaliTransformer {
+  constructor(transformer) {
+    this.transformer = transformer;
+  }
+
+  get wordMap() { 
+    const msg = 'P14r.wordMap';
+    console.log(msg, this.transformer.wordMap);
+    return this.transformer.wordMap;
+  }
+
+  transform(text) {
+    const msg = 'P14r.transform';
+    let { transformer } = this;
+    console.log(msg, text);
+    return transformer.transform(text);
+  }
+
+  normalize(text) {
+    const msg = 'P14r.normalize';
+    let { transformer } = this;
+    console.log(msg, text);
+    return transformer.normalize(text);
+  }
+}
+
 export class Aligner {
   constructor(opts = {}) {
-    const msg = 'Aligner.ctor:';
+    const msg = 'A5r.ctor:';
     let {
       alignPali = true,
       authorAligned, // author of segment aligned document
@@ -53,8 +82,13 @@ export class Aligner {
       wordSpace,
     } = opts;
     if (wordSpace == null) {
-      wordSpace = new WordSpace({ lang, minWord, normalizeVector });
+      wordSpace = new WordSpace({ 
+        lang, minWord, normalizeVector 
+      });
     }
+    console.log(msg, 'before', wordSpace.transformer);
+    wordSpace.transformer = new PaliTransformer(wordSpace.transformer);
+    console.log(msg, 'after', wordSpace.transformer);
     if (lang == null) {
       lang = wordSpace.lang;
     }
@@ -139,9 +173,14 @@ export class Aligner {
       }
       return a;
     });
-    let docOpts = { 
-      suid, lang, author, author_uid, bilaraPath, footer,
-    }
+    let docOpts = {
+      suid,
+      lang,
+      author,
+      author_uid,
+      bilaraPath,
+      footer,
+    };
 
     const optsAlignment = {
       aligner: this,
@@ -169,7 +208,7 @@ export class Aligner {
     const msg = 'Aligner.mlDocVectors';
     const dbg = DBG.ML_DOC_VECTORS;
     let { alignPali, groupDecay, groupSize, wordSpace } = this;
-    let { wordMap } = wordSpace;
+    let { wordMap } = wordSpace.transformer;
     let { segMap, lang } = mld;
     let segs = Object.entries(segMap);
     let iLastSeg = segs.length - 1;

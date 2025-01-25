@@ -3,7 +3,7 @@ import should from 'should';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import { Text } from '../../index.mjs';
-const { WordSpace } = Text;
+const { WordMapTransformer, WordSpace } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, 'data');
 
@@ -35,8 +35,7 @@ describe('text/word-space', () => {
     let minWord = 3;
     let ws = new WordSpace({ minWord, wordMap });
     should(ws.minWord).equal(minWord);
-    should.deepEqual(ws.wordMap, wordMap);
-    should(ws.wordMap).not.equal(wordMap);
+    should(ws.transformText('a fox')).equal('x fox');
   });
   it('string2Vector() FOX', () => {
     let ws = new WordSpace({ normalizeVector: null });
@@ -165,8 +164,8 @@ describe('text/word-space', () => {
     dbg > 1 && console.log(msg, scan);
     should(scan.match).equal('mn8:3.4');
   });
-  it('normalizeFR()', () => {
-    let { normalizeFR } = WordSpace;
+  it('WordMapTransformer.normalizeFR()', () => {
+    let { normalizeFR } = WordSpace.WordMapTransformer;
     should(normalizeFR('L’effacement de')).equal('le effacement de');
     should(normalizeFR('de L’effacement')).equal('de le effacement');
     should(normalizeFR('s’étant abc')).equal('se étant abc');
@@ -174,7 +173,7 @@ describe('text/word-space', () => {
     should(normalizeFR('abc ?')).equal('abc $QUESTION');
     should(normalizeFR('mal’')).equal('mal’');
   });
-  it('applyWordMap() FR phrase', () => {
+  it('transformText() FR phrase', () => {
     let text1 =
       'En se disant : “D’autres prendraient ce qui n’est pas donné, mais ici nous, nous nous abstiendrions de prendre ce qui n’est pas donné”, le déracinement doit être pratiqué.';
     let wordMap = {
@@ -182,14 +181,14 @@ describe('text/word-space', () => {
       'voleron[^ ]*': 'adinnādāyī',
     };
     let ws = new WordSpace({ wordMap });
-    should(ws.applyWordMap(text1)).equal(
-      'En se disant : “D’autres adinnādāyī, mais ici nous, nous nous abstiendrions de adinnādāyī”, le déracinement doit être pratiqué.',
+    should(ws.transformText(text1)).equal(
+      'en se disant  dautres adinnādāyī mais ici nous nous nous abstiendrions de adinnādāyī le déracinement doit être pratiqué',
     );
 
     let text2 =
       '‹ Certains voleront, cependant nous, ici, ne volerons pas. › ';
-    should(ws.applyWordMap(text2)).equal(
-      '‹ Certains adinnādāyī cependant nous, ici, ne adinnādāyī pas. › ',
+    should(ws.transformText(text2)).equal(
+      '‹ certains adinnādāyī cependant nous ici ne adinnādāyī pas ›',
     );
   });
   it('normalizeVector()', () => {
@@ -207,13 +206,77 @@ describe('text/word-space', () => {
     should(vNorm.c).above(0.96).below(1);
     should(vNorm.d).above(0.9999999).below(1);
   });
-  it('intersect', ()=>{
+  it('intersect', () => {
     const msg = 'TW8e.intersect:';
-    let ws = new WordSpace({normalizeVector:null, minWord:1});
+    let ws = new WordSpace({ normalizeVector: null, minWord: 1 });
     let v1 = ws.string2Vector('a b');
     let v2 = ws.string2Vector('b c');
     let i12 = v1.intersect(v2);
-    should.deepEqual(i12, new WordSpace.Vector({b:1}));
+    should.deepEqual(i12, new WordSpace.Vector({ b: 1 }));
     should.deepEqual(v1.intersect(), new WordSpace.Vector({}));
+  });
+  it('TESTTESTtbd', ()=>{
+    const msg = 'tw7e.tbd:';
+    let ws = new WordSpace({ normalizeVector: null, minWord: 1 });
+    let mlt = {
+    };
+
+/*
+    let { alignPali, groupDecay, groupSize, wordSpace } = this;
+    let { wordMap } = wordSpace;
+    let { segMap, lang } = mld;
+    let segs = Object.entries(segMap);
+    let iLastSeg = segs.length - 1;
+    let reList;
+
+    if (alignPali) {
+      let entries = Object.entries(wordMap);
+      reList = entries.reduce((a, e) => {
+        let [legacyText, paliText] = e;
+        if (paliText) {
+          a.set(paliText, new RegExp(`\\b${paliText}`, 'gi'));
+        }
+        return a;
+      }, new Map());
+    }
+
+    let vectorMap = {};
+    let segGroup = [];
+    for (let i = segs.length; i-- > 0; ) {
+      let [scid, seg] = segs[i];
+      let { pli } = seg;
+      let segData = seg[lang] || '';
+      let vGroup = new WordSpace.Vector();
+      if (alignPali) {
+        // for aligning Pali, we add all Pali words that
+        // occur in the Pali for a segment to the
+        // vector input text
+        let pliWords = [];
+        reList.forEach((re, paliText, map) => {
+          let nMatch = pli.match(re)?.length || 0;
+          if (nMatch) {
+            for (let i = 0; i < nMatch; i++) {
+              pliWords.push(paliText);
+            }
+          }
+        });
+        if (pliWords.length) {
+          segData += ' ' + pliWords.join(' ');
+          dbg === scid && console.log(msg, 'segData', scid, segData);
+        }
+      }
+      segGroup.unshift(segData);
+      if (segGroup.length > groupSize) {
+        segGroup.pop();
+      }
+      let scale = 1;
+      vGroup = segGroup.reduce((a, seg, i) => {
+        let vScale = wordSpace.string2Vector(segData, scale);
+        scale *= groupDecay;
+        return a.add(vScale);
+      }, vGroup);
+      vectorMap[scid] = vGroup;
+    }
+  */
   });
 });
