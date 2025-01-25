@@ -1,20 +1,24 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
-import { ScvMath, Text } from '../../index.mjs';
+import { 
+  Translate, ScvMath, Text 
+} from '../../index.mjs';
 const { Fraction } = ScvMath;
 const {
-  Aligner,
-  Alignment,
-  AlignmentStatus,
   EbtDoc,
   LegacyDoc,
   WordSpace,
 } = Text;
+const {
+  Aligner,
+  Alignment,
+  AlignmentStatus,
+} = Translate;
 import { DBG } from '../../src/defines.mjs';
 const { Vector } = WordSpace;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
-const TEST_DATA = path.join(TEST_DIR, 'data');
+const TEST_DATA = path.join(TEST_DIR, '../data');
 
 const MN8_NOE = JSON.parse(
   fs.readFileSync(
@@ -47,7 +51,7 @@ describe('text/aligner', () => {
     should(aligner.groupDecay).equal(0.5);
     should(aligner.minScore).equal(0.1);
     should(aligner.maxScanSize).equal(undefined);
-    should(aligner.alignPali).equal(true);
+    should(aligner.alignMethod).equal('alignPali');
   });
   it('custom ctor', () => {
     let lang = 'fr';
@@ -57,9 +61,9 @@ describe('text/aligner', () => {
     let maxScanSize = 11;
     let authorLegacy = 'legacy-author';
     let authorAligned = 'aligned-author';
-    let alignPali = false;
+    let alignMethod = 'other-translator';
     let aligner = new Aligner({
-      alignPali,
+      alignMethod,
       authorAligned,
       authorLegacy,
       groupSize,
@@ -69,7 +73,7 @@ describe('text/aligner', () => {
       maxScanSize,
       wordSpace,
     });
-    should(aligner.alignPali).equal(alignPali);
+    should(aligner.alignMethod).equal(alignMethod);
     should(aligner.wordSpace).equal(wordSpace);
     should(aligner.groupSize).equal(groupSize);
     should(aligner.groupDecay).equal(groupDecay);
@@ -100,7 +104,7 @@ describe('Alignment', () => {
     }
     should(eCaught.message).match(/createAlignment()?/);
   });
-  it('TESTTESTcreateAlignment mn8', async () => {
+  it('createAlignment mn8', async () => {
     let legacyDoc = MN8_LEG_DOC;
     let lang = 'fr';
     let maxScanSize = Math.ceil((170 - 67) * 0.8);
@@ -385,5 +389,50 @@ describe('Alignment', () => {
     should(status.legacyText).match(/les pieds/);
     should(status.state).equal(AlignmentStatus.STATE_ERROR);
     should(state).equal(AlignmentStatus.STATE_ERROR);
+  });
+  it(`TESTTESTmlDocVectors() alignDpd`, () => {
+    const msg = `TA4R.mldv-dpd`;
+    let wordMap = {
+      LEGACY2: 'twopli',
+      legacy3: 'threepli',
+    };
+    let lang = 'fr';
+    //let alignMethod = 'DPD';
+    let alignMethod = 'alignPali';
+    let wordSpace = new WordSpace({ lang, wordMap, normalizeVector });
+    let aligner = new Aligner({ alignMethod, wordSpace });
+    let mld = {
+      bilaraPaths: [],
+      author_uid: 'noeismet',
+      sutta_uid: 'mn8',
+      lang: 'fr',
+      segMap: {
+        s1: {
+          scid: 'mn8:0.1',
+          pli: 'onePli',
+          fr: 'onefr',
+          ref: 'oneref',
+        },
+        s2: {
+          scid: 'mn8:0.2',
+          pli: 'a twopli b xtwopli c',
+          fr: 'twofr',
+          ref: 'tworef',
+        },
+        s3: {
+          scid: 'mn8:0.3',
+          pli: 'a threeplix b threepliy c',
+          fr: 'threefr',
+          ref: 'threeref',
+        },
+      },
+    };
+    let vectors = aligner.mlDocVectors(mld);
+    should.deepEqual(vectors.s1, new Vector({ onefr: 1 }));
+    should.deepEqual(vectors.s2, new Vector({ twofr: 1, twopli: 1 }));
+    should.deepEqual(
+      vectors.s3,
+      new Vector({ threefr: 1, threepli: 2 }),
+    );
   });
 });

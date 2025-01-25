@@ -1,13 +1,12 @@
 import { DBG } from '../defines.mjs';
 import { Fraction } from '../math/fraction.mjs';
-import { EbtDoc } from './ebt-doc.mjs';
-import { LegacyDoc } from './legacy-doc.mjs';
-import { SuttaCentralId } from './sutta-central-id.mjs';
-import { Unicode } from './unicode.mjs';
+import { EbtDoc } from '../text/ebt-doc.mjs';
+import { LegacyDoc } from '../text/legacy-doc.mjs';
+import { SuttaCentralId } from '../text/sutta-central-id.mjs';
+import { Unicode } from '../text/unicode.mjs';
 import { 
-  WordMapTransformer,
-  WordSpace 
-} from './word-space.mjs';
+  WordMapTransformer, WordSpace 
+} from '../text/word-space.mjs';
 
 const STATE_OK = 'ok';
 const STATE_WARN = 'warn';
@@ -38,27 +37,59 @@ let alignmentCtor = false;
 
 class PaliTransformer {
   constructor(transformer) {
+    let { wordMap } = transformer;
     this.transformer = transformer;
+
+    let reList;
+    let entries = Object.entries(wordMap);
+    reList = entries.reduce((a, e) => {
+      let [legacyText, paliText] = e;
+      if (paliText) {
+        a.set(paliText, new RegExp(`\\b${paliText}`, 'gi'));
+      }
+      return a;
+    }, new Map());
+    this.reList = reList;
   }
 
-  get wordMap() { 
-    const msg = 'P14r.wordMap';
-    console.log(msg, this.transformer.wordMap);
+  get wordMap() {
     return this.transformer.wordMap;
   }
 
   transform(text) {
     const msg = 'P14r.transform';
+    const dbg = DBG.PALI_TRANSFORMER;
     let { transformer } = this;
-    console.log(msg, text);
+    dbg && console.log(msg, text);
     return transformer.transform(text);
   }
 
   normalize(text) {
     const msg = 'P14r.normalize';
+    const dbg = DBG.PALI_TRANSFORMER;
     let { transformer } = this;
-    console.log(msg, text);
+    dbg && console.log(msg, text);
     return transformer.normalize(text);
+  }
+}
+
+export class DpdTransformer {
+  constructor(opts = {}) {
+    const msg = 'D12r.ctor:';
+    let { dictionary } = opts;
+    if (dictionary == null) {
+      throw new Error(`${msg} dictionary?`);
+    }
+
+    this.dictionary = dictionary;
+  }
+
+  transform(text) {
+    return text;
+  }
+
+  normalize(text) {
+    return text;
   }
 }
 
@@ -66,7 +97,7 @@ export class Aligner {
   constructor(opts = {}) {
     const msg = 'A5r.ctor:';
     let {
-      alignPali = true,
+      alignMethod = 'alignPali',
       authorAligned, // author of segment aligned document
       authorLegacy, // author of legacy document
       dbgScid,
@@ -82,19 +113,23 @@ export class Aligner {
       wordSpace,
     } = opts;
     if (wordSpace == null) {
-      wordSpace = new WordSpace({ 
-        lang, minWord, normalizeVector 
+      wordSpace = new WordSpace({
+        lang,
+        minWord,
+        normalizeVector,
       });
     }
-    console.log(msg, 'before', wordSpace.transformer);
-    wordSpace.transformer = new PaliTransformer(wordSpace.transformer);
-    console.log(msg, 'after', wordSpace.transformer);
+    if (alignMethod === 'alignPali') {
+      wordSpace.transformer = new PaliTransformer(
+        wordSpace.transformer,
+      );
+    }
     if (lang == null) {
       lang = wordSpace.lang;
     }
 
     Object.assign(this, {
-      alignPali,
+      alignMethod,
       authorAligned,
       authorLegacy,
       dbgScid,
@@ -207,14 +242,14 @@ export class Aligner {
   mlDocVectors(mld) {
     const msg = 'Aligner.mlDocVectors';
     const dbg = DBG.ML_DOC_VECTORS;
-    let { alignPali, groupDecay, groupSize, wordSpace } = this;
+    let { alignMethod, groupDecay, groupSize, wordSpace } = this;
     let { wordMap } = wordSpace.transformer;
     let { segMap, lang } = mld;
     let segs = Object.entries(segMap);
     let iLastSeg = segs.length - 1;
     let reList;
 
-    if (alignPali) {
+    if (alignMethod === 'alignPali') {
       let entries = Object.entries(wordMap);
       reList = entries.reduce((a, e) => {
         let [legacyText, paliText] = e;
@@ -229,26 +264,34 @@ export class Aligner {
     let segGroup = [];
     for (let i = segs.length; i-- > 0; ) {
       let [scid, seg] = segs[i];
+      let vGroup = new WordSpace.Vector();
+
       let { pli } = seg;
       let segData = seg[lang] || '';
-      let vGroup = new WordSpace.Vector();
-      if (alignPali) {
-        // for aligning Pali, we add all Pali words that
-        // occur in the Pali for a segment to the
-        // vector input text
-        let pliWords = [];
-        reList.forEach((re, paliText, map) => {
-          let nMatch = pli.match(re)?.length || 0;
-          if (nMatch) {
-            for (let i = 0; i < nMatch; i++) {
-              pliWords.push(paliText);
+      switch (alignMethod) {
+        case 'alignPali':
+          {
+            // for aligning Pali, we add all Pali words that
+            // occur in the Pali for a segment to the
+            // vector input text
+            let pliWords = [];
+            reList.forEach((re, paliText, map) => {
+              let nMatch = pli.match(re)?.length || 0;
+              if (nMatch) {
+                for (let i = 0; i < nMatch; i++) {
+                  pliWords.push(paliText);
+                }
+              }
+            });
+            if (pliWords.length) {
+              segData += ' ' + pliWords.join(' ');
+              dbg === scid &&
+                console.log(msg, 'segData', scid, segData);
             }
           }
-        });
-        if (pliWords.length) {
-          segData += ' ' + pliWords.join(' ');
-          dbg === scid && console.log(msg, 'segData', scid, segData);
-        }
+          break;
+        case 'DPD':
+          break;
       }
       segGroup.unshift(segData);
       if (segGroup.length > groupSize) {
@@ -453,7 +496,7 @@ export class Alignment {
       aligner, ebtDoc, legacyDoc, lineCursor, maxScanSize, minScanSize,
       mlDoc, scidsExp, segCursor, vMLDoc,
     } = this;
-    let { lang, alignPali, wordSpace } = aligner;
+    let { lang, alignMethod, wordSpace } = aligner;
     let { segMap } = mlDoc;
     let scids = Object.keys(segMap);
     scids.sort(SuttaCentralId.compareLow);

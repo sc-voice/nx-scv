@@ -53,7 +53,7 @@ describe('text/ebt-doc', function () {
     should(ed.customKey).equal(undefined);
   });
   it('custom ctor parse DN33', async () => {
-    let bilaraPath = 'data/dn33.json';
+    let bilaraPath = '../data/dn33.json';
     let fnSegMap = path.join(import.meta.dirname, bilaraPath);
     let segMap = await fsp.readFile(fnSegMap);
     let dn33 = EbtDoc.create({ segMap });
@@ -76,7 +76,7 @@ describe('text/ebt-doc', function () {
   it('segments() returns sn1.1 segment array', async () => {
     let lang = 'en';
     let suid = 'sn1.1';
-    let bilaraPath = 'data/en_sn1.1.json';
+    let bilaraPath = '../data/en_sn1.1.json';
     let fnSegMap = path.join(import.meta.dirname, bilaraPath);
     let segMap = JSON.parse(await fsp.readFile(fnSegMap));
     let sutta = EbtDoc.create({ suid, lang, bilaraPath, segMap });
@@ -101,7 +101,7 @@ describe('text/ebt-doc', function () {
   it('segments() an1.1-10', async () => {
     let lang = 'en';
     let suid = 'an1.1-10';
-    let bilaraPath = 'data/en_an1.1-10.json';
+    let bilaraPath = '../data/en_an1.1-10.json';
     let fnSegMap = path.join(import.meta.dirname, bilaraPath);
     let segMap = JSON.parse(await fsp.readFile(fnSegMap));
     let sutta = EbtDoc.create({ suid, lang, bilaraPath, segMap });

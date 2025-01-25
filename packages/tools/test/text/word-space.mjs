@@ -5,7 +5,7 @@ import path from 'node:path';
 import { Text } from '../../index.mjs';
 const { WordMapTransformer, WordSpace } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
-const TEST_DATA = path.join(TEST_DIR, 'data');
+const TEST_DATA = path.join(TEST_DIR, '../data');
 
 const Vector = WordSpace.Vector;
 const FOX = 'Fox, a quick brown fox, jumped over the fence';
@@ -222,14 +222,14 @@ describe('text/word-space', () => {
     };
 
 /*
-    let { alignPali, groupDecay, groupSize, wordSpace } = this;
+    let { alignMethod, groupDecay, groupSize, wordSpace } = this;
     let { wordMap } = wordSpace;
     let { segMap, lang } = mld;
     let segs = Object.entries(segMap);
     let iLastSeg = segs.length - 1;
     let reList;
 
-    if (alignPali) {
+    if (alignMethod === 'alignPali') {
       let entries = Object.entries(wordMap);
       reList = entries.reduce((a, e) => {
         let [legacyText, paliText] = e;
@@ -247,7 +247,7 @@ describe('text/word-space', () => {
       let { pli } = seg;
       let segData = seg[lang] || '';
       let vGroup = new WordSpace.Vector();
-      if (alignPali) {
+      if (alignMethod === 'alignPali') {
         // for aligning Pali, we add all Pali words that
         // occur in the Pali for a segment to the
         // vector input text

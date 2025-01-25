@@ -5,9 +5,6 @@ export const ScvMath = {
   Fraction,
 };
 
-import { 
-  Aligner, Alignment, AlignmentStatus 
-} from './src/text/aligner.mjs';
 import { BilaraPath } from './src/text/bilara-path.mjs';
 import { EbtDoc } from './src/text/ebt-doc.mjs';
 import { LegacyDoc } from './src/text/legacy-doc.mjs';
@@ -17,9 +14,6 @@ import { Unicode } from './src/text/unicode.mjs';
 import { WordSpace } from './src/text/word-space.mjs';
 
 export const Text = {
-  Aligner,
-  Alignment,
-  AlignmentStatus,
   BilaraPath,
   EbtDoc,
   LegacyDoc,
@@ -34,10 +28,16 @@ export const Graph = {
   Sankey, 
 }
 
+import { 
+  Aligner, Alignment, AlignmentStatus 
+} from './src/translate/aligner.mjs';
 import { MockDeepL } from './src/translate/mock-deepl.mjs';
 import { DeepLAdapter } from './src/translate/deepl-adapter.mjs';
 import { QuoteParser } from './src/translate/quote-parser.mjs';
 export const Translate = {
+  Aligner,
+  Alignment,
+  AlignmentStatus,
   MockDeepL,
   QuoteParser,
   DeepLAdapter,

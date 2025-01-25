@@ -4,7 +4,7 @@ import should from 'should';
 import { Text } from '../../index.mjs';
 const { LegacyDoc } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
-const TEST_DATA = path.join(TEST_DIR, 'data');
+const TEST_DATA = path.join(TEST_DIR, '../data');
 
 const TEST_DOC = {
   uid: 'mn8',
