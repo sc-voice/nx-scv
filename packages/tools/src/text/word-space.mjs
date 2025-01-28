@@ -205,12 +205,13 @@ export class WordSpace {
     return Vector;
   }
 
-  static normalizeVector(v) {
-    let tau = 0.618034; // Golden ratio
+  // Golden Ratio fudge factor scales a count of 1 to ~0.8
+  // 1.6180339887498948482045868343656381177203091798057628621354
+  static normalizeVector(v, scale=1.618033988749895) {
     let vNew = new Vector(v);
     Object.entries(v).forEach((e) => {
       let [key, value] = e;
-      vNew[key] = 1 - Math.exp(-value / tau);
+      vNew[key] = 1 - Math.exp(-value * scale);
     });
 
     return vNew;

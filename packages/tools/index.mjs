@@ -31,6 +31,7 @@ export const Graph = {
 import { 
   Aligner, Alignment, AlignmentStatus 
 } from './src/translate/aligner.mjs';
+import { DpdTransformer } from './src/translate/dpd-transformer.mjs';
 import { MockDeepL } from './src/translate/mock-deepl.mjs';
 import { DeepLAdapter } from './src/translate/deepl-adapter.mjs';
 import { QuoteParser } from './src/translate/quote-parser.mjs';
@@ -38,7 +39,8 @@ export const Translate = {
   Aligner,
   Alignment,
   AlignmentStatus,
+  DeepLAdapter,
+  DpdTransformer,
   MockDeepL,
   QuoteParser,
-  DeepLAdapter,
 }

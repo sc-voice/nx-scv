@@ -215,13 +215,12 @@ describe('text/word-space', () => {
     should.deepEqual(i12, new WordSpace.Vector({ b: 1 }));
     should.deepEqual(v1.intersect(), new WordSpace.Vector({}));
   });
-  it('TESTTESTtbd', ()=>{
+  it('TESTTESTtbd', () => {
     const msg = 'tw7e.tbd:';
     let ws = new WordSpace({ normalizeVector: null, minWord: 1 });
-    let mlt = {
-    };
+    let mlt = {};
 
-/*
+    /*
     let { alignMethod, groupDecay, groupSize, wordSpace } = this;
     let { wordMap } = wordSpace;
     let { segMap, lang } = mld;

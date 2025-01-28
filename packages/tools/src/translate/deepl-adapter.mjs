@@ -206,6 +206,44 @@ export class DeepLAdapter {
     mockApi = value;
   }
 
+  static asGlossaryEntries(strObj) {
+    const msg = 'd12r.asToGlossaryEntries:';
+    let dbg = DBG.KVG_TO_GLOSSARY_ENTRIES;
+
+    if (strObj instanceof deepl.GlossaryEntries) {
+      return strObj;
+    }
+    let nEntries = 0;
+    let entries;
+
+    if (typeof strObj === 'string') {
+      // assume kvg string
+      entries = strObj.split('\n').reduce((a, kv) => {
+        let [key, value] = kv.split(/\|/);
+        if (key && !value) {
+          throw new Error(`${msg} [1]no value for key:${key}`);
+        } else if (!key && value) {
+          throw new Error(`${msg} [2]no key for value:${value}`);
+        } else if (!key && !value) {
+          // ignore
+        } else {
+          key = key.trim();
+          value = value.trim();
+          a[key] = value;
+          dbg > 1 && console.log(msg, '[3]', { key, value });
+          nEntries++;
+        }
+        return a;
+      }, []);
+    } else if (typeof strObj === 'object') {
+      entries = strObj;
+    } else {
+      throw new Error(`${msg} string or object?`);
+    }
+
+    return new deepl.GlossaryEntries({ entries });
+  }
+
   static async uploadGlossary(opts = {}) {
     const msg = 'D10r.uploadGlossary()';
     const dbg = DBG.GLOSSARY;
@@ -218,7 +256,12 @@ export class DeepLAdapter {
       dstAuthor,
       translator,
       glossaries,
+      glossaryEntries,
     } = DeepLAdapter.srcDstLangs(opts);
+    if (glossaryEntries == null) {
+      throw new Error(`${msg} glossaryEntries?`);
+    }
+    let nEntries = Object.keys(glossaryEntries).length;
     let glossaryName = DeepLAdapter.glossaryName({
       srcLang,
       dstLang,
@@ -237,63 +280,37 @@ export class DeepLAdapter {
       }
     }
 
-    let fName = `${glossaryName}.kvg`.toLowerCase();
-    let glossaryPath = path.join(__dirname, 'glossary', fName);
-    if (!fs.statSync(glossaryPath, { throwIfNoEntry: false })) {
-      dbg &&
-        console.log(msg, `[2]no glossary found: ${glossaryPath}`);
-      return null;
-    }
-
-    let rawGlossary = fs.statSync(glossaryPath, {
-      throwIfNoEntry: false,
-    })
-      ? fs.readFileSync(glossaryPath).toString().trim()
-      : '';
-    let nEntries = 0;
-    let entries = rawGlossary.split('\n').reduce((a, kv) => {
-      let [key, value] = kv.split(/\|/);
-      if (key && !value) {
-        throw new Error(`${msg} [3]no value for key:${key}`);
-      } else if (!key && value) {
-        throw new Error(`${msg} [4]no key for value:${value}`);
-      } else if (!key && !value) {
-        // ignore
-      } else {
-        key = key.trim();
-        value = value.trim();
-        a[key] = value;
-        dbgv && console.log(msg, '[5]', { key, value });
-        nEntries++;
-      }
-      return a;
-    }, []);
-    if (nEntries) {
-      let glossaryEntries = new deepl.GlossaryEntries({ entries });
-      let sourceLang = DeepLAdapter.deeplLang(srcLang);
-      let targetLang = DeepLAdapter.deeplLang(dstLang);
-      glossary = await translator.createGlossary(
+    let sourceLang = DeepLAdapter.deeplLang(srcLang);
+    let targetLang = DeepLAdapter.deeplLang(dstLang);
+    glossary = await translator.createGlossary(
+      glossaryName,
+      sourceLang,
+      targetLang,
+      glossaryEntries,
+    );
+    let { glossaryId } = glossary;
+    dbg &&
+      console.log(msg, '[6]createGlossary', {
+        fName,
         glossaryName,
         sourceLang,
         targetLang,
-        glossaryEntries,
-      );
-      let { glossaryId } = glossary;
-      dbg &&
-        console.log(msg, '[6]createGlossary', {
-          fName,
-          glossaryName,
-          sourceLang,
-          targetLang,
-          nEntries,
-          glossaryId,
-        });
-    }
+        glossaryId,
+        nEntries,
+      });
 
     return glossary;
   }
 
-  async glossaries() {
+  async deleteGlossary(id) {
+    const msg = 'd12r.deleteGlossary:';
+    let { translator } = this;
+    dbg && console.log(msg, '[1]deleting', id);
+    await translator.deleteGlossary(id);
+    dbg>1 && console.log(msg, '[2]deleted', id);
+  }
+
+  async listGlossaries() {
     let { translator } = this;
 
     let glossaries = await translator.listGlossaries();

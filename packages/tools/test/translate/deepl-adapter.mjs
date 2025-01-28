@@ -1,47 +1,56 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import should from "should";
+import should from 'should';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import * as deepl from 'deepl-node';
 import { Translate } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
+const { DeepLAdapter, QuoteParser } = Translate;
 const {
-  DeepLAdapter,
-  QuoteParser,
-} = Translate;
-const dbgv = DBG.VERBOSE;
-const {
-  LQ1, LQ2, LQ3, LQ4,
-  RQ1, RQ2, RQ3, RQ4,
-  ELLIPSIS, ELL,
-  LSQUOT, RSQUOT,
-  LDQUOT, RDQUOT,
-  LDGUIL, RDGUIL,
+  LQ1,
+  LQ2,
+  LQ3,
+  LQ4,
+  RQ1,
+  RQ2,
+  RQ3,
+  RQ4,
+  ELLIPSIS,
+  ELL,
+  LSQUOT,
+  RSQUOT,
+  LDQUOT,
+  RDQUOT,
+  LDGUIL,
+  RDGUIL,
 } = QuoteParser;
 
 const AUTH_PATH = path.join(__dirname, '../../local/deepl.auth');
 const AUTH_KEY = fs.readFileSync(AUTH_PATH).toString().trim();
 
-describe("deepl-adapter", function() {
-  this.timeout(30*1000);
+describe('deepl-adapter', function () {
+  this.timeout(30 * 1000);
 
-  before(()=>{
+  before(() => {
     DeepLAdapter.setMockApi(!DBG.DEEPL_TEST_API);
   });
 
-  it("TESTTESTcreate() default", async() => {
+  it('TESTTESTcreate() default', async () => {
     const msg = 'D10r.create() authkey';
     let eCaught;
     try {
       dla = await DeepLAdapter.create();
-    } catch (e) { eCaught = e; }
+    } catch (e) {
+      eCaught = e;
+    }
     should(eCaught?.message).match(/authKey\?/);
   });
-  it("TESTTESTcreate() default", async() => {
+  it('TESTTESTcreate() default', async () => {
     const msg = 'D10r.create';
     let authKey = AUTH_KEY;
-    let dlt = await DeepLAdapter.create({authKey});
+    let dlt = await DeepLAdapter.create({ authKey });
     should(dlt).properties({
       srcLang: 'en',
       srcLang2: 'en',
@@ -53,7 +62,7 @@ describe("deepl-adapter", function() {
     });
     should(dlt.authKey).equal(undefined); // hidden
   });
-  it("TESTTESTcreate() custom", async() => {
+  it('TESTTESTcreate() custom', async () => {
     let authKey = AUTH_KEY;
     let srcLang = 'pt-pt';
     let dstLang = 'de';
@@ -71,11 +80,71 @@ describe("deepl-adapter", function() {
       targetLang: 'de',
     });
   });
-/*
+  it('TESTTESTglossaryName()', async()=>{
+    const msg = "TD3l.gloassaryName-de:";
+    let srcLang = 'de';
+    let dstLang = 'pt-PT';
+    let dstAuthor = 'test-author';
+    let translateOpts = {};
+    let glossaryName = DeepLAdapter.glossaryName({
+      srcLang, dstLang, dstAuthor});
+    should(glossaryName).equal('d10r_de_pt_test-author');
+  });
+  it('TESTTESTasGlossaryEntries()', async()=>{
+    const msg = "TD3l.asToGlossaryEntries:";
+    let kvg = [
+      'einfach | simple',
+      'bitte | please',
+    ].join('\n');
+    let entries = {
+      einfach: 'simple',
+      bitte: 'please',
+    }
+    let geKvg = DeepLAdapter.asGlossaryEntries(kvg);
+    should(geKvg.implEntries).properties(entries);
+    let geObj = DeepLAdapter.asGlossaryEntries(entries);
+    should.deepEqual(geObj, geKvg);
+    should(geObj).instanceOf(deepl.GlossaryEntries);
+    let ge = DeepLAdapter.asGlossaryEntries(geObj);
+    should.deepEqual(ge, geKvg);
+  });
+  it("TESTTESTlistGlossaries()", async()=>{
+    const msg = 'td12r.glossaries:';
+    let dbg = DBG.DEEPL_TEST_API;;
+    let authKey = AUTH_KEY;
+    let dla = await DeepLAdapter.create({authKey});
+    let glossaries = await dla.listGlossaries();
+    glossaries.sort((a,b)=>a.name.localeCompare(b.name));
+    glossaries.forEach((g,i)=>{
+      if (dbg > 1) {
+        console.log(msg, `test/deepl glossary ${i}`, g);
+      } else if (dbg) {
+        let { glossaryId, name } = g;
+        console.log(msg, glossaryId, name);
+      }
+    });
+    should(glossaries).instanceOf(Array);
+    dbg && should(glossaries.length).above(-1).below(10);
+  });
+  it("TESTTESTtranslate() possessive apostrophe EN", async () => {
+    let srcLang = 'en';
+    let dstLang = 'fr';
+    let authKey = AUTH_KEY;
+    let dla = await DeepLAdapter.create({authKey, srcLang, dstLang});
+
+    // sujato
+    let res = await dla.translate([ "craving aggregates' origin" ]);
+
+    // The straight quote can be used for possessive apostrophe
+    should(res[0]).equal(
+      'l\'origine des agrégats de l\'envie'
+    );
+  });
+  /*
   it("TESTTESTuploadGlossary() EN", async()=>{
     const msg = "TD3l.uploadGlossary-en:";
-    let dlt = await DeepLAdapter.create({authKey:AUTH_KEY});
-    let { translator } = dlt;
+    let dla = await DeepLAdapter.create({authKey:AUTH_KEY});
+    let { translator } = dla;
     let srcLang = 'en';
     let dstLang = 'pt-PT';
     let dstAuthor = 'test-dst-author';
@@ -100,22 +169,6 @@ describe("deepl-adapter", function() {
       console.log(msg, 'DEEPL_TEST_API: Skipped...');
     }
   });
-  it("translate() possessive apostrophe EN", async () => {
-    let srcLang = 'en';
-    let dstLang = 'fr';
-    //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
-
-    // sujato
-    let res = await dlt.translate([
-      "craving aggregates' origin",
-    ]);
-
-    // The straight quote can be used for possessve apostrophe
-    should(res[0]).equal(
-      'l\'origine des agrégats de l\'envie'
-    );
-  });
   it("translate() testcaseQuotes PT", async () => {
     const msg = "test.DeepLAadapter@87";
     const dbg = 0;
@@ -123,7 +176,7 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt';
     let RQ1 = QuoteParser.RQ1;
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let lQuote = QuoteParser.LQ1;
     let rQuote = QuoteParser.RQ1;
     let lang = 'mind/PT';
@@ -134,7 +187,7 @@ describe("deepl-adapter", function() {
     ];
 
     dbg && console.log(msg, '[1]srcTexts', srcTexts);
-    let res = await dlt.translate(srcTexts);
+    let res = await dla.translate(srcTexts);
 
     should.deepEqual(res, [
       `${LQ1}Ouça e aplique bem a sua mente/PT, eu falarei.`,
@@ -146,10 +199,10 @@ describe("deepl-adapter", function() {
     //DeepLAdapter.setMockApi(false);
     let srcLang = 'en';
     let dstLang = 'pt';
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
     // sujato
-    let res = await dlt.translate([
+    let res = await dla.translate([
       "the dart of craving",
       "“Bhikkhu, you seek alms before you eat;",
     ]);
@@ -166,10 +219,10 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt-PT';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
     // sujato
-    let res = await dlt.translate([
+    let res = await dla.translate([
       "And what are dark and bright deeds?",
       "On the side of dark and bright",
     ]);
@@ -183,10 +236,10 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt-PT';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
     // sujato
-    let res = await dlt.translate([
+    let res = await dla.translate([
       "“Bhikkhu, that is incorrect view;",
     ]);
 
@@ -200,10 +253,10 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'fr';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let srcText = QuoteParser.testcaseDepthEN('FR');
     //console.log('srcText', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     should(res[0]).equal(
       `${LQ1}${LQ2}Je dis, ${LQ3}Vous dites, ${LQ4}Je dis FR!${RQ4}?${RQ3}.${RQ2}${RQ1}.`);
@@ -212,10 +265,10 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let srcText = QuoteParser.testcaseDepthEN('PT');
     //console.log('srcText:', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     should(res[0]).equal(
       `${LQ1}${LQ2}Eu digo, ${LQ3}Você diz, ${LQ4}Eu disse PT!${RQ4}?${RQ3}.${RQ2}${RQ1}`
@@ -225,11 +278,11 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'fr';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let qp_en_deepl = new QuoteParser({lang: 'en-deepl'});
     let srcText = qp_en_deepl.testcaseRebirthEN('FR');
     //console.log('srcText', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     should(res[0]).equal(
     `${LQ2} Je comprends : ${LQ3}La renaissance est terminée en FR${RQ3}${RQ2}?${RQ1}.`
@@ -239,10 +292,10 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'fr';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let srcText = QuoteParser.testcaseQ2EN('FR');
     //console.log('srcText', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     should(res[0]).equal(
       `${LQ2}Je dis, ${LQ3}Vous dites, ${LQ4}Je dis FR!${RQ4}?${RQ3}.${RQ2}${RQ1}.`);
@@ -252,10 +305,10 @@ describe("deepl-adapter", function() {
     let dstLang = 'pt';
     let { RQ1,RQ2,RQ3,RQ4 } = QuoteParser;
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let srcText = QuoteParser.testcaseQ2EN('PT');
     //console.log('srcText', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     // Closing XML element is passed through
     should(res[0]).equal(
@@ -266,10 +319,10 @@ describe("deepl-adapter", function() {
     let dstLang = 'es';
     let { LQ1, RQ1 } = QuoteParser;
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let srcText = QuoteParser.testcaseThinking_EN('SPAN');
     //console.log('srcText', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     // Closing XML element is passed through
     should(res[0]).equal(
@@ -280,9 +333,9 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
-    let res = await dlt.translate([
+    let res = await dla.translate([
       `I say, ‘You say, “I said UK!”?’.`,
     ]);
 
@@ -292,8 +345,8 @@ describe("deepl-adapter", function() {
   })
   it("uploadGlossary() DE", async()=>{
     const msg = "TD3l.uploadGlossar-de:";
-    let dlt = await DeepLAdapter.create();
-    let { translator } = dlt;
+    let dla = await DeepLAdapter.create();
+    let { translator } = dla;
     let srcLang = 'de';
     let dstLang = 'pt-PT';
     let dstAuthor = 'ebt-deepl';
@@ -319,10 +372,10 @@ describe("deepl-adapter", function() {
   it("translate() DE", async () => {
     let srcLang = 'de';
     let dstLang = 'pt';
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
     // sujato
-    let res = await dlt.translate([
+    let res = await dla.translate([
       "Der Pfeil des Verlangens",
       "„Moench, du sammelst Almosen, bevor du isst;",
     ]);
@@ -334,22 +387,13 @@ describe("deepl-adapter", function() {
     should(res[1]).equal(
       '"Bhikkhu, você esmola comida antes de comer;');
   });
-  it("glossaries()", async() =>{
-    let dlt = await DeepLAdapter.create();
-    let glossaries = await dlt.glossaries();
-    let gpt = glossaries.reduce((a,g,i)=>{
-      dbgv && console.log(`test/deepl glossary ${i}`, g);
-    }, null);
-    should(glossaries).instanceOf(Array);
-    DBG.DEEPL_TEST_API && should(glossaries.length).above(0);
-  });
   it("translate() DE", async () => {
     let srcLang = 'de';
     let dstLang = 'pt';
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
     // sujato
-    let res = await dlt.translate([
+    let res = await dla.translate([
       "Der Pfeil des Verlangens",
       "„Moench, du sammelst Almosen, bevor du isst;",
     ]);
@@ -365,7 +409,7 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt-PT';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let prefix = "They understand: ";
     let lQuote = LQ1;
     let rQuote = RQ1;
@@ -373,7 +417,7 @@ describe("deepl-adapter", function() {
     let tcOpts = { prefix, lQuote, rQuote, ellipsis };
     let srcText = QuoteParser.testcaseEllipsisEN('PT', tcOpts);
     //console.log('srcText:', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     should(res[0]).equal([
       `Eles compreendem: ${LQ1}Isto é PT${RQ1}<ell/>`,
@@ -392,10 +436,10 @@ describe("deepl-adapter", function() {
     let rQuote = RQ1;
     let ellipsis = ELL;
     let tcOpts = { prefix, lQuote, rQuote, ellipsis };
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let srcText = QuoteParser.testcaseEllipsisEN('ES',tcOpts);
     dbg && console.log(msg, 'srcText:', srcText);
-    let res = await dlt.translate([srcText]);
+    let res = await dla.translate([srcText]);
 
     should(res[0]).equal([
       `Comprenden: `, `${LQ1}Esto es ES${RQ1}`, 
@@ -411,9 +455,9 @@ describe("deepl-adapter", function() {
     let srcLang = 'en';
     let dstLang = 'pt-pt';
     //DeepLAdapter.setMockApi(false);
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
 
-    let res = await dlt.translate([
+    let res = await dla.translate([
       `These are two people in the world who are worthy of a religious-PT donation.${RQ1}`
     ]);
 
@@ -428,13 +472,13 @@ describe("deepl-adapter", function() {
     //DeepLAdapter.setMockApi(false);
     let srcLang = 'en';
     let dstLang = 'pt-pt';
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let gods = 'DEVA1s';
     let lQuote = LQ2;
     let rQuote = RQ2;
     let lang = 'messenger/PT';
 
-    let res = await dlt.translate([
+    let res = await dla.translate([
       QuoteParser.testcaseMisterEN({ lQuote, rQuote, gods, lang }),
     ]);
 
@@ -449,12 +493,12 @@ describe("deepl-adapter", function() {
     //DeepLAdapter.setMockApi(false);
     let srcLang = 'en';
     let dstLang = 'pt-pt';
-    let dlt = await DeepLAdapter.create({srcLang, dstLang});
+    let dla = await DeepLAdapter.create({srcLang, dstLang});
     let lQuote = LQ2;
     let rQuote = RQ2;
     let lang = ' PT';
 
-    let res = await dlt.translate([
+    let res = await dla.translate([
       QuoteParser.testcaseElderlyEN({ lQuote, rQuote, lang }),
     ]);
 
@@ -470,4 +514,4 @@ describe("deepl-adapter", function() {
     ]);
   });
 */
-})
+});

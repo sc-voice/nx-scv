@@ -4,8 +4,9 @@ import { EbtDoc } from '../text/ebt-doc.mjs';
 import { LegacyDoc } from '../text/legacy-doc.mjs';
 import { SuttaCentralId } from '../text/sutta-central-id.mjs';
 import { Unicode } from '../text/unicode.mjs';
-import { 
-  WordMapTransformer, WordSpace 
+import {
+  WordMapTransformer,
+  WordSpace,
 } from '../text/word-space.mjs';
 
 const STATE_OK = 'ok';
