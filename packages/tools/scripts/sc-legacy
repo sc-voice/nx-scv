@@ -16,7 +16,7 @@ const EBT_DATA_PUB = [
   'https://raw.githubusercontent.com/ebt-site/ebt-data',
   'data/refs/heads/published',
 ].join('/');
-const TEST_DATA = path.join(DIRNAME, '../test/text/data');
+const TEST_DATA = path.join(DIRNAME, '../test/data');
 const WS_MOHAN_CONFIG = JSON.parse(
   fs.readFileSync(path.join(TEST_DATA, 'mohan-noeismet-ws.json')),
 );
@@ -244,11 +244,13 @@ async function outLegacy(outPath, json) {
 async function alignLegacy(aligner, legacyDoc) {
   const msg = `${SCRIPT}.alignLegacy:`;
   let { uid: sutta_id } = legacyDoc;
-  const { Text } = await import(INDEX_PATH);
+  const { Translate, Text } = await import(INDEX_PATH);
   const { 
     Aligner,
     Alignment,
     AlignmentStatus,
+  } = Translate;
+  const {
     BilaraPath,
     EbtDoc,
     LegacyDoc,
@@ -268,11 +270,13 @@ async function alignLegacy(aligner, legacyDoc) {
 
 async function main() {
   const msg = `${SCRIPT}.main:`;
-  const { Text } = await import(INDEX_PATH);
+  const { Translate, Text } = await import(INDEX_PATH);
   const { 
     Aligner,
     Alignment,
     AlignmentStatus,
+  } = Translate;
+  const { 
     BilaraPath,
     EbtDoc,
     LegacyDoc,

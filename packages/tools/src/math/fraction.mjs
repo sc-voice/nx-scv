@@ -41,8 +41,16 @@ export class Fraction {
     return this.numerator;
   }
 
+  set n(value) {
+    return this.numerator = Number(value);
+  }
+
   get d() {
     return this.denominator;
+  }
+
+  set d(value) {
+    return this.denominator = Number(value);
   }
 
   get value() {

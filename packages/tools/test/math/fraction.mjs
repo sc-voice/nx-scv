@@ -70,6 +70,13 @@ describe('scv-math/fraction', () => {
     let f2 = new Fraction(big, small);
     should(f2.remainder).equal(big % small);
   });
+  it('n d', () =>{
+    let f = new Fraction(1,2);
+    f.n++;
+    f.d++;
+    should(f.n).equal(2);
+    should(f.d).equal(3);
+  });
   it('difference', () => {
     for (let i = 0; i < 10; i++) {
       let n = Math.round(Math.random() * 1000);
