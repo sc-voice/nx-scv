@@ -43,9 +43,9 @@ export class LogEntry {
 
 export class Logger {
   constructor(opts = {}) {
-    let { history = [], sink = console, msBase = Date.now() } = opts;
+    let { sink = console, msBase = Date.now() } = opts;
     Object.assign(this, {
-      history,
+      history: [],
       sink,
       msBase,
     });
@@ -60,28 +60,28 @@ export class Logger {
     history.push(entry);
     if (sink) {
       dbg && console.log(msg, 'sink');
-      fSink.apply(sink, args);
+      fSink?.apply(sink, args);
     }
     return entry;
   }
 
   debug(...args) {
-    return this.addEntry('D', args, this.sink.debug);
+    return this.addEntry('D', args, this.sink?.debug);
   }
 
   info(...args) {
-    return this.addEntry('I', args, this.sink.info);
+    return this.addEntry('I', args, this.sink?.info);
   }
 
   log(...args) {
-    return this.addEntry('L', args, this.sink.log);
+    return this.addEntry('L', args, this.sink?.log);
   }
 
   warn(...args) {
-    return this.addEntry('W', args, this.sink.warn);
+    return this.addEntry('W', args, this.sink?.warn);
   }
 
   error(...args) {
-    return this.addEntry('E', args, this.sink.error);
+    return this.addEntry('E', args, this.sink?.error);
   }
 }
