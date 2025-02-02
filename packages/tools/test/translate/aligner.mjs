@@ -425,29 +425,30 @@ describe('Alignment', () => {
       new Vector({ threefr: 1, threepli: 2 }),
     );
   });
-  it("TESTTESTnormalizeVector()", ()=>{
-    let v = new Vector({ a:1, b:2, c:23});
+  it('TESTTESTnormalizeVector()', () => {
+    let v = new Vector({ a: 1, b: 2, c: 23 });
     let vnDefault = WordSpace.normalizeVector(v);
-    let scale = 1/0.618033988749895; // Golden fudge
+    let scale = 1 / 0.618033988749895; // Golden fudge
 
     // Normalizing vectors of word counts to the interval [0...1]
-    // allows us to think in percentages where 
+    // allows us to think in percentages where
     // 0 is unaligned and 1 is 100% aligned
 
     // Map vector values to [0...1] using a default scale
     // that maps: 1=>~0.8 and 23=>~1
-    // This mapping nicely fits the expected range of word counts 
+    // This mapping nicely fits the expected range of word counts
     // That the Golden Ratio somehow "works out" is interesting
     let vn2 = WordSpace.normalizeVector(v, scale);
     should.deepEqual(vn2, vnDefault);
     should(0).below(vn2.a);
-    should(vn2.a).above(0.800).below(0.802);
+    should(vn2.a).above(0.8).below(0.802);
     should(vn2.a).below(vn2.b).below(vn2.c).below(1);
     should(vn2.c).above(0.9999999999999998);
     should(vn2.c).below(1);
 
     // Clearly, other scales work fine as well
-    let vn3 = WordSpace.normalizeVector(v, scale=1);
+    scale = 1;
+    let vn3 = WordSpace.normalizeVector(v, scale);
     should(0).below(vn3.a);
     should(1).above(vn3.a);
     should(vn3.a).below(vn2.a);

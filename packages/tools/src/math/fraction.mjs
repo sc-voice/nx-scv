@@ -42,7 +42,7 @@ export class Fraction {
   }
 
   set n(value) {
-    return this.numerator = Number(value);
+    this.numerator = Number(value);
   }
 
   get d() {
@@ -50,7 +50,7 @@ export class Fraction {
   }
 
   set d(value) {
-    return this.denominator = Number(value);
+    this.denominator = Number(value);
   }
 
   get value() {

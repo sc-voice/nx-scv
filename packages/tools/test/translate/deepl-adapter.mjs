@@ -80,26 +80,26 @@ describe('deepl-adapter', function () {
       targetLang: 'de',
     });
   });
-  it('TESTTESTglossaryName()', async()=>{
-    const msg = "TD3l.gloassaryName-de:";
+  it('TESTTESTglossaryName()', async () => {
+    const msg = 'TD3l.gloassaryName-de:';
     let srcLang = 'de';
     let dstLang = 'pt-PT';
     let dstAuthor = 'test-author';
     let translateOpts = {};
     let glossaryName = DeepLAdapter.glossaryName({
-      srcLang, dstLang, dstAuthor});
+      srcLang,
+      dstLang,
+      dstAuthor,
+    });
     should(glossaryName).equal('d10r_de_pt_test-author');
   });
-  it('TESTTESTasGlossaryEntries()', async()=>{
-    const msg = "TD3l.asToGlossaryEntries:";
-    let kvg = [
-      'einfach | simple',
-      'bitte | please',
-    ].join('\n');
+  it('TESTTESTasGlossaryEntries()', async () => {
+    const msg = 'TD3l.asToGlossaryEntries:';
+    let kvg = ['einfach | simple', 'bitte | please'].join('\n');
     let entries = {
       einfach: 'simple',
       bitte: 'please',
-    }
+    };
     let geKvg = DeepLAdapter.asGlossaryEntries(kvg);
     should(geKvg.implEntries).properties(entries);
     let geObj = DeepLAdapter.asGlossaryEntries(entries);
@@ -108,14 +108,14 @@ describe('deepl-adapter', function () {
     let ge = DeepLAdapter.asGlossaryEntries(geObj);
     should.deepEqual(ge, geKvg);
   });
-  it("TESTTESTlistGlossaries()", async()=>{
+  it('TESTTESTlistGlossaries()', async () => {
     const msg = 'td12r.glossaries:';
-    let dbg = DBG.DEEPL_TEST_API;;
+    let dbg = DBG.DEEPL_TEST_API;
     let authKey = AUTH_KEY;
-    let dla = await DeepLAdapter.create({authKey});
+    let dla = await DeepLAdapter.create({ authKey });
     let glossaries = await dla.listGlossaries();
-    glossaries.sort((a,b)=>a.name.localeCompare(b.name));
-    glossaries.forEach((g,i)=>{
+    glossaries.sort((a, b) => a.name.localeCompare(b.name));
+    glossaries.forEach((g, i) => {
       if (dbg > 1) {
         console.log(msg, `test/deepl glossary ${i}`, g);
       } else if (dbg) {
@@ -126,19 +126,21 @@ describe('deepl-adapter', function () {
     should(glossaries).instanceOf(Array);
     dbg && should(glossaries.length).above(-1).below(10);
   });
-  it("TESTTESTtranslate() possessive apostrophe EN", async () => {
+  it('TESTTESTtranslate() possessive apostrophe EN', async () => {
     let srcLang = 'en';
     let dstLang = 'fr';
     let authKey = AUTH_KEY;
-    let dla = await DeepLAdapter.create({authKey, srcLang, dstLang});
+    let dla = await DeepLAdapter.create({
+      authKey,
+      srcLang,
+      dstLang,
+    });
 
     // sujato
-    let res = await dla.translate([ "craving aggregates' origin" ]);
+    let res = await dla.translate(["craving aggregates' origin"]);
 
     // The straight quote can be used for possessive apostrophe
-    should(res[0]).equal(
-      'l\'origine des agrégats de l\'envie'
-    );
+    should(res[0]).equal("l'origine des agrégats de l'envie");
   });
   /*
   it("TESTTESTuploadGlossary() EN", async()=>{

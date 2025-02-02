@@ -12,11 +12,14 @@ import { MerkleJson } from './src/text/merkle-json.mjs';
 import { SuttaCentralId } from './src/text/sutta-central-id.mjs';
 import { Unicode } from './src/text/unicode.mjs';
 import { WordSpace } from './src/text/word-space.mjs';
+import { LogEntry, Logger } from './src/text/logger.mjs';
 
 export const Text = {
   BilaraPath,
   EbtDoc,
   LegacyDoc,
+  LogEntry,
+  Logger,
   MerkleJson,
   SuttaCentralId,
   Unicode,

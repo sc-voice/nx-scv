@@ -307,7 +307,7 @@ export class DeepLAdapter {
     let { translator } = this;
     dbg && console.log(msg, '[1]deleting', id);
     await translator.deleteGlossary(id);
-    dbg>1 && console.log(msg, '[2]deleted', id);
+    dbg > 1 && console.log(msg, '[2]deleted', id);
   }
 
   async listGlossaries() {

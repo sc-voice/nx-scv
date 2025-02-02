@@ -42,12 +42,12 @@ describe('dpd-transformer', () => {
     should(data.length).equal(6);
   });
   it('transform()', () => {
-    const msg = 'td12r.transfor';
+    const msg = 'td12r.transform';
     let dictionary = D_EVAM;
     let dt = new DpdTransformer({ dictionary });
     should(dt.dictionary).equal(dictionary);
     let srcEvam = 'Evaṁ me sutaṁ';
     let dstEvam = dt.transform(S_EVAM);
-    console.log(dstEvam);
+    console.log(msg, 'TBD');
   });
 });
