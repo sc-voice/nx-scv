@@ -1,12 +1,37 @@
-# merkle-json
+# @sc-voice/tools
+Javascript libary for SC-Voice applications
+
+* Math 
+* Text
+* Graph
+
+## Math.Fraction
+```
+let f = new Fraction(9, 240, 'segments');
+console.log(f.value); // 0.375
+console.log(f.numerator, f.denominator); // 9 240
+console.log(f.n, f.d); // 9 240
+console.log(f.toString()); // 1/2 segments
+console.log(Fraction.gcd(9, 240)); // 3
+console.log(f.difference); // -150
+console.log(f.remainder); // 9
+console.log(f.percent); // '4%'
+console.log(f.add(new Fraction(1,80)); // new Fraction(4,80)
+```
+
+## Text.WordSpace
+Used for text similarity comparison, WordSpace creates and compares
+Vectors of words weighted by normalized frequency of occurrence.
+Weights and scores are normalized to the interval [0..1].
+
+## Text.MerkleJson
 Computing the hash of JSON objects can be tricky because JSON.stringify()
 does not have a guaranteed string representation of a Javascript object.
 Specifically, the following are equivalent and valid outputs of JSON.stringify():
 
 ```js
 var json = "{size:{w:100,h:200}}";
-var json = "{size:{h:100,w:200}}";
-```
+var json = "{size:{h:100,w:200}}"; ```
 
 MerkleJson guarantees a unique hash code for any Javascript object.
 In addition, MerkleJson is efficient in that it only recalculates 
