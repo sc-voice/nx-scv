@@ -41,24 +41,51 @@ export class LogEntry {
   }
 }
 
+const LEVEL_DEBUG = { id: 'D', priority: -1 };
+const LEVEL_INFO = { id: 'I', priority: 0 };
+const LEVEL_WARN = { id: 'W', priority: 1 };
+const LEVEL_ERROR = { id: 'E', priority: 2 };
+const LEVEL_LOG = { id: 'L', priority: 3 };
+
 export class Logger {
   constructor(opts = {}) {
-    let { sink = console, msBase = Date.now() } = opts;
+    let {
+      sink = console,
+      msBase = Date.now(),
+      logLevel = Logger.LEVEL_WARN,
+    } = opts;
     Object.assign(this, {
       history: [],
       sink,
       msBase,
+      logLevel,
     });
+  }
+
+  static get LEVEL_DEBUG() {
+    return LEVEL_DEBUG;
+  }
+  static get LEVEL_INFO() {
+    return LEVEL_INFO;
+  }
+  static get LEVEL_WARN() {
+    return LEVEL_WARN;
+  }
+  static get LEVEL_ERROR() {
+    return LEVEL_ERROR;
+  }
+  static get LEVEL_LOG() {
+    return LEVEL_LOG;
   }
 
   addEntry(level, args, fSink) {
     const msg = 'l4r.addEntry;';
     const dbg = DBG.L4R_ADD_ENTRY;
-    let { history, sink, msBase } = this;
+    let { logLevel, history, sink, msBase } = this;
     let ms = Date.now() - msBase;
     let entry = LogEntry.fromArgs(level, args, ms);
     history.push(entry);
-    if (sink) {
+    if (sink && level.priority >= logLevel.priority) {
       dbg && console.log(msg, 'sink');
       fSink?.apply(sink, args);
     }
@@ -66,22 +93,23 @@ export class Logger {
   }
 
   debug(...args) {
-    return this.addEntry('D', args, this.sink?.debug);
+    return this.addEntry(LEVEL_DEBUG, args, this.sink?.debug);
   }
 
   info(...args) {
-    return this.addEntry('I', args, this.sink?.info);
-  }
-
-  log(...args) {
-    return this.addEntry('L', args, this.sink?.log);
+    return this.addEntry(LEVEL_INFO, args, this.sink?.info);
   }
 
   warn(...args) {
-    return this.addEntry('W', args, this.sink?.warn);
+    return this.addEntry(LEVEL_WARN, args, this.sink?.warn);
   }
 
   error(...args) {
-    return this.addEntry('E', args, this.sink?.error);
+    return this.addEntry(LEVEL_ERROR, args, this.sink?.error);
   }
+
+  log(...args) {
+    return this.addEntry(LEVEL_INFO, args, this.sink?.log);
+  }
+
 }
