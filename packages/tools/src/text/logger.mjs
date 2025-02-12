@@ -111,5 +111,4 @@ export class Logger {
   log(...args) {
     return this.addEntry(LEVEL_INFO, args, this.sink?.log);
   }
-
 }

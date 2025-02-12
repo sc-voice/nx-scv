@@ -23,6 +23,7 @@ console.log(f.add(new Fraction(1,80)); // new Fraction(4,80)
 Used for text similarity comparison, WordSpace creates and compares
 Vectors of words weighted by normalized frequency of occurrence.
 Weights and scores are normalized to the interval [0..1].
+(NOTE: Odd how bag-of-words works better here than fastText?)
 
 ## Text.MerkleJson
 Computing the hash of JSON objects can be tricky because JSON.stringify()

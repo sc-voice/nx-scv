@@ -25,12 +25,14 @@ const ABC_EXPECTED = /ok.*c:\[1,2,3\]/;
 describe('TESTTESTlogger', () => {
   it('default ctor', () => {
     let msg = 'tl4r.ctor:';
-    let logger = new Logger();
     let now = Date.now();
+    let logger = new Logger();
     should(logger.sink).equal(console);
     should(logger.logLevel).equal(Logger.LEVEL_WARN);
     should.deepEqual(logger.history, []);
-    should(logger.msBase).above(now-1).below(now+10);
+    should(logger.msBase)
+      .above(now - 1)
+      .below(now + 10);
   });
   it('custom ctor', () => {
     let msg = 'tl4r.custom-ctor:';
@@ -46,7 +48,9 @@ describe('TESTTESTlogger', () => {
     should(entry).instanceOf(LogEntry);
     should(entry.level).equal(Logger.LEVEL_INFO);
     should(entry.text).match(ABC_EXPECTED);
-    should(entry.ms).above(msPast - 1).below(msPast + 10);
+    should(entry.ms)
+      .above(msPast - 1)
+      .below(msPast + 10);
     should(logger.history.at(-1)).equal(entry);
   });
   it('debug', () => {
@@ -60,7 +64,7 @@ describe('TESTTESTlogger', () => {
     const msg = 'tl4r.log:';
     const dbg = 0;
 
-    let logger = new Logger({ sink: TEST_SINK, });
+    let logger = new Logger({ sink: TEST_SINK });
 
     // Default suppresses LEVEL_DEBUG, LEVEL_INFO
     should(sinkOut[0]).not.equal(msg);
@@ -76,7 +80,7 @@ describe('TESTTESTlogger', () => {
     should(sinkOut[0]).equal(msg);
     should(sinkOut[1]).equal('ok');
 
-    dbg && console.log(msg, {sinkOut});
+    dbg && console.log(msg, { sinkOut });
     should(entry.level).equal(Logger.LEVEL_INFO);
     should(entry.text).match(ABC_EXPECTED);
   });
@@ -94,7 +98,7 @@ describe('TESTTESTlogger', () => {
     should(entry.level).equal(Logger.LEVEL_ERROR);
     should(entry.text).match(ABC_EXPECTED);
   });
-  it('no-sink', ()=>{
+  it('no-sink', () => {
     let msg = 'tl4r.no-sink:';
     let logger = new Logger({ sink: null });
     let entry = logger.debug(msg, 'ok', ABC);

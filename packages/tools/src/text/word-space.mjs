@@ -1,5 +1,9 @@
 import { DBG } from '../defines.mjs';
 
+// The golden ratio is pretty.
+// 1.6180339887498948482045868343656381177203091798057628621354;
+const GOLDEN_FUDGE = 1.618033988749895;
+
 class Vector extends Object {
   constructor(props) {
     super();
@@ -47,6 +51,17 @@ class Vector extends Object {
       }
       return a;
     }, new Vector(this));
+  }
+
+  increment(vec2) {
+    let keys = Object.keys(vec2);
+    return keys.reduce((a, k) => {
+      let v2 = vec2[k];
+      if (v2) {
+        a[k] = (a[k] || 0) + v2;
+      }
+      return a;
+    }, this);
   }
 
   dot(vec2) {
@@ -165,6 +180,9 @@ export class WordSpace {
   constructor(opts = {}) {
     let {
       lang, // 2-letter code: fr, en, es, pt
+      corpusBow = new Vector(), // corpus bag of words
+      corpusSize = 0, // number of retrieval units (docs, segments, etc.)
+      idfWeight = GOLDEN_FUDGE, // IDF dampening
       minWord = 4, // minimum word length
       normalize,
       normalizeVector = WordSpace.normalizeVector,
@@ -189,12 +207,21 @@ export class WordSpace {
 
     Object.assign(this, {
       lang,
+      corpusBow,
+      corpusSize,
+      idfWeight,
       minWord,
       normalizeVector,
       reWordMap,
       transformer,
       wordMap: opts.wordMap, // DEPRECATED
     });
+  }
+
+  static createTfIdf() {
+    let minWord = 1;
+    let normalizeVector = (v) => v;
+    return new WordSpace({ minWord, normalizeVector });
   }
 
   static get WordMapTransformer() {
@@ -206,8 +233,7 @@ export class WordSpace {
   }
 
   // Golden Ratio fudge factor scales a count of 1 to ~0.8
-  // 1.6180339887498948482045868343656381177203091798057628621354
-  static normalizeVector(v, scale = 1.618033988749895) {
+  static normalizeVector(v, scale = GOLDEN_FUDGE) {
     let vNew = new Vector(v);
     Object.entries(v).forEach((e) => {
       let [key, value] = e;
@@ -217,8 +243,83 @@ export class WordSpace {
     return vNew;
   }
 
+  addDocument(doc) {
+    let { corpusBow } = this;
+    this.corpusSize += 1;
+    let { bow } = this.countWords(doc, 1); // one-hot
+    corpusBow.increment(bow);
+
+    return this;
+  }
+
+  inverseDocumentFrequency(word, idfWeight) {
+    return this.idf(word, idfWeight);
+  }
+
+  idf(word, idfWeight = this.idfWeight) {
+    const msg = 'w7e.idf:';
+    let { corpusBow, corpusSize } = this;
+    let wCount = corpusBow[word] || 0;
+    // Map to [0:ignore..1:important]
+    return corpusSize
+      ? 1 - Math.exp(((wCount - corpusSize) / wCount) * idfWeight)
+      : 1;
+  }
+
+  termFrequency(word, document) {
+    return this.tf(word, document);
+  }
+
+  tf(word, doc) {
+    let { bow, words } = this.countWords(doc);
+    let count = bow[word] || 0;
+    return count ? count / words.length : 0;
+  }
+
+  tfidf(doc) {
+    const msg = 'w7e.tfidf:';
+    let { corpusBow, corpusSize, idfWeight } = this;
+
+    // More efficient implementation of tf * idf
+    let { bow, words } = this.countWords(doc);
+    let nWords = words.length;
+
+    let vTfIdf = words.reduce((a, word) => {
+      let wd = bow[word] || 0;
+      let tf = wd ? wd / nWords : 0;
+      let wc = corpusBow[word] || 0;
+      let idf = corpusSize
+        ? 1 - Math.exp(((wc - corpusSize) / wc) * idfWeight)
+        : 1;
+      let tfidf = tf * idf;
+      if (tfidf) {
+        a[word] = tfidf;
+      }
+      return a;
+    }, new Vector());
+
+    return vTfIdf;
+  }
+
+  countWords(str, maxCount) {
+    const msg = 'w7e.countWords:';
+    if (str == null) {
+      throw new Error(`${msg} str?`);
+    }
+    let dbg = 0;
+    let sNorm = this.transformText(str);
+    let words = sNorm.split(' ');
+    let bow = words.reduce((a, w) => {
+      let count = (a[w] || 0) + 1;
+      a[w] = maxCount ? Math.min(maxCount, count) : count;
+      return a;
+    }, new Vector());
+
+    return { bow, words };
+  }
+
   string2Vector(str, scale = 1) {
-    const msg = 'W7e.string2Vector:';
+    const msg = 'w7e.string2Vector:';
     if (str == null) {
       throw new Error(`${msg} str?`);
     }
