@@ -133,9 +133,9 @@ export class WordMapTransformer {
   static normalizeFR(s) {
     return s
       .replace(/[«»]/gi, '')
-      .replace(/\bd’/gi, 'de ')
-      .replace(/\bl’/gi, 'le ')
-      .replace(/\bs’/gi, 'se ')
+      .replace(/\bd[’']/gi, 'de ')
+      .replace(/\bl[’']/gi, 'le ')
+      .replace(/\bs[’']/gi, 'se ')
       .replace('?', '$QUESTION')
       .replace('!', '$EXCLAMATION')
       .trim();

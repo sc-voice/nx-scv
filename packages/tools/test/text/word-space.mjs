@@ -183,8 +183,9 @@ describe('text/word-space', () => {
     dbg > 1 && console.log(msg, scan);
     should(scan.match).equal('mn8:3.4');
   });
-  it('WordMapTransformer.normalizeFR()', () => {
+  it('TESTTESTWordMapTransformer.normalizeFR()', () => {
     let { normalizeFR } = WordSpace.WordMapTransformer;
+    should(normalizeFR('d\'entendu')).equal('de entendu');
     should(normalizeFR('L’effacement de')).equal('le effacement de');
     should(normalizeFR('de L’effacement')).equal('de le effacement');
     should(normalizeFR('s’étant abc')).equal('se étant abc');
