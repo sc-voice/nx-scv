@@ -26,14 +26,14 @@ const WSTEST_CONFIG = JSON.parse(
 const wsTest = new WordSpace(WSTEST_CONFIG);
 
 describe('text/word-space', () => {
-  it('TESTTESTdefault ctor', () => {
+  it('default ctor', () => {
     let ws = new WordSpace();
     should(ws.minWord).equal(4);
     should(ws.corpusSize).equal(0);
     should(ws.idfWeight).equal(1.618033988749895);
     should.deepEqual(ws.corpusBow, new Vector());
   });
-  it('TESTTESTcustom ctor', () => {
+  it('custom ctor', () => {
     let wordMap = { a: 'x' };
     let corpusBow = { a: 1, b: 10 };
     let corpusSize = 2;
@@ -97,7 +97,7 @@ describe('text/word-space', () => {
     let v3 = v1.add(v2);
     should.deepEqual(v3, new Vector({ a: 1, b: 12, c: 10 }));
   });
-  it('TESTTESTincrement()', () => {
+  it('increment()', () => {
     let v1 = new Vector({ a: 1, b: 2 });
     let v2 = new Vector({ b: 10, c: 10 });
     let v3 = v1.increment(v2);
@@ -183,9 +183,9 @@ describe('text/word-space', () => {
     dbg > 1 && console.log(msg, scan);
     should(scan.match).equal('mn8:3.4');
   });
-  it('TESTTESTWordMapTransformer.normalizeFR()', () => {
+  it('WordMapTransformer.normalizeFR()', () => {
     let { normalizeFR } = WordSpace.WordMapTransformer;
-    should(normalizeFR('d\'entendu')).equal('de entendu');
+    should(normalizeFR("d'entendu")).equal('de entendu');
     should(normalizeFR('L’effacement de')).equal('le effacement de');
     should(normalizeFR('de L’effacement')).equal('de le effacement');
     should(normalizeFR('s’étant abc')).equal('se étant abc');
@@ -235,7 +235,7 @@ describe('text/word-space', () => {
     should.deepEqual(i12, new WordSpace.Vector({ b: 1 }));
     should.deepEqual(v1.intersect(), new WordSpace.Vector({}));
   });
-  it('TESTTESTinverseDocumentFrequency', () => {
+  it('inverseDocumentFrequency', () => {
     const msg = 'tw7e.inverseDocumentFrequency:';
     let ws = WordSpace.createTfIdf();
     let docs = [
@@ -303,7 +303,7 @@ describe('text/word-space', () => {
     should(ws.idf('cat', 1.1)).equal(0.8891968416376661);
     should(ws.idf('canine', 1.0)).equal(0.3934693402873666);
   });
-  it('TESTTEStermFrequency', () => {
+  it('ermFrequency', () => {
     const msg = 'tw7e.tf:';
     let ws = WordSpace.createTfIdf();
     let docs = [
@@ -319,7 +319,7 @@ describe('text/word-space', () => {
     should(ws.termFrequency('a', docs[0])).equal(0.4);
     should(ws.termFrequency('human', docs[0])).equal(0);
   });
-  it('TESTTESTtfidf()', () => {
+  it('tfidf()', () => {
     const msg = 'tw7e.tfidf:';
     let ws = WordSpace.createTfIdf();
     let docs = [
@@ -332,28 +332,37 @@ describe('text/word-space', () => {
     ws.addDocument(docs[2]);
 
     // compute document tfidf vectors
-    let vDocs = docs.map(doc=>ws.tfidf(doc));
-    should.deepEqual(vDocs[0], new Vector({
-      dog: 0.19213636168689888,
-      canine: 0.11094088415839597,
-    }));
-    should.deepEqual(vDocs[1], new Vector({
-      wolf: 0.19213636168689888,
-      another: 0.19213636168689888,
-      canine: 0.11094088415839597,
-    }));
-    should.deepEqual(vDocs[2], new Vector({
-      cat: 0.19213636168689888,
-      the: 0.19213636168689888,
-      feline: 0.19213636168689888,
-    }));
+    let vDocs = docs.map((doc) => ws.tfidf(doc));
+    should.deepEqual(
+      vDocs[0],
+      new Vector({
+        dog: 0.19213636168689888,
+        canine: 0.11094088415839597,
+      }),
+    );
+    should.deepEqual(
+      vDocs[1],
+      new Vector({
+        wolf: 0.19213636168689888,
+        another: 0.19213636168689888,
+        canine: 0.11094088415839597,
+      }),
+    );
+    should.deepEqual(
+      vDocs[2],
+      new Vector({
+        cat: 0.19213636168689888,
+        the: 0.19213636168689888,
+        feline: 0.19213636168689888,
+      }),
+    );
 
     // Compute similarity between TF_IDF vectors of query/docs
 
     // TF_IDF finds unique match
     let vDog = ws.tfidf('dog');
-    should.deepEqual(vDog, new Vector({dog:0.9606818084344944}));
-    let vDogMatch = vDocs.map(vDoc=>vDog.similar(vDoc));
+    should.deepEqual(vDog, new Vector({ dog: 0.9606818084344944 }));
+    let vDogMatch = vDocs.map((vDoc) => vDog.similar(vDoc));
     should.deepEqual(vDogMatch, [
       0.8660041217288018, // a dog is a canine
       0, // a wolf is another canine
@@ -362,90 +371,35 @@ describe('text/word-space', () => {
 
     // TF_IDF favors shorter document (more focus)
     let vCanine = ws.tfidf('canine');
-    should.deepEqual(vCanine, new Vector({canine:0.5547044207919798}));
-    let vCanineMatch = vDocs.map(vDoc=>vCanine.similar(vDoc));
+    should.deepEqual(
+      vCanine,
+      new Vector({ canine: 0.5547044207919798 }),
+    );
+    let vCanineMatch = vDocs.map((vDoc) => vCanine.similar(vDoc));
     should.deepEqual(vCanineMatch, [
       0.5000368597900825, // a dog is a canine (shorter)
       0.3779963173777363, // a wolf is another canine (longer)
       0, // the cat is a feline
     ]);
 
-    // although there are no cat canines, 
+    // although there are no cat canines,
     // query still matches shorter documents with partial match
     // since "cat" is rarer than "canine", the match there is stronger
     let vCatCanine = ws.tfidf('cat canine');
-    should.deepEqual(vCatCanine, new Vector({
-      cat: 0.4803409042172472,
-      canine: 0.2773522103959899,
-    }));
-    let vCatCanineMatch = vDocs.map(vDoc=>vCatCanine.similar(vDoc));
+    should.deepEqual(
+      vCatCanine,
+      new Vector({
+        cat: 0.4803409042172472,
+        canine: 0.2773522103959899,
+      }),
+    );
+    let vCatCanineMatch = vDocs.map((vDoc) =>
+      vCatCanine.similar(vDoc),
+    );
     should.deepEqual(vCatCanineMatch, [
       0.2500368611487267, // a dog is a canine
       0.18901209155377868, // a wolf is another canine
       0.4999877127994492, // the cat is a feline
     ]);
-  });
-  it('TESTTESTtbd', () => {
-    const msg = 'tw7e.tbd:';
-    let ws = new WordSpace({ normalizeVector: null, minWord: 1 });
-    let mlt = {};
-
-    /*
-    let { alignMethod, groupDecay, groupSize, wordSpace } = this;
-    let { wordMap } = wordSpace;
-    let { segMap, lang } = mld;
-    let segs = Object.entries(segMap);
-    let iLastSeg = segs.length - 1;
-    let reList;
-
-    if (alignMethod === 'alignPali') {
-      let entries = Object.entries(wordMap);
-      reList = entries.reduce((a, e) => {
-        let [legacyText, paliText] = e;
-        if (paliText) {
-          a.set(paliText, new RegExp(`\\b${paliText}`, 'gi'));
-        }
-        return a;
-      }, new Map());
-    }
-
-    let vectorMap = {};
-    let segGroup = [];
-    for (let i = segs.length; i-- > 0; ) {
-      let [scid, seg] = segs[i];
-      let { pli } = seg;
-      let segData = seg[lang] || '';
-      let vGroup = new WordSpace.Vector();
-      if (alignMethod === 'alignPali') {
-        // for aligning Pali, we add all Pali words that
-        // occur in the Pali for a segment to the
-        // vector input text
-        let pliWords = [];
-        reList.forEach((re, paliText, map) => {
-          let nMatch = pli.match(re)?.length || 0;
-          if (nMatch) {
-            for (let i = 0; i < nMatch; i++) {
-              pliWords.push(paliText);
-            }
-          }
-        });
-        if (pliWords.length) {
-          segData += ' ' + pliWords.join(' ');
-          dbg === scid && console.log(msg, 'segData', scid, segData);
-        }
-      }
-      segGroup.unshift(segData);
-      if (segGroup.length > groupSize) {
-        segGroup.pop();
-      }
-      let scale = 1;
-      vGroup = segGroup.reduce((a, seg, i) => {
-        let vScale = wordSpace.string2Vector(segData, scale);
-        scale *= groupDecay;
-        return a.add(vScale);
-      }, vGroup);
-      vectorMap[scid] = vGroup;
-    }
-  */
   });
 });
