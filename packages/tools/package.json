@@ -1,6 +1,6 @@
 {
   "name": "@sc-voice/tools",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Utilities for SC-Voice",
   "main": "index.mjs",
   "files": [
