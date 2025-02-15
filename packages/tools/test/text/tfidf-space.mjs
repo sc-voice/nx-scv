@@ -62,24 +62,25 @@ describe('text/tfidf-space', () => {
     );
     should(v.length).equal(8);
   });
-  it('TfidSpace.normalizeFR()', () => {
+  it('TESTTESTTfidSpace.normalizeFR()', () => {
     let { normalizeFR } = TfidfSpace;
     should(normalizeFR("d'entendu")).equal('de entendu');
     should(normalizeFR('L’effacement de')).equal('le effacement de');
     should(normalizeFR('de L’effacement')).equal('de le effacement');
-    should(normalizeFR('s’étant abc')).equal('se étant abc');
-    should(normalizeFR('abc s’étant')).equal('abc se étant');
+    should(normalizeFR('s’étant abc')).equal('s_étant abc');
+    should(normalizeFR('abc s’étant')).equal('abc s_étant');
     should(normalizeFR('abc ; def')).equal('abc def');
     should(normalizeFR('abc ?')).equal('abc');
     should(normalizeFR('mal’')).equal('mal');
+    should(normalizeFR('j’ai')).equal('j_ai');
   });
-  it('normalizeText() FR phrase', () => {
+  it('TESTTESTnormalizeText() FR phrase', () => {
     let lang = 'fr';
     let ws = new TfidfSpace({ lang });
     let text1 =
       'En se disant : “D’autres prendraient ce qui n’est pas donné, mais ici nous, nous nous abstiendrions de prendre ce qui n’est pas donné”, le déracinement doit être pratiqué.';
     should(ws.normalizeText(text1)).equal(
-      'en se disant de autres prendraient ce qui nest pas donné mais ici nous nous nous abstiendrions de prendre ce qui nest pas donné le déracinement doit être pratiqué',
+      'en se disant de autres prendraient ce qui n_est pas donné mais ici nous nous nous abstiendrions de prendre ce qui n_est pas donné le déracinement doit être pratiqué',
     );
 
     let text2 =

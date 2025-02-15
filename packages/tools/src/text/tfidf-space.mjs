@@ -62,7 +62,10 @@ export class TfidfSpace {
     let sAbbr = s.toLowerCase()
       .replace(/\bd[’']/gi, 'de ')
       .replace(/\bl[’']/gi, 'le ')
-      .replace(/\bs[’']/gi, 'se ')
+      .replace(/\bs[’']/gi, 's_')
+      .replace(/\bj[’']/gi, 'j_')
+      .replace(/\bm[’']/gi, 'm_')
+      .replace(/\bn[’']/gi, 'n_')
     return TfidfSpace.removeNonWords(sAbbr);
   }
 
