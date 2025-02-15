@@ -78,6 +78,13 @@ export class WordVector extends Object {
     }, 0);
   }
 
+  scale(c) {
+    return Object.keys(this).reduce((a,k)=>{
+      a[k] *= c;
+      return a;
+    }, this);
+  }
+
   intersect(vec2 = {}) {
     let keys = Object.keys(this);
     return keys.reduce((a, k) => {

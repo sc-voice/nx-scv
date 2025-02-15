@@ -22,7 +22,7 @@ const TEST_SINK = {
 const ABC = { a: 1, b: 'red', c: [1, 2, 3] };
 const ABC_EXPECTED = /ok.*c:\[1,2,3\]/;
 
-describe('TESTTESTlogger', () => {
+describe('logger', () => {
   it('default ctor', () => {
     let msg = 'tl4r.ctor:';
     let now = Date.now();

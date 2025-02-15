@@ -13,6 +13,7 @@ export class TfidfSpace {
       corpusBow = new WordVector(), // corpus bag of words
       corpusSize = 0, // number of retrieval units (docs, segments, etc.)
       idfWeight = GOLDEN_FUDGE, // IDF dampening
+      idfFunction = TfidfSpace.idfTunable,
       normalizeText,
     } = opts;
     if (lang == null) {
@@ -32,6 +33,9 @@ export class TfidfSpace {
     }
     Object.defineProperty(this, 'normalizeText', {
       value: normalizeText,
+    });
+    Object.defineProperty(this, 'idfFunction', {
+      value: idfFunction,
     });
 
     // Serializable properties
@@ -63,6 +67,28 @@ export class TfidfSpace {
       .trim();
   }
 
+  static idfStandard(space, word) {
+    const msg = 'w7e.idfStandard:';
+    let { corpusBow, corpusSize } = space;
+    let wordDocs = corpusBow[word] || 0;
+    return Math.log((corpusSize + 1) / (wordDocs+1));
+  }
+
+  static idfTunable(space, word, idfWeight = this.idfWeight) {
+    const msg = 'w7e.idf:';
+    let { corpusBow, corpusSize } = space;
+    let wordDocs = corpusBow[word] || 0;
+    // NOTE: This is NOT the usual formula
+    // Map to [0:ignore..1:important]
+    return corpusSize
+      ? 1 - Math.exp(((wordDocs - corpusSize) / wordDocs) * idfWeight)
+      : 1;
+  }
+
+  idf(word, idfWeight) {
+    return this.idfFunction(this, word, idfWeight);
+  }
+
   addDocument(doc) {
     let { corpusBow } = this;
     this.corpusSize += 1;
@@ -70,20 +96,6 @@ export class TfidfSpace {
     corpusBow.increment(bow);
 
     return this;
-  }
-
-  inverseDocumentFrequency(word, idfWeight) {
-    return this.idf(word, idfWeight);
-  }
-
-  idf(word, idfWeight = this.idfWeight) {
-    const msg = 'w7e.idf:';
-    let { corpusBow, corpusSize } = this;
-    let wCount = corpusBow[word] || 0;
-    // Map to [0:ignore..1:important]
-    return corpusSize
-      ? 1 - Math.exp(((wCount - corpusSize) / wCount) * idfWeight)
-      : 1;
   }
 
   termFrequency(word, document) {
@@ -138,19 +150,19 @@ export class TfidfSpace {
     return { bow, words };
   }
 
-  string2Vector(str, scale = 1) {
-    const msg = 'w7e.string2Vector:';
-    if (str == null) {
-      throw new Error(`${msg} str?`);
+  bowOfText(text) {
+    const msg = 'w7e.bowOfText:';
+    if (text == null) {
+      throw new Error(`${msg} text?`);
     }
     let dbg = 0;
-    let sNorm = this.normalizeText(str);
+    let sNorm = this.normalizeText(text);
     let words = sNorm.split(' ');
-    let v = words.reduce((a, w) => {
-      a[w] = (a[w] || 0) + scale;
+    let bow = words.reduce((a, w) => {
+      a[w] = (a[w] || 0) + 1;
       return a;
     }, new WordVector());
 
-    return v;
+    return bow;
   }
 } // TfidfSpace

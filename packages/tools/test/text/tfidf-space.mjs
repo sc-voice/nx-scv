@@ -24,11 +24,12 @@ const WSTEST_CONFIG = JSON.parse(
 );
 const wsTest = new TfidfSpace(WSTEST_CONFIG);
 
-describe('TESTTESTtext/tfidf-space', () => {
+describe('text/tfidf-space', () => {
   it('default ctor', () => {
     let ws = new TfidfSpace();
     should(ws.corpusSize).equal(0);
     should(ws.idfWeight).equal(1.618033988749895);
+    should(ws.idfFunction).equal(TfidfSpace.idfTunable);
     should.deepEqual(ws.corpusBow, new WordVector());
   });
   it('custom ctor', () => {
@@ -42,9 +43,9 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(ws.corpusBow).equal(corpusBow);
     should(ws.corpusSize).equal(corpusSize);
   });
-  it('string2Vector() FOX', () => {
+  it('bowOfText() FOX', () => {
     let ws = new TfidfSpace();
-    let v = ws.string2Vector(FOX);
+    let v = ws.bowOfText(FOX);
     should(v).instanceOf(WordVector);
     should.deepEqual(
       v,
@@ -60,35 +61,6 @@ describe('TESTTESTtext/tfidf-space', () => {
       }),
     );
     should(v.length).equal(8);
-
-    let scale = 0.8;
-    let v8 = ws.string2Vector(FOX, scale);
-    should.deepEqual(
-      v8,
-      new WordVector({
-        a: 1 * scale,
-        brown: 1 * scale,
-        fence: 1 * scale,
-        fox: 2 * scale,
-        jumped: 1 * scale,
-        over: 1 * scale,
-        quick: 1 * scale,
-        the: 1 * scale,
-      }),
-    );
-    should(v8.length).equal(8);
-  });
-  it('string2Vector() Bienheureux', () => {
-    let v = wsTest.string2Vector('le Bienheureux dit');
-    should(v).instanceOf(WordVector);
-    should.deepEqual(
-      v,
-      new WordVector({
-        le: 1,
-        bienheureux: 1,
-        dit: 1,
-      }),
-    );
   });
   it('TfidSpace.normalizeFR()', () => {
     let { normalizeFR } = TfidfSpace;
@@ -116,9 +88,18 @@ describe('TESTTESTtext/tfidf-space', () => {
       '‹ certains voleront cependant nous ici ne volerons pas ›',
     );
   });
-  it('inverseDocumentFrequency', () => {
-    const msg = 'tt8e.inverseDocumentFrequency:';
+  it('idf() idfTunable', () => {
+    const msg = 'tt8e.idf:';
+    // Default is idfTunable, which maps to [0:everywhere..1:rare]
+    // In addition, the sensitivity to rarity is tunable.
+    // Tunability is important because a unit change in raw word count 
+    // should not cause a major fluctuation in relevance scores.
+    // Rarity is asymptotic to 1 (i.e., infinitely rare or not in corpus)
+    // This non-standard IDF formula is NOT mentioned in Wikipedia,
+    // so I guess it is "novel" :)
+    // --Karl Lew Feb 15, 2025
     let ws = new TfidfSpace();
+    should(ws.idfFunction).equal(TfidfSpace.idfTunable);
     let docs = [
       'a dog is a canine',
       'a wolf is another canine',
@@ -130,7 +111,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     should.deepEqual(
       ws.corpusBow,
       new WordVector({
-        a: 1, // 1-hot
+        a: 1, // 1-hot in single document
         dog: 1,
         is: 1,
         canine: 1,
@@ -145,7 +126,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     should.deepEqual(
       ws.corpusBow,
       new WordVector({
-        a: 2,
+        a: 2, // multiple documents 
         another: 1,
         is: 2,
         canine: 2,
@@ -183,6 +164,69 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(ws.idf('wolf', 1.2)).equal(0.9092820467105875);
     should(ws.idf('cat', 1.1)).equal(0.8891968416376661);
     should(ws.idf('canine', 1.0)).equal(0.3934693402873666);
+  });
+  it('idfStandard', () => {
+    const msg = 'tt8e.idfStandard:';
+    // IDF standard doesn't stay in [0..1] and isn't tunable
+    let ws = new TfidfSpace({idfFunction:TfidfSpace.idfStandard});
+    should(ws.idfFunction).equal(TfidfSpace.idfStandard);
+    let docs = [
+      'a dog is a canine',
+      'a wolf is another canine',
+      'the cat is a feline',
+    ];
+    should(ws.idf('human')).equal(0); // not in corpus
+
+    ws.addDocument(docs[0]);
+    should.deepEqual(
+      ws.corpusBow,
+      new WordVector({
+        a: 1, // 1-hot in single document
+        dog: 1,
+        is: 1,
+        canine: 1,
+      }),
+    );
+    should(ws.corpusSize).equal(1);
+    should(ws.idf('a')).equal(0); // in all docs
+    should(ws.idf('dog')).equal(0); // in all docs
+    should(ws.idf('human')).equal(0.6931471805599453); // not in corpus
+
+    ws.addDocument(docs[1]);
+    should.deepEqual(
+      ws.corpusBow,
+      new WordVector({
+        a: 2, // multiple documents 
+        another: 1,
+        is: 2,
+        canine: 2,
+        wolf: 1,
+        dog: 1,
+      }),
+    );
+    should(ws.idf('a')).equal(0); // in all docs
+    should(ws.idf('dog')).equal(0.4054651081081644); // 1/2 of docs
+    should(ws.idf('human')).equal(1.0986122886681096); // not in corpus
+
+    ws.addDocument(docs[2]);
+    should.deepEqual(
+      ws.corpusBow,
+      new WordVector({
+        the: 1,
+        a: 3,
+        cat: 1,
+        feline: 1,
+        another: 1,
+        is: 3,
+        canine: 2,
+        wolf: 1,
+        dog: 1,
+      }),
+    );
+    should(ws.corpusSize).equal(3);
+    should(ws.idf('a')).equal(0); // in all docs
+    should(ws.idf('the')).equal(0.6931471805599453); // 1/3 of docs
+    should(ws.idf('human')).equal(1.3862943611198906); // not in corpus
   });
   it('ermFrequency', () => {
     const msg = 'tt8e.tf:';
@@ -285,5 +329,10 @@ describe('TESTTESTtext/tfidf-space', () => {
       0.18901209155377868, // a wolf is another canine
       0.4999877127994492, // the cat is a feline
     ]);
+  });
+  it('scale()', ()=>{
+    let v = new WordVector({a:1, b:2, c:3});
+    should(v.scale(3)).equal(v);
+    should.deepEqual(v, new WordVector({a:3, b:6, c:9}));
   });
 });

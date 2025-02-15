@@ -2,7 +2,7 @@ import should from 'should';
 import { Text } from '../../index.mjs';
 const { WordVector } = Text;
 
-describe('TESTTESTtext/word-vector', () => {
+describe('text/word-vector', () => {
   it('add()', () => {
     let v1 = new WordVector({ a: 1, b: 2 });
     let v2 = new WordVector({ b: 10, c: 10 });

@@ -70,7 +70,7 @@ describe('scv-math/fraction', () => {
     let f2 = new Fraction(big, small);
     should(f2.remainder).equal(big % small);
   });
-  it('TESTTESTn d', () => {
+  it('n d', () => {
     let f = new Fraction(1, 2);
     f.n++;
     f.d++;
