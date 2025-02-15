@@ -47,24 +47,23 @@ export class TfidfSpace {
     });
   }
 
+  static removeNonWords(s) {
+    const RE_RESERVED = /[_-]/g; // allowed in bow words
+    const RE_PUNCT = /[.,:;$"'“”‘’!?«»]/g;
+    const RE_SPACE = /\s+/g;
+    return s.replace(RE_PUNCT, '').replace(RE_SPACE, ' ').trim();
+  }
+
   static normalizeEN(s) {
-    return s
-      .toLowerCase()
-      .replace(/[-.,_:;"'“”‘’!?]/g, '')
-      .replace(/ {2,}/g, ' ')
-      .trim();
+    return TfidfSpace.removeNonWords(s.toLowerCase());
   }
 
   static normalizeFR(s) {
-    return s
-      .toLowerCase()
-      .replace(/[«»]/gi, '')
+    let sAbbr = s.toLowerCase()
       .replace(/\bd[’']/gi, 'de ')
       .replace(/\bl[’']/gi, 'le ')
       .replace(/\bs[’']/gi, 'se ')
-      .replace(/[-.,_:;"'“”‘’!?]/g, '')
-      .replace(/[  ]+/g, ' ')
-      .trim();
+    return TfidfSpace.removeNonWords(sAbbr);
   }
 
   static idfStandard(space, word) {
