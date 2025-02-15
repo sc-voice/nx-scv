@@ -66,6 +66,7 @@ export class TfidfSpace {
       .replace(/\bj[’']/gi, 'j_')
       .replace(/\bm[’']/gi, 'm_')
       .replace(/\bn[’']/gi, 'n_')
+      .replace(/\bc[’']/gi, 'c_')
     return TfidfSpace.removeNonWords(sAbbr);
   }
 

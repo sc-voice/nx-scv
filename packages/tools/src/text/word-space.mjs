@@ -102,6 +102,7 @@ class Vector extends Object {
     let den = norm1 * norm2;
     return den ? d / den : 0;
   }
+
 } // Vector
 
 export class WordMapTransformer {

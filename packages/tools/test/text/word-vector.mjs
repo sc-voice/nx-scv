@@ -67,4 +67,10 @@ describe('text/word-vector', () => {
     should.deepEqual(i12, new WordVector({ b: 1 }));
     should.deepEqual(v1.intersect(), new WordVector({}));
   });
+  it('TESTTESToneHot()', ()=>{
+    let v = new WordVector({a:0.5, b:2.5, c:3, ignored:-0.1});
+    let v1 = v.oneHot();
+    should(v).not.equal(v1);
+    should.deepEqual(v1, new WordVector({a:1, b:1, c:1}));
+  });
 });

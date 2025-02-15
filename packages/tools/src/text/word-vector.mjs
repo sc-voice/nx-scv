@@ -109,4 +109,13 @@ export class WordVector extends Object {
     let den = norm1 * norm2;
     return den ? d / den : 0;
   }
+
+  oneHot() {
+    return Object.keys(this).reduce((a,k)=>{
+      if (this[k] > 0) {
+        a[k] = 1;
+      }
+      return a;
+    }, new WordVector());
+  }
 } // WordVector
