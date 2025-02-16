@@ -343,10 +343,14 @@ describe('TESTTESTtext/tfidf-space', () => {
   it("addCorpusDocument()", () => {
     let ws = new TfidfSpace();
     let id = 'test-id';
-    let bow = new WordVector({a:1, b:2});
+    let bow = new WordVector({a:1, b:2}); // not 1-hot!
     let nWords = 3;
     let docInfo = ws.addCorpusDocument(id, bow, nWords);
     should.deepEqual(docInfo, { id, bow, nWords });
     should(ws.corpus.getDocument(id)).equal(docInfo);
+    should.deepEqual(ws.corpus.wordDocCount, new WordVector({
+      a:1, // 1-hot
+      b:1, // 1-hot
+    }));
   });
 });

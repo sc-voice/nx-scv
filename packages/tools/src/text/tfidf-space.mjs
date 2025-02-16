@@ -106,6 +106,7 @@ export class TfidfSpace {
       throw new Error(`${msg} nWords?`);
     }
     let docInfo = { id, bow, nWords };
+    corpus.wordDocCount.increment(bow.oneHot());
     corpus.addDocument(id, docInfo);
 
     return docInfo;
@@ -114,7 +115,6 @@ export class TfidfSpace {
   addDocument(id, doc) {
     let { corpus } = this;
     let { bow, words } = this.countWords(doc);
-    corpus.wordDocCount.increment(bow.oneHot());
     
     return this.addCorpusDocument(id, bow, words.length);
   }
