@@ -3,7 +3,7 @@ import should from 'should';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import { Text } from '../../index.mjs';
-const { WordVector, WordMapTransformer, TfidfSpace } = Text;
+const { Corpus, WordVector, WordMapTransformer, TfidfSpace } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, '../data');
 
@@ -24,24 +24,26 @@ const WSTEST_CONFIG = JSON.parse(
 );
 const wsTest = new TfidfSpace(WSTEST_CONFIG);
 
-describe('text/tfidf-space', () => {
+import { testCorpus } from './corpus.mjs';
+
+describe('TESTTESTtext/tfidf-space', () => {
   it('default ctor', () => {
     let ws = new TfidfSpace();
-    should(ws.corpusSize).equal(0);
+    testCorpus(ws.corpus);
+    should(ws.corpus.size).equal(0);
     should(ws.idfWeight).equal(1.618033988749895);
     should(ws.idfFunction).equal(TfidfSpace.idfTunable);
-    should.deepEqual(ws.corpusBow, new WordVector());
+    should.deepEqual(ws.corpus, new Corpus());
   });
   it('custom ctor', () => {
-    let corpusBow = { a: 1, b: 10 };
+    let corpus = new Corpus();
+    corpus.addDocument('d1', 'the red fox');
     let corpusSize = 2;
     let ws = new TfidfSpace({
-      corpusBow,
-      corpusSize,
+      corpus,
     });
     should(ws.normalizeText('a "fox"!?')).equal('a fox');
-    should(ws.corpusBow).equal(corpusBow);
-    should(ws.corpusSize).equal(corpusSize);
+    should(ws.corpus.size).equal(1);
   });
   it('bowOfText() FOX', () => {
     let ws = new TfidfSpace();
@@ -93,7 +95,7 @@ describe('text/tfidf-space', () => {
     const msg = 'tt8e.idf:';
     // Default is idfTunable, which maps to [0:everywhere..1:rare]
     // In addition, the sensitivity to rarity is tunable.
-    // Tunability is important because a unit change in raw word count 
+    // Tunability is important because a unit change in raw word count
     // should not cause a major fluctuation in relevance scores.
     // Rarity is asymptotic to 1 (i.e., infinitely rare or not in corpus)
     // This non-standard IDF formula is NOT mentioned in Wikipedia,
@@ -108,9 +110,9 @@ describe('text/tfidf-space', () => {
     ];
     should(ws.idf('human')).equal(1); // not in corpus
 
-    ws.addDocument(docs[0]);
+    ws.addDocument('d0', docs[0]);
     should.deepEqual(
-      ws.corpusBow,
+      ws.corpus.wordDocCount,
       new WordVector({
         a: 1, // 1-hot in single document
         dog: 1,
@@ -118,16 +120,16 @@ describe('text/tfidf-space', () => {
         canine: 1,
       }),
     );
-    should(ws.corpusSize).equal(1);
+    should(ws.corpus.size).equal(1);
     should(ws.idf('a')).equal(0); // in all docs
     should(ws.idf('dog')).equal(0); // in all docs
     should(ws.idf('human')).equal(1); // not in corpus
 
-    ws.addDocument(docs[1]);
+    ws.addDocument('d1', docs[1]);
     should.deepEqual(
-      ws.corpusBow,
+      ws.corpus.wordDocCount,
       new WordVector({
-        a: 2, // multiple documents 
+        a: 2, // multiple documents
         another: 1,
         is: 2,
         canine: 2,
@@ -139,9 +141,9 @@ describe('text/tfidf-space', () => {
     should(ws.idf('dog')).equal(0.8017118471377938); // 1/2 of docs
     should(ws.idf('human')).equal(1); // not in corpus
 
-    ws.addDocument(docs[2]);
+    ws.addDocument('d2', docs[2]);
     should.deepEqual(
-      ws.corpusBow,
+      ws.corpus.wordDocCount,
       new WordVector({
         the: 1,
         a: 3,
@@ -154,7 +156,7 @@ describe('text/tfidf-space', () => {
         dog: 1,
       }),
     );
-    should(ws.corpusSize).equal(3);
+    should(ws.corpus.size).equal(3);
     should(ws.idf('a')).equal(0); // in all docs
     should(ws.idf('the')).equal(0.9606818084344944); // 1/3 of docs
     should(ws.idf('human')).equal(1); // not in corpus
@@ -169,7 +171,7 @@ describe('text/tfidf-space', () => {
   it('idfStandard', () => {
     const msg = 'tt8e.idfStandard:';
     // IDF standard doesn't stay in [0..1] and isn't tunable
-    let ws = new TfidfSpace({idfFunction:TfidfSpace.idfStandard});
+    let ws = new TfidfSpace({ idfFunction: TfidfSpace.idfStandard });
     should(ws.idfFunction).equal(TfidfSpace.idfStandard);
     let docs = [
       'a dog is a canine',
@@ -178,9 +180,9 @@ describe('text/tfidf-space', () => {
     ];
     should(ws.idf('human')).equal(0); // not in corpus
 
-    ws.addDocument(docs[0]);
+    ws.addDocument('d1', docs[0]);
     should.deepEqual(
-      ws.corpusBow,
+      ws.corpus.wordDocCount,
       new WordVector({
         a: 1, // 1-hot in single document
         dog: 1,
@@ -188,16 +190,16 @@ describe('text/tfidf-space', () => {
         canine: 1,
       }),
     );
-    should(ws.corpusSize).equal(1);
+    should(ws.corpus.size).equal(1);
     should(ws.idf('a')).equal(0); // in all docs
     should(ws.idf('dog')).equal(0); // in all docs
     should(ws.idf('human')).equal(0.6931471805599453); // not in corpus
 
-    ws.addDocument(docs[1]);
+    ws.addDocument('d2', docs[1]);
     should.deepEqual(
-      ws.corpusBow,
+      ws.corpus.wordDocCount,
       new WordVector({
-        a: 2, // multiple documents 
+        a: 2, // multiple documents
         another: 1,
         is: 2,
         canine: 2,
@@ -209,9 +211,9 @@ describe('text/tfidf-space', () => {
     should(ws.idf('dog')).equal(0.4054651081081644); // 1/2 of docs
     should(ws.idf('human')).equal(1.0986122886681096); // not in corpus
 
-    ws.addDocument(docs[2]);
+    ws.addDocument('d3', docs[2]);
     should.deepEqual(
-      ws.corpusBow,
+      ws.corpus.wordDocCount,
       new WordVector({
         the: 1,
         a: 3,
@@ -224,7 +226,7 @@ describe('text/tfidf-space', () => {
         dog: 1,
       }),
     );
-    should(ws.corpusSize).equal(3);
+    should(ws.corpus.size).equal(3);
     should(ws.idf('a')).equal(0); // in all docs
     should(ws.idf('the')).equal(0.6931471805599453); // 1/3 of docs
     should(ws.idf('human')).equal(1.3862943611198906); // not in corpus
@@ -238,9 +240,9 @@ describe('text/tfidf-space', () => {
       'the cat is a feline',
     ];
 
-    ws.addDocument(docs[0]);
-    ws.addDocument(docs[1]);
-    ws.addDocument(docs[2]);
+    ws.addDocument('d1', docs[0]);
+    ws.addDocument('d2', docs[1]);
+    ws.addDocument('d3', docs[2]);
     should(ws.termFrequency('dog', docs[0])).equal(0.2);
     should(ws.termFrequency('a', docs[0])).equal(0.4);
     should(ws.termFrequency('human', docs[0])).equal(0);
@@ -253,9 +255,16 @@ describe('text/tfidf-space', () => {
       'a wolf is another canine',
       'the cat is a feline',
     ];
-    ws.addDocument(docs[0]);
-    ws.addDocument(docs[1]);
-    ws.addDocument(docs[2]);
+    let res = docs.map((doc, i) => ws.addDocument(`d${i + 1}`, doc));
+    should.deepEqual(
+      res[0].bow,
+      new WordVector({
+        a: 2,
+        dog: 1,
+        is: 1,
+        canine: 1,
+      }),
+    );
 
     // compute document tfidf mectors
     let vDocs = docs.map((doc) => ws.tfidf(doc));

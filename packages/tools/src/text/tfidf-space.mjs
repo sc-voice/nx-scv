@@ -1,4 +1,5 @@
 import { DBG } from '../defines.mjs';
+import { Corpus } from './corpus.mjs';
 import { WordVector } from './word-vector.mjs';
 
 // The golden ratio is pretty.
@@ -10,8 +11,7 @@ export class TfidfSpace {
     const msg = 't8e.ctor:';
     let {
       lang = 'en', // 2-letter code: fr, en, es, pt
-      corpusBow = new WordVector(), // corpus bag of words
-      corpusSize = 0, // number of retrieval units (docs, segments, etc.)
+      corpus = new Corpus(),
       idfWeight = GOLDEN_FUDGE, // IDF dampening
       idfFunction = TfidfSpace.idfTunable,
       normalizeText,
@@ -41,8 +41,7 @@ export class TfidfSpace {
     // Serializable properties
     Object.assign(this, {
       lang,
-      corpusBow,
-      corpusSize,
+      corpus,
       idfWeight,
     });
   }
@@ -59,46 +58,53 @@ export class TfidfSpace {
   }
 
   static normalizeFR(s) {
-    let sAbbr = s.toLowerCase()
+    let sAbbr = s
+      .toLowerCase()
       .replace(/\bd[’']/gi, 'de ')
       .replace(/\bl[’']/gi, 'le ')
       .replace(/\bs[’']/gi, 's_')
       .replace(/\bj[’']/gi, 'j_')
       .replace(/\bm[’']/gi, 'm_')
       .replace(/\bn[’']/gi, 'n_')
-      .replace(/\bc[’']/gi, 'c_')
+      .replace(/\bc[’']/gi, 'c_');
     return TfidfSpace.removeNonWords(sAbbr);
   }
 
   static idfStandard(space, word) {
     const msg = 'w7e.idfStandard:';
-    let { corpusBow, corpusSize } = space;
-    let wordDocs = corpusBow[word] || 0;
-    return Math.log((corpusSize + 1) / (wordDocs+1));
+    let { corpus } = space;
+    let wordDocs = corpus.wordDocCount[word] || 0;
+    return Math.log((corpus.size + 1) / (wordDocs + 1));
   }
 
-  static idfTunable(space, word, idfWeight = this.idfWeight) {
+  static idfTunable(space, word, idfWeight) {
     const msg = 'w7e.idf:';
-    let { corpusBow, corpusSize } = space;
-    let wordDocs = corpusBow[word] || 0;
+    let { corpus } = space;
+    let wordDocs = corpus.wordDocCount[word] || 0;
     // NOTE: This is NOT the usual formula
     // Map to [0:ignore..1:important]
-    return corpusSize
-      ? 1 - Math.exp(((wordDocs - corpusSize) / wordDocs) * idfWeight)
+    return corpus.size
+      ? 1 -
+          Math.exp(((wordDocs - corpus.size) / wordDocs) * idfWeight)
       : 1;
   }
 
-  idf(word, idfWeight) {
+  idf(word, idfWeight = this.idfWeight) {
     return this.idfFunction(this, word, idfWeight);
   }
 
-  addDocument(doc) {
-    let { corpusBow } = this;
-    this.corpusSize += 1;
-    let { bow } = this.countWords(doc); 
-    corpusBow.increment(bow.oneHot());
+  addDocument(id, doc) {
+    let { corpus } = this;
+    let { bow, words } = this.countWords(doc);
+    corpus.wordDocCount.increment(bow.oneHot());
 
-    return this;
+    let docInfo = {
+      bow,
+      nWords: words.length,
+    };
+    corpus.addDocument(id, docInfo);
+
+    return docInfo;
   }
 
   termFrequency(word, document) {
@@ -113,7 +119,7 @@ export class TfidfSpace {
 
   tfidf(doc) {
     const msg = 'w7e.tfidf:';
-    let { corpusBow, corpusSize, idfWeight } = this;
+    let { corpus, idfWeight } = this;
 
     // More efficient implementation of tf * idf
     let { bow, words } = this.countWords(doc);
@@ -122,9 +128,9 @@ export class TfidfSpace {
     let vTfIdf = words.reduce((a, word) => {
       let wd = bow[word] || 0;
       let tf = wd ? wd / nWords : 0;
-      let wc = corpusBow[word] || 0;
-      let idf = corpusSize
-        ? 1 - Math.exp(((wc - corpusSize) / wc) * idfWeight)
+      let wc = corpus.wordDocCount[word] || 0;
+      let idf = corpus.size
+        ? 1 - Math.exp(((wc - corpus.size) / wc) * idfWeight)
         : 1;
       let tfidf = tf * idf;
       if (tfidf) {

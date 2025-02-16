@@ -67,15 +67,15 @@ describe('text/word-vector', () => {
     should.deepEqual(i12, new WordVector({ b: 1 }));
     should.deepEqual(v1.intersect(), new WordVector({}));
   });
-  it('oneHot()', ()=>{
-    let v = new WordVector({a:0.5, b:2.5, c:3, ignored:-0.1});
+  it('oneHot()', () => {
+    let v = new WordVector({ a: 0.5, b: 2.5, c: 3, ignored: -0.1 });
     let v1 = v.oneHot();
     should(v).not.equal(v1);
-    should.deepEqual(v1, new WordVector({a:1, b:1, c:1}));
+    should.deepEqual(v1, new WordVector({ a: 1, b: 1, c: 1 }));
   });
-  it('scale()', ()=>{
-    let v = new WordVector({a:1, b:2, c:3});
+  it('scale()', () => {
+    let v = new WordVector({ a: 1, b: 2, c: 3 });
     should(v.scale(3)).equal(v);
-    should.deepEqual(v, new WordVector({a:3, b:6, c:9}));
+    should.deepEqual(v, new WordVector({ a: 3, b: 6, c: 9 }));
   });
 });

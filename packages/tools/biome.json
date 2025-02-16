@@ -48,6 +48,8 @@
         "noDelete": "off"
       },
       "suspicious": {
+        "noApproximativeNumericConstant": "off",
+        "noExportsInTest": "off",
         "noDoubleEquals": "off",
         "useIsArray": "off"
       }

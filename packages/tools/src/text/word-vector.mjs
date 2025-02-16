@@ -79,7 +79,7 @@ export class WordVector extends Object {
   }
 
   scale(c) {
-    return Object.keys(this).reduce((a,k)=>{
+    return Object.keys(this).reduce((a, k) => {
       a[k] *= c;
       return a;
     }, this);
@@ -111,7 +111,7 @@ export class WordVector extends Object {
   }
 
   oneHot() {
-    return Object.keys(this).reduce((a,k)=>{
+    return Object.keys(this).reduce((a, k) => {
       if (this[k] > 0) {
         a[k] = 1;
       }

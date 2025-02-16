@@ -6,6 +6,7 @@ export const ScvMath = {
 };
 
 import { BilaraPath } from './src/text/bilara-path.mjs';
+import { Corpus } from './src/text/corpus.mjs';
 import { EbtDoc } from './src/text/ebt-doc.mjs';
 import { LegacyDoc } from './src/text/legacy-doc.mjs';
 import { MerkleJson } from './src/text/merkle-json.mjs';
@@ -18,6 +19,7 @@ import { LogEntry, Logger } from './src/text/logger.mjs';
 
 export const Text = {
   BilaraPath,
+  Corpus,
   EbtDoc,
   LegacyDoc,
   LogEntry,
