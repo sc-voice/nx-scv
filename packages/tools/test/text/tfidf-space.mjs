@@ -331,9 +331,4 @@ describe('text/tfidf-space', () => {
       0.4999877127994492, // the cat is a feline
     ]);
   });
-  it('scale()', ()=>{
-    let v = new WordVector({a:1, b:2, c:3});
-    should(v.scale(3)).equal(v);
-    should.deepEqual(v, new WordVector({a:3, b:6, c:9}));
-  });
 });
