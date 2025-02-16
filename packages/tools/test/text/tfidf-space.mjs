@@ -340,4 +340,13 @@ describe('TESTTESTtext/tfidf-space', () => {
       0.4999877127994492, // the cat is a feline
     ]);
   });
+  it("addCorpusDocument()", () => {
+    let ws = new TfidfSpace();
+    let id = 'test-id';
+    let bow = new WordVector({a:1, b:2});
+    let nWords = 3;
+    let docInfo = ws.addCorpusDocument(id, bow, nWords);
+    should.deepEqual(docInfo, { id, bow, nWords });
+    should(ws.corpus.getDocument(id)).equal(docInfo);
+  });
 });

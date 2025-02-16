@@ -93,18 +93,30 @@ export class TfidfSpace {
     return this.idfFunction(this, word, idfWeight);
   }
 
+  addCorpusDocument(id, bow, nWords) {
+    const msg = 't8w.addCorpusDocument:';
+    let { corpus } = this;
+    if (id == null) {
+      throw new Error(`${msg} id?`);
+    }
+    if (bow == null) {
+      throw new Error(`${msg} bow?`);
+    }
+    if (nWords == null) {
+      throw new Error(`${msg} nWords?`);
+    }
+    let docInfo = { id, bow, nWords };
+    corpus.addDocument(id, docInfo);
+
+    return docInfo;
+  }
+
   addDocument(id, doc) {
     let { corpus } = this;
     let { bow, words } = this.countWords(doc);
     corpus.wordDocCount.increment(bow.oneHot());
-
-    let docInfo = {
-      bow,
-      nWords: words.length,
-    };
-    corpus.addDocument(id, docInfo);
-
-    return docInfo;
+    
+    return this.addCorpusDocument(id, bow, words.length);
   }
 
   termFrequency(word, document) {
