@@ -93,18 +93,17 @@ export class TfidfSpace {
     return this.idfFunction(this, word, idfWeight);
   }
 
-  addCorpusDocument(id, bow, nWords) {
+  addCorpusDocument(id, bow) {
     const msg = 't8w.addCorpusDocument:';
     let { corpus } = this;
     if (id == null) {
       throw new Error(`${msg} id?`);
     }
     if (bow == null) {
+      // Bag-of-words maps word to wordCount(word,doc)
       throw new Error(`${msg} bow?`);
     }
-    if (nWords == null) {
-      throw new Error(`${msg} nWords?`);
-    }
+    let nWords = Object.values(bow).reduce((a,v)=>a+v);
     let docInfo = { id, bow, nWords };
     corpus.wordDocCount.increment(bow.oneHot());
     corpus.addDocument(id, docInfo);
