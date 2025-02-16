@@ -95,8 +95,8 @@ export class TfidfSpace {
   addDocument(doc) {
     let { corpusBow } = this;
     this.corpusSize += 1;
-    let { bow } = this.countWords(doc, 1); // one-hot
-    corpusBow.increment(bow);
+    let { bow } = this.countWords(doc); 
+    corpusBow.increment(bow.oneHot());
 
     return this;
   }
@@ -136,7 +136,7 @@ export class TfidfSpace {
     return vTfIdf;
   }
 
-  countWords(str, maxCount) {
+  countWords(str) {
     const msg = 'w7e.countWords:';
     if (str == null) {
       throw new Error(`${msg} str?`);
@@ -145,8 +145,7 @@ export class TfidfSpace {
     let sNorm = this.normalizeText(str);
     let words = sNorm.split(' ');
     let bow = words.reduce((a, w) => {
-      let count = (a[w] || 0) + 1;
-      a[w] = maxCount ? Math.min(maxCount, count) : count;
+      a[w] = (a[w] || 0) + 1;
       return a;
     }, new WordVector());
 

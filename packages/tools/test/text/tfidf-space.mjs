@@ -245,7 +245,7 @@ describe('text/tfidf-space', () => {
     should(ws.termFrequency('a', docs[0])).equal(0.4);
     should(ws.termFrequency('human', docs[0])).equal(0);
   });
-  it('tfidf()', () => {
+  it('TESTTESTtfidf()', () => {
     const msg = 'tt8e.tfidf:';
     let ws = new TfidfSpace();
     let docs = [
