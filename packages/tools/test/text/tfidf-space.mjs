@@ -168,8 +168,60 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(ws.idf('cat', 1.1)).equal(0.8891968416376661);
     should(ws.idf('canine', 1.0)).equal(0.3934693402873666);
   });
+  it('idfStandard/idfTunable', ()=>{
+    const msg = 'tt8e.idfStandard-idfTunable:';
+    let { idfStandard, idfTunable } = TfidfSpace;
+    let nDocs = 5;
+    let wdc = []; // word document count
+    for (let i=0; i<=nDocs; i++) {
+      wdc.push(i);
+    }
+
+    // Standard IDF doesn't map to [0..1] and is not tunable
+    let ignored = Math.NaN; // don't care
+    should.deepEqual(wdc.map(c=>idfStandard(nDocs,c,ignored)), [
+      1.791759469228055, // Outside [0..1]
+      1.0986122886681096, // Outside [0..1]
+      0.6931471805599453,
+      0.4054651081081644,
+      0.1823215567939546,
+      0,
+    ]);
+
+    // Tunable IDF maps to [0..1] and is tunable for 
+    // sensitivity to rarity
+    let weight1 = 1.618033988749895; // default weight
+    should.deepEqual(wdc.map(c=>idfTunable(nDocs,c,weight1)), [
+      1, // not in corpus
+      0.9984540798120182, // in 1 document of corpus
+      0.9117031621211354,
+      0.6599590834550455,
+      0.33269528758743183, // in all but 1 document of corpus
+      0 
+    ]);
+
+    let weight2 = 1; // less sensitive to rarity
+    should.deepEqual(wdc.map(c=>idfTunable(nDocs,c,weight2)), [
+      1, // not in corpus
+      0.9816843611112658, // in 1 document of corpus
+      0.7768698398515702,
+      0.486582880967408,
+      0.22119921692859512, // in all but 1 document of corpus
+      0 
+    ]);
+
+    let weightLow = 0.1; // very sensitive to rarity
+    should.deepEqual(wdc.map(c=>idfTunable(nDocs,c,weightLow)), [
+      1, // not in corpus
+      0.3296799539643607, // in 1 document
+      0.1392920235749422,
+      0.06449301496838222,
+      0.024690087971667385, // in all but 1 document
+      0 
+    ]);
+  });
   it('idfStandard', () => {
-    const msg = 'tt8e.idfStandard:';
+    const msg = 'tt8e.idfStandard2:';
     // IDF standard doesn't stay in [0..1] and isn't tunable
     let ws = new TfidfSpace({ idfFunction: TfidfSpace.idfStandard });
     should(ws.idfFunction).equal(TfidfSpace.idfStandard);
@@ -231,7 +283,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(ws.idf('the')).equal(0.6931471805599453); // 1/3 of docs
     should(ws.idf('human')).equal(1.3862943611198906); // not in corpus
   });
-  it('ermFrequency', () => {
+  it('termFrequency', () => {
     const msg = 'tt8e.tf:';
     let ws = new TfidfSpace();
     let docs = [
@@ -252,7 +304,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     let ws = new TfidfSpace();
     let docs = [
       'a dog is a canine',
-      'a wolf is another canine',
+      'the wolf is the wildest of a canine',
       'the cat is a feline',
     ];
     let res = docs.map((doc, i) => ws.addDocument(`d${i + 1}`, doc));
@@ -271,6 +323,8 @@ describe('TESTTESTtext/tfidf-space', () => {
     should.deepEqual(
       vDocs[0],
       new WordVector({
+        // a: ignored because omnipresent
+        // is: ignored because omnipresent
         dog: 0.19213636168689888,
         canine: 0.11094088415839597,
       }),
@@ -278,16 +332,18 @@ describe('TESTTESTtext/tfidf-space', () => {
     should.deepEqual(
       vDocs[1],
       new WordVector({
-        wolf: 0.19213636168689888,
-        another: 0.19213636168689888,
-        canine: 0.11094088415839597,
+        wolf: 0.1200852260543118,
+        of: 0.1200852260543118,
+        wildest: 0.1200852260543118,
+        canine: 0.06933805259899747,
+        the: 0.13867610519799495,
       }),
     );
     should.deepEqual(
       vDocs[2],
       new WordVector({
         cat: 0.19213636168689888,
-        the: 0.19213636168689888,
+        the: 0.11094088415839597,
         feline: 0.19213636168689888,
       }),
     );
@@ -316,7 +372,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     let vCanineMatch = vDocs.map((vDoc) => vCanine.similar(vDoc));
     should.deepEqual(vCanineMatch, [
       0.5000368597900825, // a dog is a canine (shorter)
-      0.3779963173777363, // a wolf is another canine (longer)
+      0.2672781294055441, // a wolf is the other canine (longer)
       0, // the cat is a feline
     ]);
 
@@ -336,8 +392,8 @@ describe('TESTTESTtext/tfidf-space', () => {
     );
     should.deepEqual(vCatCanineMatch, [
       0.2500368611487267, // a dog is a canine
-      0.18901209155377868, // a wolf is another canine
-      0.4999877127994492, // the cat is a feline
+      0.1336489165185156, // a wolf is the other canine
+      0.5669248158502489, // the cat is a feline
     ]);
   });
   it("addCorpusDocument()", () => {

@@ -70,27 +70,24 @@ export class TfidfSpace {
     return TfidfSpace.removeNonWords(sAbbr);
   }
 
-  static idfStandard(space, word) {
-    const msg = 'w7e.idfStandard:';
-    let { corpus } = space;
-    let wordDocs = corpus.wordDocCount[word] || 0;
-    return Math.log((corpus.size + 1) / (wordDocs + 1));
+  static idfStandard(nDocs, wdc, idfWeight) {
+    return Math.log((nDocs + 1) / (wdc + 1));
   }
 
-  static idfTunable(space, word, idfWeight) {
-    const msg = 'w7e.idf:';
-    let { corpus } = space;
-    let wordDocs = corpus.wordDocCount[word] || 0;
+  static idfTunable(nDocs, wdc, idfWeight) {
+    const msg = 'w7e.idfTunable:';
     // NOTE: This is NOT the usual formula
     // Map to [0:ignore..1:important]
-    return corpus.size
-      ? 1 -
-          Math.exp(((wordDocs - corpus.size) / wordDocs) * idfWeight)
+    return nDocs
+      ? 1 - Math.exp(((wdc - nDocs) / wdc) * idfWeight)
       : 1;
   }
 
   idf(word, idfWeight = this.idfWeight) {
-    return this.idfFunction(this, word, idfWeight);
+    let { corpus } = this;
+    let wdc = corpus.wordDocCount[word] || 0;
+    let nDocs = corpus.size;
+    return this.idfFunction(nDocs, wdc, idfWeight);
   }
 
   addCorpusDocument(id, bow) {
@@ -128,20 +125,20 @@ export class TfidfSpace {
     return count ? count / words.length : 0;
   }
 
-  tfidf(doc) {
-    const msg = 'w7e.tfidf:';
+  tfidfOfBow(bow) {
+    const msg = 'w7e.tfidfOfBow:';
     let { corpus, idfWeight } = this;
 
     // More efficient implementation of tf * idf
-    let { bow, words } = this.countWords(doc);
-    let nWords = words.length;
+    let words = Object.keys(bow);
+    let nWords = words.reduce((a,w)=>a+bow[w],0);
 
     let vTfIdf = words.reduce((a, word) => {
       let wd = bow[word] || 0;
       let tf = wd ? wd / nWords : 0;
-      let wc = corpus.wordDocCount[word] || 0;
+      let wdc = corpus.wordDocCount[word] || 0;
       let idf = corpus.size
-        ? 1 - Math.exp(((wc - corpus.size) / wc) * idfWeight)
+        ? 1 - Math.exp(((wdc - corpus.size) / wdc) * idfWeight)
         : 1;
       let tfidf = tf * idf;
       if (tfidf) {
@@ -151,6 +148,11 @@ export class TfidfSpace {
     }, new WordVector());
 
     return vTfIdf;
+  }
+
+  tfidf(text) { // TfIdf of words in text w/r to corpus
+    let { bow } = this.countWords(text);
+    return this.tfidfOfBow(bow);
   }
 
   countWords(str) {
