@@ -21,8 +21,26 @@ export class WordVector extends Object {
   }
 
   toString(opts={}) {
-    let { precision=2 } = opts;
-    let sv = Object.entries(this).reduce((a, e) => {
+    let { order='value', precision=2 } = opts;
+    let entries = Object.entries(this);
+    switch (order) {
+      case 'key':
+        entries.sort((a,b)=>{
+          let [ka] = a;
+          let [kb] = b;
+          return ka.localeCompare(kb);
+        });
+        break;
+      case 'value':
+      default:
+        entries.sort((a,b)=>{
+          let [ka, va] = a;
+          let [kb, vb] = b;
+          return (vb-va) || ka.localeCompare(kb);
+        });
+        break;
+    }
+    let sv = entries.reduce((a, e) => {
       let [k, v] = e;
       let vf = v.toFixed(precision).replace(/\.0*$/,'');
       a.push(`${k}:${vf}`);

@@ -79,12 +79,12 @@ describe('text/word-vector', () => {
     should.deepEqual(v, new WordVector({ a: 3, b: 6, c: 9}));
   });
   it('TESTTESTtoString()', () => {
-    let v = new WordVector({a:1, b:0.123456789, "(c)":1.002});
+    let v = new WordVector({a:1, b:0.1234, "(c)":1.002, d:1});
 
-    let vs2 = v.toString(); // precision 2
-    should(vs2).equal('a:1,b:0.12,(c):1');
+    let vs2 = v.toString({order:'key'}); // precision 2
+    should(vs2).equal('(c):1,a:1,b:0.12,d:1');
 
-    let vs3 = v.toString({precision:3});
-    should(vs3).equal('a:1,b:0.123,(c):1.002');
+    let vs3 = v.toString({precision:3}); // order:'value'
+    should(vs3).equal('(c):1.002,a:1,d:1,b:0.123');
   });
 });
