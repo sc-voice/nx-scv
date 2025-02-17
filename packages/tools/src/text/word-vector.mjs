@@ -20,10 +20,11 @@ export class WordVector extends Object {
     return this.$length;
   }
 
-  toString() {
+  toString(opts={}) {
+    let { precision=2 } = opts;
     let sv = Object.entries(this).reduce((a, e) => {
       let [k, v] = e;
-      let vf = v.toFixed(2);
+      let vf = v.toFixed(precision).replace(/\.0*$/,'');
       a.push(`${k}:${vf}`);
       return a;
     }, []);
