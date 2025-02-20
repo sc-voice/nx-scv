@@ -46,11 +46,18 @@ export class TfidfSpace {
     });
   }
 
+  static removeHtml(s) {
+    return s.replace(/<[^>]*>/gi, '');
+  }
+
   static removeNonWords(s) {
     const RE_RESERVED = /[_-]/g; // allowed in bow words
-    const RE_PUNCT = /[.,:;$"'“”‘’!?«»]/g;
+    const RE_PUNCT = /[.,:;$"'“”‘’!?«»\[\]]/g;
     const RE_SPACE = /\s+/g;
-    return s.replace(RE_PUNCT, '').replace(RE_SPACE, ' ').trim();
+    return TfidfSpace.removeHtml(s)
+      .replace(RE_PUNCT, '')
+      .replace(RE_SPACE, ' ')
+      .trim();
   }
 
   static normalizeEN(s) {

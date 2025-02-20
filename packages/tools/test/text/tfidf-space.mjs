@@ -71,8 +71,8 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(normalizeFR('de L’effacement')).equal('de le effacement');
     should(normalizeFR('s’étant abc')).equal('s_étant abc');
     should(normalizeFR('abc s’étant')).equal('abc s_étant');
-    should(normalizeFR('abc ; def')).equal('abc def');
-    should(normalizeFR('abc ?')).equal('abc');
+    should(normalizeFR('[abc] ; def')).equal('abc def');
+    should(normalizeFR('<span>abc</span> ?')).equal('abc');
     should(normalizeFR('mal’')).equal('mal');
     should(normalizeFR('j’ai')).equal('j_ai');
   });
