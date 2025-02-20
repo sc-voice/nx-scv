@@ -20,12 +20,12 @@ export class WordVector extends Object {
     return this.$length;
   }
 
-  toString(opts={}) {
-    let { order='value', precision=2 } = opts;
+  toString(opts = {}) {
+    let { order = 'value', precision = 2 } = opts;
     let entries = Object.entries(this);
     switch (order) {
       case 'key':
-        entries.sort((a,b)=>{
+        entries.sort((a, b) => {
           let [ka] = a;
           let [kb] = b;
           return ka.localeCompare(kb);
@@ -33,16 +33,16 @@ export class WordVector extends Object {
         break;
       case 'value':
       default:
-        entries.sort((a,b)=>{
+        entries.sort((a, b) => {
           let [ka, va] = a;
           let [kb, vb] = b;
-          return (vb-va) || ka.localeCompare(kb);
+          return vb - va || ka.localeCompare(kb);
         });
         break;
     }
     let sv = entries.reduce((a, e) => {
       let [k, v] = e;
-      let vf = v.toFixed(precision).replace(/\.0*$/,'');
+      let vf = v.toFixed(precision).replace(/\.0*$/, '');
       a.push(`${k}:${vf}`);
       return a;
     }, []);

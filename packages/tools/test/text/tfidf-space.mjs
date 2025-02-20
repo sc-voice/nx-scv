@@ -82,7 +82,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     let text1 =
       'En se disant : “D’autres prendraient ce qui n’est pas donné, mais ici nous, nous nous abstiendrions de prendre ce qui n’est pas donné”, le déracinement doit être pratiqué.';
     should(ws.normalizeText(text1)).equal(
-      'en se disant de autres prendraient ce qui n_est pas donné mais ici nous nous nous abstiendrions de prendre ce qui n_est pas donné le déracinement doit être pratiqué',
+      'en se disant __LQUOTE de autres prendraient ce qui n_est pas donné mais ici nous nous nous abstiendrions de prendre ce qui n_est pas donné le déracinement doit être pratiqué',
     );
 
     let text2 =

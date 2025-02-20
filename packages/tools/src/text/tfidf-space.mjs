@@ -52,9 +52,11 @@ export class TfidfSpace {
 
   static removeNonWords(s) {
     const RE_RESERVED = /[_-]/g; // allowed in bow words
+    const RE_LQUOTE = /[“‘«]/g;
     const RE_PUNCT = /[.,:;$"'“”‘’!?«»\[\]]/g;
     const RE_SPACE = /\s+/g;
     return TfidfSpace.removeHtml(s)
+      .replace(RE_LQUOTE, '__LQUOTE ')
       .replace(RE_PUNCT, '')
       .replace(RE_SPACE, ' ')
       .trim();
@@ -107,7 +109,7 @@ export class TfidfSpace {
       // Bag-of-words maps word to wordCount(word,doc)
       throw new Error(`${msg} bow?`);
     }
-    let nWords = Object.values(bow).reduce((a,v)=>a+v);
+    let nWords = Object.values(bow).reduce((a, v) => a + v);
     let docInfo = { id, bow, nWords };
     corpus.wordDocCount.increment(bow.oneHot());
     corpus.addDocument(id, docInfo);
@@ -118,7 +120,7 @@ export class TfidfSpace {
   addDocument(id, doc) {
     let { corpus } = this;
     let { bow, words } = this.countWords(doc);
-    
+
     return this.addCorpusDocument(id, bow, words.length);
   }
 
@@ -138,7 +140,7 @@ export class TfidfSpace {
 
     // More efficient implementation of tf * idf
     let words = Object.keys(bow);
-    let nWords = words.reduce((a,w)=>a+bow[w],0);
+    let nWords = words.reduce((a, w) => a + bow[w], 0);
 
     let vTfIdf = words.reduce((a, word) => {
       let wd = bow[word] || 0;
@@ -157,7 +159,8 @@ export class TfidfSpace {
     return vTfIdf;
   }
 
-  tfidf(text) { // TfIdf of words in text w/r to corpus
+  tfidf(text) {
+    // TfIdf of words in text w/r to corpus
     let { bow } = this.countWords(text);
     return this.tfidfOfBow(bow);
   }
