@@ -78,7 +78,9 @@ describe('TESTTESTtext/tfidf-space', () => {
   });
   it('TESTTESTnormalizeText() FR phrase', () => {
     let lang = 'fr';
-    let ws = new TfidfSpace({ lang });
+    let leftQuoteToken = '__LQUOTE '; // TBD: is this useful?
+    let ws = new TfidfSpace({ lang, leftQuoteToken });
+    should(ws.leftQuoteToken).equal(leftQuoteToken);
     let text1 =
       'En se disant : “D’autres prendraient ce qui n’est pas donné, mais ici nous, nous nous abstiendrions de prendre ce qui n’est pas donné”, le déracinement doit être pratiqué.';
     should(ws.normalizeText(text1)).equal(

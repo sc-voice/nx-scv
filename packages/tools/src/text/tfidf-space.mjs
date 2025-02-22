@@ -15,6 +15,7 @@ export class TfidfSpace {
       idfWeight = GOLDEN_FUDGE, // IDF dampening
       idfFunction = TfidfSpace.idfTunable,
       normalizeText,
+      leftQuoteToken,
     } = opts;
     if (lang == null) {
       throw new Error(`${msg} lang?`);
@@ -31,7 +32,7 @@ export class TfidfSpace {
           throw new Error(`${msg} normalizeText?`);
       }
     }
-    Object.defineProperty(this, 'normalizeText', {
+    Object.defineProperty(this, '_normalizeText', {
       value: normalizeText,
     });
     Object.defineProperty(this, 'idfFunction', {
@@ -43,6 +44,7 @@ export class TfidfSpace {
       lang,
       corpus,
       idfWeight,
+      leftQuoteToken,
     });
   }
 
@@ -50,23 +52,26 @@ export class TfidfSpace {
     return s.replace(/<[^>]*>/gi, '');
   }
 
-  static removeNonWords(s) {
+  static removeNonWords(s, opts={}) {
     const RE_RESERVED = /[_-]/g; // allowed in bow words
     const RE_LQUOTE = /[“‘«]/g;
     const RE_PUNCT = /[.,:;$"'“”‘’!?«»\[\]]/g;
     const RE_SPACE = /\s+/g;
+    let {
+      leftQuoteToken = '', // TBD: is this useful?
+    } = opts;
     return TfidfSpace.removeHtml(s)
-      .replace(RE_LQUOTE, '__LQUOTE ')
+      .replace(RE_LQUOTE, leftQuoteToken)
       .replace(RE_PUNCT, '')
       .replace(RE_SPACE, ' ')
       .trim();
   }
 
-  static normalizeEN(s) {
-    return TfidfSpace.removeNonWords(s.toLowerCase());
+  static normalizeEN(s, opts={}) {
+    return TfidfSpace.removeNonWords(s.toLowerCase(), opts);
   }
 
-  static normalizeFR(s) {
+  static normalizeFR(s, opts={}) {
     let sAbbr = s
       .toLowerCase()
       .replace(/\bd[’']/gi, 'de ')
@@ -76,7 +81,7 @@ export class TfidfSpace {
       .replace(/\bm[’']/gi, 'm_')
       .replace(/\bn[’']/gi, 'n_')
       .replace(/\bc[’']/gi, 'c_');
-    return TfidfSpace.removeNonWords(sAbbr);
+    return TfidfSpace.removeNonWords(sAbbr, opts);
   }
 
   static idfStandard(nDocs, wdc, idfWeight) {
@@ -163,6 +168,10 @@ export class TfidfSpace {
     // TfIdf of words in text w/r to corpus
     let { bow } = this.countWords(text);
     return this.tfidfOfBow(bow);
+  }
+
+  normalizeText(str) {
+    return this._normalizeText(str, this);
   }
 
   countWords(str) {
