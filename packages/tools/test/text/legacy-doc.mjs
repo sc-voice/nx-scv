@@ -1,10 +1,25 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
+import { DBG } from '../../src/defines.mjs';
 import { Text } from '../../index.mjs';
 const { LegacyDoc } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, '../data');
+
+function mn8MohanApiCache(url) {
+  const msg = 'tl8c.mn8MohanApiCache:';
+  return {
+    ok: true,
+    json: async () => {
+      let fname = 'mn8-fr-wijayaratna-scapi.json';
+      let fpath = path.join(TEST_DATA, fname);
+      let json = JSON.parse(fs.readFileSync(fpath));
+      return json;
+    },
+  }
+  
+}
 
 const TEST_DOC = {
   uid: 'mn8',
@@ -107,8 +122,15 @@ describe('text/legacy-doc', () => {
       );
     }
   });
-  it('fetchLegacy-mn8-fr', async () => {
+  it('TESTTESTfetchLegacy-mn8-fr', async () => {
     const msg = 'TL7c.fetchLegacy-mn8-fr:';
+    let res =  mn8MohanApiCache('http://ignored');
+    let cache = DBG.L7C_FETCH_LEGACY_SC ? undefined : mn8MohanApiCache;
+    should(res.ok).equal(true);
+    let json = await res.json();
+    should(json.root_text.uid).equal('mn8');
+    should(json.root_text.lang).equal('fr');
+    should(json.root_text.author_uid).equal('wijayaratna');
     let sutta_uid = 'mn8';
     let lang = 'fr';
     let author = 'wijayaratna';
@@ -116,6 +138,7 @@ describe('text/legacy-doc', () => {
       sutta_uid,
       lang,
       author,
+      cache,
     });
     should(legacyDoc.uid).equal(sutta_uid);
     should(legacyDoc.lang).equal(lang);

@@ -37,20 +37,33 @@ export class LegacyDoc {
     return true;
   }
 
-  static async fetchLegacy(opts = {}) {
-    const msg = 'L7c.fetch:';
-    const dbg = DBG.FETCH_LEGACY;
+  static legacyUrl(opts={}) {
     let {
-      endPoint = 'https://suttacentral.net/api/suttas',
+      endPoint = 'https://staging.suttacentral.net/api/suttas',
       sutta_uid,
       lang,
       author,
-      maxBuffer = 10 * 1024 * 1024,
     } = opts;
-    let url = [endPoint, sutta_uid, `${author}?lang=${lang}`].join(
-      '/',
-    );
-    let res = await fetch(url);
+
+    return [endPoint, sutta_uid, `${author}?lang=${lang}`].join('/');
+  }
+
+  static async fetchLegacy(opts = {}) {
+    const msg = 'L7c.fetchLegacy:';
+    const dbg = DBG.L7C_FETCH_LEGACY;
+    let {
+      maxBuffer = 10 * 1024 * 1024,
+      cache,
+    } = opts;
+    let url = LegacyDoc.legacyUrl(opts);
+    let res;
+    if (cache) {
+      res = cache(url);
+      dbg && console.log(msg, '[1]cached', res.ok);
+    } else {
+      res = await fetch(url, {maxBuffer});
+      dbg && console.log(msg, '[2]scapi', res.ok);
+    }
     if (!res.ok) {
       throw new Error(`${msg} {res.status} ${url}`);
     }
