@@ -39,7 +39,7 @@ export class LegacyDoc {
 
   static legacyUrl(opts={}) {
     let {
-      endPoint = 'https://staging.suttacentral.net/api/suttas',
+      endPoint = 'https://suttacentral.net/api/suttas',
       sutta_uid,
       lang,
       author,
@@ -65,7 +65,7 @@ export class LegacyDoc {
       dbg && console.log(msg, '[2]scapi', res.ok);
     }
     if (!res.ok) {
-      throw new Error(`${msg} {res.status} ${url}`);
+      throw new Error(`${msg} ${res.status} ${url}`);
     }
     let json = await res.json();
     let { translation } = json;
