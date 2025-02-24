@@ -21,7 +21,13 @@ export class WordVector extends Object {
   }
 
   toString(opts = {}) {
-    let { order = 'value', precision = 2 } = opts;
+    const msg = 'w10r.toString:';
+    let { order = 'value', minValue, precision = 2 } = opts;
+
+    if (minValue == null) {
+      minValue = Math.pow(10, -precision) / 2;
+    }
+
     let entries = Object.entries(this);
     switch (order) {
       case 'key':
@@ -42,8 +48,12 @@ export class WordVector extends Object {
     }
     let sv = entries.reduce((a, e) => {
       let [k, v] = e;
-      let vf = v.toFixed(precision).replace(/\.0*$/, '');
-      a.push(`${k}:${vf}`);
+      if (minValue <= v) {
+        let vf = v.toFixed(precision)
+          .replace(/\.0*$/, '')
+          .replace(/0\./,'.');
+        a.push(`${k}:${vf}`);
+      }
       return a;
     }, []);
     return sv.join(',');

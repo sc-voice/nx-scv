@@ -79,12 +79,33 @@ describe('text/word-vector', () => {
     should.deepEqual(v, new WordVector({ a: 3, b: 6, c: 9}));
   });
   it('TESTTESTtoString()', () => {
-    let v = new WordVector({a:1, b:0.1234, "(c)":1.002, d:1});
+    let v = new WordVector({
+      'a@1':1, // non-identifier keys
+      a2: 0.987654321,
+      a3: 0.5,
+      a4: 0.49,
+      a5: 0.05,
+      a6: 0.049,
+      a7: 0.001,
+      a8: 0.0001, // not shown
+    });
 
-    let vs2 = v.toString({order:'key'}); // precision 2
-    should(vs2).equal('(c):1,a:1,b:0.12,d:1');
+    // precision 1, minValue: 0.05
+    let vs1 = v.toString({precision:1}); 
+    should(vs1).equal('a@1:1,a2:1,a3:.5,a4:.5,a5:.1');
 
-    let vs3 = v.toString({precision:3}); // order:'value'
-    should(vs3).equal('(c):1.002,a:1,d:1,b:0.123');
+    // precision 2, minValue: 0.005
+    let vs2 = v.toString({order:'key'}); 
+    should(vs2).equal('a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05');
+
+    // order:'value', minValue: 0.0005
+    let vs3 = v.toString({precision:3}); 
+    should(vs3).equal(
+      'a@1:1,a2:.988,a3:.500,a4:.490,a5:.050,a6:.049,a7:.001');
+
+    // order:'value', precision:2 minValue: 0.001
+    let vs4 = v.toString({minValue:0.001}); 
+    should(vs4).equal(
+      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0');
   });
 });
