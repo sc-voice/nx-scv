@@ -59,13 +59,32 @@ describe('text/word-vector', () => {
     should(xyz.similar(wxyz)).equal(0.8660254037844387);
     should(wxyz.similar(xyz)).equal(0.8660254037844387);
   });
-  it('intersect', () => {
-    const msg = 'tw8e.intersect:';
+  it('TESTTESThadamardL1', () => {
+    const msg = 'tw8e.hadamardL1:';
+    // L1 norm of Hadamard product
     let v1 = new WordVector({ a: 1, b: 1 });
     let v2 = new WordVector({ b: 1, c: 1 });
-    let i12 = v1.intersect(v2);
-    should.deepEqual(i12, new WordVector({ b: 1 }));
-    should.deepEqual(v1.intersect(), new WordVector({}));
+    let v3 = new WordVector({ a:1, b:0.5, c:0.1});
+
+    should.deepEqual(v1.hadamardL1(), new WordVector({}));
+
+    let i12 = v1.hadamardL1(v2);
+    should(v1.similar(v2)).equal(0.4999999999999999);
+    should.deepEqual(i12, new WordVector({ b: v1.similar(v2) }));
+
+    let i13 = v1.hadamardL1(v3);
+    should(v1.similar(v3)).equal(0.9449111825230679);
+    should.deepEqual(i13, new WordVector({ 
+      a:0.6299407883487119,
+      b:0.31497039417435596,
+    }));
+
+    should(v2.similar(v3)).equal(0.37796447300922714);
+    let i23 = v2.hadamardL1(v3);
+    should.deepEqual(i23, new WordVector({ 
+      b: 0.31497039417435596,
+      c: 0.0629940788348712,
+    }));
   });
   it('oneHot()', () => {
     let v = new WordVector({ a: 0.5, b: 2.5, c: 3, ignored: -0.1 });
@@ -78,7 +97,7 @@ describe('text/word-vector', () => {
     should(v.scale(3)).equal(v);
     should.deepEqual(v, new WordVector({ a: 3, b: 6, c: 9}));
   });
-  it('TESTTESTtoString()', () => {
+  it('toString()', () => {
     let v = new WordVector({
       'a@1':1, // non-identifier keys
       a2: 0.987654321,

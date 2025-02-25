@@ -30,7 +30,7 @@ export function testCorpus(corp) {
   should(corp.getDocument('d1')).equal(undefined);
 }
 
-describe('TESTTESTtext/corpus', () => {
+describe('text/corpus', () => {
   it('testCorpus', () => {
     let corp = new Corpus();
     testCorpus(corp);

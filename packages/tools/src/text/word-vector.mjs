@@ -59,7 +59,7 @@ export class WordVector extends Object {
     return sv.join(',');
   }
 
-  norm() {
+  norm() { // L2 norm
     let keys = Object.keys(this);
     if (keys.length === 0) {
       return 0;
@@ -114,17 +114,27 @@ export class WordVector extends Object {
     }, this);
   }
 
-  intersect(vec2 = {}) {
+  hadamardL1(vec2 = {}) { 
+    // L1-norm of Hadamard product shows how
+    // the cosine similarity score is apportioned
     let keys = Object.keys(this);
-    return keys.reduce((a, k) => {
+    let n = 0;
+    let hadamard = keys.reduce((a, k) => {
       let v1 = this[k];
       let v2 = vec2[k] || 0;
       if (v1 && v2) {
         a[k] = v1 * v2;
+        n++;
       }
 
       return a;
     }, new WordVector());
+
+    if (n === 0) {
+      return hadamard; // empty vector
+    }
+    let n12 = this.norm() * vec2.norm();
+    return hadamard.scale(1/n12);
   }
 
   similar(vec2) {
@@ -135,8 +145,8 @@ export class WordVector extends Object {
     let d = this.dot(vec2);
     let norm1 = this.norm();
     let norm2 = vec2.norm();
-    let den = norm1 * norm2;
-    return den ? d / den : 0;
+    let n12 = norm1 * norm2;
+    return n12 ? d / n12 : 0;
   }
 
   oneHot() {

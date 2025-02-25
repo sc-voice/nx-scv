@@ -26,7 +26,7 @@ const wsTest = new TfidfSpace(WSTEST_CONFIG);
 
 import { testCorpus } from './corpus.mjs';
 
-describe('TESTTESTtext/tfidf-space', () => {
+describe('text/tfidf-space', () => {
   it('default ctor', () => {
     let ws = new TfidfSpace();
     testCorpus(ws.corpus);
@@ -64,7 +64,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     );
     should(v.length).equal(8);
   });
-  it('TESTTESTTfidSpace.normalizeFR()', () => {
+  it('TfidSpace.normalizeFR()', () => {
     let { normalizeFR } = TfidfSpace;
     should(normalizeFR("d'entendu")).equal('de entendu');
     should(normalizeFR('L’effacement de')).equal('le effacement de');
@@ -76,7 +76,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(normalizeFR('mal’')).equal('mal');
     should(normalizeFR('j’ai')).equal('j_ai');
   });
-  it('TESTTESTnormalizeText() FR phrase', () => {
+  it('normalizeText() FR phrase', () => {
     let lang = 'fr';
     let leftQuoteToken = '__LQUOTE '; // TBD: is this useful?
     let ws = new TfidfSpace({ lang, leftQuoteToken });
@@ -301,7 +301,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(ws.termFrequency('a', docs[0])).equal(0.4);
     should(ws.termFrequency('human', docs[0])).equal(0);
   });
-  it('TESTTESTtfidf()', () => {
+  it('tfidf()', () => {
     const msg = 'tt8e.tfidf:';
     let ws = new TfidfSpace();
     let docs = [

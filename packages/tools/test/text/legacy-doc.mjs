@@ -122,7 +122,7 @@ describe('text/legacy-doc', () => {
       );
     }
   });
-  it('TESTTESTfetchLegacy-mn8-fr', async () => {
+  it('fetchLegacy-mn8-fr', async () => {
     const msg = 'TL7c.fetchLegacy-mn8-fr:';
     let res =  mn8MohanApiCache('http://ignored');
     let cache = DBG.L7C_FETCH_LEGACY_SC ? undefined : mn8MohanApiCache;
