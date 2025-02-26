@@ -127,4 +127,14 @@ describe('text/word-vector', () => {
     should(vs4).equal(
       'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0');
   });
+  it("TESTTESTandOneHot()", () => {
+    let v1 = new WordVector({a:1, b:0.5, c:2});
+    let v2 = new WordVector({b:1, c:3, d:4});
+    should.deepEqual(v1.andOneHot(v2), new WordVector({b:1,c:1}));
+  });
+  it("TESTTESTorOneHot()", () => {
+    let v1 = new WordVector({a:1, b:0.5, c:2});
+    let v2 = new WordVector({b:1, c:3, d:4});
+    should.deepEqual(v1.orOneHot(v2), new WordVector({a:1,b:1,c:1,d:1}));
+  });
 });

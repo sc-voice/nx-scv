@@ -157,4 +157,29 @@ export class WordVector extends Object {
       return a;
     }, new WordVector());
   }
+
+  andOneHot(vec2) {
+    return Object.keys(this).reduce((a, k) => {
+      if (this[k] && vec2[k]) {
+        a[k] = 1;
+      }
+      return a;
+    }, new WordVector());
+  }
+
+  orOneHot(vec2) {
+    let result = Object.keys(this).reduce((a, k) => {
+      if (this[k] || vec2[k]) {
+        a[k] = 1;
+      }
+      return a;
+    }, new WordVector());
+    return Object.keys(vec2).reduce((a, k) => {
+      if (this[k] || vec2[k]) {
+        a[k] = 1;
+      }
+      return a;
+    }, result);
+  }
+
 } // WordVector
