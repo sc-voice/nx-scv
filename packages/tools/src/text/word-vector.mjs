@@ -49,9 +49,10 @@ export class WordVector extends Object {
     let sv = entries.reduce((a, e) => {
       let [k, v] = e;
       if (minValue <= v) {
-        let vf = v.toFixed(precision)
+        let vf = v
+          .toFixed(precision)
           .replace(/\.0*$/, '')
-          .replace(/0\./,'.');
+          .replace(/0\./, '.');
         a.push(`${k}:${vf}`);
       }
       return a;
@@ -59,7 +60,8 @@ export class WordVector extends Object {
     return sv.join(',');
   }
 
-  norm() { // L2 norm
+  norm() {
+    // L2 norm
     let keys = Object.keys(this);
     if (keys.length === 0) {
       return 0;
@@ -74,9 +76,10 @@ export class WordVector extends Object {
   add(vec2) {
     let keys = Object.keys(vec2);
     return keys.reduce((a, k) => {
+      let v1 = a[k] || 0;
       let v2 = vec2[k];
       if (v2) {
-        a[k] = (a[k] || 0) + v2;
+        a[k] = v1 + v2;
       }
       return a;
     }, new WordVector(this));
@@ -85,12 +88,26 @@ export class WordVector extends Object {
   increment(vec2) {
     let keys = Object.keys(vec2);
     return keys.reduce((a, k) => {
+      let v1 = a[k] || 0;
       let v2 = vec2[k];
       if (v2) {
-        a[k] = (a[k] || 0) + v2;
+        a[k] = v1 + v2;
       }
       return a;
     }, this);
+  }
+
+  multiply(vec2) {
+    const msg = 'w8r.multiply:';
+    let keys = Object.keys(vec2);
+    return keys.reduce((a, k) => {
+      let v1 = this[k];
+      let v2 = vec2[k];
+      if (v1 && v2) {
+        a[k] = v1 * v2;
+      }
+      return a;
+    }, new WordVector({}));
   }
 
   dot(vec2) {
@@ -114,7 +131,7 @@ export class WordVector extends Object {
     }, this);
   }
 
-  hadamardL1(vec2 = {}) { 
+  hadamardL1(vec2 = {}) {
     // L1-norm of Hadamard product shows how
     // the cosine similarity score is apportioned
     let keys = Object.keys(this);
@@ -134,7 +151,7 @@ export class WordVector extends Object {
       return hadamard; // empty vector
     }
     let n12 = this.norm() * vec2.norm();
-    return hadamard.scale(1/n12);
+    return hadamard.scale(1 / n12);
   }
 
   similar(vec2) {
@@ -181,5 +198,4 @@ export class WordVector extends Object {
       return a;
     }, result);
   }
-
 } // WordVector

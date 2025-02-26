@@ -52,7 +52,7 @@ export class TfidfSpace {
     return s.replace(/<[^>]*>/gi, '');
   }
 
-  static removeNonWords(s, opts={}) {
+  static removeNonWords(s, opts = {}) {
     const RE_RESERVED = /[_-]/g; // allowed in bow words
     const RE_LQUOTE = /[“‘«]/g;
     const RE_PUNCT = /[.,:;$"'“”‘’!?«»\[\]]/g;
@@ -67,11 +67,11 @@ export class TfidfSpace {
       .trim();
   }
 
-  static normalizeEN(s, opts={}) {
+  static normalizeEN(s, opts = {}) {
     return TfidfSpace.removeNonWords(s.toLowerCase(), opts);
   }
 
-  static normalizeFR(s, opts={}) {
+  static normalizeFR(s, opts = {}) {
     let sAbbr = s
       .toLowerCase()
       .replace(/\bd[’']/gi, 'de ')

@@ -170,57 +170,69 @@ describe('text/tfidf-space', () => {
     should(ws.idf('cat', 1.1)).equal(0.8891968416376661);
     should(ws.idf('canine', 1.0)).equal(0.3934693402873666);
   });
-  it('idfStandard/idfTunable', ()=>{
+  it('idfStandard/idfTunable', () => {
     const msg = 'tt8e.idfStandard-idfTunable:';
     let { idfStandard, idfTunable } = TfidfSpace;
     let nDocs = 5;
     let wdc = []; // word document count
-    for (let i=0; i<=nDocs; i++) {
+    for (let i = 0; i <= nDocs; i++) {
       wdc.push(i);
     }
 
     // Standard IDF doesn't map to [0..1] and is not tunable
     let ignored = Math.NaN; // don't care
-    should.deepEqual(wdc.map(c=>idfStandard(nDocs,c,ignored)), [
-      1.791759469228055, // Outside [0..1]
-      1.0986122886681096, // Outside [0..1]
-      0.6931471805599453,
-      0.4054651081081644,
-      0.1823215567939546,
-      0,
-    ]);
+    should.deepEqual(
+      wdc.map((c) => idfStandard(nDocs, c, ignored)),
+      [
+        1.791759469228055, // Outside [0..1]
+        1.0986122886681096, // Outside [0..1]
+        0.6931471805599453,
+        0.4054651081081644,
+        0.1823215567939546,
+        0,
+      ],
+    );
 
-    // Tunable IDF maps to [0..1] and is tunable for 
+    // Tunable IDF maps to [0..1] and is tunable for
     // sensitivity to rarity
     let weight1 = 1.618033988749895; // default weight
-    should.deepEqual(wdc.map(c=>idfTunable(nDocs,c,weight1)), [
-      1, // not in corpus
-      0.9984540798120182, // in 1 document of corpus
-      0.9117031621211354,
-      0.6599590834550455,
-      0.33269528758743183, // in all but 1 document of corpus
-      0 
-    ]);
+    should.deepEqual(
+      wdc.map((c) => idfTunable(nDocs, c, weight1)),
+      [
+        1, // not in corpus
+        0.9984540798120182, // in 1 document of corpus
+        0.9117031621211354,
+        0.6599590834550455,
+        0.33269528758743183, // in all but 1 document of corpus
+        0,
+      ],
+    );
 
     let weight2 = 1; // less sensitive to rarity
-    should.deepEqual(wdc.map(c=>idfTunable(nDocs,c,weight2)), [
-      1, // not in corpus
-      0.9816843611112658, // in 1 document of corpus
-      0.7768698398515702,
-      0.486582880967408,
-      0.22119921692859512, // in all but 1 document of corpus
-      0 
-    ]);
+    should.deepEqual(
+      wdc.map((c) => idfTunable(nDocs, c, weight2)),
+      [
+        1, // not in corpus
+        0.9816843611112658, // in 1 document of corpus
+        0.7768698398515702,
+        0.486582880967408,
+        0.22119921692859512, // in all but 1 document of corpus
+        0,
+      ],
+    );
 
     let weightLow = 0.1; // very sensitive to rarity
-    should.deepEqual(wdc.map(c=>idfTunable(nDocs,c,weightLow)), [
-      1, // not in corpus
-      0.3296799539643607, // in 1 document
-      0.1392920235749422,
-      0.06449301496838222,
-      0.024690087971667385, // in all but 1 document
-      0 
-    ]);
+    should.deepEqual(
+      wdc.map((c) => idfTunable(nDocs, c, weightLow)),
+      [
+        1, // not in corpus
+        0.3296799539643607, // in 1 document
+        0.1392920235749422,
+        0.06449301496838222,
+        0.024690087971667385, // in all but 1 document
+        0,
+      ],
+    );
   });
   it('idfStandard', () => {
     const msg = 'tt8e.idfStandard2:';
@@ -398,17 +410,20 @@ describe('text/tfidf-space', () => {
       0.5669248158502489, // the cat is a feline
     ]);
   });
-  it("addCorpusDocument()", () => {
+  it('addCorpusDocument()', () => {
     let ws = new TfidfSpace();
     let id = 'test-id';
-    let bow = new WordVector({a:1, b:5}); // not 1-hot!
+    let bow = new WordVector({ a: 1, b: 5 }); // not 1-hot!
     let nWords = bow.a + bow.b;
     let docInfo = ws.addCorpusDocument(id, bow);
     should.deepEqual(docInfo, { id, bow, nWords });
     should(ws.corpus.getDocument(id)).equal(docInfo);
-    should.deepEqual(ws.corpus.wordDocCount, new WordVector({
-      a:1, // 1-hot
-      b:1, // 1-hot
-    }));
+    should.deepEqual(
+      ws.corpus.wordDocCount,
+      new WordVector({
+        a: 1, // 1-hot
+        b: 1, // 1-hot
+      }),
+    );
   });
 });

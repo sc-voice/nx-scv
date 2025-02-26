@@ -28,6 +28,16 @@ describe('text/word-vector', () => {
     let xy = new WordVector({ x: 10, y: 20 });
     should(xy.norm()).equal(Math.sqrt(100 + 400));
   });
+  it('TESTTESTmultiply()', () => {
+    const msg = 'tw8r.multiply:';
+    let abc = new WordVector({ a: 1, b: 2, c: 3 });
+    should.deepEqual(
+      abc.multiply(abc),
+      new WordVector({ a: 1, b: 4, c: 9 }),
+    );
+    let mask = new WordVector({ a: 1, d: 1 });
+    should.deepEqual(abc.multiply(mask), new WordVector({ a: 1 }));
+  });
   it('dot()', () => {
     let abc = new WordVector({ a: 1, b: 2, c: 3 });
     should(abc.dot(abc)).equal(14);
@@ -64,7 +74,7 @@ describe('text/word-vector', () => {
     // L1 norm of Hadamard product
     let v1 = new WordVector({ a: 1, b: 1 });
     let v2 = new WordVector({ b: 1, c: 1 });
-    let v3 = new WordVector({ a:1, b:0.5, c:0.1});
+    let v3 = new WordVector({ a: 1, b: 0.5, c: 0.1 });
 
     should.deepEqual(v1.hadamardL1(), new WordVector({}));
 
@@ -74,17 +84,23 @@ describe('text/word-vector', () => {
 
     let i13 = v1.hadamardL1(v3);
     should(v1.similar(v3)).equal(0.9449111825230679);
-    should.deepEqual(i13, new WordVector({ 
-      a:0.6299407883487119,
-      b:0.31497039417435596,
-    }));
+    should.deepEqual(
+      i13,
+      new WordVector({
+        a: 0.6299407883487119,
+        b: 0.31497039417435596,
+      }),
+    );
 
     should(v2.similar(v3)).equal(0.37796447300922714);
     let i23 = v2.hadamardL1(v3);
-    should.deepEqual(i23, new WordVector({ 
-      b: 0.31497039417435596,
-      c: 0.0629940788348712,
-    }));
+    should.deepEqual(
+      i23,
+      new WordVector({
+        b: 0.31497039417435596,
+        c: 0.0629940788348712,
+      }),
+    );
   });
   it('oneHot()', () => {
     let v = new WordVector({ a: 0.5, b: 2.5, c: 3, ignored: -0.1 });
@@ -95,11 +111,11 @@ describe('text/word-vector', () => {
   it('scale()', () => {
     let v = new WordVector({ a: 1, b: 2, c: 3 });
     should(v.scale(3)).equal(v);
-    should.deepEqual(v, new WordVector({ a: 3, b: 6, c: 9}));
+    should.deepEqual(v, new WordVector({ a: 3, b: 6, c: 9 }));
   });
   it('toString()', () => {
     let v = new WordVector({
-      'a@1':1, // non-identifier keys
+      'a@1': 1, // non-identifier keys
       a2: 0.987654321,
       a3: 0.5,
       a4: 0.49,
@@ -110,31 +126,39 @@ describe('text/word-vector', () => {
     });
 
     // precision 1, minValue: 0.05
-    let vs1 = v.toString({precision:1}); 
+    let vs1 = v.toString({ precision: 1 });
     should(vs1).equal('a@1:1,a2:1,a3:.5,a4:.5,a5:.1');
 
     // precision 2, minValue: 0.005
-    let vs2 = v.toString({order:'key'}); 
+    let vs2 = v.toString({ order: 'key' });
     should(vs2).equal('a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05');
 
     // order:'value', minValue: 0.0005
-    let vs3 = v.toString({precision:3}); 
+    let vs3 = v.toString({ precision: 3 });
     should(vs3).equal(
-      'a@1:1,a2:.988,a3:.500,a4:.490,a5:.050,a6:.049,a7:.001');
+      'a@1:1,a2:.988,a3:.500,a4:.490,a5:.050,a6:.049,a7:.001',
+    );
 
     // order:'value', precision:2 minValue: 0.001
-    let vs4 = v.toString({minValue:0.001}); 
+    let vs4 = v.toString({ minValue: 0.001 });
     should(vs4).equal(
-      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0');
+      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0',
+    );
   });
-  it("TESTTESTandOneHot()", () => {
-    let v1 = new WordVector({a:1, b:0.5, c:2});
-    let v2 = new WordVector({b:1, c:3, d:4});
-    should.deepEqual(v1.andOneHot(v2), new WordVector({b:1,c:1}));
+  it('TESTTESTandOneHot()', () => {
+    let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
+    let v2 = new WordVector({ b: 1, c: 3, d: 4 });
+    should.deepEqual(
+      v1.andOneHot(v2),
+      new WordVector({ b: 1, c: 1 }),
+    );
   });
-  it("TESTTESTorOneHot()", () => {
-    let v1 = new WordVector({a:1, b:0.5, c:2});
-    let v2 = new WordVector({b:1, c:3, d:4});
-    should.deepEqual(v1.orOneHot(v2), new WordVector({a:1,b:1,c:1,d:1}));
+  it('TESTTESTorOneHot()', () => {
+    let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
+    let v2 = new WordVector({ b: 1, c: 3, d: 4 });
+    should.deepEqual(
+      v1.orOneHot(v2),
+      new WordVector({ a: 1, b: 1, c: 1, d: 1 }),
+    );
   });
 });

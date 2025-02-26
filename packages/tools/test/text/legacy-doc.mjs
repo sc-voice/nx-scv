@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import should from 'should';
-import { DBG } from '../../src/defines.mjs';
 import { Text } from '../../index.mjs';
+import { DBG } from '../../src/defines.mjs';
 const { LegacyDoc } = Text;
 const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, '../data');
@@ -17,8 +17,7 @@ function mn8MohanApiCache(url) {
       let json = JSON.parse(fs.readFileSync(fpath));
       return json;
     },
-  }
-  
+  };
 }
 
 const TEST_DOC = {
@@ -124,8 +123,10 @@ describe('text/legacy-doc', () => {
   });
   it('fetchLegacy-mn8-fr', async () => {
     const msg = 'TL7c.fetchLegacy-mn8-fr:';
-    let res =  mn8MohanApiCache('http://ignored');
-    let cache = DBG.L7C_FETCH_LEGACY_SC ? undefined : mn8MohanApiCache;
+    let res = mn8MohanApiCache('http://ignored');
+    let cache = DBG.L7C_FETCH_LEGACY_SC
+      ? undefined
+      : mn8MohanApiCache;
     should(res.ok).equal(true);
     let json = await res.json();
     should(json.root_text.uid).equal('mn8');

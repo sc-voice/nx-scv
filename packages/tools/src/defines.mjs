@@ -9,6 +9,6 @@ export const DBG = {
   DEEPL_TEST_API: 0, // test with live DeepL API ($$$)
   DEEPL_XLT: 0, // test live translation
   L7C_FETCH_LEGACY: 0,
-  L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC 
+  L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
   WORD_MAP_TRANFORMER: 0,
 };

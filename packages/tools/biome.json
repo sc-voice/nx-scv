@@ -38,6 +38,7 @@
       },
       "style": {
         "useConst": "off",
+        "useExponentiationOperator": "off",
         "noParameterAssign": "off",
         "useTemplate": "off",
         "noUnusedTemplateLiteral": "off",

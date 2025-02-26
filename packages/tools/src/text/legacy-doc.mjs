@@ -37,7 +37,7 @@ export class LegacyDoc {
     return true;
   }
 
-  static legacyUrl(opts={}) {
+  static legacyUrl(opts = {}) {
     let {
       endPoint = 'https://suttacentral.net/api/suttas',
       sutta_uid,
@@ -51,17 +51,14 @@ export class LegacyDoc {
   static async fetchLegacy(opts = {}) {
     const msg = 'L7c.fetchLegacy:';
     const dbg = DBG.L7C_FETCH_LEGACY;
-    let {
-      maxBuffer = 10 * 1024 * 1024,
-      cache,
-    } = opts;
+    let { maxBuffer = 10 * 1024 * 1024, cache } = opts;
     let url = LegacyDoc.legacyUrl(opts);
     let res;
     if (cache) {
       res = cache(url);
       dbg && console.log(msg, '[1]cached', res.ok);
     } else {
-      res = await fetch(url, {maxBuffer});
+      res = await fetch(url, { maxBuffer });
       dbg && console.log(msg, '[2]scapi', res.ok);
     }
     if (!res.ok) {
