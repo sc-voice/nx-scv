@@ -1,8 +1,10 @@
 
 import { Fraction } from './src/math/fraction.mjs';
+import { Interval } from './src/math/interval.mjs';
 
 export const ScvMath = {
   Fraction,
+  Interval,
 };
 
 import { BilaraPath } from './src/text/bilara-path.mjs';

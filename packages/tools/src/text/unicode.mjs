@@ -187,6 +187,9 @@ let ROMANIZE_MAP = {
 };
 
 export class Unicode {
+  static get INFINITY() {
+    return '\u221E';
+  }
   static get LSQUOTE() {
     return '\u2018';
   }
