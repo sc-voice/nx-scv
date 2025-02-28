@@ -1,4 +1,8 @@
 import { Unicode } from '../text/unicode.mjs';
+const { INFINITY } = Unicode;
+
+const MINUS_INFINITY = `-${INFINITY}`;
+const PLUS_INFINITY = `+${INFINITY}`;
 
 export class Interval {
   constructor(a, b) {
@@ -10,41 +14,49 @@ export class Interval {
     let an = typeof a === 'number' && !Number.isNaN(a);
     let bn = typeof b === 'number' && !Number.isNaN(b);
 
+    let isClosed = true;
     if (an && bn) {
       dbg && console.log(msg, 'an bn');
       lo = a;
       hi = b;
-      this.isClosed = true;
+      isClosed = true;
     } else if (an) {
       dbg && console.log(msg, 'an');
       lo = a;
-      hi = Interval.INFINITY;
-      this.isClosed = false;
+      hi = INFINITY;
+      isClosed = false;
     } else if (bn) {
       dbg && console.log(msg, 'bn');
-      lo = Interval.INFINITY;
+      lo = INFINITY;
       hi = b;
-      this.isClosed = false;
+      isClosed = false;
     } else {
       dbg && console.log(msg, '!an !bn');
-      this.isClosed = false;
+      isClosed = false;
     }
 
-    Object.defineProperty(this, 'lo', { value: lo });
-    Object.defineProperty(this, 'hi', { value: hi });
+    Object.defineProperty(this, 'isClosed', {
+      value: isClosed,
+    });
+    Object.defineProperty(this, 'lo', {
+      enumerable: true,
+      value: lo,
+    });
+    Object.defineProperty(this, 'hi', {
+      enumerable: true,
+      value: hi,
+    });
   }
 
-  static get INFINITY() {
-    return Unicode.INFINITY;
-  }
+  static get INFINITY() { return INFINITY; }
 
   get isEmpty() {
     if (this.lo === null && this.hi === null) {
       return true;
     }
     if (
-      this.lo === Interval.INFINITY ||
-      this.hi === Interval.INFINITY
+      this.lo === INFINITY ||
+      this.hi === INFINITY
     ) {
       return false;
     }
@@ -52,15 +64,11 @@ export class Interval {
   }
 
   get infimum() {
-    return this.lo === Interval.INFINITY
-      ? '-' + Interval.INFINITY
-      : this.lo;
+    return this.lo === INFINITY ? MINUS_INFINITY : this.lo;
   }
 
   get supremum() {
-    return this.hi === Interval.INFINITY
-      ? '+' + Interval.INFINITY
-      : this.hi;
+    return this.hi === INFINITY ? PLUS_INFINITY : this.hi;
   }
 
   contains(num) {
@@ -68,10 +76,10 @@ export class Interval {
       return false;
     }
     let { lo, hi } = this;
-    if (lo === Interval.INFINITY) {
+    if (lo === INFINITY) {
       throw new Error(`${msg}TBD`);
     }
-    if (hi === Interval.INFINITY) {
+    if (hi === INFINITY) {
       throw new Error(`${msg}TBD`);
     }
     if (lo < num && num < hi) {
@@ -80,5 +88,18 @@ export class Interval {
     if (num < lo || hi < num) {
       return false;
     }
+
+    return true;
+  }
+
+  toString() {
+    let { lo, hi } = this;
+    return [
+      lo === INFINITY ? '(' : '[',
+      lo === INFINITY ? MINUS_INFINITY : lo,
+      lo === hi ? '' : ',',
+      hi === INFINITY ? PLUS_INFINITY : hi,
+      hi === INFINITY ? ')' : ']',
+    ].join('');
   }
 }
