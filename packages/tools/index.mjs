@@ -18,9 +18,11 @@ import { WordSpace } from './src/text/word-space.mjs';
 import { WordVector } from './src/text/word-vector.mjs';
 import { TfidfSpace } from './src/text/tfidf-space.mjs';
 import { LogEntry, Logger } from './src/text/logger.mjs';
+import { ColorConsole} from './src/text/color-console.mjs';
 
 export const Text = {
   BilaraPath,
+  ColorConsole,
   Corpus,
   EbtDoc,
   LegacyDoc,

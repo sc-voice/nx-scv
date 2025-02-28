@@ -48,16 +48,15 @@ export class Interval {
     });
   }
 
-  static get INFINITY() { return INFINITY; }
+  static get INFINITY() {
+    return INFINITY;
+  }
 
   get isEmpty() {
     if (this.lo === null && this.hi === null) {
       return true;
     }
-    if (
-      this.lo === INFINITY ||
-      this.hi === INFINITY
-    ) {
+    if (this.lo === INFINITY || this.hi === INFINITY) {
       return false;
     }
     return this.hi < this.lo;
