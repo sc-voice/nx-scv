@@ -93,6 +93,15 @@ export class Interval {
 
   toString() {
     let { lo, hi } = this;
+    if (lo === hi) {
+      return [
+        lo === INFINITY ? '(' : '[',
+        lo === INFINITY ? MINUS_INFINITY : lo,
+        lo == null ? '' : ',',
+        hi === INFINITY ? PLUS_INFINITY : hi,
+        hi === INFINITY ? ')' : ']',
+      ].join('');
+    }
     return [
       lo === INFINITY ? '(' : '[',
       lo === INFINITY ? MINUS_INFINITY : lo,

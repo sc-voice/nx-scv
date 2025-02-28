@@ -16,6 +16,15 @@ describe('TESTTESTscv-math/interval', () => {
     should(iv.isEmpty).equal(true);
     should(iv.toString()).equal('[]');
   });
+  it('[1,1]', () => {
+    let iv = new Interval(1,1);
+    should(iv).properties({ lo: 1, hi: 1 });
+    should(iv.isClosed).equal(true);
+    should(iv.infimum).equal(1);
+    should(iv.supremum).equal(1);
+    should(iv.isEmpty).equal(false);
+    should(iv.toString()).equal(`[1,1]`);
+  });
   it('[1, +infinity)', () => {
     let iv = new Interval(1);
     should(iv).properties({ lo: 1, hi: Interval.INFINITY });

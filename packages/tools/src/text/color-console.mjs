@@ -65,13 +65,22 @@ export class ColorConsole {
     });
   }
 
-  fyi(msg, ...rest) {
+  fyi(...rest) {
+    return this.fyi2(...rest);
+  }
+
+  fyi1(...rest) {
     let color = this.colorFyi1;
-    this.write(...this.color(color, rest));
+    this.write(...this.color(color, ...rest));
+  }
+
+  fyi2(...rest) {
+    let color = this.colorFyi2;
+    this.write(...this.color(color, ...rest));
   }
 
   ok(...rest) {
-    return this.ok1(...rest);
+    return this.ok2(...rest);
   }
 
   ok1(...rest) {
@@ -85,7 +94,7 @@ export class ColorConsole {
   }
 
   bad(...rest) {
-    return this.bad1(...rest);
+    return this.bad2(...rest);
   }
 
   bad1(...rest) {
