@@ -5,9 +5,14 @@ const { ColorConsole, Corpus } = Text;
 describe('TESTTESTtext/color-console', () => {
   it('default ctor', () => {
     let cc = new ColorConsole();
-    cc.ok1('test_ok1', 1, 'hello', { a: 1, b: 2 });
-    cc.ok2('test_ok2', 2, 'hello', { a: 1, b: 2 });
 
+    cc.fyi('test_fyi', 1, 'hello', { a: 1, b: 2 });
+
+    cc.ok('test_ok1'+'@1', 'hello', { a: 1, b: 2 });
+    cc.ok1('test_ok1'+'@1', 'hello', { a: 1, b: 2 });
+    cc.ok2('test_ok2', '@2', 'hello', { a: 1, b: 2 });
+
+    cc.bad('test_bad', 1, 'hello', { a: 1, b: 2 });
     cc.bad1('test_bad1', 1, 'hello', { a: 1, b: 2 });
     cc.bad2('test_bad2', 2, 'hello', { a: 1, b: 2 });
 

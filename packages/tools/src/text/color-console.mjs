@@ -26,7 +26,7 @@ export class ColorConsole {
       write = (...args) => console.log.call(null, ...args),
       colorOk1 = BRIGHT_GREEN,
       colorOk2 = GREEN,
-      colorFYI1 = BRIGHT_BLACK,
+      colorFyi1 = BRIGHT_BLACK,
       colorBad1 = BRIGHT_RED,
       colorBad2 = RED,
       colorTag1 = CYAN,
@@ -39,7 +39,7 @@ export class ColorConsole {
       write,
       colorOk1,
       colorOk2,
-      colorFYI1,
+      colorFyi1,
       colorBad1,
       colorBad2,
       colorTag1,
@@ -65,47 +65,56 @@ export class ColorConsole {
     });
   }
 
-  msgLvl(color, msg, lvl, rest) {
-    return this.color(color, msg + (lvl ? `@${lvl}` : ''), ...rest);
+  fyi(msg, ...rest) {
+    let color = this.colorFyi1;
+    this.write(...this.color(color, rest));
   }
 
-  ok1(msg, lvl, ...rest) {
+  ok(...rest) {
+    return this.ok1(...rest);
+  }
+
+  ok1(...rest) {
     let color = this.colorOk1;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
-  ok2(msg, lvl, ...rest) {
+  ok2(...rest) {
     let color = this.colorOk2;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
-  bad1(msg, lvl, ...rest) {
+  bad(...rest) {
+    return this.bad1(...rest);
+  }
+
+  bad1(...rest) {
     let color = this.colorBad1;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
-  bad2(msg, lvl, ...rest) {
+  bad2(...rest) {
     let color = this.colorBad2;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
-  tag1(msg, lvl, ...rest) {
+  tag1(...rest) {
     let color = this.colorTag1;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
-  tag2(msg, lvl, ...rest) {
+  tag2(...rest) {
     let color = this.colorTag2;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
   tag3(msg, lvl, ...rest) {
     let color = this.colorTag3;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 
   tag4(msg, lvl, ...rest) {
     let color = this.colorTag4;
-    this.write(...this.msgLvl(color, msg, lvl, rest));
+    this.write(...this.color(color, ...rest));
   }
 }
