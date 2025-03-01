@@ -23,46 +23,66 @@ const {
 export class ColorConsole {
   constructor(opts = {}) {
     let {
-      write = (...args) => console.log.call(null, ...args),
-      colorOk1 = BRIGHT_GREEN,
-      colorOk2 = GREEN,
-      colorFyi1 = BRIGHT_BLACK,
       colorBad1 = BRIGHT_RED,
       colorBad2 = RED,
+      colorFyi1 = BRIGHT_WHITE,
+      colorFyi2 = BRIGHT_BLACK,
+      colorOk1 = BRIGHT_GREEN,
+      colorOk2 = GREEN,
       colorTag1 = CYAN,
       colorTag2 = BRIGHT_CYAN,
       colorTag3 = MAGENTA,
       colorTag4 = BRIGHT_MAGENTA,
+      precision = 3,
+      write = (...args) => console.log.call(null, ...args),
+
     } = opts;
 
     Object.assign(this, {
-      write,
-      colorOk1,
-      colorOk2,
-      colorFyi1,
       colorBad1,
       colorBad2,
+      colorFyi1,
+      colorFyi2,
+      colorOk1,
+      colorOk2,
       colorTag1,
       colorTag2,
       colorTag3,
       colorTag4,
+      precision,
+      write,
+
     });
   }
 
   color(color, ...things) {
-    return things.map((thing) => {
+    let { precision } = this;
+    let label = '';
+    return things.reduce((a,thing) => {
+      let newLabel = '';
       switch (typeof thing) {
         case 'object':
           // TODO: pretty objects like console
-          return thing;
+          label && a.push(label);
+          a.push(thing);
+          break;
         case 'string':
-          return `${color}${thing}${NO_COLOR}`;
+          if (thing.endsWith(':')) {
+            newLabel = NO_COLOR+thing;
+          } else {
+            a.push(label+color+thing+NO_COLOR);
+          }
+          break;
         case 'number':
-          return `${GREEN}${thing}${NO_COLOR}`;
+          a.push(label+GREEN+thing.toFixed(precision)+NO_COLOR);
+          break;
         default:
-          return `${color}${JSON.stringify(thing)}${NO_COLOR}`;
+          a.push(label+color+JSON.stringify(thing)+NO_COLOR);
+          break;
       }
-    });
+      label = newLabel;
+      return a;
+    }, []);
   }
 
   fyi(...rest) {
@@ -117,12 +137,12 @@ export class ColorConsole {
     this.write(...this.color(color, ...rest));
   }
 
-  tag3(msg, lvl, ...rest) {
+  tag3(...rest) {
     let color = this.colorTag3;
     this.write(...this.color(color, ...rest));
   }
 
-  tag4(msg, lvl, ...rest) {
+  tag4(...rest) {
     let color = this.colorTag4;
     this.write(...this.color(color, ...rest));
   }

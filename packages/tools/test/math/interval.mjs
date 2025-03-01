@@ -17,7 +17,7 @@ describe('TESTTESTscv-math/interval', () => {
     should(iv.toString()).equal('[]');
   });
   it('[1,1]', () => {
-    let iv = new Interval(1,1);
+    let iv = new Interval(1, 1);
     should(iv).properties({ lo: 1, hi: 1 });
     should(iv.isClosed).equal(true);
     should(iv.infimum).equal(1);
