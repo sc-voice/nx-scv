@@ -73,9 +73,14 @@ export class ColorConsole {
             a.push(label+color+thing+NO_COLOR);
           }
           break;
-        case 'number':
-          a.push(label+GREEN+thing.toFixed(precision)+NO_COLOR);
+        case 'number': {
+          let v = thing.toFixed(precision);
+          if (thing === Number(v)) {
+            v = v.replace(/\.?0+$/, '')
+          }
+          a.push(label+GREEN+v+NO_COLOR);
           break;
+        }
         default:
           a.push(label+color+JSON.stringify(thing)+NO_COLOR);
           break;

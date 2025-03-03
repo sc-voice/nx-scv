@@ -25,11 +25,15 @@ const {
 
 describe('TESTTESTtext/color-console', () => {
   it('default ctor', () => {
-    let cc = new ColorConsole();
+    let precision = 3; // default
+    let cc = new ColorConsole({precision});
     let rest = [
-      'hello', // string
+      'abc', // string
       'pi:', // label
-      Math.PI, // number
+      1.1234, // show as 1.123 (round down)
+      1.0009, // show as 1.001 (round up)
+      1.1, // show as 1.1 (exact)
+      1, // show as 1 (exact)
       {a:1, b:'red'}, // object
       true, // boolean
       null,
