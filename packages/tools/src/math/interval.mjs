@@ -16,6 +16,9 @@ export class Interval {
 
     let isClosed = true;
     if (an && bn) {
+      if (b < a) {
+        throw new Error(`${msg} invalid interval ${b}<${a}?`);
+      }
       dbg && console.log(msg, 'an bn');
       lo = a;
       hi = b;
@@ -109,5 +112,18 @@ export class Interval {
       hi === INFINITY ? PLUS_INFINITY : hi,
       hi === INFINITY ? ')' : ']',
     ].join('');
+  }
+
+  overlaps(iv2) {
+    const msg = 'i6l.overlaps';
+    let { lo:lo1, hi:hi1 } = this;
+    let { lo:lo2, hi:hi2 } = iv2;
+
+    //console.log(msg, {lo1, lo2, hi1, hi2});
+    return (
+      (lo2 <= lo1 && lo1 <= hi2) ||
+      (lo2 <= hi1 && hi1 <= hi2) ||
+      (lo1 <= lo2 && lo2 <= hi1)
+    );
   }
 }

@@ -16,6 +16,13 @@ describe('TESTTESTscv-math/interval', () => {
     should(iv.isEmpty).equal(true);
     should(iv.toString()).equal('[]');
   });
+  it('[3,2]', () => {
+    let eCaught;
+    try {
+      new Interval(3,2);
+    } catch(e) { eCaught = e; }
+    should(eCaught.message).match(/invalid interval/);
+  });
   it('[1,1]', () => {
     let iv = new Interval(1, 1);
     should(iv).properties({ lo: 1, hi: 1 });
@@ -53,16 +60,6 @@ describe('TESTTESTscv-math/interval', () => {
     should(iv.contains(2)).equal(true);
     should(iv.toString()).equal(`[1,2]`);
   });
-  it('[2,1]', () => {
-    let iv = new Interval(2, 1);
-    should(iv).properties({ lo: 2, hi: 1 });
-    should(iv.isClosed).equal(true);
-    should(iv.infimum).equal(2);
-    should(iv.supremum).equal(1);
-    should(iv.isEmpty).equal(true);
-    should(iv.contains(2)).equal(false);
-    should(iv.toString()).equal(`[2,1]`);
-  });
   it('[-1,PI]', () => {
     let iv = new Interval(-1, Math.PI);
     should(iv).properties({ lo: -1, hi: Math.PI });
@@ -71,5 +68,34 @@ describe('TESTTESTscv-math/interval', () => {
     should(iv.supremum).equal(Math.PI);
     should(iv.isEmpty).equal(false);
     should(iv.toString()).equal(`[-1,${Math.PI}]`);
+  });
+  it('overlaps', () => {
+    let i1_5 = new Interval(1,5);
+    let i2_3 = new Interval(2,3);
+    let i6_9 = new Interval(6,9);
+    let i3_7 = new Interval(3,7);
+    let i4 = new Interval(4,4);
+
+    // degenerate
+    should(i4.overlaps(i4)).equal(true);
+    should(i4.overlaps(i1_5)).equal(true);
+    should(i4.overlaps(i2_3)).equal(false);
+
+    // subset
+    should(i1_5.overlaps(i1_5)).equal(true);
+    should(i2_3.overlaps(i1_5)).equal(true);
+    should(i1_5.overlaps(i2_3)).equal(true);
+
+    // partial overlap
+    should(i1_5.overlaps(i3_7)).equal(true);
+    should(i3_7.overlaps(i1_5)).equal(true);
+    should(i3_7.overlaps(i2_3)).equal(true);
+    should(i2_3.overlaps(i3_7)).equal(true);
+
+    // disjoint
+    should(i1_5.overlaps(i6_9)).equal(false);
+    should(i6_9.overlaps(i1_5)).equal(false);
+    should(i4.overlaps(i6_9)).equal(false);
+    should(i6_9.overlaps(i4)).equal(false);
   });
 });

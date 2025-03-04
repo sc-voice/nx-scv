@@ -23,7 +23,7 @@ const {
 } = Unicode.LINUX_COLOR;
 
 
-describe('TESTTESTtext/color-console', () => {
+describe('text/color-console', () => {
   it('default ctor', () => {
     let precision = 3; // default
     let cc = new ColorConsole({precision});
