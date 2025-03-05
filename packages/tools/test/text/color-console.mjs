@@ -1,6 +1,7 @@
 import should from 'should';
-import { Text } from '../../index.mjs';
+import { ScvMath, Text } from '../../index.mjs';
 const { Unicode, ColorConsole, Corpus } = Text;
+const { Interval } = ScvMath;
 
 const {
   BLACK,
@@ -23,7 +24,7 @@ const {
 } = Unicode.LINUX_COLOR;
 
 
-describe('text/color-console', () => {
+describe('TESTTESTtext/color-console', () => {
   it('default ctor', () => {
     let precision = 3; // default
     let cc = new ColorConsole({precision});
@@ -34,7 +35,8 @@ describe('text/color-console', () => {
       1.0009, // show as 1.001 (round up)
       1.1, // show as 1.1 (exact)
       1, // show as 1 (exact)
-      {a:1, b:'red'}, // object
+      new Interval(3,4),
+      {a:1},//object
       true, // boolean
       null,
       undefined,

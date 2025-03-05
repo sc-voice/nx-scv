@@ -73,6 +73,10 @@ export class Interval {
     return this.hi === INFINITY ? PLUS_INFINITY : this.hi;
   }
 
+  get degenerate() {
+    return this.hi === this.lo;
+  }
+
   contains(num) {
     if (typeof num !== 'number' || Number.isNaN(num)) {
       return false;

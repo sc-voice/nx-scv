@@ -62,9 +62,13 @@ export class ColorConsole {
       let newLabel = '';
       switch (typeof thing) {
         case 'object':
-          // TODO: pretty objects like console
           label && a.push(label);
-          a.push(thing);
+          let s = thing && 
+            (thing.constructor !== Object) &&
+            (typeof thing.toString) === 'function'
+            ? color+thing.toString()+NO_COLOR
+            : thing;
+          a.push(s);
           break;
         case 'string':
           if (thing.endsWith(':')) {
