@@ -1,3 +1,7 @@
+import { Assert } from './src/js/assert.mjs';
+export const JS = {
+  Assert,
+}
 
 import { Fraction } from './src/math/fraction.mjs';
 import { Interval } from './src/math/interval.mjs';
