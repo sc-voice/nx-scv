@@ -217,6 +217,12 @@ export class Unicode {
   static get ELLIPSIS() {
     return '\u2026';
   }
+  static get IMPLIES() {
+    return '\u21D2';
+  }
+  static get ELEMENT_OF() {
+    return '\u2208';
+  }
   static get A_MACRON() {
     return '\u0100';
   }
@@ -345,6 +351,12 @@ export class Unicode {
   }
   get ELLIPSIS() {
     return Unicode.ELLIPSIS;
+  }
+  get IMPLIES(){
+    return Unicode.IMPLIES;
+  }
+  get ELEMENT_OF() {
+    return Unicode.ELEMENT_OF;
   }
   get A_MACRON() {
     return Unicode.A_MACRON;

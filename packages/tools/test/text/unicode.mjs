@@ -19,6 +19,8 @@ describe('text/unicode', () => {
     should(u.ENDASH).equal('\u2013');
     should(u.EMDASH).equal('\u2014');
     should(u.ELLIPSIS).equal('\u2026');
+    should(u.ELEMENT_OF).equal('\u2208');
+    should(u.IMPLIES).equal('\u21D2');
     should(u.A_MACRON).equal('\u0100');
     should(u.a_MACRON).equal('\u0101');
     should(u.u_MACRON).equal('\u016d');
