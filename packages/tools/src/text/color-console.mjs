@@ -20,6 +20,8 @@ const {
   NO_COLOR,
 } = Unicode.LINUX_COLOR;
 
+let CC;
+
 export class ColorConsole {
   constructor(opts = {}) {
     let {
@@ -35,7 +37,6 @@ export class ColorConsole {
       colorTag4 = BRIGHT_MAGENTA,
       precision = 3,
       write = (...args) => console.log.call(null, ...args),
-
     } = opts;
 
     Object.assign(this, {
@@ -51,42 +52,48 @@ export class ColorConsole {
       colorTag4,
       precision,
       write,
-
     });
+  }
+
+  static get cc() {
+    CC = CC || new ColorConsole();
+    return CC;
   }
 
   color(color, ...things) {
     let { precision } = this;
     let label = '';
-    return things.reduce((a,thing) => {
+    return things.reduce((a, thing) => {
       let newLabel = '';
       switch (typeof thing) {
-        case 'object':
+        case 'object': {
           label && a.push(label);
-          let s = thing && 
-            (thing.constructor !== Object) &&
-            (typeof thing.toString) === 'function'
-            ? color+thing.toString()+NO_COLOR
-            : thing;
+          let s =
+            thing &&
+            thing.constructor !== Object &&
+            typeof thing.toString === 'function'
+              ? color + thing.toString() + NO_COLOR
+              : thing;
           a.push(s);
           break;
+        }
         case 'string':
           if (thing.endsWith(':')) {
-            newLabel = NO_COLOR+thing;
+            newLabel = NO_COLOR + thing;
           } else {
-            a.push(label+color+thing+NO_COLOR);
+            a.push(label + color + thing + NO_COLOR);
           }
           break;
         case 'number': {
           let v = thing.toFixed(precision);
           if (thing === Number(v)) {
-            v = v.replace(/\.?0+$/, '')
+            v = v.replace(/\.?0+$/, '');
           }
-          a.push(label+GREEN+v+NO_COLOR);
+          a.push(label + GREEN + v + NO_COLOR);
           break;
         }
         default:
-          a.push(label+color+JSON.stringify(thing)+NO_COLOR);
+          a.push(label + color + JSON.stringify(thing) + NO_COLOR);
           break;
       }
       label = newLabel;

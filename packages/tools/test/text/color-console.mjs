@@ -23,11 +23,11 @@ const {
   NO_COLOR,
 } = Unicode.LINUX_COLOR;
 
-
-describe('TESTTESTtext/color-console', () => {
+describe('text/color-console', () => {
   it('default ctor', () => {
-    let precision = 3; // default
-    let cc = new ColorConsole({precision});
+    let cc = new ColorConsole();
+    should(cc.precision).equal(3);
+    should.deepEqual(ColorConsole.cc, cc);
     let rest = [
       'abc', // string
       'pi:', // label
@@ -35,13 +35,13 @@ describe('TESTTESTtext/color-console', () => {
       1.0009, // show as 1.001 (round up)
       1.1, // show as 1.1 (exact)
       1, // show as 1 (exact)
-      new Interval(3,4),
-      {a:1},//object
+      new Interval(3, 4),
+      { a: 1 }, //object
       true, // boolean
       null,
       undefined,
-      CYAN+'cyan', // text color override
-    ]
+      CYAN + 'cyan', // text color override
+    ];
 
     cc.fyi('test_fyi', ...rest);
     cc.fyi1('test_fyi1', ...rest);

@@ -1,20 +1,29 @@
 import { Unicode } from '../text/unicode.mjs';
 const { INFINITY } = Unicode;
+import { ColorConsole } from '../text/color-console.mjs';
+const { cc } = ColorConsole;
+import { DBG } from '../defines.mjs';
 
 const MINUS_INFINITY = `-${INFINITY}`;
 const PLUS_INFINITY = `+${INFINITY}`;
 
 export class Interval {
-  constructor(a, b) {
+  constructor(a, b, opts = {}) {
     const msg = 'i6l.ctor';
     let hi = null;
     let lo = null;
     const dbg = 0;
+    let { leftOpen = false, rightOpen = false } = opts;
+    if (a === INFINITY || a == null) {
+      leftOpen = true;
+    }
+    if (b === INFINITY || b == null) {
+      rightOpen = true;
+    }
 
     let an = typeof a === 'number' && !Number.isNaN(a);
     let bn = typeof b === 'number' && !Number.isNaN(b);
 
-    let isClosed = true;
     if (an && bn) {
       if (b < a) {
         throw new Error(`${msg} invalid interval ${b}<${a}?`);
@@ -22,25 +31,18 @@ export class Interval {
       dbg && console.log(msg, 'an bn');
       lo = a;
       hi = b;
-      isClosed = true;
     } else if (an) {
       dbg && console.log(msg, 'an');
       lo = a;
       hi = INFINITY;
-      isClosed = false;
     } else if (bn) {
       dbg && console.log(msg, 'bn');
       lo = INFINITY;
       hi = b;
-      isClosed = false;
     } else {
       dbg && console.log(msg, '!an !bn');
-      isClosed = false;
     }
 
-    Object.defineProperty(this, 'isClosed', {
-      value: isClosed,
-    });
     Object.defineProperty(this, 'lo', {
       enumerable: true,
       value: lo,
@@ -49,10 +51,26 @@ export class Interval {
       enumerable: true,
       value: hi,
     });
+    Object.defineProperty(this, 'leftOpen', {
+      enumerable: true,
+      value: leftOpen,
+    });
+    Object.defineProperty(this, 'rightOpen', {
+      enumerable: true,
+      value: rightOpen,
+    });
   }
 
   static get INFINITY() {
     return INFINITY;
+  }
+
+  get isOpen() {
+    return this.leftOpen || this.rightOpen || this.isEmpty;
+  }
+
+  get isClosed() {
+    return (!this.leftOpen && !this.rightOpen) || this.isEmpty;
   }
 
   get isEmpty() {
@@ -78,15 +96,24 @@ export class Interval {
   }
 
   contains(num) {
+    const msg = 'i6l.contains';
+    const dbg = DBG.I6L_CONTAINS;
     if (typeof num !== 'number' || Number.isNaN(num)) {
+      dbg && cc.fyi1(msg+0.1, false);
       return false;
     }
-    let { lo, hi } = this;
+    let { lo, hi, leftOpen, rightOpen } = this;
     if (lo === INFINITY) {
       throw new Error(`${msg}TBD`);
     }
     if (hi === INFINITY) {
       throw new Error(`${msg}TBD`);
+    }
+    if (lo === num && leftOpen) {
+      return false;
+    }
+    if (hi === num && rightOpen) {
+      return false;
     }
     if (lo < num && num < hi) {
       return true;
@@ -120,14 +147,29 @@ export class Interval {
 
   overlaps(iv2) {
     const msg = 'i6l.overlaps';
-    let { lo:lo1, hi:hi1 } = this;
-    let { lo:lo2, hi:hi2 } = iv2;
+    const dbg = DBG.I6L_OVERLAPS;
+    let { lo: lo1, hi: hi1, leftOpen:lOpen1, rightOpen: rOpen1 } = this;
+    let { lo: lo2, hi: hi2, leftOpen:lOpen2, rightOpen: rOpen2 } = iv2;
 
     //console.log(msg, {lo1, lo2, hi1, hi2});
-    return (
-      (lo2 <= lo1 && lo1 <= hi2) ||
-      (lo2 <= hi1 && hi1 <= hi2) ||
-      (lo1 <= lo2 && lo2 <= hi1)
-    );
+    if (!lOpen1 && iv2.contains(lo1)) {
+      dbg && cc.fyi1(msg+1, 'lo1');
+      return true;
+    }
+    if (!rOpen1 && iv2.contains(hi1)) {
+      dbg && cc.fyi1(msg+2, 'hi1');
+      return true;
+    }
+    if (!lOpen2 && this.contains(lo2)) {
+      dbg && cc.fyi1(msg+3, 'lo2');
+      return true;
+    }
+    if (!rOpen2 && this.contains(hi2)) {
+      dbg && cc.fyi1(msg+4, 'hi2');
+      return true;
+    }
+
+    dbg && cc.fyi1(msg+0.1, false);
+    return false;
   }
 }

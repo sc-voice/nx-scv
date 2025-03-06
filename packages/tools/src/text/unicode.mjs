@@ -352,7 +352,7 @@ export class Unicode {
   get ELLIPSIS() {
     return Unicode.ELLIPSIS;
   }
-  get IMPLIES(){
+  get IMPLIES() {
     return Unicode.IMPLIES;
   }
   get ELEMENT_OF() {
