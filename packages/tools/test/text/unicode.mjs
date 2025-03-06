@@ -2,7 +2,7 @@ import should from 'should';
 import { Text } from '../../index.mjs';
 const { Unicode } = Text;
 
-describe('text/unicode', () => {
+describe('TESTTESTtext/unicode', () => {
   it('default ctor', () => {
     let u = new Unicode();
     should.deepEqual(Object.keys(u), []);
@@ -19,6 +19,7 @@ describe('text/unicode', () => {
     should(u.ENDASH).equal('\u2013');
     should(u.EMDASH).equal('\u2014');
     should(u.ELLIPSIS).equal('\u2026');
+    should(u.EMPTY_SET).equal('\u2205');
     should(u.ELEMENT_OF).equal('\u2208');
     should(u.IMPLIES).equal('\u21D2');
     should(u.A_MACRON).equal('\u0100');

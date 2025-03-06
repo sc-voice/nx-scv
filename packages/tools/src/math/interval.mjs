@@ -1,5 +1,5 @@
 import { Unicode } from '../text/unicode.mjs';
-const { INFINITY } = Unicode;
+const { EMPTY_SET, INFINITY } = Unicode;
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { DBG } from '../defines.mjs';
@@ -126,22 +126,25 @@ export class Interval {
   }
 
   toString() {
-    let { lo, hi } = this;
+    let { lo, hi, leftOpen, rightOpen, isEmpty } = this;
+    if (isEmpty) {
+      return EMPTY_SET;
+    }
     if (lo === hi) {
       return [
-        lo === INFINITY ? '(' : '[',
+        leftOpen ? '(' : '[',
         lo === INFINITY ? MINUS_INFINITY : lo,
         lo == null ? '' : ',',
         hi === INFINITY ? PLUS_INFINITY : hi,
-        hi === INFINITY ? ')' : ']',
+        rightOpen ? ')' : ']',
       ].join('');
     }
     return [
-      lo === INFINITY ? '(' : '[',
+      leftOpen ? '(' : '[',
       lo === INFINITY ? MINUS_INFINITY : lo,
       lo === hi ? '' : ',',
       hi === INFINITY ? PLUS_INFINITY : hi,
-      hi === INFINITY ? ')' : ']',
+      rightOpen ? ')' : ']',
     ].join('');
   }
 

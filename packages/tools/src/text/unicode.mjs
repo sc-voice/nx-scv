@@ -220,6 +220,9 @@ export class Unicode {
   static get IMPLIES() {
     return '\u21D2';
   }
+  static get EMPTY_SET() {
+    return '\u2205';
+  }
   static get ELEMENT_OF() {
     return '\u2208';
   }
@@ -354,6 +357,9 @@ export class Unicode {
   }
   get IMPLIES() {
     return Unicode.IMPLIES;
+  }
+  get EMPTY_SET() {
+    return Unicode.EMPTY_SET;
   }
   get ELEMENT_OF() {
     return Unicode.ELEMENT_OF;

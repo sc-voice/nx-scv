@@ -1,14 +1,14 @@
 import should from 'should';
 
 import { ScvMath, Text } from '../../index.mjs';
-const { INFINITY } = Text.Unicode;
+const { EMPTY_SET, INFINITY } = Text.Unicode;
 const { Interval } = ScvMath;
 
 describe('TESTTESTscv-math/interval', () => {
   it('default ctor', () => {
     let iv = new Interval();
     should(iv).properties(['lo', 'hi']);
-    should(iv.toString()).equal('[]');
+    should(iv.toString()).equal(EMPTY_SET);
     should(iv.hi).equal(null);
     should(iv.lo).equal(null);
     should(iv.infimum).equal(null);
@@ -80,7 +80,7 @@ describe('TESTTESTscv-math/interval', () => {
   it('[1,2)', () => {
     let iv = new Interval(1, 2, { rightOpen: true });
     should(iv).properties({ lo: 1, hi: 2 });
-    should(iv.toString()).equal(`[1,2]`);
+    should(iv.toString()).equal(`[1,2)`);
     should(iv.contains(1)).equal(true);
     should(iv.contains(2)).equal(false);
     should(iv.infimum).equal(1);
@@ -94,7 +94,7 @@ describe('TESTTESTscv-math/interval', () => {
   it('(1,2]', () => {
     let iv = new Interval(1, 2, { leftOpen: true });
     should(iv).properties({ lo: 1, hi: 2 });
-    should(iv.toString()).equal(`[1,2]`);
+    should(iv.toString()).equal(`(1,2]`);
     should(iv.contains(1)).equal(false);
     should(iv.contains(2)).equal(true);
     should(iv.infimum).equal(1);
