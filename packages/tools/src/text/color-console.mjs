@@ -25,31 +25,25 @@ let CC;
 export class ColorConsole {
   constructor(opts = {}) {
     let {
-      colorBad1 = BRIGHT_RED,
-      colorBad2 = RED,
-      colorFyi1 = BRIGHT_WHITE,
-      colorFyi2 = BRIGHT_BLACK,
-      colorOk1 = BRIGHT_GREEN,
-      colorOk2 = GREEN,
-      colorTag1 = CYAN,
-      colorTag2 = BRIGHT_CYAN,
-      colorTag3 = MAGENTA,
-      colorTag4 = BRIGHT_MAGENTA,
+      badColor1 = BRIGHT_RED,
+      badColor2 = RED,
+      fyiColor1 = BRIGHT_WHITE,
+      fyiColor2 = BRIGHT_BLACK,
+      okColor1 = BRIGHT_GREEN,
+      okColor2 = GREEN,
+      valueColor = CYAN,
       precision = 3,
       write = (...args) => console.log.call(null, ...args),
     } = opts;
 
     Object.assign(this, {
-      colorBad1,
-      colorBad2,
-      colorFyi1,
-      colorFyi2,
-      colorOk1,
-      colorOk2,
-      colorTag1,
-      colorTag2,
-      colorTag3,
-      colorTag4,
+      badColor1,
+      badColor2,
+      fyiColor1,
+      fyiColor2,
+      okColor1,
+      okColor2,
+      valueColor,
       precision,
       write,
     });
@@ -60,28 +54,34 @@ export class ColorConsole {
     return CC;
   }
 
-  color(color, ...things) {
-    let { precision } = this;
+  color(textColor, ...things) {
+    let { precision, valueColor } = this;
     let label = '';
+    let endColor = NO_COLOR;
     return things.reduce((a, thing) => {
       let newLabel = '';
       switch (typeof thing) {
         case 'object': {
-          label && a.push(label);
-          let s =
-            thing &&
+          if (thing === null) {
+            a.push(label + valueColor + 'null' + endColor);
+          } else if (
             thing.constructor !== Object &&
             typeof thing.toString === 'function'
-              ? color + thing.toString() + NO_COLOR
-              : thing;
-          a.push(s);
+          ) {
+            a.push(label + valueColor + thing.toString() + endColor);
+          } else {
+            label && a.push(label + endColor);
+            a.push(thing);
+          }
           break;
         }
         case 'string':
           if (thing.endsWith(':')) {
-            newLabel = NO_COLOR + thing;
+            newLabel = textColor + thing;
+          } else if (label) {
+            a.push(label + valueColor + thing + endColor);
           } else {
-            a.push(label + color + thing + NO_COLOR);
+            a.push(textColor + thing + endColor);
           }
           break;
         case 'number': {
@@ -89,30 +89,30 @@ export class ColorConsole {
           if (thing === Number(v)) {
             v = v.replace(/\.?0+$/, '');
           }
-          a.push(label + GREEN + v + NO_COLOR);
+          a.push(label + valueColor + v + endColor);
           break;
         }
         default:
-          a.push(label + color + JSON.stringify(thing) + NO_COLOR);
+          a.push(
+            label + valueColor + JSON.stringify(thing) + endColor,
+          );
           break;
       }
       label = newLabel;
       return a;
     }, []);
-  }
+  } // color
 
   fyi(...rest) {
     return this.fyi2(...rest);
   }
 
   fyi1(...rest) {
-    let color = this.colorFyi1;
-    this.write(...this.color(color, ...rest));
+    this.write(...this.color(this.fyiColor1, ...rest));
   }
 
   fyi2(...rest) {
-    let color = this.colorFyi2;
-    this.write(...this.color(color, ...rest));
+    this.write(...this.color(this.fyiColor2, ...rest));
   }
 
   ok(...rest) {
@@ -120,13 +120,11 @@ export class ColorConsole {
   }
 
   ok1(...rest) {
-    let color = this.colorOk1;
-    this.write(...this.color(color, ...rest));
+    this.write(...this.color(this.okColor1, ...rest));
   }
 
   ok2(...rest) {
-    let color = this.colorOk2;
-    this.write(...this.color(color, ...rest));
+    this.write(...this.color(this.okColor2, ...rest));
   }
 
   bad(...rest) {
@@ -134,32 +132,11 @@ export class ColorConsole {
   }
 
   bad1(...rest) {
-    let color = this.colorBad1;
-    this.write(...this.color(color, ...rest));
+    this.write(...this.color(this.badColor1, ...rest));
   }
 
   bad2(...rest) {
-    let color = this.colorBad2;
-    this.write(...this.color(color, ...rest));
+    this.write(...this.color(this.badColor2, ...rest));
   }
 
-  tag1(...rest) {
-    let color = this.colorTag1;
-    this.write(...this.color(color, ...rest));
-  }
-
-  tag2(...rest) {
-    let color = this.colorTag2;
-    this.write(...this.color(color, ...rest));
-  }
-
-  tag3(...rest) {
-    let color = this.colorTag3;
-    this.write(...this.color(color, ...rest));
-  }
-
-  tag4(...rest) {
-    let color = this.colorTag4;
-    this.write(...this.color(color, ...rest));
-  }
 }

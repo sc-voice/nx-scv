@@ -99,7 +99,7 @@ export class Interval {
     const msg = 'i6l.contains';
     const dbg = DBG.I6L_CONTAINS;
     if (typeof num !== 'number' || Number.isNaN(num)) {
-      dbg && cc.fyi1(msg+0.1, false);
+      dbg && cc.fyi1(msg + 0.1, false);
       return false;
     }
     let { lo, hi, leftOpen, rightOpen } = this;
@@ -151,28 +151,38 @@ export class Interval {
   overlaps(iv2) {
     const msg = 'i6l.overlaps';
     const dbg = DBG.I6L_OVERLAPS;
-    let { lo: lo1, hi: hi1, leftOpen:lOpen1, rightOpen: rOpen1 } = this;
-    let { lo: lo2, hi: hi2, leftOpen:lOpen2, rightOpen: rOpen2 } = iv2;
+    let {
+      lo: lo1,
+      hi: hi1,
+      leftOpen: lOpen1,
+      rightOpen: rOpen1,
+    } = this;
+    let {
+      lo: lo2,
+      hi: hi2,
+      leftOpen: lOpen2,
+      rightOpen: rOpen2,
+    } = iv2;
 
     //console.log(msg, {lo1, lo2, hi1, hi2});
     if (!lOpen1 && iv2.contains(lo1)) {
-      dbg && cc.fyi1(msg+1, 'lo1');
+      dbg && cc.fyi1(msg + 1, 'lo1');
       return true;
     }
     if (!rOpen1 && iv2.contains(hi1)) {
-      dbg && cc.fyi1(msg+2, 'hi1');
+      dbg && cc.fyi1(msg + 2, 'hi1');
       return true;
     }
     if (!lOpen2 && this.contains(lo2)) {
-      dbg && cc.fyi1(msg+3, 'lo2');
+      dbg && cc.fyi1(msg + 3, 'lo2');
       return true;
     }
     if (!rOpen2 && this.contains(hi2)) {
-      dbg && cc.fyi1(msg+4, 'hi2');
+      dbg && cc.fyi1(msg + 4, 'hi2');
       return true;
     }
 
-    dbg && cc.fyi1(msg+0.1, false);
+    dbg && cc.fyi1(msg + 0.1, false);
     return false;
   }
 }

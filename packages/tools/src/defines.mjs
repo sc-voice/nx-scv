@@ -1,6 +1,7 @@
 export const DBG = {
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,
+  COLOR_CONSOLE: 0,
   I6L_CONTAINS: 0,
   I6L_OVERLAPS: 0,
   ML_DOC_VECTORS: 0, // 'mn8:3.4',

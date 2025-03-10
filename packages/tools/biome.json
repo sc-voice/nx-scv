@@ -28,6 +28,7 @@
     "rules": {
       "recommended": true,
       "correctness": {
+        "noConstantCondition": "off",
         "noInvalidConstructorSuper": "off"
       },
       "complexity": {
