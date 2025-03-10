@@ -32,6 +32,9 @@ export class ColorConsole {
       okColor1 = BRIGHT_GREEN,
       okColor2 = GREEN,
       valueColor = CYAN,
+      dateFormat = new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'short',
+      }),
       precision = 3,
       write = (...args) => console.log.call(null, ...args),
     } = opts;
@@ -39,12 +42,13 @@ export class ColorConsole {
     Object.assign(this, {
       badColor1,
       badColor2,
+      dateFormat,
       fyiColor1,
       fyiColor2,
       okColor1,
       okColor2,
-      valueColor,
       precision,
+      valueColor,
       write,
     });
   }
@@ -54,48 +58,72 @@ export class ColorConsole {
     return CC;
   }
 
+  valueOf(thing) {
+    const msg = 'c10e.valueOf';
+    let { precision } = this;
+    switch (typeof thing) {
+      case 'object': {
+        if (thing === null) {
+          return 'null';
+        }
+        if (thing instanceof Date) {
+          return this.dateFormat.format(thing);
+        }
+        if (
+          thing.constructor !== Object &&
+          typeof thing.toString === 'function'
+        ) {
+          return thing.toString();
+        }
+        return thing;
+      }
+      case 'string':
+        return thing;
+      case 'number': {
+        let v = thing.toFixed(precision);
+        if (thing === Number(v)) {
+          v = v.replace(/\.?0+$/, '');
+        }
+        return v;
+      }
+      default:
+        return JSON.stringify(thing);
+    }
+  } // valueOf
+
   color(textColor, ...things) {
-    let { precision, valueColor } = this;
+    let { valueColor } = this;
     let label = '';
     let endColor = NO_COLOR;
     return things.reduce((a, thing) => {
       let newLabel = '';
+      let v = this.valueOf(thing);
       switch (typeof thing) {
         case 'object': {
-          if (thing === null) {
-            a.push(label + valueColor + 'null' + endColor);
-          } else if (
-            thing.constructor !== Object &&
-            typeof thing.toString === 'function'
+          if (
+            thing === null ||
+            (thing.constructor !== Object &&
+              typeof thing.toString === 'function')
           ) {
-            a.push(label + valueColor + thing.toString() + endColor);
+            a.push(label + valueColor + v + endColor);
           } else {
             label && a.push(label + endColor);
-            a.push(thing);
+            a.push(v);
           }
           break;
         }
         case 'string':
           if (thing.endsWith(':')) {
-            newLabel = textColor + thing;
+            newLabel = textColor + v;
           } else if (label) {
-            a.push(label + valueColor + thing + endColor);
+            a.push(label + valueColor + v + endColor);
           } else {
-            a.push(textColor + thing + endColor);
+            a.push(textColor + v + endColor);
           }
           break;
-        case 'number': {
-          let v = thing.toFixed(precision);
-          if (thing === Number(v)) {
-            v = v.replace(/\.?0+$/, '');
-          }
-          a.push(label + valueColor + v + endColor);
-          break;
-        }
+        case 'number':
         default:
-          a.push(
-            label + valueColor + JSON.stringify(thing) + endColor,
-          );
+          a.push(label + valueColor + v + endColor);
           break;
       }
       label = newLabel;
@@ -138,5 +166,4 @@ export class ColorConsole {
   bad2(...rest) {
     this.write(...this.color(this.badColor2, ...rest));
   }
-
 }

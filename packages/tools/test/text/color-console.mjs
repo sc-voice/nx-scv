@@ -56,8 +56,14 @@ describe('TESTTESTtext/color-console', () => {
     let fyiColor1 = BRIGHT_RED;
     let fyiColor2 = RED;
     let valueColor = BRIGHT_CYAN;
+    let dateFormat = new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      hour12: false,
+    });
     let cc = new ColorConsole({
-      precision, 
+      dateFormat,
+      precision,
       valueColor,
       okColor1,
       okColor2,
@@ -74,16 +80,18 @@ describe('TESTTESTtext/color-console', () => {
     should(cc.badColor2).equal(badColor2);
     should(cc.fyiColor1).equal(fyiColor1);
     should(cc.fyiColor2).equal(fyiColor2);
+    should(cc.dateFormat).equal(dateFormat);
     let value = 1.23456789;
-    dbg && cc.ok1(msg, 'test-ok', value);
-    dbg && cc.ok2(msg, 'test-ok', value);
-    dbg && cc.ok(msg, 'test-ok', value);
-    dbg && cc.bad1(msg, 'test-bad1', value);
-    dbg && cc.bad2(msg, 'test-bad2', value);
-    dbg && cc.bad(msg, 'test-bad', value);
-    dbg && cc.fyi1(msg, 'test-fyi1', value);
-    dbg && cc.fyi2(msg, 'test-fyi2', value);
-    dbg && cc.fyi(msg, 'test-fyi', value);
+    let date = new Date(2025, 3, 1);
+    dbg && cc.ok1(msg, 'test-ok', value, date);
+    dbg && cc.ok2(msg, 'test-ok', value, date);
+    dbg && cc.ok(msg, 'test-ok', value, date);
+    dbg && cc.bad1(msg, 'test-bad1', value, date);
+    dbg && cc.bad2(msg, 'test-bad2', value, date);
+    dbg && cc.bad(msg, 'test-bad', value, date);
+    dbg && cc.fyi1(msg, 'test-fyi1', value, date);
+    dbg && cc.fyi2(msg, 'test-fyi2', value, date);
+    dbg && cc.fyi(msg, 'test-fyi', value, date);
   });
   it('color()', () => {
     const msg = 'tc10e.color';
@@ -109,24 +117,6 @@ describe('TESTTESTtext/color-console', () => {
       RED + label + VALUE_COLOR + sNumber + endColor,
     ]);
 
-    let nRound = 1.0003;
-    let cRound = cc.color(RED, nRound, label, nRound);
-    let sRound = '1.000'; // trailing zeros for not exact
-    dbg && cc.write(msg, ...cRound);
-    should.deepEqual(cRound, [
-      VALUE_COLOR + sRound + endColor,
-      RED + label + VALUE_COLOR + sRound + endColor,
-    ]);
-
-    let nExact = 1.2;
-    let cExact = cc.color(RED, nExact, label, nExact);
-    let sExact = '1.2'; // no trailing zeros for exact
-    dbg && cc.write(msg, ...cExact);
-    should.deepEqual(cExact, [
-      VALUE_COLOR + sExact + endColor,
-      RED + label + VALUE_COLOR + sExact + endColor,
-    ]);
-
     let cNull = cc.color(RED, null, label, null);
     dbg && cc.write(msg, ...cNull);
     should.deepEqual(cNull, [
@@ -141,7 +131,7 @@ describe('TESTTESTtext/color-console', () => {
       RED + label + VALUE_COLOR + 'undefined' + endColor,
     ]);
 
-    let object = {a:1,b:'text'};
+    let object = { a: 1, b: 'text' };
     let cObject = cc.color(RED, object, label, object);
     dbg && cc.write(msg, ...cObject);
     should.deepEqual(cObject, [
@@ -152,7 +142,7 @@ describe('TESTTESTtext/color-console', () => {
 
     class Obj2Str {
       toString() {
-        return "test-Obj2String";
+        return 'test-Obj2String';
       }
     }
     let obj2Str = new Obj2Str();
@@ -170,5 +160,27 @@ describe('TESTTESTtext/color-console', () => {
       VALUE_COLOR + 'false' + endColor,
       RED + label + VALUE_COLOR + 'false' + endColor,
     ]);
+  });
+  it('valueOf()', () => {
+    const msg = 'tc10e.valueOf';
+    let cc = new ColorConsole();
+    should(cc.valueOf(1.0)).equal('1');
+    should(cc.valueOf(1.2)).equal('1.2');
+    should(cc.valueOf(1.02)).equal('1.02');
+    should(cc.valueOf(1.002)).equal('1.002');
+    should(cc.valueOf(1.0002)).equal('1.000');
+    should(cc.valueOf(-1.0)).equal('-1');
+    should(cc.valueOf(-1.2)).equal('-1.2');
+    should(cc.valueOf(-1.02)).equal('-1.02');
+    should(cc.valueOf(-1.002)).equal('-1.002');
+    should(cc.valueOf(-1.0002)).equal('-1.000');
+    should(cc.valueOf(null)).equal('null');
+    should(cc.valueOf(false)).equal('false');
+    should(cc.valueOf(true)).equal('true');
+    let obj = { a: 1 };
+    should(cc.valueOf(obj)).equal(obj);
+    let date = new Date(2025, 2, 1);
+    dbg && cc.fyi(msg, date);
+    should(cc.valueOf(date)).equal(cc.dateFormat.format(date));
   });
 });
