@@ -126,6 +126,7 @@ describe('TESTTESTtext/color-console', () => {
 
     let cUndefined = cc.color(RED, undefined, label, undefined);
     dbg && cc.write(msg, ...cUndefined);
+    dbg && console.log(msg, ...cUndefined);
     should.deepEqual(cUndefined, [
       VALUE_COLOR + 'undefined' + endColor,
       RED + label + VALUE_COLOR + 'undefined' + endColor,
@@ -174,6 +175,7 @@ describe('TESTTESTtext/color-console', () => {
     should(cc.valueOf(-1.02)).equal('-1.02');
     should(cc.valueOf(-1.002)).equal('-1.002');
     should(cc.valueOf(-1.0002)).equal('-1.000');
+    should(cc.valueOf(undefined)).equal('undefined');
     should(cc.valueOf(null)).equal('null');
     should(cc.valueOf(false)).equal('false');
     should(cc.valueOf(true)).equal('true');

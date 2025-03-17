@@ -62,9 +62,11 @@ export class ColorConsole {
     const msg = 'c10e.valueOf';
     let { precision } = this;
     switch (typeof thing) {
+      case 'undefined':
+        return 'undefined';
       case 'object': {
-        if (thing === null) {
-          return 'null';
+        if (thing == null) {
+          return '' + thing;
         }
         if (thing instanceof Date) {
           return this.dateFormat.format(thing);
@@ -101,7 +103,7 @@ export class ColorConsole {
       switch (typeof thing) {
         case 'object': {
           if (
-            thing === null ||
+            thing == null ||
             (thing.constructor !== Object &&
               typeof thing.toString === 'function')
           ) {
