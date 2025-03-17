@@ -99,45 +99,52 @@ describe('TESTTESTtext/color-console', () => {
     let label = 'label:';
     let endColor = NO_COLOR;
 
-    let text = 'test-text';
+    let text = 'test-text (unlabelled)';
     let value = 'test-value';
-    let cText = cc.color(RED, text, label, value);
+    let nolabel = 'nolabel';
+    let color = cc.okColor1;
+    let cText = cc.color(color, text, nolabel, value, label, value);
     dbg && cc.write(msg, ...cText);
     should.deepEqual(cText, [
-      RED + text + endColor,
-      RED + label + VALUE_COLOR + value + endColor,
+      color + text + endColor,
+      color + nolabel + endColor,
+      color + value + endColor,
+      color + label + VALUE_COLOR + value + endColor,
     ]);
 
     let number = 1.23456789;
-    let cNumber = cc.color(RED, number, label, number);
+    let cNumber = cc.color(color, nolabel, number, label, number);
     let sNumber = number.toFixed(3);
     dbg && cc.write(msg, ...cNumber);
     should.deepEqual(cNumber, [
+      color + nolabel + endColor,
       VALUE_COLOR + sNumber + endColor,
-      RED + label + VALUE_COLOR + sNumber + endColor,
+      color + label + VALUE_COLOR + sNumber + endColor,
     ]);
 
-    let cNull = cc.color(RED, null, label, null);
+    let cNull = cc.color(color, nolabel, null, label, null);
     dbg && cc.write(msg, ...cNull);
     should.deepEqual(cNull, [
+      color + nolabel + endColor,
       VALUE_COLOR + 'null' + endColor,
-      RED + label + VALUE_COLOR + 'null' + endColor,
+      color + label + VALUE_COLOR + 'null' + endColor,
     ]);
 
-    let cUndefined = cc.color(RED, undefined, label, undefined);
+    let cUndefined = cc.color(color, nolabel, undefined, label, undefined);
     dbg && cc.write(msg, ...cUndefined);
-    dbg && console.log(msg, ...cUndefined);
     should.deepEqual(cUndefined, [
+      color + nolabel + endColor,
       VALUE_COLOR + 'undefined' + endColor,
-      RED + label + VALUE_COLOR + 'undefined' + endColor,
+      color + label + VALUE_COLOR + 'undefined' + endColor,
     ]);
 
     let object = { a: 1, b: 'text' };
-    let cObject = cc.color(RED, object, label, object);
+    let cObject = cc.color(color, nolabel, object, label, object);
     dbg && cc.write(msg, ...cObject);
     should.deepEqual(cObject, [
+      color + nolabel + endColor,
       object,
-      RED + label + endColor,
+      color + label + endColor,
       object,
     ]);
 
@@ -148,18 +155,20 @@ describe('TESTTESTtext/color-console', () => {
     }
     let obj2Str = new Obj2Str();
     let sObj2Str = obj2Str.toString();
-    let cObj2Str = cc.color(RED, obj2Str, label, obj2Str);
+    let cObj2Str = cc.color(color, nolabel, obj2Str, label, obj2Str);
     dbg && cc.write(msg, ...cObj2Str);
     should.deepEqual(cObj2Str, [
+      color + nolabel + endColor,
       VALUE_COLOR + sObj2Str + endColor,
-      RED + label + VALUE_COLOR + sObj2Str + endColor,
+      color + label + VALUE_COLOR + sObj2Str + endColor,
     ]);
 
-    let cFalse = cc.color(RED, false, label, false);
+    let cFalse = cc.color(color, nolabel, false, label, false);
     dbg && cc.write(msg, ...cFalse);
     should.deepEqual(cFalse, [
+      color + nolabel + endColor,
       VALUE_COLOR + 'false' + endColor,
-      RED + label + VALUE_COLOR + 'false' + endColor,
+      color + label + VALUE_COLOR + 'false' + endColor,
     ]);
   });
   it('valueOf()', () => {
