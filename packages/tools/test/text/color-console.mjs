@@ -130,7 +130,13 @@ describe('TESTTESTtext/color-console', () => {
       color + label + VALUE_COLOR + 'null' + endColor,
     ]);
 
-    let cUndefined = cc.color(color, nolabel, undefined, label, undefined);
+    let cUndefined = cc.color(
+      color,
+      nolabel,
+      undefined,
+      label,
+      undefined,
+    );
     dbg && cc.write(msg, ...cUndefined);
     should.deepEqual(cUndefined, [
       color + nolabel + endColor,
