@@ -12,7 +12,7 @@ export const ScvMath = {
 };
 
 import { BilaraPath } from './src/text/bilara-path.mjs';
-import { Column } from './src/text/column.mjs';
+import { List, ListFactory } from './src/text/list.mjs';
 import { Corpus } from './src/text/corpus.mjs';
 import { EbtDoc } from './src/text/ebt-doc.mjs';
 import { LegacyDoc } from './src/text/legacy-doc.mjs';
@@ -28,7 +28,8 @@ import { ColorConsole} from './src/text/color-console.mjs';
 export const Text = {
   BilaraPath,
   ColorConsole,
-  Column,
+  List,
+  ListFactory,
   Corpus,
   EbtDoc,
   LegacyDoc,
