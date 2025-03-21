@@ -27,7 +27,13 @@ export class ListFactory {
   }
 
   createList(opts = {}) {
-    let { name, values=[], separator = ',' } = opts;
+    let { 
+      name, // title
+      values=[], 
+      separator = ',', // join() separator
+      widths, // element string widths
+      precision = 3, // numeric precision
+    } = opts;
 
     let list = [...values];
 
@@ -37,45 +43,67 @@ export class ListFactory {
     }
 
     Object.defineProperty(list, 'name', {
-      writeable: true,
+      writable: true,
       value: name,
     });
+    Object.defineProperty(list, 'precision', {
+      writable: true,
+      value: precision,
+    });
     Object.defineProperty(list, 'separator', {
-      writeable: true,
+      writable: true,
       value: separator,
+    });
+    Object.defineProperty(list, 'widths', {
+      writable: true,
+      value: widths,
     });
     Object.defineProperty(list, 'toString', {
       value: () => {
-        return list.join(list.separator);
+        let strs = list.toStrings();
+        return strs.join(list.separator);
       }
     });
     Object.defineProperty(list, 'toStrings', {
       value: () => {
         let s5s = [];
         let { showName = false } = opts;
-        let { name } = list;
+        let { name, widths } = list;
 
         if (showName) {
           s5s.push(name);
         }
         for (let i = 0; i < list.length; i++) {
           let v = list[i];
+          let s = '';
           switch (typeof v) {
             case 'object':
               if (
                 v?.constructor !== Object &&
                 typeof v?.toString === 'function'
               ) {
-                s5s.push(v.toString());
+                s = v.toString();
               } else {
-                s5s.push(JSON.stringify(v));
+                s = JSON.stringify(v);
               }
               break;
+            case 'number': {
+              let sRaw = precision ? v.toFixed(precision) : v+'';
+              let sShort = sRaw.replace(/\.?0+$/, '');
+              s = Number(sShort) === v ? sShort : sRaw;
+            }
+            break;
             default:
-              s5s.push('' + v);
+              s +=  v;
               break;
           }
+          let width = widths?.[i];
+          if (width) {
+            s = s.substring(0,width).padEnd(width);
+          }
+          s5s.push(s);
         }
+
 
         return s5s;
       }
@@ -86,46 +114,72 @@ export class ListFactory {
   }
 
   createColumn(opts = {}) {
-    let { name, values=[], separator = '\n' } = opts;
+    let { 
+      name, 
+      values=[], 
+      separator = '\n',
+      precision,
+    } = opts;
 
     this.nColumns++;
     if (name == null) {
       name = 'column' + this.nColumns;
     }
-    return this.createList({name, values, separator});
+    return this.createList({
+      name, 
+      precision,
+      separator, 
+      values, 
+    });
   }
 
   createRow(opts = {}) {
-    let { name, values=[], separator = '\t' } = opts;
+    let { 
+      name, 
+      values=[], 
+      separator = '\t',
+      widths,
+      precision,
+    } = opts;
 
     this.nRows++;
     if (name == null) {
       name = 'row' + this.nRows;
     }
-    return this.createList({name, values, separator});
+    return this.createList({
+      name, 
+      precision,
+      separator, 
+      values, 
+      widths,
+    });
   }
 
   wrapList(list, opts = {}) {
-    const msg = 'l9y.wrapList';
+    const msg = 'w6t.wrapList';
     const dbg = 0;
     let {
       name,
-      rowSize = 2,
+      maxValues = 2,
       namePrefix = 'column',
       order = 'row-major',
-      separator,
+      rowSeparator = '\n',
+      colSeparator = '|',
     } = opts;
 
-    let singleList = List.createColumn({ name, separator });
+    let singleList = List.createColumn({ 
+      name, 
+      separator:rowSeparator,
+    });
+    let newRow = (separator) => List.createRow({ separator });
     name = name || singleList.name;
-    separator = separator || singleList.separator;
     switch (order) {
       case 'col-major':
       case 'column-major':
         {
           let transpose = [];
           let col;
-          let nRows = Math.ceil(list.length / rowSize);
+          let nRows = Math.ceil(list.length / maxValues);
           dbg > 1 && cc.fyi1(msg + 0.1, { nRows });
           for (let i = 0; i < list.length; i++) {
             let ir = i % nRows;
@@ -143,15 +197,15 @@ export class ListFactory {
             transpose.push(col);
           }
           let row;
-          for (let i = 0; i < nRows * rowSize; i++) {
-            let ic = i % rowSize;
+          for (let i = 0; i < nRows * maxValues; i++) {
+            let ic = i % maxValues;
             if (ic === 0) {
               if (row) {
                 singleList.push(row);
               }
-              row = List.createRow({values:[]});
+              row = newRow(colSeparator);
             }
-            let ir = Math.floor(i / rowSize);
+            let ir = Math.floor(i / maxValues);
             dbg > 1 && cc.fyi1(msg + 0.2, { ic, ir });
             let vc = transpose[ic];
             if (vc !== undefined) {
@@ -169,12 +223,12 @@ export class ListFactory {
         {
           let row;
           for (let i = 0; i < list.length; i++) {
-            let ic = i % rowSize;
+            let ic = i % maxValues;
             if (ic === 0) {
               if (row) {
                 singleList.push(row);
               }
-              row = List.createRow({values:[]});
+              row = newRow(colSeparator);
             }
             row.push(list[i]);
           }
@@ -184,6 +238,17 @@ export class ListFactory {
         }
         break;
     }
+
+    // compute row element widths
+    let widths = new Array(maxValues).fill(0);
+    singleList.forEach(row => {
+      let strs = row.toStrings();
+      strs.map((s,i)=> {
+        widths[i] = Math.max(s.length, widths[i]);
+      });
+    });
+    singleList.forEach(row => row.widths = widths);
+    dbg && cc.ok1(msg+1, widths[0], maxValues, 'widths:', widths);
 
     return singleList;
   }
