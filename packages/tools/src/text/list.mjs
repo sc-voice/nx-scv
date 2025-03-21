@@ -11,11 +11,19 @@ export class ListFactory {
       nColumns = 0,
       nRows = 0,
       nLists = 0,
+      rowSeparator = '\n',
+      colSeparator = ' ',
+      order = 'column-major',
+      precision = 3,
     } = opts;
     Object.assign(this, {
       nColumns,
       nRows,
       nLists,
+      order,
+      precision,
+      rowSeparator,
+      colSeparator,
     });
   }
 
@@ -32,7 +40,7 @@ export class ListFactory {
       values=[], 
       separator = ',', // join() separator
       widths, // element string widths
-      precision = 3, // numeric precision
+      precision = this.precision, // numeric precision
     } = opts;
 
     let list = [...values];
@@ -118,7 +126,7 @@ export class ListFactory {
       name, 
       values=[], 
       separator = '\n',
-      precision,
+      precision = this.precision,
     } = opts;
 
     this.nColumns++;
@@ -139,7 +147,7 @@ export class ListFactory {
       values=[], 
       separator = '\t',
       widths,
-      precision,
+      precision = this.precision,
     } = opts;
 
     this.nRows++;
@@ -156,22 +164,24 @@ export class ListFactory {
   }
 
   wrapList(list, opts = {}) {
-    const msg = 'w6t.wrapList';
+    const msg = 'l9y.wrapList';
     const dbg = 0;
     let {
       name,
       maxValues = 2,
       namePrefix = 'column',
-      order = 'row-major',
-      rowSeparator = '\n',
-      colSeparator = '|',
+      order = this.order,
+      rowSeparator = this.rowSeparator,
+      colSeparator = this.colSeparator,
+      precision = this.precision,
     } = opts;
 
-    let singleList = List.createColumn({ 
+    let singleList = this.createColumn({ 
       name, 
       separator:rowSeparator,
+      precision,
     });
-    let newRow = (separator) => List.createRow({ separator });
+    let newRow = (separator) => this.createRow({ separator, precision });
     name = name || singleList.name;
     switch (order) {
       case 'col-major':
