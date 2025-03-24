@@ -31,6 +31,8 @@ export class ColorConsole {
       fyiColor2 = BRIGHT_BLACK,
       okColor1 = BRIGHT_GREEN,
       okColor2 = GREEN,
+      tagColor1 = BRIGHT_MAGENTA,
+      tagColor2 = MAGENTA,
       valueColor = CYAN,
       dateFormat = new Intl.DateTimeFormat(undefined, {
         dateStyle: 'short',
@@ -47,6 +49,8 @@ export class ColorConsole {
       fyiColor2,
       okColor1,
       okColor2,
+      tagColor1,
+      tagColor2,
       precision,
       valueColor,
       write,
@@ -97,9 +101,21 @@ export class ColorConsole {
     let { valueColor } = this;
     let label = '';
     let endColor = NO_COLOR;
+    let eol;
     return things.reduce((a, thing) => {
       let newLabel = '';
       let v = this.valueOf(thing);
+      let aLast = a.at(-1);
+      if (typeof aLast === 'string' && aLast.endsWith('\n' +  endColor)) {
+        if (aLast === textColor + '\n' + endColor) {
+          a.pop();
+        } else {
+          const iLast = aLast.lastIndexOf('\n');
+          a.pop();
+          a.push(aLast.substring(0, iLast) + aLast.substring(iLast + 1));
+        }
+        v = '\n' + v;
+      } 
       switch (typeof thing) {
         case 'object': {
           if (
@@ -167,5 +183,17 @@ export class ColorConsole {
 
   bad2(...rest) {
     this.write(...this.color(this.badColor2, ...rest));
+  }
+
+  tag(...rest) {
+    return this.tag2(...rest);
+  }
+
+  tag1(...rest) {
+    this.write(...this.color(this.tagColor1, ...rest));
+  }
+
+  tag2(...rest) {
+    this.write(...this.color(this.tagColor2, ...rest));
   }
 }

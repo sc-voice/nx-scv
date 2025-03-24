@@ -42,15 +42,49 @@ describe('TESTTESTtext/color-console', () => {
     dbg && cc.bad1(msg, 'test-bad1', value);
     dbg && cc.bad2(msg, 'test-bad2', value);
     dbg && cc.bad(msg, 'test-bad', value);
+    dbg && cc.tag1(msg, 'test-tag1', value);
+    dbg && cc.tag2(msg, 'test-tag2', value);
+    dbg && cc.tag(msg, 'test-tag', value);
     dbg && cc.fyi1(msg, 'test-fyi1', value);
     dbg && cc.fyi2(msg, 'test-fyi2', value);
     dbg && cc.fyi(msg, 'test-fyi', value);
+  });
+  it('multiline no leading blank', ()=>{
+    const msg = 'tc10e.multiline-no-leading-blank';
+    // console.log adds leading blanks even if 
+    // preceding arg ends with '\n'
+    let cc = new ColorConsole();
+    let c1 = cc.color(CYAN, 
+      'a', '\n', 'b', '\n', 3, '\n', true, '\n', 'c');
+    should.deepEqual(c1, [
+      CYAN + 'a' + NO_COLOR,
+      CYAN + '\nb' + NO_COLOR,
+      CYAN + '\n3' + NO_COLOR,
+      CYAN + '\ntrue' + NO_COLOR,
+      CYAN + '\nc' + NO_COLOR,
+    ]);
+    let c2 = cc.color(CYAN, 
+      'a\nb\n', 3, '\n', true, '\nc');
+    should.deepEqual(c2, [
+      CYAN + 'a\nb' + NO_COLOR,
+      CYAN + '\n3' + NO_COLOR,
+      CYAN + '\ntrue' + NO_COLOR,
+      CYAN + '\nc' + NO_COLOR,
+    ]);
+    let c3 = cc.color(CYAN, 'a\nb\n', 'c', 'd');
+    should.deepEqual(c3, [
+      CYAN + 'a\nb' + NO_COLOR,
+      CYAN + '\nc' + NO_COLOR,
+      CYAN + 'd' + NO_COLOR,
+    ]);
   });
   it('custom ctor', () => {
     const msg = 'tc10e.custom-ctor';
     let precision = 7;
     let okColor1 = BRIGHT_BLUE;
     let okColor2 = BLUE;
+    let tagColor1 = BRIGHT_YELLOW;
+    let tagColor2 = YELLOW;
     let badColor1 = BRIGHT_WHITE;
     let badColor2 = WHITE;
     let fyiColor1 = BRIGHT_RED;
@@ -69,6 +103,8 @@ describe('TESTTESTtext/color-console', () => {
       okColor2,
       badColor1,
       badColor2,
+      tagColor1,
+      tagColor2,
       fyiColor1,
       fyiColor2,
     });
@@ -78,6 +114,8 @@ describe('TESTTESTtext/color-console', () => {
     should(cc.okColor2).equal(okColor2);
     should(cc.badColor1).equal(badColor1);
     should(cc.badColor2).equal(badColor2);
+    should(cc.tagColor1).equal(tagColor1);
+    should(cc.tagColor2).equal(tagColor2);
     should(cc.fyiColor1).equal(fyiColor1);
     should(cc.fyiColor2).equal(fyiColor2);
     should(cc.dateFormat).equal(dateFormat);
@@ -89,6 +127,9 @@ describe('TESTTESTtext/color-console', () => {
     dbg && cc.bad1(msg, 'test-bad1', value, date);
     dbg && cc.bad2(msg, 'test-bad2', value, date);
     dbg && cc.bad(msg, 'test-bad', value, date);
+    dbg && cc.tag1(msg, 'test-tag1', value, date);
+    dbg && cc.tag2(msg, 'test-tag2', value, date);
+    dbg && cc.tag(msg, 'test-tag', value, date);
     dbg && cc.fyi1(msg, 'test-fyi1', value, date);
     dbg && cc.fyi2(msg, 'test-fyi2', value, date);
     dbg && cc.fyi(msg, 'test-fyi', value, date);
