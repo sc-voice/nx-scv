@@ -1,8 +1,23 @@
 import should from 'should';
+import util from 'node:util';
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
-const { ColorConsole, List, ListFactory } = Text;
-let { cc } = ColorConsole;
+const { Unicode, ColorConsole, List, ListFactory } = Text;
+const { cc } = ColorConsole;
+const {
+  GREEN,
+  BLUE,
+  MAGENTA,
+  NO_COLOR,
+} = Unicode.LINUX_COLOR;
+const {
+  UNDERLINE,
+  NO_UNDERLINE,
+  STRIKETHROUGH,
+  NO_STRIKETHROUGH,
+  BOLD,
+  NO_BOLD,
+} = Unicode.LINUX_STYLE;
 
 class TestClass {
   constructor(value) {
@@ -15,7 +30,7 @@ class TestClass {
   }
 }
 
-describe('TESTTESTcolumn', () => {
+describe('TESTTESTlist', () => {
   it('l9y.SINGLETON', () => {
     should(ListFactory.SINGLETON).properties({
       order: 'column-major',

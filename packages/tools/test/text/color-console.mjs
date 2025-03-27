@@ -1,4 +1,5 @@
 import should from 'should';
+import util from 'node:util';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, Corpus } = Text;
@@ -25,6 +26,14 @@ const {
   BRIGHT_YELLOW,
   NO_COLOR,
 } = Unicode.LINUX_COLOR;
+const {
+  UNDERLINE,
+  NO_UNDERLINE,
+  STRIKETHROUGH,
+  NO_STRIKETHROUGH,
+  BOLD,
+  NO_BOLD,
+} = Unicode.LINUX_STYLE;
 
 const VALUE_COLOR = CYAN;
 
@@ -36,18 +45,19 @@ describe('TESTTESTtext/color-console', () => {
     should(cc.valueColor).equal(CYAN);
     should.deepEqual(ColorConsole.cc, cc);
     let value = 1.23456789;
-    dbg && cc.ok1(msg, 'test-ok', value);
-    dbg && cc.ok2(msg, 'test-ok', value);
-    dbg && cc.ok(msg, 'test-ok', value);
-    dbg && cc.bad1(msg, 'test-bad1', value);
-    dbg && cc.bad2(msg, 'test-bad2', value);
-    dbg && cc.bad(msg, 'test-bad', value);
-    dbg && cc.tag1(msg, 'test-tag1', value);
-    dbg && cc.tag2(msg, 'test-tag2', value);
-    dbg && cc.tag(msg, 'test-tag', value);
-    dbg && cc.fyi1(msg, 'test-fyi1', value);
-    dbg && cc.fyi2(msg, 'test-fyi2', value);
-    dbg && cc.fyi(msg, 'test-fyi', value);
+    let testObj = {a: true, b:'two', c:3, d:null, e:undefined};
+    dbg && cc.ok1(msg, 'test-ok', value, testObj);
+    dbg && cc.ok2(msg, 'test-ok', value, testObj);
+    dbg && cc.ok(msg, 'test-ok', value, testObj);
+    dbg && cc.bad1(msg, 'test-bad1', value, testObj);
+    dbg && cc.bad2(msg, 'test-bad2', value, testObj);
+    dbg && cc.bad(msg, 'test-bad', value, testObj);
+    dbg && cc.tag1(msg, 'test-tag1', value, testObj);
+    dbg && cc.tag2(msg, 'test-tag2', value, testObj);
+    dbg && cc.tag(msg, 'test-tag', value, testObj);
+    dbg && cc.fyi1(msg, 'test-fyi1', value, testObj);
+    dbg && cc.fyi2(msg, 'test-fyi2', value, testObj);
+    dbg && cc.fyi(msg, 'test-fyi', value, testObj);
   });
   it('multiline no leading blank', ()=>{
     const msg = 'tc10e.multiline-no-leading-blank';
@@ -240,5 +250,41 @@ describe('TESTTESTtext/color-console', () => {
     let date = new Date(2025, 2, 1);
     dbg && cc.fyi(msg, date);
     should(cc.valueOf(date)).equal(cc.dateFormat.format(date));
+  });
+  it("inspect", ()=>{
+    const msg = 'tl2t.inspect';
+    const dbg = DBG.C10E_INSPECT;
+    let colors = true;
+    let { styleText, inspect } = util;
+    let { styles, defaultOptions } = inspect;
+    defaultOptions.colors = colors;
+    dbg && console.log(msg, 'defaultOptions', defaultOptions);
+    dbg && console.log(msg, 'styles', styles);
+
+    let tbl = [ [true, '%c4', /7/], [2, 5, 8] ];
+    styles.string = 'magenta';
+    styles.name = 'magenta';
+    dbg && console.table(msg+util.inspect(tbl), );
+    dbg && console.table(tbl);
+    should(util.inspect(tbl)).equal(util.inspect(tbl, {colors}));
+
+    let strikethrough = 'strikethrough';
+    dbg && console.log(msg, styleText(strikethrough, strikethrough));
+    let underline = 'underline';
+    dbg && console.log(msg, styleText(underline, underline));
+    let green = 'green';
+    dbg && console.log(msg, styleText(green, green));
+    let bold = 'bold';
+    dbg && console.log(msg, styleText(bold, bold));
+
+    let format = [bold, green, underline, strikethrough];
+    let text = format.join('-');
+    let style = styleText(format, text);
+    dbg && console.log(msg, style);
+    should(style).equal(
+      BOLD + GREEN + UNDERLINE + STRIKETHROUGH + 
+      text + 
+      NO_STRIKETHROUGH + NO_UNDERLINE + NO_COLOR + NO_BOLD
+    );
   });
 });

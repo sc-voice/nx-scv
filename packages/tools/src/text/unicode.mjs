@@ -281,8 +281,29 @@ export class Unicode {
       BRIGHT_MAGENTA: '\u001b[95m',
       BRIGHT_CYAN: '\u001b[96m',
       BRIGHT_WHITE: '\u001b[97m',
-      NO_COLOR: '\u001b[0m',
+      NO_COLOR: '\u001b[39m',
     };
+  }
+
+  static get LINUX_STYLE() {
+    return {
+      BOLD: '\u001b[1m',
+      DIM: '\u001b[2m',
+      NO_BOLD: '\u001b[22m',
+      ITALIC: '\u001b[3m',
+      NO_ITALIC: '\u001b[23m',
+      UNDERLINE: '\u001b[4m',
+      NO_UNDERLINE: '\u001b[24m',
+      BLINK: '\u001b[5m',
+      NO_BLINK: '\u001b[25m',
+      INVERSE: '\u001b[7m',
+      NO_INVERSE: '\u001b[27m',
+      HIDE: '\u001b[8m',
+      NO_HIDE: '\u001b[28m',
+      STRIKETHROUGH: '\u001b[9m',
+      NO_STRIKETHROUGH: '\u001b[29m',
+      RESET: '\u001b[0m',
+    }
   }
 
   constructor(opts = {}) {

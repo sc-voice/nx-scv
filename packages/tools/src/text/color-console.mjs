@@ -1,3 +1,4 @@
+import util from 'node:util';
 import { Unicode } from './unicode.mjs';
 
 const {
@@ -62,6 +63,57 @@ export class ColorConsole {
     return CC;
   }
 
+  static utilColor(ansiColor) {
+    switch (ansiColor) {
+      case BLACK: return 'black';
+      case WHITE: return 'white';
+      case RED: return 'red';
+      case GREEN: return 'green';
+      case BLUE: return 'blue';
+      case CYAN: return 'cyan';
+      case MAGENTA: return 'magenta';
+      case YELLOW: return 'yellow';
+      case BRIGHT_BLACK: return 'blackBright';
+      case BRIGHT_WHITE: return 'whiteBright';
+      case BRIGHT_RED: return 'redBright';
+      case BRIGHT_GREEN: return 'greenBright';
+      case BRIGHT_BLUE: return 'blueBright';
+      case BRIGHT_CYAN: return 'cyanBright';
+      case BRIGHT_MAGENTA: return 'magentaBright';
+      case BRIGHT_YELLOW: return 'yellowBright';
+      case NO_COLOR: return 'noColor';
+    }
+  }
+
+  writeColor(color, rest) {
+    let { styles, defaultOptions } = util?.inspect || {};
+    if (styles) {
+      let oldStyles = Object.assign({}, styles);
+      let oldColors = defaultOptions.colors;
+      defaultOptions.colors = true;
+      let valueColor = ColorConsole.utilColor(this.valueColor);
+      let textColor = ColorConsole.utilColor(color);
+      styles.bigint = valueColor;
+      styles.boolean = valueColor;
+      styles.date = valueColor;
+      //styles.name = textColor;
+      styles.module = 'underline';
+      styles.null = valueColor;
+      styles.number = valueColor;
+      styles.regexp = valueColor;
+      styles.special = valueColor;
+      styles.string = valueColor;
+      //styles.undefined = valueColor;
+
+      this.write(...this.color(color, ...rest));
+
+      Object.assign(util.inspect.styles, oldStyles);
+      defaultOptions.colors = oldColors;
+    } else {
+      this.write(...this.color(color, ...rest));
+    }
+  }
+
   valueOf(thing) {
     const msg = 'c10e.valueOf';
     let { precision } = this;
@@ -99,6 +151,7 @@ export class ColorConsole {
 
   color(textColor, ...things) {
     let { valueColor } = this;
+    let { styleText } = util;
     let label = '';
     let endColor = NO_COLOR;
     let eol;
@@ -154,11 +207,11 @@ export class ColorConsole {
   }
 
   fyi1(...rest) {
-    this.write(...this.color(this.fyiColor1, ...rest));
+    this.writeColor(this.fyiColor1, rest);
   }
 
   fyi2(...rest) {
-    this.write(...this.color(this.fyiColor2, ...rest));
+    this.writeColor(this.fyiColor2, rest);
   }
 
   ok(...rest) {
@@ -166,11 +219,11 @@ export class ColorConsole {
   }
 
   ok1(...rest) {
-    this.write(...this.color(this.okColor1, ...rest));
+    this.writeColor(this.okColor1, rest);
   }
 
   ok2(...rest) {
-    this.write(...this.color(this.okColor2, ...rest));
+    this.writeColor(this.okColor2, rest);
   }
 
   bad(...rest) {
@@ -178,11 +231,11 @@ export class ColorConsole {
   }
 
   bad1(...rest) {
-    this.write(...this.color(this.badColor1, ...rest));
+    this.writeColor(this.badColor1, rest);
   }
 
   bad2(...rest) {
-    this.write(...this.color(this.badColor2, ...rest));
+    this.writeColor(this.badColor2, rest);
   }
 
   tag(...rest) {
@@ -190,10 +243,10 @@ export class ColorConsole {
   }
 
   tag1(...rest) {
-    this.write(...this.color(this.tagColor1, ...rest));
+    this.writeColor(this.tagColor1, rest);
   }
 
   tag2(...rest) {
-    this.write(...this.color(this.tagColor2, ...rest));
+    this.writeColor(this.tagColor2, rest);
   }
 }
