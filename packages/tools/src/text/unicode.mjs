@@ -303,7 +303,7 @@ export class Unicode {
       STRIKETHROUGH: '\u001b[9m',
       NO_STRIKETHROUGH: '\u001b[29m',
       RESET: '\u001b[0m',
-    }
+    };
   }
 
   constructor(opts = {}) {

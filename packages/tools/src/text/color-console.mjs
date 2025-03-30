@@ -65,23 +65,40 @@ export class ColorConsole {
 
   static utilColor(ansiColor) {
     switch (ansiColor) {
-      case BLACK: return 'black';
-      case WHITE: return 'white';
-      case RED: return 'red';
-      case GREEN: return 'green';
-      case BLUE: return 'blue';
-      case CYAN: return 'cyan';
-      case MAGENTA: return 'magenta';
-      case YELLOW: return 'yellow';
-      case BRIGHT_BLACK: return 'blackBright';
-      case BRIGHT_WHITE: return 'whiteBright';
-      case BRIGHT_RED: return 'redBright';
-      case BRIGHT_GREEN: return 'greenBright';
-      case BRIGHT_BLUE: return 'blueBright';
-      case BRIGHT_CYAN: return 'cyanBright';
-      case BRIGHT_MAGENTA: return 'magentaBright';
-      case BRIGHT_YELLOW: return 'yellowBright';
-      case NO_COLOR: return 'noColor';
+      case BLACK:
+        return 'black';
+      case WHITE:
+        return 'white';
+      case RED:
+        return 'red';
+      case GREEN:
+        return 'green';
+      case BLUE:
+        return 'blue';
+      case CYAN:
+        return 'cyan';
+      case MAGENTA:
+        return 'magenta';
+      case YELLOW:
+        return 'yellow';
+      case BRIGHT_BLACK:
+        return 'blackBright';
+      case BRIGHT_WHITE:
+        return 'whiteBright';
+      case BRIGHT_RED:
+        return 'redBright';
+      case BRIGHT_GREEN:
+        return 'greenBright';
+      case BRIGHT_BLUE:
+        return 'blueBright';
+      case BRIGHT_CYAN:
+        return 'cyanBright';
+      case BRIGHT_MAGENTA:
+        return 'magentaBright';
+      case BRIGHT_YELLOW:
+        return 'yellowBright';
+      case NO_COLOR:
+        return 'noColor';
     }
   }
 
@@ -159,16 +176,21 @@ export class ColorConsole {
       let newLabel = '';
       let v = this.valueOf(thing);
       let aLast = a.at(-1);
-      if (typeof aLast === 'string' && aLast.endsWith('\n' +  endColor)) {
+      if (
+        typeof aLast === 'string' &&
+        aLast.endsWith('\n' + endColor)
+      ) {
         if (aLast === textColor + '\n' + endColor) {
           a.pop();
         } else {
           const iLast = aLast.lastIndexOf('\n');
           a.pop();
-          a.push(aLast.substring(0, iLast) + aLast.substring(iLast + 1));
+          a.push(
+            aLast.substring(0, iLast) + aLast.substring(iLast + 1),
+          );
         }
         v = '\n' + v;
-      } 
+      }
       switch (typeof thing) {
         case 'object': {
           if (

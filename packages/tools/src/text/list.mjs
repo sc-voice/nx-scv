@@ -1,12 +1,12 @@
 import { ColorConsole } from './color-console.mjs';
 const { cc } = ColorConsole;
 
-var LIST_FACTORY_SINGLETON;
+let LIST_FACTORY_SINGLETON;
 
 /* Array decorator
  */
 export class ListFactory {
-  constructor(opts={}) {
+  constructor(opts = {}) {
     let {
       nColumns = 0,
       nRows = 0,
@@ -29,15 +29,15 @@ export class ListFactory {
 
   static get SINGLETON() {
     if (LIST_FACTORY_SINGLETON == null) {
-      LIST_FACTORY_SINGLETON = new ListFactory;
+      LIST_FACTORY_SINGLETON = new ListFactory();
     }
     return LIST_FACTORY_SINGLETON;
   }
 
   createList(opts = {}) {
-    let { 
+    let {
       name, // title
-      values=[], 
+      values = [],
       separator = ',', // join() separator
       widths, // element string widths
       precision = this.precision, // numeric precision
@@ -70,7 +70,7 @@ export class ListFactory {
       value: () => {
         let strs = list.toStrings();
         return strs.join(list.separator);
-      }
+      },
     });
     Object.defineProperty(list, 'toStrings', {
       value: () => {
@@ -95,36 +95,35 @@ export class ListFactory {
                 s = JSON.stringify(v);
               }
               break;
-            case 'number': {
-              let sRaw = precision ? v.toFixed(precision) : v+'';
-              let sShort = sRaw.replace(/\.?0+$/, '');
-              s = Number(sShort) === v ? sShort : sRaw;
-            }
-            break;
+            case 'number':
+              {
+                let sRaw = precision ? v.toFixed(precision) : v + '';
+                let sShort = sRaw.replace(/\.?0+$/, '');
+                s = Number(sShort) === v ? sShort : sRaw;
+              }
+              break;
             default:
-              s +=  v;
+              s += v;
               break;
           }
           let width = widths?.[i];
           if (width) {
-            s = s.substring(0,width).padEnd(width);
+            s = s.substring(0, width).padEnd(width);
           }
           s5s.push(s);
         }
 
-
         return s5s;
-      }
-
+      },
     });
 
     return list;
   }
 
   createColumn(opts = {}) {
-    let { 
-      name, 
-      values=[], 
+    let {
+      name,
+      values = [],
       separator = '\n',
       precision = this.precision,
     } = opts;
@@ -134,17 +133,17 @@ export class ListFactory {
       name = 'column' + this.nColumns;
     }
     return this.createList({
-      name, 
+      name,
       precision,
-      separator, 
-      values, 
+      separator,
+      values,
     });
   }
 
   createRow(opts = {}) {
-    let { 
-      name, 
-      values=[], 
+    let {
+      name,
+      values = [],
       separator = '\t',
       widths,
       precision = this.precision,
@@ -155,10 +154,10 @@ export class ListFactory {
       name = 'row' + this.nRows;
     }
     return this.createList({
-      name, 
+      name,
       precision,
-      separator, 
-      values, 
+      separator,
+      values,
       widths,
     });
   }
@@ -176,12 +175,13 @@ export class ListFactory {
       precision = this.precision,
     } = opts;
 
-    let singleList = this.createColumn({ 
-      name, 
-      separator:rowSeparator,
+    let singleList = this.createColumn({
+      name,
+      separator: rowSeparator,
       precision,
     });
-    let newRow = (separator) => this.createRow({ separator, precision });
+    let newRow = (separator) =>
+      this.createRow({ separator, precision });
     name = name || singleList.name;
     switch (order) {
       case 'col-major':
@@ -251,20 +251,23 @@ export class ListFactory {
 
     // compute row element widths
     let widths = new Array(maxValues).fill(0);
-    singleList.forEach(row => {
+    singleList.forEach((row) => {
       let strs = row.toStrings();
-      strs.map((s,i)=> {
+      strs.map((s, i) => {
         widths[i] = Math.max(s.length, widths[i]);
       });
     });
-    singleList.forEach(row => row.widths = widths);
-    dbg && cc.ok1(msg+1, widths[0], maxValues, 'widths:', widths);
+    singleList.forEach((row) => {
+      row.widths = widths;
+    });
+    dbg && cc.ok1(msg + 1, widths[0], maxValues, 'widths:', widths);
 
     return singleList;
   }
 }
 
-export class List { // namespace wrapper for ListFactory
+export class List {
+  // namespace wrapper for ListFactory
   static createColumn(opts = {}) {
     return ListFactory.SINGLETON.createColumn(opts);
   }
@@ -274,6 +277,6 @@ export class List { // namespace wrapper for ListFactory
   }
 
   static wrapList(list, opts = {}) {
-    return ListFactory.SINGLETON.wrapList(list, opts); 
+    return ListFactory.SINGLETON.wrapList(list, opts);
   }
 }

@@ -3,10 +3,12 @@ export const JS = {
   Assert,
 }
 
+import { Activation } from './src/math/activation.mjs';
 import { Fraction } from './src/math/fraction.mjs';
 import { Interval } from './src/math/interval.mjs';
 
 export const ScvMath = {
+  Activation,
   Fraction,
   Interval,
 };
