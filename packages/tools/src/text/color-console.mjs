@@ -131,7 +131,7 @@ export class ColorConsole {
     }
   }
 
-  isOk(thing, tf) {
+  isOk(thing, tf = thing) {
     let v = this.valueOf(thing);
     let color = tf ? this.okColor2 : this.badColor2;
     return color + v;
