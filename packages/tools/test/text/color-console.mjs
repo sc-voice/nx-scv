@@ -305,4 +305,16 @@ describe('TESTTESTtext/color-console', () => {
         NO_BOLD,
     );
   });
+  it('isOk()', () => {
+    const msg = 'tc10e.isOk';
+    const dbg = DBG.COLOR_CONSOLE;
+    let { styleText, inspect } = util;
+
+    let { cc } = ColorConsole;
+    let { okColor2: ok, badColor2: bad } = cc;
+    should(cc.isOk(Math.PI, true)).equal(`${ok}3.142`);
+    should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
+    should(cc.isOk(Math.PI)).equal(`${bad}3.142`);
+    dbg && cc.fyi(msg + 0.1, cc.isOk('ok', 1), cc.isOk('bad'), 'end');
+  });
 });

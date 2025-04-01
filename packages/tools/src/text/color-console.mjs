@@ -131,6 +131,12 @@ export class ColorConsole {
     }
   }
 
+  isOk(thing, tf) {
+    let v = this.valueOf(thing);
+    let color = tf ? this.okColor2 : this.badColor2;
+    return color + v;
+  }
+
   valueOf(thing) {
     const msg = 'c10e.valueOf';
     let { precision } = this;
