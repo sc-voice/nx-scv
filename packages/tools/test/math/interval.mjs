@@ -154,4 +154,7 @@ describe('TESTTESTscv-math/interval', () => {
     should(i4.overlaps(i6_9)).equal(false);
     should(i6_9.overlaps(i4)).equal(false);
   });
+  it('size', ()=>{
+    should(new Interval(-1,5).size).equal(6);
+  });
 });

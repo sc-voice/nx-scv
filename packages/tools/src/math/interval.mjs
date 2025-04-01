@@ -65,6 +65,10 @@ export class Interval {
     return INFINITY;
   }
 
+  get size(){
+    return this.hi - this.lo;
+  }
+
   get isOpen() {
     return this.leftOpen || this.rightOpen || this.isEmpty;
   }
