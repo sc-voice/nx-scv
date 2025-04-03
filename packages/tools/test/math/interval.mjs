@@ -159,10 +159,18 @@ describe('TESTTESTscv-math/interval', () => {
   });
   it('styleText', () =>{
     let i6l = new Interval(1,2);
+    should.deepEqual(Interval.styleText, (text)=>text);
     let defaultToString = i6l.toString();
     Interval.styleText = (x) => `a${x}b`;
     should(i6l.toString()).equal(`a[1,2]b`);
     Interval.styleText = undefined;
     should(i6l.toString()).equal(defaultToString);
+  });
+  it('collapseDegenerate', () => {
+    let i6l = new Interval(1,1);
+    should(Interval.collapseDegenerate).equal(false);
+    Interval.collapseDegenerate = true;
+    should(i6l.toString()).equal(`[1]`);
+    Interval.collapseDegenerate = false;
   });
 });

@@ -9,7 +9,8 @@ const MINUS_INFINITY = `-${INFINITY}`;
 const PLUS_INFINITY = `+${INFINITY}`;
 
 export class Interval {
-  styleText = (text)=>text; 
+  static styleText = (text)=>text; 
+  static collapseDegenerate = false;
 
   constructor(a, b, opts = {}) {
     const msg = 'i6l.ctor';
@@ -137,13 +138,21 @@ export class Interval {
     let result = EMPTY_SET;
     if (!isEmpty) {
       if (lo === hi) {
-        result = [
-          leftOpen ? '(' : '[',
-          lo === INFINITY ? MINUS_INFINITY : lo,
-          lo == null ? '' : ',',
-          hi === INFINITY ? PLUS_INFINITY : hi,
-          rightOpen ? ')' : ']',
-        ].join('');
+        if (Interval.collapseDegenerate) {
+          result = [
+            leftOpen ? '(' : '[',
+            lo === INFINITY ? MINUS_INFINITY : lo,
+            rightOpen ? ')' : ']',
+          ].join('');
+        } else {
+          result = [
+            leftOpen ? '(' : '[',
+            lo === INFINITY ? MINUS_INFINITY : lo,
+            lo == null ? '' : ',',
+            hi === INFINITY ? PLUS_INFINITY : hi,
+            rightOpen ? ')' : ']',
+          ].join('');
+        }
       } else {
         result = [
           leftOpen ? '(' : '[',
