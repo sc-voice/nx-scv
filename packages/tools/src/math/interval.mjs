@@ -3,11 +3,14 @@ const { EMPTY_SET, INFINITY } = Unicode;
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { DBG } from '../defines.mjs';
+import util from 'node:util';
 
 const MINUS_INFINITY = `-${INFINITY}`;
 const PLUS_INFINITY = `+${INFINITY}`;
 
 export class Interval {
+  styleText = (text)=>text; 
+
   constructor(a, b, opts = {}) {
     const msg = 'i6l.ctor';
     let hi = null;
@@ -131,25 +134,28 @@ export class Interval {
 
   toString() {
     let { lo, hi, leftOpen, rightOpen, isEmpty } = this;
-    if (isEmpty) {
-      return EMPTY_SET;
+    let result = EMPTY_SET;
+    if (!isEmpty) {
+      if (lo === hi) {
+        result = [
+          leftOpen ? '(' : '[',
+          lo === INFINITY ? MINUS_INFINITY : lo,
+          lo == null ? '' : ',',
+          hi === INFINITY ? PLUS_INFINITY : hi,
+          rightOpen ? ')' : ']',
+        ].join('');
+      } else {
+        result = [
+          leftOpen ? '(' : '[',
+          lo === INFINITY ? MINUS_INFINITY : lo,
+          lo === hi ? '' : ',',
+          hi === INFINITY ? PLUS_INFINITY : hi,
+          rightOpen ? ')' : ']',
+        ].join('');
+      }
     }
-    if (lo === hi) {
-      return [
-        leftOpen ? '(' : '[',
-        lo === INFINITY ? MINUS_INFINITY : lo,
-        lo == null ? '' : ',',
-        hi === INFINITY ? PLUS_INFINITY : hi,
-        rightOpen ? ')' : ']',
-      ].join('');
-    }
-    return [
-      leftOpen ? '(' : '[',
-      lo === INFINITY ? MINUS_INFINITY : lo,
-      lo === hi ? '' : ',',
-      hi === INFINITY ? PLUS_INFINITY : hi,
-      rightOpen ? ')' : ']',
-    ].join('');
+
+    return Interval.styleText ? Interval.styleText(result) : result;
   }
 
   overlaps(iv2) {
@@ -189,4 +195,4 @@ export class Interval {
     dbg && cc.fyi1(msg + 0.1, false);
     return false;
   }
-}
+} // Interval
