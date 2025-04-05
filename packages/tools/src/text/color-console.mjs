@@ -131,7 +131,11 @@ export class ColorConsole {
     }
   }
 
-  isOk(thing, tf = thing) {
+  isOk(thing, tf) {
+    if (tf === undefined) {
+      tf = thing;
+    }
+
     let v = this.valueOf(thing);
     let color = tf ? this.okColor2 : this.badColor2;
     return color + v;

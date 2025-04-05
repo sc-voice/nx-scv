@@ -312,8 +312,7 @@ describe('TESTTESTtext/color-console', () => {
 
     let { cc } = ColorConsole;
     let { okColor2: ok, badColor2: bad } = cc;
-    should(cc.isOk(Math.PI, true)).equal(`${ok}3.142`);
-    should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
+
     dbg &&
       cc.fyi(
         msg + 0.1,
@@ -324,8 +323,24 @@ describe('TESTTESTtext/color-console', () => {
         'label:',
         'end',
       );
+
+    // NOTE: the default value for the tf value is the first argument!
+    // truthy
+    should(cc.isOk(Math.PI))
+      .equal(cc.isOk(Math.PI, undefined))
+      .equal(cc.isOk(Math.PI, Math.PI))
+      .equal(`${ok}3.142`);
+    should(cc.isOk(Math.PI, true)).equal(`${ok}3.142`);
     should(cc.isOk(Math.PI)).equal(`${ok}3.142`);
+    should(cc.isOk(Math.PI, undefined)).equal(`${ok}3.142`);
+
+    // falsy
+    let unitialized;
     should(cc.isOk()).equal(`${bad}undefined`);
+    should(cc.isOk(uninitialized)).equal(`${bad}undefined`);
+    should(cc.isOk(uninitialized, undefined)).equal(`${bad}undefined`);
+    should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
+    should(cc.isOk(Math.PI, null)).equal(`${bad}3.142`);
     should(cc.isOk(null)).equal(`${bad}null`);
   });
 });
