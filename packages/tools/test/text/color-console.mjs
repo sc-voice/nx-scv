@@ -335,7 +335,7 @@ describe('TESTTESTtext/color-console', () => {
     should(cc.isOk(Math.PI, undefined)).equal(`${ok}3.142`);
 
     // falsy
-    let unitialized;
+    let uninitialized;
     should(cc.isOk()).equal(`${bad}undefined`);
     should(cc.isOk(uninitialized)).equal(`${bad}undefined`);
     should(cc.isOk(uninitialized, undefined)).equal(`${bad}undefined`);
