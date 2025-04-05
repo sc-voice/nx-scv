@@ -2,14 +2,14 @@ import { Unicode } from '../text/unicode.mjs';
 const { EMPTY_SET, INFINITY } = Unicode;
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
-import { DBG } from '../defines.mjs';
 import util from 'node:util';
+import { DBG } from '../defines.mjs';
 
 const MINUS_INFINITY = `-${INFINITY}`;
 const PLUS_INFINITY = `+${INFINITY}`;
 
 export class Interval {
-  static styleText = (text)=>text; 
+  static styleText; // (text) => text
   static collapseDegenerate = false;
 
   constructor(a, b, opts = {}) {
@@ -69,7 +69,7 @@ export class Interval {
     return INFINITY;
   }
 
-  get size(){
+  get size() {
     return this.hi - this.lo;
   }
 

@@ -1,6 +1,8 @@
 import { DBG } from '../defines.mjs';
 import { Corpus } from './corpus.mjs';
 import { WordVector } from './word-vector.mjs';
+import { ColorConsole } from './color-console.mjs';
+const { cc } = ColorConsole;
 
 // The golden ratio is pretty.
 // 1.6180339887498948482045868343656381177203091798057628621354;
@@ -46,6 +48,22 @@ export class TfidfSpace {
       idfWeight,
       leftQuoteToken,
     });
+  }
+
+  // Create wordWeight function that weighs the first words
+  // of a document more than the remainder
+  static wordWeightFromPrefix(prefixLength, prefixBias=0.5) {
+    const msg = 't8e.wordWeightFromPrefix';
+
+    let wordWeight = (w,i,nWords) => {
+      const nWeighted = Math.min(nWords, prefixLength);
+      const nUnweighted = nWords - nWeighted;
+      const wf = nUnweighted ? prefixBias : 1;
+      return i < nWeighted 
+        ? wf * nWords / nWeighted 
+        : (1 - wf) * nWords / nUnweighted;
+      }
+    return wordWeight;
   }
 
   static removeHtml(s) {
@@ -190,16 +208,22 @@ export class TfidfSpace {
     return { bow, words };
   }
 
-  bowOfText(text) {
+  bowOfText(text, opts={}) {
     const msg = 'w7e.bowOfText:';
+    let dbg = DBG.W7E_BOW_OF_TEXT;
     if (text == null) {
       throw new Error(`${msg} text?`);
     }
-    let dbg = 0;
+    let {
+      wordWeight = (word,i,n) => 1,
+    } = opts;
     let sNorm = this.normalizeText(text);
     let words = sNorm.split(' ');
-    let bow = words.reduce((a, w) => {
-      a[w] = (a[w] || 0) + 1;
+    let nWords = words.length;
+    let bow = words.reduce((a, word, i) => {
+      let ww = wordWeight(word, i, nWords);
+      a[word] = (a[word] || 0) + ww;
+      dbg && cc.fyi1(msg+0.1, {i, word, ww, sum:a[word]});
       return a;
     }, new WordVector());
 

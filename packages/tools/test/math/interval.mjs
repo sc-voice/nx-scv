@@ -1,5 +1,5 @@
-import should from 'should';
 import util from 'node:util';
+import should from 'should';
 import { ScvMath, Text } from '../../index.mjs';
 const { EMPTY_SET, INFINITY } = Text.Unicode;
 const { Interval } = ScvMath;
@@ -154,12 +154,12 @@ describe('TESTTESTscv-math/interval', () => {
     should(i4.overlaps(i6_9)).equal(false);
     should(i6_9.overlaps(i4)).equal(false);
   });
-  it('size', ()=>{
-    should(new Interval(-1,5).size).equal(6);
+  it('size', () => {
+    should(new Interval(-1, 5).size).equal(6);
   });
-  it('styleText', () =>{
-    let i6l = new Interval(1,2);
-    should.deepEqual(Interval.styleText, (text)=>text);
+  it('styleText', () => {
+    let i6l = new Interval(1, 2);
+    should.deepEqual(Interval.styleText, undefined);
     let defaultToString = i6l.toString();
     Interval.styleText = (x) => `a${x}b`;
     should(i6l.toString()).equal(`a[1,2]b`);
@@ -167,7 +167,7 @@ describe('TESTTESTscv-math/interval', () => {
     should(i6l.toString()).equal(defaultToString);
   });
   it('collapseDegenerate', () => {
-    let i6l = new Interval(1,1);
+    let i6l = new Interval(1, 1);
     should(Interval.collapseDegenerate).equal(false);
     Interval.collapseDegenerate = true;
     should(i6l.toString()).equal(`[1]`);

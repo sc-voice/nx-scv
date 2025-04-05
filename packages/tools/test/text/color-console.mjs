@@ -314,10 +314,16 @@ describe('TESTTESTtext/color-console', () => {
     let { okColor2: ok, badColor2: bad } = cc;
     should(cc.isOk(Math.PI, true)).equal(`${ok}3.142`);
     should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
-    dbg && cc.fyi(msg + 0.1, 
-      'label:', cc.isOk(true), 
-      'label:', cc.isOk(false), 
-      'label:', 'end');
+    dbg &&
+      cc.fyi(
+        msg + 0.1,
+        'label:',
+        cc.isOk(true),
+        'label:',
+        cc.isOk(false),
+        'label:',
+        'end',
+      );
     should(cc.isOk(Math.PI)).equal(`${ok}3.142`);
     should(cc.isOk()).equal(`${bad}undefined`);
     should(cc.isOk(null)).equal(`${bad}null`);
