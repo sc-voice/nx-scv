@@ -127,22 +127,28 @@ describe('text/word-vector', () => {
 
     // precision 1, minValue: 0.05
     let vs1 = v.toString({ precision: 1 });
-    should(vs1).equal('a@1:1,a2:1,a3:.5,a4:.5,a5:.1');
+    should(vs1).equal('a@1:1,a2:1,a3:.5,a4:.5,a5:.1,…3');
 
     // precision 2, minValue: 0.005
     let vs2 = v.toString({ order: 'key' });
-    should(vs2).equal('a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05');
+    should(vs2).equal('a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,…2');
 
     // order:'value', minValue: 0.0005
     let vs3 = v.toString({ precision: 3 });
     should(vs3).equal(
-      'a@1:1,a2:.988,a3:.500,a4:.490,a5:.050,a6:.049,a7:.001',
+      'a@1:1,a2:.988,a3:.500,a4:.490,a5:.050,a6:.049,a7:.001,…1',
     );
 
     // order:'value', precision:2 minValue: 0.001
     let vs4 = v.toString({ minValue: 0.001 });
     should(vs4).equal(
-      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0',
+      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,…1',
+    );
+
+    // show all
+    let vs5 = v.toString({ minValue: 0.0001 });
+    should(vs5).equal(
+      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,a8:0',
     );
   });
   it('TESTTESTandOneHot()', () => {

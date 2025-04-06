@@ -1,4 +1,8 @@
 import { DBG } from '../defines.mjs';
+import { Unicode } from './unicode.mjs';
+const {
+  ELLIPSIS,
+} = Unicode;
 
 // The golden ratio is pretty.
 // 1.6180339887498948482045868343656381177203091798057628621354;
@@ -23,6 +27,7 @@ export class WordVector extends Object {
   toString(opts = {}) {
     const msg = 'w10r.toString:';
     let { order = 'value', minValue, precision = 2 } = opts;
+    let skipped = 0;
 
     if (minValue == null) {
       minValue = Math.pow(10, -precision) / 2;
@@ -54,9 +59,12 @@ export class WordVector extends Object {
           .replace(/\.0*$/, '')
           .replace(/0\./, '.');
         a.push(`${k}:${vf}`);
+      } else {
+        skipped++;
       }
       return a;
     }, []);
+    skipped && sv.push(`${ELLIPSIS}${skipped}`);
     return sv.join(',');
   }
 
