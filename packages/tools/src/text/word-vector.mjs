@@ -106,6 +106,7 @@ export class WordVector extends Object {
   }
 
   multiply(vec2) {
+    // Hadabard product: multipy element by element
     const msg = 'w8r.multiply:';
     let keys = Object.keys(vec2);
     return keys.reduce((a, k) => {
