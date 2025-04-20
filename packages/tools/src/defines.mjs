@@ -13,6 +13,10 @@ export const DBG = {
   DEEPL_MOCK_XLT: 0, // use mock translation
   DEEPL_TEST_API: 0, // test with live DeepL API ($$$)
   DEEPL_XLT: 0, // test live translation
+  K3A_CTOR: 0,
+  K3A_CONNECT: 1,
+  K3A_SEND: 1,
+  K3A_DISCONNECT: 1,
   L7C_FETCH_LEGACY: 0,
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
   W7E_BOW_OF_TEXT: 0,

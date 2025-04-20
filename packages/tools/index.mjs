@@ -50,3 +50,11 @@ export const Graph = {
   Sankey, 
 }
 
+
+import { Kafka, Producer, Consumer, Admin } from './src/nameforma/kafka.mjs';
+export const NameForma = {
+  Admin,
+  Consumer,
+  Kafka,
+  Producer,
+}
