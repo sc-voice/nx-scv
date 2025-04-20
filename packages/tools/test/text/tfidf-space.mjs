@@ -3,10 +3,15 @@ import should from 'should';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import { Text } from '../../index.mjs';
-const { 
-  ColorConsole, Corpus, WordVector, WordMapTransformer, TfidfSpace 
+const {
+  ColorConsole,
+  Corpus,
+  WordVector,
+  WordMapTransformer,
+  TfidfSpace,
 } = Text;
-let { cc } = ColorConsole; const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
+let { cc } = ColorConsole;
+const { dirname: TEST_DIR, filename: TEST_FILE } = import.meta;
 const TEST_DATA = path.join(TEST_DIR, '../data');
 
 const FOX = 'Fox, a quick brown fox, jumped over the fence';
@@ -71,25 +76,33 @@ describe('TESTTESTtext/tfidf-space', () => {
     let prefixLength = 3;
     let prefixBias = 0.9;
     let wordWeight = TfidfSpace.wordWeightFromPrefix(
-      prefixLength, prefixBias);
+      prefixLength,
+      prefixBias,
+    );
 
     // nWords larger than prefix
     let nWords = 4;
-    should(wordWeight(word,0,nWords)).equal(1.2);
-    should(wordWeight(word,1,nWords)).equal(1.2);
-    should(wordWeight(word,2,nWords)).equal(1.2);
-    should(wordWeight(word,3,nWords)).above(0.399).below(0.4);
+    should(wordWeight(word, 0, nWords)).equal(1.2);
+    should(wordWeight(word, 1, nWords)).equal(1.2);
+    should(wordWeight(word, 2, nWords)).equal(1.2);
+    should(wordWeight(word, 3, nWords))
+      .above(0.399)
+      .below(0.4);
 
     nWords = 5;
-    should(wordWeight(word,0,nWords)).equal(1.5);
-    should(wordWeight(word,2,nWords)).equal(1.5);
-    should(wordWeight(word,4,nWords)).above(0.249).below(0.25);
-    should(wordWeight(word,10,nWords)).above(0.249).below(0.25);
+    should(wordWeight(word, 0, nWords)).equal(1.5);
+    should(wordWeight(word, 2, nWords)).equal(1.5);
+    should(wordWeight(word, 4, nWords))
+      .above(0.249)
+      .below(0.25);
+    should(wordWeight(word, 10, nWords))
+      .above(0.249)
+      .below(0.25);
 
-    should(wordWeight(word,0,1)).equal(1);
-    should(wordWeight(word,0,2)).equal(1);
-    should(wordWeight(word,0,3)).equal(1);
-    should(wordWeight(word,0,5)).equal(1.5);
+    should(wordWeight(word, 0, 1)).equal(1);
+    should(wordWeight(word, 0, 2)).equal(1);
+    should(wordWeight(word, 0, 3)).equal(1);
+    should(wordWeight(word, 0, 5)).equal(1.5);
   });
   it('TESTTESTbowOfText() wordWeight', () => {
     const msg = 'tbowOfText.wordWeight';
@@ -106,15 +119,19 @@ describe('TESTTESTtext/tfidf-space', () => {
       let word = words[i];
       let ww = wordWeight(word, i, nWords);
       sum += ww;
-      dbg && cc.fyi1(msg+0.1, {i, word, ww, sum});
+      dbg && cc.fyi1(msg + 0.1, { i, word, ww, sum });
     }
-    should(Math.abs(nWords-sum)).below(0.0000000001);
+    should(Math.abs(nWords - sum)).below(0.0000000001);
 
-    let v = ws.bowOfText(FOX, {wordWeight});
+    let v = ws.bowOfText(FOX, { wordWeight });
     should(v).instanceOf(WordVector);
     should(v.a).above(1).equal(v.quick).equal(v.brown);
     should(v.fox).above(v.a);
-    should(v.over).below(1).equal(v.jumped).equal(v.over).equal(v.the);
+    should(v.over)
+      .below(1)
+      .equal(v.jumped)
+      .equal(v.over)
+      .equal(v.the);
     should(v.length).equal(8);
   });
   it('TfidSpace.normalizeFR()', () => {

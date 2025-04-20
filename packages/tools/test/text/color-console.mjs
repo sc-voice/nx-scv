@@ -338,7 +338,9 @@ describe('TESTTESTtext/color-console', () => {
     let uninitialized;
     should(cc.isOk()).equal(`${bad}undefined`);
     should(cc.isOk(uninitialized)).equal(`${bad}undefined`);
-    should(cc.isOk(uninitialized, undefined)).equal(`${bad}undefined`);
+    should(cc.isOk(uninitialized, undefined)).equal(
+      `${bad}undefined`,
+    );
     should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
     should(cc.isOk(Math.PI, null)).equal(`${bad}3.142`);
     should(cc.isOk(null)).equal(`${bad}null`);

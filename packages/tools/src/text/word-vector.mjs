@@ -1,8 +1,6 @@
 import { DBG } from '../defines.mjs';
 import { Unicode } from './unicode.mjs';
-const {
-  ELLIPSIS,
-} = Unicode;
+const { ELLIPSIS } = Unicode;
 
 // The golden ratio is pretty.
 // 1.6180339887498948482045868343656381177203091798057628621354;
