@@ -180,8 +180,7 @@ export class ListFactory {
       separator: rowSeparator,
       precision,
     });
-    let newRow = (separator) =>
-      this.createRow({ separator, precision });
+    let newRow = (separator) => this.createRow({ separator, precision });
     name = name || singleList.name;
     switch (order) {
       case 'col-major':

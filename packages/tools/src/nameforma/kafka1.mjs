@@ -7,7 +7,7 @@ import { DBG } from '../defines.mjs';
  * in-memory, local implementation of Kafka that can be used
  * to test application logic that uses Kafka protocols.
  *
- * Kafka1 uses a subset of kafkajs api and can be directly 
+ * Kafka1 uses a subset of kafkajs api and can be directly
  * replaced with a kafkajs instance.
  */
 const SINGLETON_PARTITION = 0; // multiple partitions not supported
@@ -183,8 +183,7 @@ export class Consumer extends Role {
       topic._consumers.push(this);
       if (group.topics.indexOf(topicName) < 0) {
         group.topics.push(topicName);
-        dbg &&
-          cc.fyi(msg + 2.1, groupId, JSON.stringify(group.topics));
+        dbg && cc.fyi(msg + 2.1, groupId, JSON.stringify(group.topics));
       }
     }
     dbg && cc.ok1(msg + 9, groupId, topics);
@@ -238,14 +237,7 @@ export class Producer extends Role {
 
     if (dbg) {
       let ts = Timestamp.asDate(timestamp).toLocaleTimeString();
-      cc.ok1(
-        msg,
-        'send',
-        ts,
-        topicName,
-        'messages:',
-        messages.length,
-      );
+      cc.ok1(msg, 'send', ts, topicName, 'messages:', messages.length);
     }
   }
 }
@@ -371,9 +363,7 @@ export class Kafka1 extends KRaftNode {
     super();
     const msg = 'k3a.ctor';
     const dbg = DBG.K3A_CTOR;
-    let { 
-      clientId = 'no-client-id',
-    } = cfg;
+    let { clientId = 'no-client-id' } = cfg;
 
     Object.assign(this, {
       clientId,

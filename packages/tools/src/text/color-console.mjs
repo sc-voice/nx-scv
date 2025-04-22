@@ -186,18 +186,13 @@ export class ColorConsole {
       let newLabel = '';
       let v = this.valueOf(thing);
       let aLast = a.at(-1);
-      if (
-        typeof aLast === 'string' &&
-        aLast.endsWith('\n' + endColor)
-      ) {
+      if (typeof aLast === 'string' && aLast.endsWith('\n' + endColor)) {
         if (aLast === textColor + '\n' + endColor) {
           a.pop();
         } else {
           const iLast = aLast.lastIndexOf('\n');
           a.pop();
-          a.push(
-            aLast.substring(0, iLast) + aLast.substring(iLast + 1),
-          );
+          a.push(aLast.substring(0, iLast) + aLast.substring(iLast + 1));
         }
         v = '\n' + v;
       }

@@ -110,9 +110,7 @@ export class TfidfSpace {
     const msg = 'w7e.idfTunable:';
     // NOTE: This is NOT the usual formula
     // Map to [0:ignore..1:important]
-    return nDocs
-      ? 1 - Math.exp(((wdc - nDocs) / wdc) * idfWeight)
-      : 1;
+    return nDocs ? 1 - Math.exp(((wdc - nDocs) / wdc) * idfWeight) : 1;
   }
 
   idf(word, idfWeight = this.idfWeight) {

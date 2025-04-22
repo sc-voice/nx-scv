@@ -17,7 +17,7 @@
   },
   "formatter": {
     "enabled": true,
-    "lineWidth": 70,
+    "lineWidth": 75,
     "indentStyle": "space"
   },
   "organizeImports": {

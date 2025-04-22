@@ -6,9 +6,7 @@ export class BilaraPath {
   static htmlPath(mid) {
     let lang = 'pli';
     let auth = 'ms';
-    return ['html', lang, `${auth}/sutta`, `${mid}_html.json`].join(
-      '/',
-    );
+    return ['html', lang, `${auth}/sutta`, `${mid}_html.json`].join('/');
   }
 
   static variantPath(mid) {

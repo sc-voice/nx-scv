@@ -159,8 +159,7 @@ function rhex(n) {
     j = 0;
   for (; j < 4; j++)
     s +=
-      hex_chr[(n >> (j * 8 + 4)) & 0x0f] +
-      hex_chr[(n >> (j * 8)) & 0x0f];
+      hex_chr[(n >> (j * 8 + 4)) & 0x0f] + hex_chr[(n >> (j * 8)) & 0x0f];
   return s;
 }
 
@@ -237,9 +236,7 @@ export class MerkleJson {
   stringify(value) {
     if (value instanceof Array) {
       let body = value.reduce((a, v) => {
-        return a
-          ? `${a},${this.stringify(v)}`
-          : `${this.stringify(v)}`;
+        return a ? `${a},${this.stringify(v)}` : `${this.stringify(v)}`;
       }, '');
       return `[${body}]`;
     } else if (value instanceof Date) {

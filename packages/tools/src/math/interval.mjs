@@ -170,18 +170,8 @@ export class Interval {
   overlaps(iv2) {
     const msg = 'i6l.overlaps';
     const dbg = DBG.I6L_OVERLAPS;
-    let {
-      lo: lo1,
-      hi: hi1,
-      leftOpen: lOpen1,
-      rightOpen: rOpen1,
-    } = this;
-    let {
-      lo: lo2,
-      hi: hi2,
-      leftOpen: lOpen2,
-      rightOpen: rOpen2,
-    } = iv2;
+    let { lo: lo1, hi: hi1, leftOpen: lOpen1, rightOpen: rOpen1 } = this;
+    let { lo: lo2, hi: hi2, leftOpen: lOpen2, rightOpen: rOpen2 } = iv2;
 
     //console.log(msg, {lo1, lo2, hi1, hi2});
     if (!lOpen1 && iv2.contains(lo1)) {

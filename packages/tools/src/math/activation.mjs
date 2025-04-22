@@ -59,8 +59,7 @@ export class Activation {
   }
 
   static createRareN(a = 100, b = 1) {
-    let fEval = (x, a) =>
-      x < 1 ? 1 : 1 - Math.exp(((x - a) / x) * b);
+    let fEval = (x, a) => (x < 1 ? 1 : 1 - Math.exp(((x - a) / x) * b));
     let dEval = (x, a) =>
       x < 1 ? 0 : -(a * b * fEval(x, a, b)) / (x * x);
     return new Activation({ a, b, fEval, dEval });

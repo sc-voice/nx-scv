@@ -124,9 +124,7 @@ export class SuttaCentralId {
         n0 = Number(c0dig);
         n1 = c0let.charCodeAt(0) - 'a'.charCodeAt(0) + 1;
         if (Number.isNaN(n0) || Number.isNaN(n1)) {
-          throw new Error(
-            `partNumber() cannot parse ${part} in ${id}`,
-          );
+          throw new Error(`partNumber() cannot parse ${part} in ${id}`);
         }
       } else {
         n0 = Number(c0);
@@ -142,10 +140,7 @@ export class SuttaCentralId {
   static scidNumbersLow(id_or_path) {
     let scid = BilaraPath.pathParts(id_or_path).suid;
     let colonParts = scid.replace(/^[-a-z]*/, '').split(':');
-    let dotParts = colonParts.reduce(
-      (a, c) => a.concat(c.split('.')),
-      [],
-    );
+    let dotParts = colonParts.reduce((a, c) => a.concat(c.split('.')), []);
     let nums = dotParts.reduce((a, n) => {
       let lowPart = n.split('-')[0];
       return a.concat(SuttaCentralId.partNumber(lowPart, id_or_path));
@@ -156,15 +151,10 @@ export class SuttaCentralId {
   static scidNumbersHigh(id_or_path) {
     let scid = BilaraPath.pathParts(id_or_path).suid;
     let colonParts = scid.replace(/^[-a-z]*/, '').split(':');
-    let dotParts = colonParts.reduce(
-      (a, c) => a.concat(c.split('.')),
-      [],
-    );
+    let dotParts = colonParts.reduce((a, c) => a.concat(c.split('.')), []);
     let nums = dotParts.reduce((a, n) => {
       let highPart = n.split('-').pop();
-      return a.concat(
-        SuttaCentralId.partNumber(highPart, id_or_path),
-      );
+      return a.concat(SuttaCentralId.partNumber(highPart, id_or_path));
     }, []);
     return nums;
   }
