@@ -2,6 +2,14 @@ import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { DBG } from '../defines.mjs';
 
+/*
+ * Kafka1 is a single cluster, single node, single partition,
+ * in-memory, local implementation of Kafka that can be used
+ * to test application logic that uses Kafka protocols.
+ *
+ * Kafka1 uses a subset of kafkajs api and can be directly 
+ * replaced with a kafkajs instance.
+ */
 const SINGLETON_PARTITION = 0; // multiple partitions not supported
 const SINGLETON_NODE_ID = '123'; // multiple brokers are not supported
 const CLIENT_ID = 'kafka1';
@@ -48,7 +56,7 @@ class Role {
     this.connections++;
 
     dbg && cc.ok1(msg + 9.1, 'connections:', this.connections);
-    return this; // WARNING: kafkajs does not chain
+    //return this; // WARNING: kafkajs does not chain
   }
 
   async disconnect() {
@@ -181,7 +189,7 @@ export class Consumer extends Role {
     }
     dbg && cc.ok1(msg + 9, groupId, topics);
 
-    return this; // WARNING: kafkajs does not chain
+    //return this; // WARNING: kafkajs does not chain
   }
 
   async run(cfg = {}) {
@@ -363,9 +371,11 @@ export class Kafka1 extends KRaftNode {
     super();
     const msg = 'k3a.ctor';
     const dbg = DBG.K3A_CTOR;
-    let { clientId = 'no-client-id' } = cfg;
+    let { 
+      clientId = 'no-client-id',
+    } = cfg;
 
-    Object.assign(this, cfg, {
+    Object.assign(this, {
       clientId,
     });
 

@@ -44,12 +44,14 @@ describe('TESTTESTkafka', () => {
   });
   it('k3a.describeGroups()', async() =>{
     let ka = new Kafka1();
-    let admin = await ka.admin().connect();
+    let admin = ka.admin();
+    await admin.connect();
     let groupG1 = 'groupG1';
     let groups1 = await admin.describeGroups();
     should.deepEqual(groups1, []);
     let topicA = 'topicA';
-    let consumerG1 = await ka.consumer({groupId:groupG1}).connect();
+    let consumerG1 = ka.consumer({groupId:groupG1});
+    await await consumerG1.connect();
     let groups2 = await admin.describeGroups();
     should.deepEqual(groups2, [{
       errorCode: 0,
@@ -76,7 +78,8 @@ describe('TESTTESTkafka', () => {
     const msg = 'tk3a.consumer';
     const dbg = 1;
     let ka = new Kafka1();
-    let admin = await ka.admin().connect();
+    let admin = ka.admin();
+    await admin.connect();
     let groupId = 'testGroupId';
     let topicA = 'testTopicA';
 
@@ -90,13 +93,11 @@ describe('TESTTESTkafka', () => {
     let offsets2 = await admin.fetchOffsets({groupId});
     should(offsets2.length).equal(0);
 
-    let resConnect = await consumer.connect();
+    await consumer.connect();
     should(consumer.connections).equal(1);
-    should(resConnect).equal(consumer);
 
     dbg>1 && cc.fyi1(msg+2, 'offsets:', JSON.stringify(offsets2));
-    let resSubscribe = await consumer.subscribe({topics:[topicA]});
-    should(resSubscribe).equal(consumer);
+    await consumer.subscribe({topics:[topicA]});
 
     // consumer group offsets
     let group3 = JSON.stringify(consumer.group);
@@ -136,7 +137,7 @@ describe('TESTTESTkafka', () => {
     await producer.send();
     should.deepEqual(await admin.listTopics(), [topicA, 'no-topic']);
 
-    consumer.subscribe({topics: [topicA]});
+    await consumer.subscribe({topics: [topicA]});
     await consumer.run({
       eachMessage: async (args={})=>{
         const msg = 'eachMessage';
