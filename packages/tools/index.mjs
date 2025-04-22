@@ -51,10 +51,10 @@ export const Graph = {
 }
 
 
-import { Kafka, Producer, Consumer, Admin } from './src/nameforma/kafka.mjs';
+import { Kafka1, Producer, Consumer, Admin } from './src/nameforma/kafka1.mjs';
 export const NameForma = {
   Admin,
   Consumer,
-  Kafka,
+  Kafka1,
   Producer,
 }

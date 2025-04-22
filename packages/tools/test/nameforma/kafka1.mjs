@@ -1,7 +1,7 @@
 import util from 'node:util';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { Kafka, Producer, Consumer, Admin } = NameForma;
+const { Kafka1, Producer, Consumer, Admin } = NameForma;
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
@@ -18,19 +18,20 @@ const {
 
 describe('TESTTESTkafka', () => {
   it('k3a.ctor', async () => {
-    let ka = new Kafka();
+    let ka = new Kafka1();
     should(ka).properties({
       clientId: 'no-client-id',
     });
 
     let clientId = 'test-client-id';
-    let kaTest = new Kafka({clientId});
+    let kaTest = new Kafka1({clientId});
     should(kaTest).properties({
       clientId,
+      nodeId: '123',
     });
   });
   it('k3a.admin()', async () => {
-    let ka = new Kafka();
+    let ka = new Kafka1();
     let admin = ka.admin();
     should(admin).instanceOf(Admin);
     should.deepEqual(await admin.listTopics(), []);
@@ -41,8 +42,27 @@ describe('TESTTESTkafka', () => {
     await admin.disconnect();
     should(admin.connections).equal(0);
   });
+  it('k3a.describeGroups()', async() =>{
+    let ka = new Kafka1();
+    let admin = await ka.admin().connect();
+    let groupG1 = 'groupG1';
+    let groups1 = await admin.describeGroups();
+    should.deepEqual(groups1, []);
+    let topicA = 'topicA';
+    let consumerG1 = await ka.consumer({groupId:groupG1}).connect();
+    let groups2 = await admin.describeGroups();
+    should.deepEqual(groups2, [{
+      errorCode: 0,
+      groupId: groupG1,
+      protocolType: 'consumer',
+      state: 'stable',
+    }]);
+
+    await admin.disconnect();
+    await consumerG1.disconnect();
+  });
   it('k3a.producer()', async () => {
-    let ka = new Kafka();
+    let ka = new Kafka1();
     let producer = ka.producer();
     should(producer).instanceOf(Producer);
 
@@ -55,7 +75,7 @@ describe('TESTTESTkafka', () => {
   it('k3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
     const dbg = 1;
-    let ka = new Kafka();
+    let ka = new Kafka1();
     let admin = await ka.admin().connect();
     let groupId = 'testGroupId';
     let topicA = 'testTopicA';
@@ -94,7 +114,7 @@ describe('TESTTESTkafka', () => {
     await admin.disconnect();
   });
   it('k3a.send()', async () => {
-    let ka = new Kafka();
+    let ka = new Kafka1();
     let producer = ka.producer();
     let groupId = 'testConsumerGroup';
     let topicA = 'testTopicA';

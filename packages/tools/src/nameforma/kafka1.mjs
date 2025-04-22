@@ -3,10 +3,13 @@ const { cc } = ColorConsole;
 import { DBG } from '../defines.mjs';
 
 const SINGLETON_PARTITION = 0; // multiple partitions not supported
+const SINGLETON_NODE_ID = '123'; // multiple brokers are not supported
+const CLIENT_ID = 'kafka1';
 
 let ROLE_CONSTRUCTOR = false;
 
-class Timestamp { // Does Kafka REALLY store timestamps as strigs???
+class Timestamp {
+  // Does Kafka REALLY store timestamps as strigs???
   static asDate(ts) {
     return new Date(ts);
   }
@@ -45,7 +48,7 @@ class Role {
     this.connections++;
 
     dbg && cc.ok1(msg + 9.1, 'connections:', this.connections);
-    return this; // does kafkajs do this?
+    return this; // WARNING: kafkajs does not chain
   }
 
   async disconnect() {
@@ -68,9 +71,11 @@ export class Topic {
 
     this.name = name;
     this.created = created;
-    this.partitions = [{
-      partitionId: SINGLETON_PARTITION,
-    }];
+    this.partitions = [
+      {
+        partitionId: SINGLETON_PARTITION,
+      },
+    ];
 
     Object.defineProperty(this, '_messages', {
       writable: true,
@@ -104,26 +109,40 @@ export class Message {
 }
 
 class ConsumerGroup {
-  constructor(cfg={}){
-    let {
-      groupId = 'no-group-id',
-      topics = [],
-    } = cfg;
+  constructor(cfg = {}) {
+    let { groupId = 'no-group-id', topics = [] } = cfg;
 
     Object.assign(this, cfg, {
       groupId,
       topics,
     });
+    Object.defineProperty(this, '_topicMap', {
+      value: [], // hack for mock kafka
+    });
     Object.defineProperty(this, '_consumers', {
       value: [], // hack for mock kafka
     });
+  }
+
+  _topicOfName(topicName) {
+    const msg = 'c11p._topicOfName';
+    const dbg = DBG.K3A_TOPIC_OF_NAME;
+    let { _topicMap } = this;
+    let topic = _topicMap[topicName];
+    if (topic == null) {
+      topic = new Topic({ name: topicName });
+      _topicMap[topicName] = topic;
+      dbg && cc.ok1(msg + 9.1, 'created:', topicName);
+    } else {
+      dbg && cc.ok1(msg + 9.2, 'existing:', topicName);
+    }
+    return topic;
   }
 }
 
 export class Consumer extends Role {
   constructor(cfg = {}) {
     const { kafka, groupId = 'no-group-id' } = cfg;
-    const { groupMap } = kafka;
     super({ tla: 'c6r', kafka });
     const msg = 'c6r.ctor';
     const dbg = DBG.C6R_CTOR;
@@ -132,12 +151,8 @@ export class Consumer extends Role {
       groupId,
     });
 
-    let group = groupMap[groupId];
-    if (group == null) {
-      group = new ConsumerGroup({ groupId, });
-      group._consumers.push(this);
-      groupMap[groupId] = group;
-    }
+    let group = kafka._groupOfId(groupId);
+    group._consumers.push(this);
 
     this.running = false;
     this.eachMessage = null;
@@ -151,32 +166,28 @@ export class Consumer extends Role {
   async subscribe(cfg = {}) {
     const msg = 'c6r.subscribe';
     const dbg = DBG.K3A_SUBSCRIBE;
-    let {
-      topics = [],
-      fromBeginning = false,
-    } = cfg;
-    const { kafka, groupId, } = this;
+    let { topics = [], fromBeginning = false } = cfg;
+    const { kafka, groupId } = this;
     const { group } = this;
     for (let i = 0; i < topics.length; i++) {
       let topicName = topics[i];
-      let topic = kafka._topicOfName(topicName);
+      let topic = group._topicOfName(topicName);
       topic._consumers.push(this);
       if (group.topics.indexOf(topicName) < 0) {
         group.topics.push(topicName);
-        dbg && cc.fyi(msg+2.1, groupId, JSON.stringify(group.topics));
+        dbg &&
+          cc.fyi(msg + 2.1, groupId, JSON.stringify(group.topics));
       }
     }
-    dbg && cc.ok1(msg+9, groupId, topics);
+    dbg && cc.ok1(msg + 9, groupId, topics);
 
-    return this; // does kafkajs do this?
+    return this; // WARNING: kafkajs does not chain
   }
 
-  async run(cfg={}) {
+  async run(cfg = {}) {
     const msg = 'c6r.run';
     const dbg = DBG.K3A_RUN;
-    let {
-      eachMessage,
-    } = cfg;
+    let { eachMessage } = cfg;
     if (eachMessage == null) {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
@@ -184,7 +195,6 @@ export class Consumer extends Role {
 
     cc.ok1(msg, 'END');
   }
-
 }
 
 export class Producer extends Role {
@@ -200,7 +210,6 @@ export class Producer extends Role {
     const msg = 'p6r.send';
     const dbg = DBG.K3A_SEND;
     let { kafka } = this;
-    let { topicMap } = kafka;
     let {
       topic: topicName = 'no-topic',
       messages = [],
@@ -244,100 +253,123 @@ export class Admin extends Role {
 
   async listTopics() {
     const msg = 'a3n.listTopics';
-    let { topicMap } = this.kafka;
+    let { _topicMap } = this.kafka;
 
-    return Object.keys(topicMap);
+    return Object.keys(_topicMap);
   }
 
-  async createTopics(cfg={}) { 
-    const msg = 'a3n.createTopics';
-    const dbg = DBG.K3A_CREATE_TOPICS;
-    cc.bad1(msg, 'UNTESTED');
+  async describeGroups(groupIds) {
+    const msg = 'k3a.describeGroups';
+    const dbg = DBG.K3A_DESCRIBE_GROUPS;
+    let { kafka } = this;
+    let { _groupMap } = kafka;
 
-    const { kafka } = this;
-    const { topicMap } = kafka;
-    const { topics } = cfg;
-
-    if (topics == null) {
-      cc.bad1(msg+-1, 'topics?');
-      throw new Error(`${msg} topics?`);
+    if (groupIds == null) {
+      groupIds = Object.keys(_groupMap);
     }
 
-    const created = [];
-    for (let i = 0; i < topics.length; i++) {
-      let topicName = topics[i];
-      let topic = topicMap[topicName];
-      if (topic == null) {
-        cc.ok(msg+2, topicName);
-        topic = new Topic({ name: topicName });
-        topicMap[topicName] = topic;
-        created.push[topicName];
-      }
+    let result = [];
+    for (const groupId of groupIds) {
+      let group = kafka._groupOfId(groupId);
+      result.push({
+        errorCode: 0,
+        groupId,
+        protocolType: 'consumer',
+        state: 'stable',
+      });
     }
 
-    dbg && cc.ok1(msg+9, created);
-    return this; // does kafkajs do this?
+    return result;
   }
 
-  async fetchOffsets(args={}) {
+  async fetchOffsets(args = {}) {
     const msg = 'a3n.fetchOffsets';
     const dbg = DBG.K3A_FETCH_OFFSETS;
     const { kafka } = this;
-    const { groupMap, } = kafka;
-    const {
-      groupId,
-      topics,
-    } = args;
+    const { groupId, topics } = args;
 
-    let group = groupMap[groupId];
-
+    let group = kafka._groupOfId(groupId);
     if (group == null) {
-      dbg && cc.bad(msg+-9, 'no-group:', groupId);
+      dbg && cc.bad(msg + -9, 'no-group:', groupId);
       return [];
     }
 
-    return group.topics.map(topicName=>{
-      let topic = kafka._topicOfName[topicName];
+    return group.topics.map((topicName) => {
+      let topic = group._topicOfName[topicName];
       cc.fyi1(msg, 'topic:', topic);
       return {
         topic: topicName,
-        partitions: [{
-          partition: SINGLETON_PARTITION,
-          offset: 0,
-        }],
-      }
+        partitions: [
+          {
+            partition: SINGLETON_PARTITION,
+            offset: 0,
+          },
+        ],
+      };
     });
   }
 }
 
-export class Kafka {
+export class KRaftNode {
+  // i.e., broker
   constructor(cfg = {}) {
+    const msg = 'k7e.ctor';
+    let { nodeId = SINGLETON_NODE_ID } = cfg;
+
+    Object.assign(this, cfg, {
+      nodeId,
+    });
+    Object.defineProperty(this, '_groupMap', {
+      value: {}, // hack for mock kafka
+    });
+    Object.defineProperty(this, '_topicMap', {
+      value: {}, // hack for mock kafka
+    });
+  }
+
+  _topicOfName(topicName) {
+    const msg = 'k7e._topicOfName';
+    const dbg = DBG.K3A_TOPIC_OF_NAME;
+    let { _topicMap } = this;
+    let topic = _topicMap[topicName];
+    if (topic == null) {
+      topic = new Topic({ name: topicName });
+      _topicMap[topicName] = topic;
+      dbg && cc.ok1(msg + 9.1, 'created:', topicName);
+    } else {
+      dbg && cc.ok1(msg + 9.2, 'existing:', topicName);
+    }
+    return topic;
+  }
+
+  _groupOfId(groupId) {
+    const msg = 'k7e._groupOfId';
+    const dbg = DBG.K3A_GROUP_OF_ID;
+    let { _groupMap } = this;
+    let group = _groupMap[groupId];
+    if (group == null) {
+      group = new ConsumerGroup({ groupId });
+      _groupMap[groupId] = group;
+      dbg && cc.ok1(msg + 9.1, 'created:', groupId);
+    } else {
+      dbg && cc.ok1(msg + 9.2, 'existing:', groupId);
+    }
+    return group;
+  }
+}
+
+export class Kafka1 extends KRaftNode {
+  constructor(cfg = {}) {
+    super();
     const msg = 'k3a.ctor';
     const dbg = DBG.K3A_CTOR;
     let { clientId = 'no-client-id' } = cfg;
 
     Object.assign(this, cfg, {
       clientId,
-      topicMap: {},
-      groupMap: {},
     });
 
     dbg && cc.ok1(msg);
-  }
-
-  _topicOfName(topicName) {
-    const msg = 'k3a._topicOfName';
-    const dbg = DBG.K3A_TOPIC_OF_NAME;
-    let { topicMap } = this;
-    let topic = topicMap[topicName];
-    if (topic == null) {
-      topic = new Topic({ name: topicName });
-      topicMap[topicName] = topic;
-      dbg && cc.ok1(msg+9.1, 'created:', topicName);
-    } else {
-      dbg && cc.ok1(msg+9.2, 'existing:', topicName);
-    }
-    return topic;
   }
 
   consumer(cfg = {}) {
