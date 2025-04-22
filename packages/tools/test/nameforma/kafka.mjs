@@ -77,10 +77,16 @@ describe('TESTTESTkafka', () => {
     dbg>1 && cc.fyi1(msg+2, 'offsets:', JSON.stringify(offsets2));
     let resSubscribe = await consumer.subscribe({topics:[topicA]});
     should(resSubscribe).equal(consumer);
+
+    // consumer group offsets
     let group3 = JSON.stringify(consumer.group);
     dbg && cc.fyi1(msg+3, 'consumer.group:', group3);
     let offsets3 = await admin.fetchOffsets({groupId});
     should(offsets3.length).equal(1);
+    should.deepEqual(offsets3[0], {
+      topic: topicA,
+      partitions: [ {partition: 0, offset:0} ],
+    });
 
     await consumer.disconnect();
     should(consumer.connections).equal(0);

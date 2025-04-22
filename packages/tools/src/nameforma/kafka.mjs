@@ -2,6 +2,8 @@ import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { DBG } from '../defines.mjs';
 
+const SINGLETON_PARTITION = 0; // multiple partitions not supported
+
 let ROLE_CONSTRUCTOR = false;
 
 class Timestamp { // Does Kafka REALLY store timestamps as strigs???
@@ -66,8 +68,17 @@ export class Topic {
 
     this.name = name;
     this.created = created;
-    this.messages = [];
-    this.consumers = [];
+    this.partitions = [{
+      partitionId: SINGLETON_PARTITION,
+    }];
+
+    Object.defineProperty(this, '_messages', {
+      writable: true,
+      value: [], // hack for mock kafka
+    });
+    Object.defineProperty(this, '_consumers', {
+      value: [], // hack for mock kafka
+    });
   }
 }
 
@@ -103,8 +114,8 @@ class ConsumerGroup {
       groupId,
       topics,
     });
-    Object.defineProperty(this, 'consumers', {
-      value: [],
+    Object.defineProperty(this, '_consumers', {
+      value: [], // hack for mock kafka
     });
   }
 }
@@ -124,7 +135,7 @@ export class Consumer extends Role {
     let group = groupMap[groupId];
     if (group == null) {
       group = new ConsumerGroup({ groupId, });
-      group.consumers.push(this);
+      group._consumers.push(this);
       groupMap[groupId] = group;
     }
 
@@ -149,7 +160,7 @@ export class Consumer extends Role {
     for (let i = 0; i < topics.length; i++) {
       let topicName = topics[i];
       let topic = kafka._topicOfName(topicName);
-      topic.consumers.push(this);
+      topic._consumers.push(this);
       if (group.topics.indexOf(topicName) < 0) {
         group.topics.push(topicName);
         dbg && cc.fyi(msg+2.1, groupId, JSON.stringify(group.topics));
@@ -197,8 +208,9 @@ export class Producer extends Role {
     } = request;
 
     let topic = kafka._topicOfName(topicName);
-    topic.messages = [
-      ...topic.messages,
+    let partition = topic.partitions[SINGLETON_PARTITION];
+    topic._messages = [
+      ...topic._messages,
       ...messages.map((m) => {
         if (m.timestamp == null) {
           m.timestamp = timestamp;
@@ -271,7 +283,7 @@ export class Admin extends Role {
     const msg = 'a3n.fetchOffsets';
     const dbg = DBG.K3A_FETCH_OFFSETS;
     const { kafka } = this;
-    const { groupMap } = kafka;
+    const { groupMap, } = kafka;
     const {
       groupId,
       topics,
@@ -284,10 +296,15 @@ export class Admin extends Role {
       return [];
     }
 
-    return group.topics.map(t=>{
+    return group.topics.map(topicName=>{
+      let topic = kafka._topicOfName[topicName];
+      cc.fyi1(msg, 'topic:', topic);
       return {
-        topic: t.name,
-        offset: t.groupOffset,
+        topic: topicName,
+        partitions: [{
+          partition: SINGLETON_PARTITION,
+          offset: 0,
+        }],
       }
     });
   }
