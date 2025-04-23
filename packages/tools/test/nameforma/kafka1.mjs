@@ -42,6 +42,25 @@ describe('TESTTESTkafka', () => {
     await admin.disconnect();
     should(admin.connections).equal(0);
   });
+  it('k3a.listGroups()', async() =>{
+    let ka = new Kafka1();
+    let admin = ka.admin();
+    await admin.connect();
+    let groupG1 = 'groupG1';
+    let groups1 = await admin.listGroups();
+    should.deepEqual(groups1, []);
+    let topicA = 'topicA';
+    let consumerG1 = ka.consumer({groupId:groupG1});
+    await await consumerG1.connect();
+    let groups2 = await admin.listGroups();
+    should.deepEqual(groups2, [{
+      groupId: groupG1,
+      protocolType: 'consumer',
+    }]);
+
+    await admin.disconnect();
+    await consumerG1.disconnect();
+  });
   it('k3a.describeGroups()', async() =>{
     let ka = new Kafka1();
     let admin = ka.admin();
@@ -80,12 +99,12 @@ describe('TESTTESTkafka', () => {
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
-    let groupId = 'testGroupId';
-    let topicA = 'testTopicA';
+    let groupId = 'c6rGroup';
+    let topicA = 'c6rTopicA';
 
     let offsets1 = await admin.fetchOffsets({groupId});
     should(offsets1.length).equal(0);
-    dbg>1 && cc.fyi1(msg+1, 'offsets:', JSON.stringify(offsets1));
+    dbg>1 && cc.fyi1(msg+1, groupId, 'offsets1:', JSON.stringify(offsets1));
 
     let consumer = ka.consumer({groupId});
     should(consumer).instanceOf(Consumer);
@@ -96,13 +115,13 @@ describe('TESTTESTkafka', () => {
     await consumer.connect();
     should(consumer.connections).equal(1);
 
-    dbg>1 && cc.fyi1(msg+2, 'offsets:', JSON.stringify(offsets2));
+    dbg>1 && cc.fyi1(msg+2, groupId, 'offsets2:', JSON.stringify(offsets2));
     await consumer.subscribe({topics:[topicA]});
 
     // consumer group offsets
     let group3 = JSON.stringify(consumer.group);
-    dbg && cc.fyi1(msg+3, 'consumer.group:', group3);
     let offsets3 = await admin.fetchOffsets({groupId});
+    dbg && cc.fyi1(msg+3, groupId, 'offsets3:', JSON.stringify(offsets3));
     should(offsets3.length).equal(1);
     should.deepEqual(offsets3[0], {
       topic: topicA,
@@ -117,7 +136,7 @@ describe('TESTTESTkafka', () => {
   it('k3a.send()', async () => {
     let ka = new Kafka1();
     let producer = ka.producer();
-    let groupId = 'testConsumerGroup';
+    let groupId = 'testGroup';
     let topicA = 'testTopicA';
     await producer.connect();
     let consumer = ka.consumer({groupId});

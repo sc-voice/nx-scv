@@ -1,5 +1,9 @@
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
+import { Unicode } from '../text/unicode.mjs';
+const { 
+  CHECKMARK:OK,
+} = Unicode;
 import { DBG } from '../defines.mjs';
 
 /*
@@ -17,7 +21,7 @@ const CLIENT_ID = 'kafka1';
 let ROLE_CONSTRUCTOR = false;
 
 class Timestamp {
-  // Does Kafka REALLY store timestamps as strigs???
+  // Does Kafka REALLY store timestamps as strings???
   static asDate(ts) {
     return new Date(ts);
   }
@@ -89,9 +93,6 @@ export class Topic {
       writable: true,
       value: [], // hack for mock kafka
     });
-    Object.defineProperty(this, '_consumers', {
-      value: [], // hack for mock kafka
-    });
   }
 }
 
@@ -102,7 +103,12 @@ export class Message {
       value = null,
       timestamp = Timestamp.now(),
       headers = null,
+      partition,
     } = cfg;
+
+    if (partition == null) {
+      partition = Message._partitionOfKey(key);
+    }
 
     if (
       value !== null &&
@@ -112,41 +118,34 @@ export class Message {
       throw new Error(`${msg} value?`);
     }
 
-    Object.assign(this, { key, value, headers, timestamp });
+    Object.assign(this, { key, value, headers, timestamp, partition });
   }
-}
 
-class ConsumerGroup {
+  static _partitionOfKey(key) {
+    // Kafka assigns partition by hash of key for scalability
+    // and parallel processing. Since Kafka1 doesn't care about
+    // the above, we only use one partition.
+    return SINGLETON_PARTITION;
+  }
+} // Message
+
+class Group {
   constructor(cfg = {}) {
-    let { groupId = 'no-group-id', topics = [] } = cfg;
+    let { groupId = 'no-group-id', protocolType = 'consumer' } = cfg;
 
-    Object.assign(this, cfg, {
+    Object.assign(this, {
       groupId,
-      topics,
-    });
-    Object.defineProperty(this, '_topicMap', {
-      value: [], // hack for mock kafka
-    });
-    Object.defineProperty(this, '_consumers', {
-      value: [], // hack for mock kafka
+    }, cfg);
+    Object.defineProperty(this, '_topicOffsetsMap', {
+      value: {}, // hack for mock kafka
     });
   }
 
-  _topicOfName(topicName) {
-    const msg = 'c11p._topicOfName';
-    const dbg = DBG.K3A_TOPIC_OF_NAME;
-    let { _topicMap } = this;
-    let topic = _topicMap[topicName];
-    if (topic == null) {
-      topic = new Topic({ name: topicName });
-      _topicMap[topicName] = topic;
-      dbg && cc.ok1(msg + 9.1, 'created:', topicName);
-    } else {
-      dbg && cc.ok1(msg + 9.2, 'existing:', topicName);
-    }
-    return topic;
+  _topics(){
+    return Object.keys(this._topicOffsetsMap);
   }
-}
+
+} // Group
 
 export class Consumer extends Role {
   constructor(cfg = {}) {
@@ -158,17 +157,17 @@ export class Consumer extends Role {
     Object.assign(this, {
       groupId,
     });
-
-    let group = kafka._groupOfId(groupId);
-    group._consumers.push(this);
+    let group = this._group();
 
     this.running = false;
     this.eachMessage = null;
-    Object.defineProperty(this, 'group', {
-      value: group,
-    });
 
-    dbg && cc.ok1(msg);
+    dbg && cc.ok1(msg, groupId);
+  }
+
+  _group() {
+    let { kafka, groupId } = this;
+    return kafka._groupOfId(groupId);
   }
 
   async subscribe(cfg = {}) {
@@ -176,20 +175,33 @@ export class Consumer extends Role {
     const dbg = DBG.K3A_SUBSCRIBE;
     let { topics = [], fromBeginning = false } = cfg;
     const { kafka, groupId } = this;
-    const { group } = this;
+    const group = this._group();
+    const { _topicOffsetsMap } = group;
+    let subscribed = 0;
     for (let i = 0; i < topics.length; i++) {
       let topicName = topics[i];
-      let topic = group._topicOfName(topicName);
-      topic._consumers.push(this);
-      if (group.topics.indexOf(topicName) < 0) {
-        group.topics.push(topicName);
-        dbg && cc.fyi(msg + 2.1, groupId, JSON.stringify(group.topics));
+      let topic = kafka._topicOfName(topicName);
+      let t10s = _topicOffsetsMap[topicName];
+      if (t10s) {
+        dbg>1 && cc.ok(msg + 2.1, groupId+'=:', topicName);
+      } else {
+        let offset = 0;
+
+        t10s = {
+          topic: topicName,
+          partitions: [{ partition: SINGLETON_PARTITION, offset }],
+        };
+        _topicOffsetsMap[topicName] = t10s;
+        
+        subscribed++;
+        dbg>1 && cc.ok(msg + 2.2, groupId+'+:', topicName, JSON.stringify(_topicOffsetsMap));
       }
     }
-    dbg && cc.ok1(msg + 9, groupId, topics);
+
+    dbg && cc.ok1(msg + OK, `${groupId}:`, JSON.stringify(group._topics()));
 
     //return this; // WARNING: kafkajs does not chain
-  }
+  } // subscribe
 
   async run(cfg = {}) {
     const msg = 'c6r.run';
@@ -202,7 +214,7 @@ export class Consumer extends Role {
 
     cc.ok1(msg, 'END');
   }
-}
+} // Consumer
 
 export class Producer extends Role {
   constructor(cfg = {}) {
@@ -240,7 +252,7 @@ export class Producer extends Role {
       cc.ok1(msg, 'send', ts, topicName, 'messages:', messages.length);
     }
   }
-}
+} // Producer
 
 export class Admin extends Role {
   constructor(cfg = {}) {
@@ -249,6 +261,21 @@ export class Admin extends Role {
     const msg = 'p6r.ctor';
     const dbg = DBG.P6R_CTOR;
     dbg && cc.ok1(msg);
+  }
+
+  async listGroups() {
+    const msg = 'k3a.listGroups';
+    const dbg = DBG.K3A_LIST_GROUPS;
+    let { kafka } = this;
+    let { _groupMap } = kafka;
+    return Object.keys(_groupMap).map((groupId) => {
+      let group = kafka._groupOfId(groupId);
+      let { protocolType } = group;
+      return {
+        groupId,
+        protocolType,
+      };
+    });
   }
 
   async listTopics() {
@@ -286,29 +313,23 @@ export class Admin extends Role {
     const msg = 'a3n.fetchOffsets';
     const dbg = DBG.K3A_FETCH_OFFSETS;
     const { kafka } = this;
-    const { groupId, topics } = args;
+    let { groupId, topics } = args;
 
     let group = kafka._groupOfId(groupId);
-    if (group == null) {
-      dbg && cc.bad(msg + -9, 'no-group:', groupId);
-      return [];
+    let { _topicOffsetsMap } = group;
+    if (topics == null) {
+      topics = Object.keys(_topicOffsetsMap);
     }
+    let offsets = topics.reduce((a,topicName)=>{
+      let t10s = _topicOffsetsMap[topicName];
+      t10s && a.push(t10s);
+      return a;
+    }, []);
+    cc.ok1(msg + OK, groupId, JSON.stringify(offsets));
 
-    return group.topics.map((topicName) => {
-      let topic = group._topicOfName[topicName];
-      cc.fyi1(msg, 'topic:', topic);
-      return {
-        topic: topicName,
-        partitions: [
-          {
-            partition: SINGLETON_PARTITION,
-            offset: 0,
-          },
-        ],
-      };
-    });
+    return offsets;
   }
-}
+} // Admin
 
 export class KRaftNode {
   // i.e., broker
@@ -342,21 +363,23 @@ export class KRaftNode {
     return topic;
   }
 
-  _groupOfId(groupId) {
+  _groupOfId(groupId, opts = {}) {
     const msg = 'k7e._groupOfId';
     const dbg = DBG.K3A_GROUP_OF_ID;
     let { _groupMap } = this;
+    let { protocolType = 'consumer' } = opts;
     let group = _groupMap[groupId];
     if (group == null) {
-      group = new ConsumerGroup({ groupId });
+      // auto create
+      group = new Group({ groupId, protocolType });
       _groupMap[groupId] = group;
-      dbg && cc.ok1(msg + 9.1, 'created:', groupId);
+      dbg && cc.ok1(msg + OK+ '+', groupId);
     } else {
-      dbg && cc.ok1(msg + 9.2, 'existing:', groupId);
+      dbg && cc.ok1(msg + OK + '=', groupId);
     }
     return group;
   }
-}
+} // KRaftNode
 
 export class Kafka1 extends KRaftNode {
   constructor(cfg = {}) {
@@ -365,52 +388,29 @@ export class Kafka1 extends KRaftNode {
     const dbg = DBG.K3A_CTOR;
     let { clientId = 'no-client-id' } = cfg;
 
-    Object.assign(this, {
-      clientId,
-    });
+    Object.assign(this, { clientId });
 
     dbg && cc.ok1(msg);
   }
 
   consumer(cfg = {}) {
     ROLE_CONSTRUCTOR = true;
-    let role = new Consumer(
-      Object.assign(
-        {
-          kafka: this,
-        },
-        cfg,
-      ),
-    );
+    let role = new Consumer(Object.assign({ kafka: this }, cfg));
     ROLE_CONSTRUCTOR = false;
     return role;
   }
 
   producer(cfg = {}) {
     ROLE_CONSTRUCTOR = true;
-    let role = new Producer(
-      Object.assign(
-        {
-          kafka: this,
-        },
-        cfg,
-      ),
-    );
+    let role = new Producer(Object.assign({ kafka: this }, cfg));
     ROLE_CONSTRUCTOR = false;
     return role;
   }
 
   admin(cfg = {}) {
     ROLE_CONSTRUCTOR = true;
-    let role = new Admin(
-      Object.assign(
-        {
-          kafka: this,
-        },
-        cfg,
-      ),
-    );
+    let role = new Admin(Object.assign({ kafka: this }, cfg));
     ROLE_CONSTRUCTOR = false;
     return role;
   }
-}
+} // Kafka1
