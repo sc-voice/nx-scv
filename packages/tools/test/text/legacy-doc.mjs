@@ -79,9 +79,7 @@ describe('text/legacy-doc', () => {
     let [l0, l1, l2, l3] = ldoc.lines;
     should(l0).match(/^8. Le déracinement$/);
     should(l1).match(/^<span.*entendu.*séjournait.*Sāvatthi\.$/);
-    should(l2).match(
-      /^En.*solitaire.*trouvait.*assis.*Bienheureux.:$/,
-    );
+    should(l2).match(/^En.*solitaire.*trouvait.*assis.*Bienheureux.:$/);
     should(l3).equal(undefined);
   });
   it('filterHtml()', () => {
@@ -124,9 +122,7 @@ describe('text/legacy-doc', () => {
   it('fetchLegacy-mn8-fr', async () => {
     const msg = 'TL7c.fetchLegacy-mn8-fr:';
     let res = mn8MohanApiCache('http://ignored');
-    let cache = DBG.L7C_FETCH_LEGACY_SC
-      ? undefined
-      : mn8MohanApiCache;
+    let cache = DBG.L7C_FETCH_LEGACY_SC ? undefined : mn8MohanApiCache;
     should(res.ok).equal(true);
     let json = await res.json();
     should(json.root_text.uid).equal('mn8');
@@ -147,9 +143,7 @@ describe('text/legacy-doc', () => {
     should(legacyDoc.author).equal('Môhan Wijayaratna');
     should(legacyDoc.footer).match(/Môhan.*Ismet/);
     should(legacyDoc.lines.at(0)).match(/8. Le déracinement/);
-    should(legacyDoc.lines.at(-1)).match(
-      /Ainsi parla le Bienheureux./,
-    );
+    should(legacyDoc.lines.at(-1)).match(/Ainsi parla le Bienheureux./);
     should(legacyDoc.lines.length).equal(67);
   });
 });

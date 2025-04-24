@@ -44,9 +44,7 @@ describe('TESTTESTscv-math/activation', () => {
     for (let i = -10; i <= 10; i++) {
       let x = i / 10;
       dbg && cc.fyi(msg, 'tanh', x, tanh.f(x));
-      should(Math.abs(tanh.f(x) - Math.tanh(x))).below(
-        0.000000000000001,
-      );
+      should(Math.abs(tanh.f(x) - Math.tanh(x))).below(0.000000000000001);
     }
     let act1111 = Activation.createSoboleva(a, b, c, d);
     should.deepEqual(act1111, tanh);

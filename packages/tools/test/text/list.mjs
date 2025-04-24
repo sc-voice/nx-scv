@@ -54,17 +54,7 @@ describe('TESTTESTlist', () => {
     };
     let lfCustom = new ListFactory(opts);
     should(lfCustom).properties(opts);
-    let list = [
-      1,
-      1 / 2,
-      1 / 3,
-      1 / 4,
-      1 / 5,
-      1 / 6,
-      1 / 7,
-      1 / 8,
-      1 / 9,
-    ];
+    let list = [1, 1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 6, 1 / 7, 1 / 8, 1 / 9];
     let cols3 = lfCustom.wrapList(list, { maxValues: 3 });
     should(cols3.toString()).equal(
       [
@@ -117,9 +107,7 @@ describe('TESTTESTlist', () => {
     row.push(false);
     should(row.toString()).equal('abcd|1   |0.5 |0.33|0.67|fals');
     row.widths.fill(5);
-    should(row.toString()).equal(
-      'abcde|1    |0.5  |0.33 |0.67 |false',
-    );
+    should(row.toString()).equal('abcde|1    |0.5  |0.33 |0.67 |false');
   });
   it('push()', () => {
     let c1 = List.createColumn();
@@ -232,11 +220,9 @@ describe('TESTTESTlist', () => {
       [3, 6, 9],
     ]);
     should(cols4.toString()).equal(
-      [
-        [1, 4, 7].join('|'),
-        [2, 5, 8].join('|'),
-        [3, 6, 9].join('|'),
-      ].join('\n'),
+      [[1, 4, 7].join('|'), [2, 5, 8].join('|'), [3, 6, 9].join('|')].join(
+        '\n',
+      ),
     );
 
     for (let i = 5; i < list.length; i++) {

@@ -19,9 +19,7 @@ typeof describe === 'function' &&
       sk.addLink({ source, target, value });
       should.deepEqual(sk.links, [{ source, target, value }]);
       sk.addLink({ source, target, value });
-      should.deepEqual(sk.links, [
-        { source, target, value: 2 * value },
-      ]);
+      should.deepEqual(sk.links, [{ source, target, value: 2 * value }]);
 
       // addLink() uses source/target to identify the link
       let source2 = 'test-source2';
@@ -59,8 +57,6 @@ typeof describe === 'function' &&
 
       // Verify that sk2 works like the original
       sk2.addLink({ source, target, value });
-      should.deepEqual(sk2.links, [
-        { source, target, value: value * 2 },
-      ]);
+      should.deepEqual(sk2.links, [{ source, target, value: value * 2 }]);
     });
   });

@@ -34,8 +34,7 @@ describe('text/bilara-path', function () {
     let f = rootPath('kn/thig/thig1.2', 'pli', 'ms');
     should.deepEqual(BilaraPath.pathParts(f), {
       author_uid: 'ms',
-      bilaraPath:
-        'root/pli/ms/sutta/kn/thig/thig1.2_root-pli-ms.json',
+      bilaraPath: 'root/pli/ms/sutta/kn/thig/thig1.2_root-pli-ms.json',
       collection: 'kn',
       category: 'sutta',
       suid: 'thig1.2',
@@ -48,8 +47,7 @@ describe('text/bilara-path', function () {
     let f = rootPath('kn/mil/mil3.1.2', 'pli', 'ms');
     should.deepEqual(BilaraPath.pathParts(f), {
       author_uid: 'ms',
-      bilaraPath:
-        'root/pli/ms/sutta/kn/mil/mil3.1.2_root-pli-ms.json',
+      bilaraPath: 'root/pli/ms/sutta/kn/mil/mil3.1.2_root-pli-ms.json',
       collection: 'kn',
       category: 'sutta',
       suid: 'mil3.1.2',

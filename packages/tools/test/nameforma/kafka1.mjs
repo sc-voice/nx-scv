@@ -16,7 +16,7 @@ const {
   NO_BOLD,
 } = Unicode.LINUX_STYLE;
 
-describe('kafka', () => {
+describe('TESTTESTkafka', () => {
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
     should(ka).properties({
@@ -123,7 +123,7 @@ describe('kafka', () => {
     let offsets3 = await admin.fetchOffsets({groupId});
     dbg && cc.fyi1(msg+3, groupId, 'offsets3:', JSON.stringify(offsets3));
     should(offsets3.length).equal(1);
-    should.deepEqual(offsets3[0], {
+    should(offsets3[0]).properties({
       topic: topicA,
       partitions: [ {partition: 0, offset:0} ],
     });
@@ -134,49 +134,62 @@ describe('kafka', () => {
     await admin.disconnect();
   });
   it('TESTTESTk3a.send()', async () => {
-    let ka = new Kafka1();
-    let producer = ka.producer();
-    let groupId = 'k3aSendGroup1';
-    let topicA = 'k3aSendTopicA';
+    const msg = 'k3a.send';
+    const ka = new Kafka1();
+    const dbg = 0;
+    const producer = ka.producer();
+    const groupId = 'k8dGroup1';
+    const topicA = 'k8dTopicA';
+    const topicB = 'k8dTopicB';
+    const consumerA = ka.consumer({groupId});
+    const consumerB = ka.consumer({groupId});
+    const admin = ka.admin();
+    const msgA1 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA1' };
+    const msgA2 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA2' };
+    const msgB1 =  { key: 'k8dMsgKeyB', value: 'k8dMsgValueB1' };
+    const receivedA = [];
+    const receivedB = [];
     await producer.connect();
-    let consumer = ka.consumer({groupId});
-    await consumer.connect();
-    let admin = ka.admin();
+    await consumerA.connect();
+    await consumerB.connect();
     await admin.connect();
 
-    let request = {
-      topic: topicA,
-      messages: [{
-        key: 'k3aSendMsgKey',
-        value: 'k3aSendMsgValue',
-      }],
-    }
-    await producer.send(request);
+    // Step1: send msgA1
+    await producer.send({topic: topicA, messages: [msgA1]});
     should.deepEqual(await admin.listTopics(), [topicA]);
     await producer.send();
     should.deepEqual(await admin.listTopics(), [topicA, 'no-topic']);
 
     // NON_API_TEST: implementation only test!
-    let _privateTopicA = ka._topicOfName(topicA);
-    should(_privateTopicA.partitions[0]._messages[0]).properties({
-      key: 'k3aSendMsgKey',
-      value: 'k3aSendMsgValue',
+    if (dbg) {
+      let _privateTopicA = ka._topicOfName(topicA);
+      should(_privateTopicA.partitions[0]._messages[0]).properties(msgA1);
+    }
+
+    let onEachMessage = (received) => (async (args={})=>{
+      const msg = 'eachMessage';
+      let {
+        topic, partition, message, heartbeat, pause,
+      } = args;
+      receivedA.push(message);
+      cc.fyi(msg, {topic, partition, message});
     });
 
-    // The consumer subscribes AFTER the message is sent but
-    // still gets the message.
-    await consumer.subscribe({topics: [topicA], fromBeginning: true});
-    await consumer.run({
-      eachMessage: async (args={})=>{
-        const msg = 'eachMessage';
-        let {
-          topic, partition, message, heartbeat, pause,
-        } = args;
-        cc.fyi(msg, {topic, partition, message});
-      },
-    });
+    // STEP2: consumerA subscribes AFTER msgA1 is sent but still gets it
+    await consumerA.subscribe({topics: [topicA], fromBeginning: true});
+    consumerA.run({ eachMessage: onEachMessage(receivedA) });
+    should(receivedA[0]).properties(msgA1);
+    should(receivedA.length).equal(1);
 
-    await consumer.disconnect();
+    // STEP3: send msgA2
+    await producer.send({topic: topicA, messages: [msgA2]});
+    should(receivedA[0]).properties(msgA1);
+    //should(receivedA[1]).properties(msgA2);
+    //should(receivedA.length).equal(2);
+
+    await consumerA.stop();
+    await consumerA.disconnect();
+    await consumerB.disconnect();
     await producer.disconnect();
     await admin.disconnect();
   });

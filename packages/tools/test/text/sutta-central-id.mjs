@@ -190,49 +190,31 @@ typeof describe === 'function' &&
       should(cmp('mn34', 'mn33')).equal(1);
 
       // collection suttacentral order
-      should(cmp('sn/en/sujato/sn22.1', 'an/en/sujato/an22.1')).equal(
-        1,
-      );
-      should(cmp('an/en/sujato/an22.1', 'sn/en/sujato/sn22.1')).equal(
-        -1,
-      );
-      should(cmp('xx/en/sujato/sn22.1', 'xx/en/sujato/an22.1')).equal(
-        1,
-      );
-      should(cmp('xx/en/sujato/an22.1', 'xx/en/sujato/sn22.1')).equal(
-        -1,
-      );
+      should(cmp('sn/en/sujato/sn22.1', 'an/en/sujato/an22.1')).equal(1);
+      should(cmp('an/en/sujato/an22.1', 'sn/en/sujato/sn22.1')).equal(-1);
+      should(cmp('xx/en/sujato/sn22.1', 'xx/en/sujato/an22.1')).equal(1);
+      should(cmp('xx/en/sujato/an22.1', 'xx/en/sujato/sn22.1')).equal(-1);
 
       // major number
-      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn22.1')).equal(
-        7,
-      );
-      should(cmp('sn/en/sujato/sn22.1', 'sn/en/sujato/sn29.1')).equal(
-        -7,
-      );
+      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn22.1')).equal(7);
+      should(cmp('sn/en/sujato/sn22.1', 'sn/en/sujato/sn29.1')).equal(-7);
 
       // subchapter numbering
-      should(cmp('sn/en/sujato/sn30.1', 'sn/en/sujato/sn30.2')).equal(
+      should(cmp('sn/en/sujato/sn30.1', 'sn/en/sujato/sn30.2')).equal(-1);
+      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.10')).equal(-9);
+      should(cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.1')).equal(9);
+      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.11-20')).equal(
+        -10,
+      );
+      should(cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.1')).equal(
+        10,
+      );
+      should(cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.11-20')).equal(
         -1,
       );
-      should(
-        cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.10'),
-      ).equal(-9);
-      should(
-        cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.1'),
-      ).equal(9);
-      should(
-        cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.11-20'),
-      ).equal(-10);
-      should(
-        cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.1'),
-      ).equal(10);
-      should(
-        cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.11-20'),
-      ).equal(-1);
-      should(
-        cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.10'),
-      ).equal(1);
+      should(cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.10')).equal(
+        1,
+      );
 
       // ranges
       should(cmp('sn29.11-20', 'sn29.11-20')).equal(0);
@@ -292,28 +274,12 @@ typeof describe === 'function' &&
       testCompareLow('dn2:75.3.0', 'dn2:75.3', 1);
 
       // vinaya
-      testCompareLow(
-        'pli-tv-kd15:17.3.2^a',
-        'pli-tv-kd15:17.3.2',
-        -26,
-      );
+      testCompareLow('pli-tv-kd15:17.3.2^a', 'pli-tv-kd15:17.3.2', -26);
       testCompareLow('pli-tv-kd15:17.3', 'pli-tv-kd15:17.3.2', -2);
-      testCompareLow(
-        'pli-tv-kd15:17.3.2^a',
-        'pli-tv-kd15:17.3.2^c',
-        -2,
-      );
+      testCompareLow('pli-tv-kd15:17.3.2^a', 'pli-tv-kd15:17.3.2^c', -2);
       testCompareLow('pli-tv-kd15:17.3.2a', 'pli-tv-kd15:17.3.2', 1);
-      testCompareLow(
-        'pli-tv-kd15:17.3.2a',
-        'pli-tv-kd15:17.3.2c',
-        -2,
-      );
-      testCompareLow(
-        'pli-tv-kd15:17.3.2^a',
-        'pli-tv-kd15:17.3.2a',
-        -27,
-      );
+      testCompareLow('pli-tv-kd15:17.3.2a', 'pli-tv-kd15:17.3.2c', -2);
+      testCompareLow('pli-tv-kd15:17.3.2^a', 'pli-tv-kd15:17.3.2a', -27);
 
       testCompareLow('dn33:1.2.31', 'dn33:1.10.1', -8);
 
@@ -386,49 +352,31 @@ typeof describe === 'function' &&
       should(cmp('mn34', 'mn33')).equal(1);
 
       // collection
-      should(cmp('sn/en/sujato/sn22.1', 'an/en/sujato/an22.1')).equal(
-        1,
-      );
-      should(cmp('an/en/sujato/an22.1', 'sn/en/sujato/sn22.1')).equal(
-        -1,
-      );
-      should(cmp('xx/en/sujato/sn22.1', 'xx/en/sujato/an22.1')).equal(
-        1,
-      );
-      should(cmp('xx/en/sujato/an22.1', 'xx/en/sujato/sn22.1')).equal(
-        -1,
-      );
+      should(cmp('sn/en/sujato/sn22.1', 'an/en/sujato/an22.1')).equal(1);
+      should(cmp('an/en/sujato/an22.1', 'sn/en/sujato/sn22.1')).equal(-1);
+      should(cmp('xx/en/sujato/sn22.1', 'xx/en/sujato/an22.1')).equal(1);
+      should(cmp('xx/en/sujato/an22.1', 'xx/en/sujato/sn22.1')).equal(-1);
 
       // major number
-      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn22.1')).equal(
-        7,
-      );
-      should(cmp('sn/en/sujato/sn22.1', 'sn/en/sujato/sn29.1')).equal(
-        -7,
-      );
+      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn22.1')).equal(7);
+      should(cmp('sn/en/sujato/sn22.1', 'sn/en/sujato/sn29.1')).equal(-7);
 
       // subchapter numbering
-      should(cmp('sn/en/sujato/sn30.1', 'sn/en/sujato/sn30.2')).equal(
-        -1,
+      should(cmp('sn/en/sujato/sn30.1', 'sn/en/sujato/sn30.2')).equal(-1);
+      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.10')).equal(-9);
+      should(cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.1')).equal(9);
+      should(cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.11-20')).equal(
+        -19,
       );
-      should(
-        cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.10'),
-      ).equal(-9);
-      should(
-        cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.1'),
-      ).equal(9);
-      should(
-        cmp('sn/en/sujato/sn29.1', 'sn/en/sujato/sn29.11-20'),
-      ).equal(-19);
-      should(
-        cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.1'),
-      ).equal(19);
-      should(
-        cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.11-20'),
-      ).equal(-10);
-      should(
-        cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.10'),
-      ).equal(10);
+      should(cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.1')).equal(
+        19,
+      );
+      should(cmp('sn/en/sujato/sn29.10', 'sn/en/sujato/sn29.11-20')).equal(
+        -10,
+      );
+      should(cmp('sn/en/sujato/sn29.11-20', 'sn/en/sujato/sn29.10')).equal(
+        10,
+      );
 
       // ranges
       should(cmp('sn29.11-20', 'sn29.11-20')).equal(0);
@@ -491,18 +439,9 @@ typeof describe === 'function' &&
     });
     it('scidRegExp(pat) creates a scid wildcard pattern', () => {
       // should be same as Linux file wildcards
-      should.deepEqual(
-        SuttaCentralId.scidRegExp('mn1:2.3'),
-        /mn1:2\.3/,
-      );
-      should.deepEqual(
-        SuttaCentralId.scidRegExp('mn1:2.*'),
-        /mn1:2\..*/,
-      );
-      should.deepEqual(
-        SuttaCentralId.scidRegExp('mn1:2.?'),
-        /mn1:2\../,
-      );
+      should.deepEqual(SuttaCentralId.scidRegExp('mn1:2.3'), /mn1:2\.3/);
+      should.deepEqual(SuttaCentralId.scidRegExp('mn1:2.*'), /mn1:2\..*/);
+      should.deepEqual(SuttaCentralId.scidRegExp('mn1:2.?'), /mn1:2\../);
       should.deepEqual(
         SuttaCentralId.scidRegExp('mn1:[2-3].*'),
         /mn1:[2-3]\..*/,
@@ -568,22 +507,16 @@ typeof describe === 'function' &&
       should(SuttaCentralId.test('sn22.1-20   ,   mn1')).equal(true);
       should(SuttaCentralId.test('sn22.1-20,red')).equal(false);
       should(SuttaCentralId.test('red,sn22.1-20,mn1')).equal(false);
-      should(SuttaCentralId.test('sn22.1-20    ,   red')).equal(
-        false,
-      );
+      should(SuttaCentralId.test('sn22.1-20    ,   red')).equal(false);
       should(SuttaCentralId.test('red,sn22.1-20')).equal(false);
     });
     it('rangeHigh => upper bound', () => {
-      should(SuttaCentralId.rangeHigh('an1.10--an1.11')).equal(
-        'an1.11',
-      );
+      should(SuttaCentralId.rangeHigh('an1.10--an1.11')).equal('an1.11');
       should(SuttaCentralId.rangeHigh('an1.2:3.4--5.6')).equal(
         'an1.2:5.6.9999',
       );
       should(
-        SuttaCentralId.rangeHigh(
-          'an1.2:2.1.3--an1.11:5.1.19/en/sujato',
-        ),
+        SuttaCentralId.rangeHigh('an1.2:2.1.3--an1.11:5.1.19/en/sujato'),
       ).equal('an1.11:5.1.19.9999/en/sujato');
       should(
         SuttaCentralId.rangeHigh('an1.2-11:2-5.1.3-19/en/sujato'),
@@ -597,13 +530,9 @@ typeof describe === 'function' &&
     });
     it('rangeLow => lower bound', () => {
       should(
-        SuttaCentralId.rangeLow(
-          'an1.2:2.1.3--an1.11:5.1.19/en/sujato',
-        ),
+        SuttaCentralId.rangeLow('an1.2:2.1.3--an1.11:5.1.19/en/sujato'),
       ).equal('an1.2:2.1.3/en/sujato');
-      should(SuttaCentralId.rangeLow('an1.2:3.4--5.6')).equal(
-        'an1.2:3.4',
-      );
+      should(SuttaCentralId.rangeLow('an1.2:3.4--5.6')).equal('an1.2:3.4');
       should(
         SuttaCentralId.rangeLow('an1.2-11:2-5.1.3-19/en/sujato'),
       ).equal('an1.2:2.1.3/en/sujato');

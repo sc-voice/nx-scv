@@ -36,15 +36,11 @@ describe('TESTTESTtext/unicode', () => {
     should(u.romanize('tassā’ti')).equal(`tassa${Unicode.RSQUOTE}ti`);
     should(u.romanize('saññatvā')).equal(`sannatva`);
     should(u.romanize('pathaviṃ')).equal(`pathavim`);
-    should(u.romanize('viññāṇañcāyatanato')).equal(
-      `vinnanancayatanato`,
-    );
+    should(u.romanize('viññāṇañcāyatanato')).equal(`vinnanancayatanato`);
     should(u.romanize('diṭṭhato')).equal(`ditthato`);
     should(u.romanize('khīṇāsavo')).equal(`khinasavo`);
     should(u.romanize('pavaḍḍhanti')).equal(`pavaddhanti`);
-    should(u.romanize('ĀḌḤĪḶḸṂṆÑṄṚṜṢŚṬŪṁ')).equal(
-      `adhillmnnnrrsstum`,
-    );
+    should(u.romanize('ĀḌḤĪḶḸṂṆÑṄṚṜṢŚṬŪṁ')).equal(`adhillmnnnrrsstum`);
     should(u.romanize('‘Nandī dukkhassa mūlan’ti—')).equal(
       `${Unicode.LSQUOTE}` +
         `nandi dukkhassa mulan` +

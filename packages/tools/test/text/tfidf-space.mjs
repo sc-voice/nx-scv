@@ -21,9 +21,7 @@ const MN8_NOE = JSON.parse(
   ),
 );
 const MN8_MOHAN_JSON = JSON.parse(
-  fs.readFileSync(
-    path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json'),
-  ),
+  fs.readFileSync(path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json')),
 );
 const MN8_MOHAN = MN8_MOHAN_JSON.text;
 const WSTEST_CONFIG = JSON.parse(
@@ -127,11 +125,7 @@ describe('TESTTESTtext/tfidf-space', () => {
     should(v).instanceOf(WordVector);
     should(v.a).above(1).equal(v.quick).equal(v.brown);
     should(v.fox).above(v.a);
-    should(v.over)
-      .below(1)
-      .equal(v.jumped)
-      .equal(v.over)
-      .equal(v.the);
+    should(v.over).below(1).equal(v.jumped).equal(v.over).equal(v.the);
     should(v.length).equal(8);
   });
   it('TfidSpace.normalizeFR()', () => {
@@ -436,10 +430,7 @@ describe('TESTTESTtext/tfidf-space', () => {
 
     // TF_IDF finds unique match
     let vDog = ws.tfidf('dog');
-    should.deepEqual(
-      vDog,
-      new WordVector({ dog: 0.9606818084344944 }),
-    );
+    should.deepEqual(vDog, new WordVector({ dog: 0.9606818084344944 }));
     let vDogMatch = vDocs.map((vDoc) => vDog.similar(vDoc));
     should.deepEqual(vDogMatch, [
       0.8660041217288018, // a dog is a canine
@@ -471,9 +462,7 @@ describe('TESTTESTtext/tfidf-space', () => {
         canine: 0.2773522103959899,
       }),
     );
-    let vCatCanineMatch = vDocs.map((vDoc) =>
-      vCatCanine.similar(vDoc),
-    );
+    let vCatCanineMatch = vDocs.map((vDoc) => vCatCanine.similar(vDoc));
     should.deepEqual(vCatCanineMatch, [
       0.2500368611487267, // a dog is a canine
       0.1336489165185156, // a wolf is the other canine

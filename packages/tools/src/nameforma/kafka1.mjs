@@ -1,9 +1,7 @@
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
-const { 
-  CHECKMARK:OK,
-} = Unicode;
+const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
 
 /*
@@ -17,6 +15,7 @@ import { DBG } from '../defines.mjs';
 const SINGLETON_PARTITION = 0; // multiple partitions not supported
 const SINGLETON_NODE_ID = '123'; // multiple brokers are not supported
 const CLIENT_ID = 'kafka1';
+const NO_TOPIC = 'no-topic';
 
 let ROLE_CONSTRUCTOR = false;
 
@@ -79,7 +78,7 @@ class Role {
 
 export class Topic {
   constructor(cfg = {}) {
-    let { name = 'no-topic', created = Date.now() } = cfg;
+    let { name = NO_TOPIC, created = Date.now() } = cfg;
 
     this.name = name;
     this.created = created;
@@ -127,21 +126,42 @@ export class Message {
 
 class Group {
   constructor(cfg = {}) {
+    const msg = 'g3p.ctor';
     let { groupId = 'no-group-id', protocolType = 'consumer' } = cfg;
 
-    Object.assign(this, {
-      groupId,
-    }, cfg);
-    Object.defineProperty(this, '_topicOffsetsMap', {
+    Object.assign(
+      this,
+      {
+        groupId,
+      },
+      cfg,
+    );
+    Object.defineProperty(this, '_groupOffsetsetsMap', {
       value: {}, // hack for mock kafka
     });
   }
 
-  _topics(){
-    return Object.keys(this._topicOffsetsMap);
+  _topics() {
+    return Object.keys(this._groupOffsetsetsMap);
   }
 
+  _offsets() {
+    return Object.values(this._groupOffsetsetsMap);
+  }
 } // Group
+
+class GroupOffsets {
+  constructor(cfg = {}) {
+    const msg = 'g10s.ctor';
+    let { topic, fromBeginning = false } = cfg;
+    let partitions = topic.partitions.map((p, i) => {
+      let offset = fromBeginning ? 0 : p._messages.length;
+      return { partition: i, offset };
+    });
+
+    Object.assign(this, { topic: topic.name, partitions });
+  }
+}
 
 export class Consumer extends Role {
   constructor(cfg = {}) {
@@ -172,43 +192,86 @@ export class Consumer extends Role {
     let { topics = [], fromBeginning = false } = cfg;
     const { kafka, groupId } = this;
     const group = this._group();
-    const { _topicOffsetsMap } = group;
+    const { _groupOffsetsetsMap } = group;
     let subscribed = 0;
     for (let i = 0; i < topics.length; i++) {
       let topicName = topics[i];
       let topic = kafka._topicOfName(topicName);
-      let t10s = _topicOffsetsMap[topicName];
-      if (t10s) {
-        dbg>1 && cc.ok(msg + 2.1, groupId+'=:', topicName);
+      let g10s = _groupOffsetsetsMap[topicName];
+      if (g10s) {
+        dbg > 1 && cc.ok(msg + 2.1, groupId + '=:', topicName);
       } else {
-        let offset = 0;
+        g10s = new GroupOffsets({ topic, fromBeginning });
+        _groupOffsetsetsMap[topicName] = g10s;
 
-        t10s = {
-          topic: topicName,
-          partitions: [{ partition: SINGLETON_PARTITION, offset }],
-        };
-        _topicOffsetsMap[topicName] = t10s;
-        
         subscribed++;
-        dbg>1 && cc.ok(msg + 2.2, groupId+'+:', topicName, JSON.stringify(_topicOffsetsMap));
+        dbg > 1 &&
+          cc.ok(
+            msg + 2.2,
+            groupId + '+:',
+            topicName,
+            JSON.stringify(_groupOffsetsetsMap),
+          );
       }
     }
 
-    dbg && cc.ok1(msg + OK, `${groupId}:`, JSON.stringify(group._topics()));
+    dbg &&
+      cc.ok1(msg + OK, `${groupId}:`, JSON.stringify(group._topics()));
 
     //return this; // WARNING: kafkajs does not chain
   } // subscribe
 
+  #peekOffset(topic, partition) {}
+
   async run(cfg = {}) {
     const msg = 'c6r.run';
     const dbg = DBG.K3A_RUN;
+    let { kafka } = this;
     let { eachMessage } = cfg;
     if (eachMessage == null) {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
+    let group = this._group();
+    let { _groupOffsetsetsMap } = group;
 
-    cc.ok1(msg, 'END');
+    cc.fyi(msg, 'BEGIN');
+    const heartbeat = async () => {
+      cc.fyi(msg, 'heartbeat', Date.now());
+      return new Promise(resolve => setTimeout(()=>resolve(), 10));
+    };
+    const pause = () => {
+      cc.fyi(msg, 'pause');
+    };
+    this._running = true;
+    while (this._running) {
+      for (const offsets of group._offsets()) {
+        let { topic: topicName, partitions } = offsets;
+        let topic = kafka._topicOfName(topicName);
+        for (let i = 0; i < partitions.length; i++) {
+          let { offset } = partitions[i];
+          let messages = topic.partitions[i]._messages;
+          let message = messages[offset];
+          if (message) {
+            cc.fyi(msg, `${topicName}.${i}:`, message);
+            eachMessage({
+              topic: topicName,
+              partition: i,
+              message,
+              heartbeat,
+              pause,
+            });
+          }
+          partitions[i].offset++; // commit
+        }
+      }
+      await heartbeat();
+    } // _running
+    cc.fyi(msg, 'END');
+  }
+
+  stop() {
+    this._running = false;
   }
 } // Consumer
 
@@ -226,7 +289,7 @@ export class Producer extends Role {
     const dbg = DBG.K3A_SEND;
     let { kafka } = this;
     let {
-      topic: topicName = 'no-topic',
+      topic: topicName = NO_TOPIC,
       messages = [],
       timestamp = Timestamp.now(),
     } = request;
@@ -240,9 +303,15 @@ export class Producer extends Role {
         message.timestamp = timestamp;
       }
       partition._messages.push(message);
-      if (dbg>1) {
+      if (dbg > 1) {
         let ts = Timestamp.asDate(timestamp).toLocaleTimeString();
-        cc.ok(msg, ts, `${topicName}.${partitionId}`, message.key+':', message.value);
+        cc.ok(
+          msg,
+          ts,
+          `${topicName}.${partitionId}`,
+          message.key + ':',
+          message.value,
+        );
       }
     }
 
@@ -315,13 +384,13 @@ export class Admin extends Role {
     let { groupId, topics } = args;
 
     let group = kafka._groupOfId(groupId);
-    let { _topicOffsetsMap } = group;
+    let { _groupOffsetsetsMap } = group;
     if (topics == null) {
-      topics = Object.keys(_topicOffsetsMap);
+      topics = Object.keys(_groupOffsetsetsMap);
     }
-    let offsets = topics.reduce((a,topicName)=>{
-      let t10s = _topicOffsetsMap[topicName];
-      t10s && a.push(t10s);
+    let offsets = topics.reduce((a, topicName) => {
+      let g10s = _groupOffsetsetsMap[topicName];
+      g10s && a.push(g10s);
       return a;
     }, []);
     cc.ok1(msg + OK, groupId, JSON.stringify(offsets));
@@ -370,9 +439,9 @@ export class KRaftNode {
     let group = _groupMap[groupId];
     if (group == null) {
       // auto create
-      group = new Group({ groupId, protocolType });
+      group = new Group({ kafka: this, groupId, protocolType });
       _groupMap[groupId] = group;
-      dbg && cc.ok1(msg + OK+ '+', groupId);
+      dbg && cc.ok1(msg + OK + '+', groupId);
     } else {
       dbg && cc.ok1(msg + OK + '=', groupId);
     }

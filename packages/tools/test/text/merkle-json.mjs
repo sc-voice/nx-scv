@@ -11,10 +11,7 @@ describe('text/merkle-json', () => {
 
     // MD5 test
     should.equal(mj.hash(''), 'd41d8cd98f00b204e9800998ecf8427e');
-    should.equal(
-      mj.hash('hello\n'),
-      'b1946ac92492d2347c6235b4d2611184',
-    );
+    should.equal(mj.hash('hello\n'), 'b1946ac92492d2347c6235b4d2611184');
     should.equal(mj.hash(' '), '7215ee9c7d9dc229d2921a40e899ec5f');
     should.equal(mj.hash('HTML'), '4c4ad5fca2e7a3f74dbb1ced00381aa4');
 
@@ -23,10 +20,7 @@ describe('text/merkle-json', () => {
     //   mj.hash('\u2190'),
     //   'fe98e12bb396ee46bf88efa6fc55ac08');
     // other MD5
-    should.equal(
-      mj.hash('\u2190'),
-      '5adcb503750876bb69cfc0a9289f9fb8',
-    ); // hmmmm....
+    should.equal(mj.hash('\u2190'), '5adcb503750876bb69cfc0a9289f9fb8'); // hmmmm....
     should.notEqual(mj.hash('\u2190'), mj.hash('\u2191')); // kinda work
 
     // semantic test
@@ -63,10 +57,7 @@ describe('text/merkle-json', () => {
       mj.hash(['HT', 'ML']),
       mj.hash(mj.hash('HT') + mj.hash('ML')),
     );
-    should.equal(
-      mj.hash([1, 2]),
-      mj.hash(mj.hash('1') + mj.hash('2')),
-    );
+    should.equal(mj.hash([1, 2]), mj.hash(mj.hash('1') + mj.hash('2')));
   });
   it('hash(number) calculates hash code', () => {
     let mj = new MerkleJson();
@@ -145,10 +136,7 @@ describe('text/merkle-json', () => {
       mj.hash([{ merkleHash: hfoo, anything: 'do-not-care' }]),
       mj.hash(hfoo),
     );
-    should.equal(
-      mj.hash({ merkleHash: 'some-hash', a: 1 }),
-      'some-hash',
-    );
+    should.equal(mj.hash({ merkleHash: 'some-hash', a: 1 }), 'some-hash');
   });
   it('hash(object) ignores toJSON', () => {
     class TestClass {
@@ -250,14 +238,10 @@ describe('text/merkle-json', () => {
     let list1 = [1, 2, obj1];
     let list2 = [1, 2, obj2];
 
-    should(mj.stringify(list1)).equal(
-      '[1,2,{"a":1,"b":2,"c":3,"d":4}]',
-    );
+    should(mj.stringify(list1)).equal('[1,2,{"a":1,"b":2,"c":3,"d":4}]');
     should(mj.stringify(list1)).equal(JSON.stringify(list1));
 
-    should(mj.stringify(list2)).equal(
-      '[1,2,{"a":1,"b":2,"c":3,"d":4}]',
-    );
+    should(mj.stringify(list2)).equal('[1,2,{"a":1,"b":2,"c":3,"d":4}]');
     should(mj.stringify(list2)).not.equal(JSON.stringify(list2));
 
     // Arrays are stringify canonically

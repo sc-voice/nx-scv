@@ -141,9 +141,7 @@ describe('text/word-vector', () => {
 
     // order:'value', precision:2 minValue: 0.001
     let vs4 = v.toString({ minValue: 0.001 });
-    should(vs4).equal(
-      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,…1',
-    );
+    should(vs4).equal('a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,…1');
 
     // show all
     let vs5 = v.toString({ minValue: 0.0001 });
@@ -154,10 +152,7 @@ describe('text/word-vector', () => {
   it('TESTTESTandOneHot()', () => {
     let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
     let v2 = new WordVector({ b: 1, c: 3, d: 4 });
-    should.deepEqual(
-      v1.andOneHot(v2),
-      new WordVector({ b: 1, c: 1 }),
-    );
+    should.deepEqual(v1.andOneHot(v2), new WordVector({ b: 1, c: 1 }));
   });
   it('TESTTESTorOneHot()', () => {
     let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });

@@ -15,9 +15,7 @@ const MN8_NOE = JSON.parse(
   ),
 );
 const MN8_MOHAN_JSON = JSON.parse(
-  fs.readFileSync(
-    path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json'),
-  ),
+  fs.readFileSync(path.join(TEST_DATA, 'mn8_legacy-fr-wijayaratna.json')),
 );
 const MN8_MOHAN = MN8_MOHAN_JSON.text;
 const WSTEST_CONFIG = JSON.parse(
@@ -168,13 +166,7 @@ describe('text/word-space', () => {
           scoreMax = score;
           a.match = k;
           dbg &&
-            console.log(
-              msg,
-              'better',
-              k,
-              score,
-              vmohan.intersect(vmn8),
-            );
+            console.log(msg, 'better', k, score, vmohan.intersect(vmn8));
         }
         return a;
       },
@@ -371,10 +363,7 @@ describe('text/word-space', () => {
 
     // TF_IDF favors shorter document (more focus)
     let vCanine = ws.tfidf('canine');
-    should.deepEqual(
-      vCanine,
-      new Vector({ canine: 0.5547044207919798 }),
-    );
+    should.deepEqual(vCanine, new Vector({ canine: 0.5547044207919798 }));
     let vCanineMatch = vDocs.map((vDoc) => vCanine.similar(vDoc));
     should.deepEqual(vCanineMatch, [
       0.5000368597900825, // a dog is a canine (shorter)
@@ -393,9 +382,7 @@ describe('text/word-space', () => {
         canine: 0.2773522103959899,
       }),
     );
-    let vCatCanineMatch = vDocs.map((vDoc) =>
-      vCatCanine.similar(vDoc),
-    );
+    let vCatCanineMatch = vDocs.map((vDoc) => vCatCanine.similar(vDoc));
     should.deepEqual(vCatCanineMatch, [
       0.2500368611487267, // a dog is a canine
       0.18901209155377868, // a wolf is another canine
