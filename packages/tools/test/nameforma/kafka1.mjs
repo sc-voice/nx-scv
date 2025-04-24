@@ -16,7 +16,7 @@ const {
   NO_BOLD,
 } = Unicode.LINUX_STYLE;
 
-describe('TESTTESTkafka', () => {
+describe('kafka', () => {
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
     should(ka).properties({
@@ -133,11 +133,11 @@ describe('TESTTESTkafka', () => {
 
     await admin.disconnect();
   });
-  it('k3a.send()', async () => {
+  it('TESTTESTk3a.send()', async () => {
     let ka = new Kafka1();
     let producer = ka.producer();
-    let groupId = 'testGroup';
-    let topicA = 'testTopicA';
+    let groupId = 'k3aSendGroup1';
+    let topicA = 'k3aSendTopicA';
     await producer.connect();
     let consumer = ka.consumer({groupId});
     await consumer.connect();
@@ -147,8 +147,8 @@ describe('TESTTESTkafka', () => {
     let request = {
       topic: topicA,
       messages: [{
-        key: 'test-key',
-        value: 'test-value',
+        key: 'k3aSendMsgKey',
+        value: 'k3aSendMsgValue',
       }],
     }
     await producer.send(request);
@@ -156,7 +156,16 @@ describe('TESTTESTkafka', () => {
     await producer.send();
     should.deepEqual(await admin.listTopics(), [topicA, 'no-topic']);
 
-    await consumer.subscribe({topics: [topicA]});
+    // NON_API_TEST: implementation only test!
+    let _privateTopicA = ka._topicOfName(topicA);
+    should(_privateTopicA.partitions[0]._messages[0]).properties({
+      key: 'k3aSendMsgKey',
+      value: 'k3aSendMsgValue',
+    });
+
+    // The consumer subscribes AFTER the message is sent but
+    // still gets the message.
+    await consumer.subscribe({topics: [topicA], fromBeginning: true});
     await consumer.run({
       eachMessage: async (args={})=>{
         const msg = 'eachMessage';

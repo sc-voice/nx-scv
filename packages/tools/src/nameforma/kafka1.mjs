@@ -86,13 +86,9 @@ export class Topic {
     this.partitions = [
       {
         partitionId: SINGLETON_PARTITION,
+        _messages: [],
       },
     ];
-
-    Object.defineProperty(this, '_messages', {
-      writable: true,
-      value: [], // hack for mock kafka
-    });
   }
 }
 
@@ -236,22 +232,25 @@ export class Producer extends Role {
     } = request;
 
     let topic = kafka._topicOfName(topicName);
-    let partition = topic.partitions[SINGLETON_PARTITION];
-    topic._messages = [
-      ...topic._messages,
-      ...messages.map((m) => {
-        if (m.timestamp == null) {
-          m.timestamp = timestamp;
-        }
-        return m;
-      }),
-    ];
+    for (let i = 0; i < messages.length; i++) {
+      let message = messages[i];
+      let partitionId = Message._partitionOfKey(message.key);
+      let partition = topic.partitions[partitionId];
+      if (message.timestamp == null) {
+        message.timestamp = timestamp;
+      }
+      partition._messages.push(message);
+      if (dbg>1) {
+        let ts = Timestamp.asDate(timestamp).toLocaleTimeString();
+        cc.ok(msg, ts, `${topicName}.${partitionId}`, message.key+':', message.value);
+      }
+    }
 
     if (dbg) {
       let ts = Timestamp.asDate(timestamp).toLocaleTimeString();
       cc.ok1(msg, 'send', ts, topicName, 'messages:', messages.length);
     }
-  }
+  } // send
 } // Producer
 
 export class Admin extends Role {
