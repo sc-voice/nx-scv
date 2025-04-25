@@ -95,7 +95,7 @@ describe('TESTTESTkafka', () => {
   });
   it('k3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
-    const dbg = 1;
+    const dbg = 0;
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
@@ -136,7 +136,7 @@ describe('TESTTESTkafka', () => {
   it('TESTTESTk3a.send()', async () => {
     const msg = 'k3a.send';
     const ka = new Kafka1();
-    const dbg = 1;
+    const dbg = 0;
     const producer = ka.producer();
     const groupId = 'k8dGroup1';
     const topicA = 'k8dTopicA';
@@ -167,33 +167,33 @@ describe('TESTTESTkafka', () => {
 
     let onEachMessage = (rProp) => (async (args={})=>{
       const msg = 'eachMessage';
-      try {
-        let {
-          topic, partition, message, heartbeat, pause,
-        } = args;
-        received[rProp] = received[rProp] || [];
-        received[rProp].push(message);
-        cc.fyi1(msg, 'PUSH', JSON.stringify(received[rProp]));
-        dbg > 1 && cc.fyi(msg, JSON.stringify({topic, partition, message}));
-        dbg && cc.fyi1(msg+rProp, topic+'.'+partition, JSON.stringify(message));
-      } catch (e) {
-        cc.bad1(msg+rProp, e);
-      }
+      let {
+        topic, partition, message, heartbeat, pause,
+      } = args;
+      received[rProp] = received[rProp] || [];
+      received[rProp].push(message);
+      dbg > 1 && cc.fyi(msg, JSON.stringify({topic, partition, message}));
+      dbg && cc.fyi1(msg+rProp, topic+'.'+partition, JSON.stringify(message));
     });
 
     // STEP2: consumerA subscribes AFTER msgA1 is sent but still gets it
     await consumerA.subscribe({topics: [topicA], fromBeginning: true});
-    consumerA.run({ eachMessage: onEachMessage('A') });
+    let { 
+      committed: committed1 
+    } = await consumerA._runOnce({ eachMessage: onEachMessage('A') });
     should(received.A[0]).properties(msgA1);
     should(received.A.length).equal(1);
+    should(committed1).equal(1);
 
     // STEP3: send msgA2
     await producer.send({topic: topicA, messages: [msgA2]});
-    await new Promise(resolve => setTimeout(()=>resolve(), 10));
-    cc.fyi1(msg, 'receivedA2', JSON.stringify(received));
+    let {
+      committed: committed2,
+    } = await consumerA._runOnce({ eachMessage: onEachMessage('A') });
     should(received.A[0]).properties(msgA1);
     should(received.A.length).equal(2);
     should(received.A[1]).properties(msgA2);
+    should(committed2).equal(1);
 
     await consumerA.stop();
     await consumerA.disconnect();

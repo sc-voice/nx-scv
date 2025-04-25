@@ -223,6 +223,51 @@ export class Consumer extends Role {
 
   #peekOffset(topic, partition) {}
 
+  async heartbeat() {
+    const msg = 'c6r.heartbeat';
+    cc.fyi(msg, Date.now());
+  }
+
+  async pause() {
+    const msg = 'c6r.pause';
+    cc.fyi(msg);
+  }
+
+  async _runOnce(cfg={}) {
+    const msg = 'c6r._runOnce';
+    const dbg = DBG.K3A_RUN_ONCE;
+    let { kafka } = this;
+    let group = this._group();
+    let { eachMessage} = cfg;
+    let { _groupOffsetsetsMap } = group;
+
+    let committed = 0;
+    for (const offsets of group._offsets()) {
+      let { topic: topicName, partitions } = offsets;
+      let topic = kafka._topicOfName(topicName);
+      for (let i = 0; i < partitions.length; i++) {
+        let { offset } = partitions[i];
+        let messages = topic.partitions[i]._messages;
+        let message = messages[offset];
+        if (message) {
+          dbg > 1 && cc.fyi(msg, `${topicName}.${i}:`, message);
+          await eachMessage({
+            topic: topicName,
+            partition: i,
+            message,
+            heartbeat: this.heartbeat,
+            pause: this.pause,
+          });
+          partitions[i].offset++; // commit
+          committed++;
+        }
+      }
+    }
+
+    dbg && cc.ok1(msg+OK, 'committed:', committed);
+    return {committed};
+  }
+
   async run(cfg = {}) {
     const msg = 'c6r.run';
     const dbg = DBG.K3A_RUN;
@@ -236,36 +281,13 @@ export class Consumer extends Role {
     let { _groupOffsetsetsMap } = group;
 
     cc.fyi(msg, 'BEGIN');
-    const heartbeat = async () => {
-      cc.fyi(msg, 'heartbeat', Date.now());
-      return new Promise(resolve => setTimeout(()=>resolve(), 10));
-    };
-    const pause = () => {
-      cc.fyi(msg, 'pause');
-    };
     this._running = true;
     while (this._running) {
-      for (const offsets of group._offsets()) {
-        let { topic: topicName, partitions } = offsets;
-        let topic = kafka._topicOfName(topicName);
-        for (let i = 0; i < partitions.length; i++) {
-          let { offset } = partitions[i];
-          let messages = topic.partitions[i]._messages;
-          let message = messages[offset];
-          if (message) {
-            cc.fyi(msg, `${topicName}.${i}:`, message);
-            eachMessage({
-              topic: topicName,
-              partition: i,
-              message,
-              heartbeat,
-              pause,
-            });
-          }
-          partitions[i].offset++; // commit
-        }
+      try {
+        await this._runOnce({group, eachMessage});
+      } catch (e) {
+        cc.bad1(msg, e.message);
       }
-      await heartbeat();
     } // _running
     cc.fyi(msg, 'END');
   }
