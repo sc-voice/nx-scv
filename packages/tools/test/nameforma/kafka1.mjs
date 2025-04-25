@@ -43,10 +43,11 @@ describe('TESTTESTkafka', () => {
     should(admin.connections).equal(0);
   });
   it('k3a.listGroups()', async() =>{
+    const msg = 'tk3a.listGroups';
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
-    let groupG1 = 'groupG1';
+    let groupG1 = 'tL8S.G1';
     let groups1 = await admin.listGroups();
     should.deepEqual(groups1, []);
     let topicA = 'topicA';
@@ -62,10 +63,11 @@ describe('TESTTESTkafka', () => {
     await consumerG1.disconnect();
   });
   it('k3a.describeGroups()', async() =>{
+    const msg = 'k3a.describeGroups';
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
-    let groupG1 = 'groupG1';
+    let groupG1 = 'tD12S.G1';
     let groups1 = await admin.describeGroups();
     should.deepEqual(groups1, []);
     let topicA = 'topicA';
@@ -99,8 +101,8 @@ describe('TESTTESTkafka', () => {
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
-    let groupId = 'c6rGroup';
-    let topicA = 'c6rTopicA';
+    let groupId = 'tC6R.G1';
+    let topicA = 'tC6R.TA';
 
     let offsets1 = await admin.fetchOffsets({groupId});
     should(offsets1.length).equal(0);
@@ -108,7 +110,11 @@ describe('TESTTESTkafka', () => {
 
     let consumer = ka.consumer({groupId});
     should(consumer).instanceOf(Consumer);
-    should(consumer).properties({ groupId });
+    should(consumer).properties({ 
+      groupId,
+      heartbeatInterval: 3000,
+      sessionTimeout: 30000,
+    });
     let offsets2 = await admin.fetchOffsets({groupId});
     should(offsets2.length).equal(0);
 
@@ -138,9 +144,9 @@ describe('TESTTESTkafka', () => {
     const ka = new Kafka1();
     const dbg = 0;
     const producer = ka.producer();
-    const groupId = 'k8dGroup1';
-    const topicA = 'k8dTopicA';
-    const topicB = 'k8dTopicB';
+    const groupId = 'tS2D.G1';
+    const topicA = 'tS2D.TA';
+    const topicB = 'tS2D.TB';
     const consumerA = ka.consumer({groupId});
     const consumerB = ka.consumer({groupId});
     const admin = ka.admin();

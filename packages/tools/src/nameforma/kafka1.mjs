@@ -17,6 +17,7 @@ const SINGLETON_NODE_ID = '123'; // multiple brokers are not supported
 const CLIENT_ID = 'kafka1';
 const NO_TOPIC = 'no-topic';
 
+let _consumerCount = 0;
 let ROLE_CONSTRUCTOR = false;
 
 class Timestamp {
@@ -139,6 +140,9 @@ class Group {
     Object.defineProperty(this, '_groupOffsetsetsMap', {
       value: {}, // hack for mock kafka
     });
+    Object.defineProperty(this, '_consumers', {
+      value: [],
+    });
   }
 
   _topics() {
@@ -165,20 +169,32 @@ class GroupOffsets {
 
 export class Consumer extends Role {
   constructor(cfg = {}) {
-    const { kafka, groupId = 'no-group-id' } = cfg;
-    super({ tla: 'c6r', kafka });
     const msg = 'c6r.ctor';
     const dbg = DBG.C6R_CTOR;
+    const {
+      kafka,
+      groupId = 'no-group-id',
+      heartbeatInterval = 3000, // ms
+      sessionTimeout = 30000, // ms
+    } = cfg;
+    super({ tla: 'c6r', kafka });
 
     Object.assign(this, {
       groupId,
+      heartbeatInterval,
+      sessionTimeout,
     });
     let group = this._group();
+    group._consumers.push(this);
+    _consumerCount++;
+    Object.defineProperty(this, '_id', {
+      value: `C6R-${('' + _consumerCount).padStart(3, '0')}`,
+    });
 
     this.running = false;
     this.eachMessage = null;
 
-    dbg && cc.ok1(msg, groupId);
+    dbg && cc.ok1(msg+OK, this._id, groupId);
   }
 
   _group() {
@@ -233,12 +249,12 @@ export class Consumer extends Role {
     cc.fyi(msg);
   }
 
-  async _runOnce(cfg={}) {
+  async _runOnce(cfg = {}) {
     const msg = 'c6r._runOnce';
     const dbg = DBG.K3A_RUN_ONCE;
     let { kafka } = this;
     let group = this._group();
-    let { eachMessage} = cfg;
+    let { eachMessage } = cfg;
     let { _groupOffsetsetsMap } = group;
 
     let committed = 0;
@@ -264,8 +280,8 @@ export class Consumer extends Role {
       }
     }
 
-    dbg && cc.ok1(msg+OK, 'committed:', committed);
-    return {committed};
+    dbg && cc.ok1(msg + OK, 'committed:', committed);
+    return { committed };
   }
 
   async run(cfg = {}) {
@@ -284,7 +300,7 @@ export class Consumer extends Role {
     this._running = true;
     while (this._running) {
       try {
-        await this._runOnce({group, eachMessage});
+        await this._runOnce({ group, eachMessage });
       } catch (e) {
         cc.bad1(msg, e.message);
       }
@@ -338,8 +354,8 @@ export class Producer extends Role {
     }
 
     if (dbg) {
-      let ts = Timestamp.asDate(timestamp).toLocaleTimeString();
-      cc.ok1(msg, 'send', ts, topicName, 'messages:', messages.length);
+      let ts = Timestamp.asDate(timestamp).toLocaleTimeString('en-US', {hour12:false});
+      cc.ok1(msg+OK, ts, topicName, 'messages:', messages.length);
     }
   } // send
 } // Producer
