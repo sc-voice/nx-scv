@@ -18,6 +18,7 @@ const CLIENT_ID = 'kafka1';
 const NO_TOPIC = 'no-topic';
 
 let _consumerCount = 0;
+let _producerCount = 0;
 let ROLE_CONSTRUCTOR = false;
 
 class Timestamp {
@@ -125,18 +126,16 @@ export class Message {
   }
 } // Message
 
-class Group {
+class ConsumerGroup {
   constructor(cfg = {}) {
-    const msg = 'g3p.ctor';
-    let { groupId = 'no-group-id', protocolType = 'consumer' } = cfg;
+    const msg = 'c11p.ctor';
+    let { 
+      kafka,
+      groupId = 'no-group-id', 
+      protocolType = 'consumer',
+    } = cfg;
 
-    Object.assign(
-      this,
-      {
-        groupId,
-      },
-      cfg,
-    );
+    Object.assign(this, { groupId, kafka, }, cfg);
     Object.defineProperty(this, '_groupOffsetsetsMap', {
       value: {}, // hack for mock kafka
     });
@@ -152,7 +151,8 @@ class Group {
   _offsets() {
     return Object.values(this._groupOffsetsetsMap);
   }
-} // Group
+
+} // ConsumerGroup
 
 class GroupOffsets {
   constructor(cfg = {}) {
@@ -184,7 +184,7 @@ export class Consumer extends Role {
       heartbeatInterval,
       sessionTimeout,
     });
-    let group = this._group();
+    let group = this._consumerGroup();
     group._consumers.push(this);
     _consumerCount++;
     Object.defineProperty(this, '_id', {
@@ -197,7 +197,7 @@ export class Consumer extends Role {
     dbg && cc.ok1(msg+OK, this._id, groupId);
   }
 
-  _group() {
+  _consumerGroup() {
     let { kafka, groupId } = this;
     return kafka._groupOfId(groupId);
   }
@@ -207,7 +207,7 @@ export class Consumer extends Role {
     const dbg = DBG.K3A_SUBSCRIBE;
     let { topics = [], fromBeginning = false } = cfg;
     const { kafka, groupId } = this;
-    const group = this._group();
+    const group = this._consumerGroup();
     const { _groupOffsetsetsMap } = group;
     let subscribed = 0;
     for (let i = 0; i < topics.length; i++) {
@@ -249,11 +249,11 @@ export class Consumer extends Role {
     cc.fyi(msg);
   }
 
-  async _runOnce(cfg = {}) {
-    const msg = 'c6r._runOnce';
-    const dbg = DBG.K3A_RUN_ONCE;
+  async _processConsumer(cfg = {}) {
+    const msg = 'c6r._processConsumer';
+    const dbg = DBG.K3A_PROCESS_CONSUMER;
     let { kafka } = this;
-    let group = this._group();
+    let group = this._consumerGroup();
     let { eachMessage } = cfg;
     let { _groupOffsetsetsMap } = group;
 
@@ -280,7 +280,7 @@ export class Consumer extends Role {
       }
     }
 
-    dbg && cc.ok1(msg + OK, 'committed:', committed);
+    dbg && cc.ok1(msg + OK, this._id, 'committed:', committed);
     return { committed };
   }
 
@@ -293,14 +293,14 @@ export class Consumer extends Role {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
-    let group = this._group();
+    let group = this._consumerGroup();
     let { _groupOffsetsetsMap } = group;
 
     cc.fyi(msg, 'BEGIN');
     this._running = true;
     while (this._running) {
       try {
-        await this._runOnce({ group, eachMessage });
+        await group._runOnce({ group, eachMessage });
       } catch (e) {
         cc.bad1(msg, e.message);
       }
@@ -319,7 +319,12 @@ export class Producer extends Role {
     super({ tla: 'p6r', kafka });
     const msg = 'p6r.ctor';
     const dbg = DBG.P6R_CTOR;
-    dbg && cc.ok1(msg);
+
+    _producerCount++;
+    Object.defineProperty(this, '_id', {
+      value: `P6R-${('' + _producerCount).padStart(3, '0')}`,
+    });
+    dbg && cc.ok1(msg, this._id);
   }
 
   async send(request = {}) {
@@ -355,7 +360,7 @@ export class Producer extends Role {
 
     if (dbg) {
       let ts = Timestamp.asDate(timestamp).toLocaleTimeString('en-US', {hour12:false});
-      cc.ok1(msg+OK, ts, topicName, 'messages:', messages.length);
+      cc.ok1(msg+OK, this._id, ts, topicName, 'messages:', messages.length);
     }
   } // send
 } // Producer
@@ -477,7 +482,7 @@ export class KRaftNode {
     let group = _groupMap[groupId];
     if (group == null) {
       // auto create
-      group = new Group({ kafka: this, groupId, protocolType });
+      group = new ConsumerGroup({ kafka: this, groupId, protocolType });
       _groupMap[groupId] = group;
       dbg && cc.ok1(msg + OK + '+', groupId);
     } else {
@@ -485,6 +490,7 @@ export class KRaftNode {
     }
     return group;
   }
+
 } // KRaftNode
 
 export class Kafka1 extends KRaftNode {

@@ -16,7 +16,7 @@ const {
   NO_BOLD,
 } = Unicode.LINUX_STYLE;
 
-describe('TESTTESTkafka', () => {
+describe('kafka', () => {
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
     should(ka).properties({
@@ -139,16 +139,18 @@ describe('TESTTESTkafka', () => {
 
     await admin.disconnect();
   });
-  it('TESTTESTk3a.send()', async () => {
-    const msg = 'k3a.send';
+  it('TESTTESTk3a.send() _processConsumer', async () => {
+    const msg = 'tk3a.send.1';
     const ka = new Kafka1();
-    const dbg = 0;
+    const dbg = 1;
+    dbg && cc.tag1(msg+0.1, 'BEGIN');
     const producer = ka.producer();
-    const groupId = 'tS2D.G1';
+    const groupId1 = 'tS2D.G1';
+    const groupId2 = 'tS2D.G2';
     const topicA = 'tS2D.TA';
     const topicB = 'tS2D.TB';
-    const consumerA = ka.consumer({groupId});
-    const consumerB = ka.consumer({groupId});
+    const consumerA = ka.consumer({groupId:groupId1});
+    const consumerB = ka.consumer({groupId:groupId2});
     const admin = ka.admin();
     const msgA1 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA1' };
     const msgA2 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA2' };
@@ -158,6 +160,7 @@ describe('TESTTESTkafka', () => {
     await consumerA.connect();
     await consumerB.connect();
     await admin.connect();
+
 
     // Step1: send msgA1
     await producer.send({topic: topicA, messages: [msgA1]});
@@ -179,14 +182,14 @@ describe('TESTTESTkafka', () => {
       received[rProp] = received[rProp] || [];
       received[rProp].push(message);
       dbg > 1 && cc.fyi(msg, JSON.stringify({topic, partition, message}));
-      dbg && cc.fyi1(msg+rProp, topic+'.'+partition, JSON.stringify(message));
+      dbg > 1 && cc.fyi1(msg+rProp, topic+'.'+partition, JSON.stringify(message));
     });
 
     // STEP2: consumerA subscribes AFTER msgA1 is sent but still gets it
     await consumerA.subscribe({topics: [topicA], fromBeginning: true});
     let { 
       committed: committed1 
-    } = await consumerA._runOnce({ eachMessage: onEachMessage('A') });
+    } = await consumerA._processConsumer({ eachMessage: onEachMessage('A') });
     should(received.A[0]).properties(msgA1);
     should(received.A.length).equal(1);
     should(committed1).equal(1);
@@ -195,7 +198,7 @@ describe('TESTTESTkafka', () => {
     await producer.send({topic: topicA, messages: [msgA2]});
     let {
       committed: committed2,
-    } = await consumerA._runOnce({ eachMessage: onEachMessage('A') });
+    } = await consumerA._processConsumer({ eachMessage: onEachMessage('A') });
     should(received.A[0]).properties(msgA1);
     should(received.A.length).equal(2);
     should(received.A[1]).properties(msgA2);
@@ -206,5 +209,7 @@ describe('TESTTESTkafka', () => {
     await consumerB.disconnect();
     await producer.disconnect();
     await admin.disconnect();
+
+    dbg && cc.tag1(msg+0.9, 'END');
   });
 });
