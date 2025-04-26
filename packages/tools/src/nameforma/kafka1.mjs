@@ -126,16 +126,92 @@ export class Message {
   }
 } // Message
 
+export class _Runner {
+  constructor(cfg = {}) {
+    const msg = 'r4r.ctor';
+    let { 
+      autoCommit = true,
+      consumer,
+      eachBatch, 
+      eachMessage, 
+      msSleep = 0,
+      onCrash,
+    } = cfg;
+
+    if (!consumer) {
+      throw new Error(`${msg} consumer?`);
+    }
+    if (!autoCommit) {
+      throw new Error(`${msg} autoCommit TBD`);
+    }
+    if (eachBatch) {
+      throw new Error(`${msg} eachBatch TBD`);
+    }
+
+    this.iterations = 0;
+    this.running = false;
+    Object.assign(this, {
+      autoCommit,
+      consumer,
+      eachBatch,
+      eachMessage,
+      msSleep,
+      onCrash,
+    });
+  }
+
+  async start() {
+    const msg = 'r4r.start';
+    const dbg = DBG.K3A_R4R_RUNNING;
+    let { 
+      consumer,
+      eachMessage,
+      msSleep, 
+    } = this;
+
+    if (this.running) {
+      return;
+    }
+    this.running = true;
+    dbg && cc.ok(msg+1, 'running');
+
+    let crashed = false;
+
+    while (this.running) {
+      try {
+        this.iterations++;
+        await consumer._processConsumer({eachMessage});
+        msSleep && (await new Promise(res=>setTimeout(()=>res(), msSleep)));
+        dbg && cc.ok(msg, 'iterations:', this.iterations);
+      } catch (e) {
+        await this.stop();
+        cc.bad1(`${msg} CRASH`, e.message);
+        crashed = true;
+        this.onCrash && this.onCrash(e);
+      }
+    }
+    dbg && !crashed && cc.ok1(msg+OK, 'stopped');
+
+  } // r4r.start
+
+  async stop() {
+    const msg = 'rfr.stop';
+    const dbg = DBG.K3A_R4R_RUNNING;
+    this.running = false;
+    dbg && cc.ok1(msg+OK, 'stopped');
+  }
+} // _Runner
+
 class ConsumerGroup {
   constructor(cfg = {}) {
     const msg = 'c11p.ctor';
-    let { 
+    let {
       kafka,
-      groupId = 'no-group-id', 
+      groupId = 'no-group-id',
       protocolType = 'consumer',
     } = cfg;
 
-    Object.assign(this, { groupId, kafka, }, cfg);
+    Object.assign(this, { groupId, kafka }, cfg);
     Object.defineProperty(this, '_groupOffsetsetsMap', {
       value: {}, // hack for mock kafka
     });
@@ -151,7 +227,6 @@ class ConsumerGroup {
   _offsets() {
     return Object.values(this._groupOffsetsetsMap);
   }
-
 } // ConsumerGroup
 
 class GroupOffsets {
@@ -165,12 +240,12 @@ class GroupOffsets {
 
     Object.assign(this, { topic: topic.name, partitions });
   }
-}
+} // GroupOffsets
 
 export class Consumer extends Role {
   constructor(cfg = {}) {
     const msg = 'c6r.ctor';
-    const dbg = DBG.C6R_CTOR;
+    const dbg = DBG.K3A_CTOR || DBG.K3A_C6R_CTOR;
     const {
       kafka,
       groupId = 'no-group-id',
@@ -194,7 +269,7 @@ export class Consumer extends Role {
     this.running = false;
     this.eachMessage = null;
 
-    dbg && cc.ok1(msg+OK, this._id, groupId);
+    dbg && cc.ok1(msg + OK, this._id, groupId);
   }
 
   _consumerGroup() {
@@ -236,8 +311,6 @@ export class Consumer extends Role {
 
     //return this; // WARNING: kafkajs does not chain
   } // subscribe
-
-  #peekOffset(topic, partition) {}
 
   async heartbeat() {
     const msg = 'c6r.heartbeat';
@@ -315,10 +388,10 @@ export class Consumer extends Role {
 
 export class Producer extends Role {
   constructor(cfg = {}) {
+    const msg = 'p6r.ctor';
+    const dbg = DBG.K3A_CTOR || DBG.K3A_P6R_CTOR;
     let { kafka } = cfg;
     super({ tla: 'p6r', kafka });
-    const msg = 'p6r.ctor';
-    const dbg = DBG.P6R_CTOR;
 
     _producerCount++;
     Object.defineProperty(this, '_id', {
@@ -359,8 +432,17 @@ export class Producer extends Role {
     }
 
     if (dbg) {
-      let ts = Timestamp.asDate(timestamp).toLocaleTimeString('en-US', {hour12:false});
-      cc.ok1(msg+OK, this._id, ts, topicName, 'messages:', messages.length);
+      let ts = Timestamp.asDate(timestamp).toLocaleTimeString('en-US', {
+        hour12: false,
+      });
+      cc.ok1(
+        msg + OK,
+        this._id,
+        ts,
+        topicName,
+        'messages:',
+        messages.length,
+      );
     }
   } // send
 } // Producer
@@ -490,7 +572,6 @@ export class KRaftNode {
     }
     return group;
   }
-
 } // KRaftNode
 
 export class Kafka1 extends KRaftNode {

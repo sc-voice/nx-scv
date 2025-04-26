@@ -1,7 +1,9 @@
 import util from 'node:util';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { Kafka1, Producer, Consumer, Admin } = NameForma;
+const { 
+  _Runner, Kafka1, Producer, Consumer, Admin,
+} = NameForma;
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
@@ -139,7 +141,7 @@ describe('kafka', () => {
 
     await admin.disconnect();
   });
-  it('TESTTESTk3a.send() _processConsumer', async () => {
+  it('k3a.send() _processConsumer', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
     const dbg = 1;
@@ -191,8 +193,7 @@ describe('kafka', () => {
       committed: committed1 
     } = await consumerA._processConsumer({ eachMessage: onEachMessage('A') });
     should(received.A[0]).properties(msgA1);
-    should(received.A.length).equal(1);
-    should(committed1).equal(1);
+    should(received.A.length).equal(1); should(committed1).equal(1);
 
     // STEP3: send msgA2
     await producer.send({topic: topicA, messages: [msgA2]});
@@ -211,5 +212,43 @@ describe('kafka', () => {
     await admin.disconnect();
 
     dbg && cc.tag1(msg+0.9, 'END');
+  });
+  it("TESTTEST_Runner", async() => {
+    const msg = 'tk3a.r4r';
+    const dbg = 0;
+    const ka = new Kafka1();
+    const groupId = 'tR4R.G1';
+    const consumer = ka.consumer({groupId});
+    const producer = ka.producer();
+    const topic = 'tR4R.TA';
+    const msgA1 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA1' };
+    const msgA2 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA2' };
+
+    await consumer.connect();
+    await producer.connect();
+
+    await producer.send({topic, messages:[msgA1]});
+    await producer.send({topic, messages:[msgA2]});
+    await consumer.subscribe({topics: [topic], fromBeginning: true});
+
+    let consumed = [];
+    let eachMessage = async ({topic, partition, message, heartbeat, pause}) => {
+      consumed.push(message);
+      dbg && cc.tag(msg, 'eachMessage', message);
+    }
+    let msSleep = 10; // throttle for testing (default is 0)
+    let r4r = new _Runner({eachMessage, consumer, msSleep});
+    should(r4r).properties({ running: false, eachMessage, msSleep});
+    /* await */ r4r.start(); // do not await!
+    await new Promise(res=>setTimeout(()=>res(), msSleep*3));
+    should(r4r).properties({ running: true, eachMessage, });
+    await r4r.stop();
+    should(r4r).properties({ running: false, eachMessage, });
+    should(r4r.iterations).above(2).below(4);
+    should(consumed.length).equal(2);
+    should.deepEqual(consumed, [msgA1, msgA2]);
+
+    consumer.disconnect();
+    producer.disconnect();
   });
 });
