@@ -129,11 +129,11 @@ export class Message {
 export class _Runner {
   constructor(cfg = {}) {
     const msg = 'r4r.ctor';
-    let { 
+    let {
       autoCommit = true,
       consumer,
-      eachBatch, 
-      eachMessage, 
+      eachBatch,
+      eachMessage,
       msSleep = 0,
       onCrash,
     } = cfg;
@@ -163,25 +163,22 @@ export class _Runner {
   async start() {
     const msg = 'r4r.start';
     const dbg = DBG.K3A_R4R_RUNNING;
-    let { 
-      consumer,
-      eachMessage,
-      msSleep, 
-    } = this;
+    let { consumer, eachMessage, msSleep } = this;
 
     if (this.running) {
       return;
     }
     this.running = true;
-    dbg && cc.ok(msg+1, 'running');
+    dbg && cc.ok(msg + 1, 'running');
 
     let crashed = false;
 
     while (this.running) {
       try {
         this.iterations++;
-        await consumer._processConsumer({eachMessage});
-        msSleep && (await new Promise(res=>setTimeout(()=>res(), msSleep)));
+        await consumer._processConsumer({ eachMessage });
+        msSleep &&
+          (await new Promise((res) => setTimeout(() => res(), msSleep)));
         dbg && cc.ok(msg, 'iterations:', this.iterations);
       } catch (e) {
         await this.stop();
@@ -190,15 +187,14 @@ export class _Runner {
         this.onCrash && this.onCrash(e);
       }
     }
-    dbg && !crashed && cc.ok1(msg+OK, 'stopped');
-
+    dbg && !crashed && cc.ok1(msg + OK, 'stopped');
   } // r4r.start
 
   async stop() {
     const msg = 'rfr.stop';
     const dbg = DBG.K3A_R4R_RUNNING;
     this.running = false;
-    dbg && cc.ok1(msg+OK, 'stopped');
+    dbg && cc.ok1(msg + OK, 'stopped');
   }
 } // _Runner
 
@@ -378,10 +374,13 @@ export class Consumer extends Role {
       throw new Error(`${msg} eachMessage?`);
     }
     this._runner = new _Runner({
-      eachMessage, consumer:this, msSleep:_msSleep});
+      eachMessage,
+      consumer: this,
+      msSleep: _msSleep,
+    });
 
     let promise = this._runner.start(); // do not await!
-    dbg && cc.ok1(msg+ok, 'started');
+    dbg && cc.ok1(msg + ok, 'started');
 
     return promise;
   }
@@ -578,6 +577,61 @@ export class KRaftNode {
     return group;
   }
 } // KRaftNode
+
+export class _MessageClock {
+  static #privateCtor = false;
+  constructor(cfg = {}) {
+    const msg = 'm10k.ctor';
+    if (!_MessageClock.#privateCtor) {
+      throw Error(`${msg} create()!`);
+    }
+    let { msIdle = 10 } = cfg;
+    this.running = false;
+    this.timeIn = 0;
+    this.timeOut = 0;
+    this.msIdle = msIdle;
+  }
+
+  static create(cfg) {
+    _MessageClock.#privateCtor = true;
+    let clock = new _MessageClock(cfg);
+    _MessageClock.#privateCtor = false;
+    clock.generator = _MessageClock.#createGenerator(clock);
+    return clock;
+  }
+
+  static async *#createGenerator(clock) {
+    clock.running = true;
+    while (clock.running) {
+      await new Promise((res) =>
+        setTimeout(() => res(), clock.msIdle),
+      );
+      if (clock.timeIn !== clock.timeOut) {
+        clock.timeOut = clock.timeIn;
+        yield clock.timeOut;
+      }
+    }
+    return clock;
+  }
+
+  async next() {
+    const msg = 'm10k.next';
+    const dbg = DBG.K3A_MESSAGE_CLOCK;
+    let { generator } = this;
+    let result = await (generator && generator.next());
+    dbg && cc.ok1(msg+OK, result);
+    return result;
+  }
+
+  stop() {
+    this.running = false;
+    this.generator = null;
+  }
+
+  update(timestamp=Date.now()) {
+    this.timeIn = timestamp;
+  }
+} // _MessageClock
 
 export class Kafka1 extends KRaftNode {
   constructor(cfg = {}) {
