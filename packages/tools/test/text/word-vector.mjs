@@ -28,7 +28,7 @@ describe('text/word-vector', () => {
     let xy = new WordVector({ x: 10, y: 20 });
     should(xy.norm()).equal(Math.sqrt(100 + 400));
   });
-  it('TESTTESTmultiply()', () => {
+  it('multiply()', () => {
     const msg = 'tw8r.multiply:';
     let abc = new WordVector({ a: 1, b: 2, c: 3 });
     should.deepEqual(

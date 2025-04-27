@@ -265,11 +265,19 @@ export class Consumer extends Role {
     Object.defineProperty(this, '_id', {
       value: `C6R-${('' + _consumerCount).padStart(3, '0')}`,
     });
+    Object.defineProperty(this, '_runner', {
+      writable: true,
+      value: null,
+    });
 
-    this.running = false;
     this.eachMessage = null;
 
     dbg && cc.ok1(msg + OK, this._id, groupId);
+  } // c6r.ctor
+
+  get running() {
+    let { _runner } = this;
+    return _runner && _runner.running;
   }
 
   _consumerGroup() {
@@ -360,29 +368,26 @@ export class Consumer extends Role {
   async run(cfg = {}) {
     const msg = 'c6r.run';
     const dbg = DBG.K3A_RUN;
-    let { kafka } = this;
-    let { eachMessage } = cfg;
+    let { kafka, _runner } = this;
+    if (_runner) {
+      throw new Error(`${msg} _runner already exists`);
+    }
+    let { eachMessage, _msSleep } = cfg;
     if (eachMessage == null) {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
-    let group = this._consumerGroup();
-    let { _groupOffsetsetsMap } = group;
+    this._runner = new _Runner({
+      eachMessage, consumer:this, msSleep:_msSleep});
 
-    cc.fyi(msg, 'BEGIN');
-    this._running = true;
-    while (this._running) {
-      try {
-        await group._runOnce({ group, eachMessage });
-      } catch (e) {
-        cc.bad1(msg, e.message);
-      }
-    } // _running
-    cc.fyi(msg, 'END');
+    let promise = this._runner.start(); // do not await!
+    dbg && cc.ok1(msg+ok, 'started');
+
+    return promise;
   }
 
-  stop() {
-    this._running = false;
+  async stop() {
+    this._runner && this._runner.stop();
   }
 } // Consumer
 

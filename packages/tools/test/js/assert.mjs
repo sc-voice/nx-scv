@@ -3,7 +3,7 @@ import { JS } from '../../index.mjs';
 const { Assert } = JS;
 
 describe('assert', () => {
-  it('TESTTESTok', () => {
+  it('ok', () => {
     should(Assert.ok('hello')).equal('hello');
     should(Assert.ok(true)).equal(true);
     should(Assert.ok(1 + 2)).equal(3);

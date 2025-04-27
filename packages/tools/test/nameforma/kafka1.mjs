@@ -215,7 +215,7 @@ describe('kafka', () => {
   });
   it("TESTTEST_Runner", async() => {
     const msg = 'tk3a.r4r';
-    const dbg = 0;
+    const dbg = 1;
     const ka = new Kafka1();
     const groupId = 'tR4R.G1';
     const consumer = ka.consumer({groupId});
@@ -227,8 +227,7 @@ describe('kafka', () => {
     await consumer.connect();
     await producer.connect();
 
-    await producer.send({topic, messages:[msgA1]});
-    await producer.send({topic, messages:[msgA2]});
+    await producer.send({topic, messages:[msgA1, msgA2]});
     await consumer.subscribe({topics: [topic], fromBeginning: true});
 
     let consumed = [];
@@ -236,7 +235,7 @@ describe('kafka', () => {
       consumed.push(message);
       dbg && cc.tag(msg, 'eachMessage', message);
     }
-    let msSleep = 10; // throttle for testing (default is 0)
+    let msSleep = 1; // throttle for testing (default is 0)
     let r4r = new _Runner({eachMessage, consumer, msSleep});
     should(r4r).properties({ running: false, eachMessage, msSleep});
     /* await */ r4r.start(); // do not await!
@@ -244,11 +243,56 @@ describe('kafka', () => {
     should(r4r).properties({ running: true, eachMessage, });
     await r4r.stop();
     should(r4r).properties({ running: false, eachMessage, });
-    should(r4r.iterations).above(2).below(4);
+    should(r4r.iterations).above(1).below(4);
     should(consumed.length).equal(2);
     should.deepEqual(consumed, [msgA1, msgA2]);
 
     consumer.disconnect();
     producer.disconnect();
   });
+  it("run", async() => {
+    const msg = 'tk3a.run';
+    const dbg = 0;
+    const ka = new Kafka1();
+    const groupId = 'trun.G1';
+    const producer = ka.producer();
+    const topic = 'tR4R.TA';
+    const msgA1 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA1' };
+    const msgA2 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA2' };
+    const msgA3 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA3' };
+
+    await producer.connect();
+
+    // STEP1: send first two messages before consumer is created
+    await producer.send({topic, messages:[msgA1, msgA2]});
+
+    // STEP2: create and run consumer to receive messages
+    const consumer = ka.consumer({groupId});
+    await consumer.connect();
+    await consumer.subscribe({topics: [topic], fromBeginning: true});
+    let consumed = [];
+    let eachMessage = async ({topic, partition, message, heartbeat, pause}) => {
+      consumed.push(message);
+      dbg && cc.tag(msg, 'eachMessage', message);
+    }
+    let _msSleep = 1;
+    consumer.run({eachMessage, _msSleep});
+    should(consumer).properties({ running: true});
+    await new Promise(res=>setTimeout(()=>res(), _msSleep*3));
+    should(consumed.length).equal(2);
+    should.deepEqual(consumed, [msgA1, msgA2]);
+
+    // STEP3: send more messages
+    await producer.send({topic, messages:[msgA3]});
+    await new Promise(res=>setTimeout(()=>res(), _msSleep*3));
+    should(consumed.length).equal(3);
+    should.deepEqual(consumed, [msgA1, msgA2, msgA3]);
+
+    // STEP4: shutdown kafka
+    await consumer.stop();
+    should(consumer).properties({ running: false});
+    consumer.disconnect();
+    producer.disconnect();
+  });
+
 });

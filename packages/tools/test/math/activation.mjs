@@ -5,7 +5,7 @@ const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { Fraction, Activation } = ScvMath;
 
-describe('TESTTESTscv-math/activation', () => {
+describe('scv-math/activation', () => {
   it('ctor', () => {
     let x = 'test-x';
     let a = 'test-a';

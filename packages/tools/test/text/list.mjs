@@ -25,7 +25,7 @@ class TestClass {
   }
 }
 
-describe('TESTTESTlist', () => {
+describe('list', () => {
   it('l9y.SINGLETON', () => {
     should(ListFactory.SINGLETON).properties({
       order: 'column-major',

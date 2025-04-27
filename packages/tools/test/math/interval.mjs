@@ -4,7 +4,7 @@ import { ScvMath, Text } from '../../index.mjs';
 const { EMPTY_SET, INFINITY } = Text.Unicode;
 const { Interval } = ScvMath;
 
-describe('TESTTESTscv-math/interval', () => {
+describe('scv-math/interval', () => {
   it('default ctor', () => {
     let iv = new Interval();
     should(iv).properties(['lo', 'hi']);

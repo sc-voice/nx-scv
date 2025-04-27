@@ -31,7 +31,7 @@ const wsTest = new TfidfSpace(WSTEST_CONFIG);
 
 import { testCorpus } from './corpus.mjs';
 
-describe('TESTTESTtext/tfidf-space', () => {
+describe('text/tfidf-space', () => {
   it('default ctor', () => {
     let ws = new TfidfSpace();
     testCorpus(ws.corpus);

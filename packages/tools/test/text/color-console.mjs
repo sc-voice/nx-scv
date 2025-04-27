@@ -37,7 +37,7 @@ const {
 
 const VALUE_COLOR = CYAN;
 
-describe('TESTTESTtext/color-console', () => {
+describe('text/color-console', () => {
   it('default ctor', () => {
     const msg = 'tc10e.ctor';
     let cc = new ColorConsole();

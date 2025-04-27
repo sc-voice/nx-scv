@@ -2,7 +2,7 @@ import should from 'should';
 import { Text } from '../../index.mjs';
 const { Unicode } = Text;
 
-describe('TESTTESTtext/unicode', () => {
+describe('text/unicode', () => {
   it('default ctor', () => {
     let u = new Unicode();
     should.deepEqual(Object.keys(u), []);
