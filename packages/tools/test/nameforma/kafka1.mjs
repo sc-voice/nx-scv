@@ -18,7 +18,11 @@ const {
   NO_BOLD,
 } = Unicode.LINUX_STYLE;
 
-describe('kafka', () => {
+const PRODUCTION = false;
+const heartbeatInterval = PRODUCTION ? 3000 : 50; 
+
+describe('kafka', function () {
+  this.timeout(4*heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
     should(ka).properties({
@@ -226,7 +230,7 @@ describe('kafka', () => {
 
     dbg && cc.tag1(msg + 0.9, 'END');
   });
-  it('TESTTEST_Runner', async () => {
+  it('_Runner', async () => {
     const msg = 'tk3a.r4r';
     const dbg = 1;
     const ka = new Kafka1();
@@ -322,10 +326,11 @@ describe('kafka', () => {
   it('TESTTESTmessageClock', async () => {
     const msg = 'tMessageClock';
     const dbg = 1;
+    let msIdle = heartbeatInterval / 2;
     let timestamp = Date.now();
     let stop = false;
 
-    const clock = _MessageClock.create();
+    const clock = _MessageClock.create({msIdle});
     should(clock.timeIn).equal(0);
     should(clock.timeOut).equal(0);
 

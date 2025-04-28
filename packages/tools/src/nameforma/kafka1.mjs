@@ -20,6 +20,7 @@ const NO_TOPIC = 'no-topic';
 let _consumerCount = 0;
 let _producerCount = 0;
 let ROLE_CONSTRUCTOR = false;
+let HEARTBEAT_INTERVAL = 3000; // default
 
 class Timestamp {
   // Does Kafka REALLY store timestamps as strings???
@@ -134,6 +135,7 @@ export class _Runner {
       consumer,
       eachBatch,
       eachMessage,
+      kafka,
       msSleep = 0,
       onCrash,
     } = cfg;
@@ -155,6 +157,7 @@ export class _Runner {
       consumer,
       eachBatch,
       eachMessage,
+      kafka,
       msSleep,
       onCrash,
     });
@@ -245,8 +248,8 @@ export class Consumer extends Role {
     const {
       kafka,
       groupId = 'no-group-id',
-      heartbeatInterval = 3000, // ms
-      sessionTimeout = 30000, // ms
+      heartbeatInterval = HEARTBEAT_INTERVAL, // ms
+      sessionTimeout = HEARTBEAT_INTERVAL * 10, // ms
     } = cfg;
     super({ tla: 'c6r', kafka });
 
@@ -264,6 +267,9 @@ export class Consumer extends Role {
     Object.defineProperty(this, '_runner', {
       writable: true,
       value: null,
+    });
+    Object.defineProperty(this, '_messageClock', {
+      value: _MessageClock.create(),
     });
 
     this.eachMessage = null;
@@ -359,7 +365,7 @@ export class Consumer extends Role {
 
     dbg && cc.ok1(msg + OK, this._id, 'committed:', committed);
     return { committed };
-  }
+  } // _processConsumer
 
   async run(cfg = {}) {
     const msg = 'c6r.run';
@@ -374,6 +380,7 @@ export class Consumer extends Role {
       throw new Error(`${msg} eachMessage?`);
     }
     this._runner = new _Runner({
+      kafka,
       eachMessage,
       consumer: this,
       msSleep: _msSleep,
@@ -585,7 +592,10 @@ export class _MessageClock {
     if (!_MessageClock.#privateCtor) {
       throw Error(`${msg} create()!`);
     }
-    let { msIdle = 10 } = cfg;
+    let { 
+      kafka, 
+      msIdle = HEARTBEAT_INTERVAL / 2,
+    } = cfg;
     this.running = false;
     this.timeIn = 0;
     this.timeOut = 0;
@@ -644,6 +654,10 @@ export class Kafka1 extends KRaftNode {
 
     dbg && cc.ok1(msg);
   }
+
+  static get HEARTBEAT_INTERVAL() { 
+    return HEARTBEAT_INTERVAL; 
+  } 
 
   consumer(cfg = {}) {
     ROLE_CONSTRUCTOR = true;
