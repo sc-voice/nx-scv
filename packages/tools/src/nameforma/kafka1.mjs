@@ -547,7 +547,7 @@ export class Admin extends Role {
       g10s && a.push(g10s);
       return a;
     }, []);
-    cc.ok1(msg + OK, groupId, JSON.stringify(offsets));
+    dbg && cc.ok1(msg + OK, groupId, JSON.stringify(offsets));
 
     return offsets;
   }

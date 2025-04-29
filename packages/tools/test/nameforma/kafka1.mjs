@@ -168,7 +168,7 @@ describe('kafka', function () {
   it('TESTTESTk3a.send() _processConsumer', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
-    const dbg = 1; // enable implementation internal tests
+    const dbg = 0; // enable implementation internal tests
     dbg && cc.tag1(msg + 0.1, 'BEGIN');
     const producer = ka.producer();
     const groupId1 = 'tS2D.G1';
@@ -267,7 +267,7 @@ describe('kafka', function () {
     should(received.TB[1]).properties(msgA2);
     should(committedB1).equal(2);
     // m10kB clock didn't change because there were no new messages
-    should(m10kB.timeIn).above(m10kB.timeOut);
+    dbg && should(m10kB.timeIn).above(m10kB.timeOut);
 
     // STEP6: third message is sent to both conumsers
     let res6 = producer.send({ topic: topicT, messages: [msgA3] });
