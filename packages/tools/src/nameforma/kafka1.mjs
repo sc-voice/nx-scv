@@ -91,6 +91,9 @@ export class Topic {
         _messages: [],
       },
     ];
+    Object.defineProperty(this, '_consumerMap', {
+      value: new Map(),
+    });
   }
 }
 
@@ -248,8 +251,8 @@ export class Consumer extends Role {
     const {
       kafka,
       groupId = 'no-group-id',
-      heartbeatInterval = HEARTBEAT_INTERVAL, // ms
-      sessionTimeout = HEARTBEAT_INTERVAL * 10, // ms
+      heartbeatInterval = HEARTBEAT_INTERVAL,
+      sessionTimeout = HEARTBEAT_INTERVAL * 10,
     } = cfg;
     super({ tla: 'c6r', kafka });
 
@@ -269,7 +272,9 @@ export class Consumer extends Role {
       value: null,
     });
     Object.defineProperty(this, '_messageClock', {
-      value: _MessageClock.create(),
+      value: _MessageClock.create({
+        msgIdle: heartbeatInterval / 2,
+      }),
     });
 
     this.eachMessage = null;
@@ -295,9 +300,12 @@ export class Consumer extends Role {
     const group = this._consumerGroup();
     const { _groupOffsetsetsMap } = group;
     let subscribed = 0;
+
     for (let i = 0; i < topics.length; i++) {
       let topicName = topics[i];
       let topic = kafka._topicOfName(topicName);
+      let c9p = topic._consumerMap.get(this);
+      topic._consumerMap.set(this, true);
       let g10s = _groupOffsetsetsMap[topicName];
       if (g10s) {
         dbg > 1 && cc.ok(msg + 2.1, groupId + '=:', topicName);
@@ -347,19 +355,23 @@ export class Consumer extends Role {
       for (let i = 0; i < partitions.length; i++) {
         let { offset } = partitions[i];
         let messages = topic.partitions[i]._messages;
-        let message = messages[offset];
-        if (message) {
-          dbg > 1 && cc.fyi(msg, `${topicName}.${i}:`, message);
-          await eachMessage({
-            topic: topicName,
-            partition: i,
-            message,
-            heartbeat: this.heartbeat,
-            pause: this.pause,
-          });
-          partitions[i].offset++; // commit
-          committed++;
-        }
+        for (; offset < messages.length; offset++) {
+          let message = messages[offset];
+          if (message) {
+            dbg > 1 && cc.fyi(msg, `${topicName}.${i}:`, message);
+            await eachMessage({
+              topic: topicName,
+              partition: i,
+              message,
+              heartbeat: this.heartbeat,
+              pause: this.pause,
+            });
+            committed++;
+          } else {
+            cc.bad(msg, 'empty message?');
+          }
+        } // for
+        partitions[i].offset = offset;
       }
     }
 
@@ -421,6 +433,7 @@ export class Producer extends Role {
       timestamp = Timestamp.now(),
     } = request;
 
+    let touchedConsumers = {};
     let topic = kafka._topicOfName(topicName);
     for (let i = 0; i < messages.length; i++) {
       let message = messages[i];
@@ -440,6 +453,11 @@ export class Producer extends Role {
           message.value,
         );
       }
+    }
+    let consumers = [...topic._consumerMap.keys()];
+    for (let i = 0; i < consumers.length; i++) {
+      let c6r = consumers[i];
+      c6r._messageClock.update(Date.now());
     }
 
     if (dbg) {
@@ -592,10 +610,7 @@ export class _MessageClock {
     if (!_MessageClock.#privateCtor) {
       throw Error(`${msg} create()!`);
     }
-    let { 
-      kafka, 
-      msIdle = HEARTBEAT_INTERVAL / 2,
-    } = cfg;
+    let { kafka, msIdle = HEARTBEAT_INTERVAL / 2 } = cfg;
     this.running = false;
     this.timeIn = 0;
     this.timeOut = 0;
@@ -606,18 +621,21 @@ export class _MessageClock {
     _MessageClock.#privateCtor = true;
     let clock = new _MessageClock(cfg);
     _MessageClock.#privateCtor = false;
-    clock.generator = _MessageClock.#createGenerator(clock);
+    clock.generator = _MessageClock.#generator(clock);
     return clock;
   }
 
-  static async *#createGenerator(clock) {
+  static async *#generator(clock) {
+    const msg = 'm10k.generator';
+    const dbg = DBG.K3A_MESSAGE_CLOCK;
     clock.running = true;
     while (clock.running) {
-      await new Promise((res) =>
-        setTimeout(() => res(), clock.msIdle),
-      );
-      if (clock.timeIn !== clock.timeOut) {
+      if (clock.timeIn === clock.timeOut) {
+        dbg && cc.fyi(msg + 0.1, 'zzzz', clock.msIdle);
+        await new Promise((res) => setTimeout(() => res(), clock.msIdle));
+      } else {
         clock.timeOut = clock.timeIn;
+        dbg && cc.ok1(msg + OK, 'before yield', clock.timeOut);
         yield clock.timeOut;
       }
     }
@@ -629,7 +647,7 @@ export class _MessageClock {
     const dbg = DBG.K3A_MESSAGE_CLOCK;
     let { generator } = this;
     let result = await (generator && generator.next());
-    dbg && cc.ok1(msg+OK, result);
+    dbg && cc.ok1(msg + OK, result);
     return result;
   }
 
@@ -638,8 +656,11 @@ export class _MessageClock {
     this.generator = null;
   }
 
-  update(timestamp=Date.now()) {
+  update(timestamp = Date.now()) {
+    const msg = 'm10k.update';
+    const dbg = DBG.K3A_MESSAGE_CLOCK;
     this.timeIn = timestamp;
+    dbg && cc.ok1(msg + OK, timestamp);
   }
 } // _MessageClock
 
@@ -655,9 +676,9 @@ export class Kafka1 extends KRaftNode {
     dbg && cc.ok1(msg);
   }
 
-  static get HEARTBEAT_INTERVAL() { 
-    return HEARTBEAT_INTERVAL; 
-  } 
+  static get HEARTBEAT_INTERVAL() {
+    return HEARTBEAT_INTERVAL;
+  }
 
   consumer(cfg = {}) {
     ROLE_CONSTRUCTOR = true;

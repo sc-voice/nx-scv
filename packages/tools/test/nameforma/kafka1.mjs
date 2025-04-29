@@ -19,7 +19,7 @@ const {
 } = Unicode.LINUX_STYLE;
 
 const PRODUCTION = false;
-const heartbeatInterval = PRODUCTION ? 3000 : 50; 
+const heartbeatInterval = PRODUCTION ? 3000 : 1000; 
 
 describe('kafka', function () {
   this.timeout(4*heartbeatInterval);
@@ -105,13 +105,14 @@ describe('kafka', function () {
     await producer.disconnect();
     should(producer.connections).equal(0);
   });
-  it('k3a.consumer()', async () => {
+  it('TESTTESTk3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
     const dbg = 0;
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
     let groupId = 'tC6R.G1';
+    let groupOther = 'TC6R.GX';
     let topicA = 'tC6R.TA';
 
     let offsets1 = await admin.fetchOffsets({ groupId });
@@ -134,7 +135,19 @@ describe('kafka', function () {
 
     dbg > 1 &&
       cc.fyi1(msg + 2, groupId, 'offsets2:', JSON.stringify(offsets2));
+    let t4A = ka._topicOfName(topicA);
+
+    // _consumeMap is used to update consumer _MessageClocks
+    let consumerOther = ka.consumer({groupId:groupOther});
+    should(t4A._consumerMap.get(consumer)).equal(undefined);
+    should.deepEqual([...t4A._consumerMap.keys()], []);
+    await consumerOther.subscribe({ topics: [topicA] });
+    should.deepEqual([...t4A._consumerMap.keys()], [consumerOther]);
+    should(t4A._consumerMap.get(consumerOther)).equal(true);
     await consumer.subscribe({ topics: [topicA] });
+    should.deepEqual([...t4A._consumerMap.keys()], [consumerOther, consumer]);
+    should(t4A._consumerMap.get(consumer)).equal(true);
+    should(t4A._consumerMap.get(consumerOther)).equal(true);
 
     // consumer group offsets
     let group3 = JSON.stringify(consumer.group);
@@ -152,39 +165,55 @@ describe('kafka', function () {
 
     await admin.disconnect();
   });
-  it('k3a.send() _processConsumer', async () => {
+  it('TESTTESTk3a.send() _processConsumer', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
-    const dbg = 1;
+    const dbg = 1; // enable implementation internal tests
     dbg && cc.tag1(msg + 0.1, 'BEGIN');
     const producer = ka.producer();
     const groupId1 = 'tS2D.G1';
     const groupId2 = 'tS2D.G2';
-    const topicA = 'tS2D.TA';
-    const topicB = 'tS2D.TB';
+    const topicT = 'tS2D.TA';
     const consumerA = ka.consumer({ groupId: groupId1 });
     const consumerB = ka.consumer({ groupId: groupId2 });
     const admin = ka.admin();
     const msgA1 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA1' };
     const msgA2 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA2' };
-    const msgB1 = { key: 'k8dMsgKeyB', value: 'k8dMsgValueB1' };
+    const msgA3 = { key: 'k8dMsgKeyA', value: 'k8dMsgValueA3' };
     const received = {};
     await producer.connect();
     await consumerA.connect();
     await consumerB.connect();
     await admin.connect();
+    let t4a = dbg ? ka._topicOfName(topicT) : undefined;
 
-    // Step1: send msgA1
-    await producer.send({ topic: topicA, messages: [msgA1] });
-    should.deepEqual(await admin.listTopics(), [topicA]);
-    await producer.send();
-    should.deepEqual(await admin.listTopics(), [topicA, 'no-topic']);
+    // Step1: consumerA subscribes before message is sent
+    await consumerA.subscribe({ topics: [topicT], fromBeginning: true });
+    dbg && should(t4a._consumerMap.get(consumerA)).equal(true);
 
-    // NON_API_TEST: implementation only test!
+    // Step2: send msgA1
     if (dbg) {
-      let _privateTopicA = ka._topicOfName(topicA);
-      should(_privateTopicA.partitions[0]._messages[0]).properties(msgA1);
+      let { _messageClock:m10kA } = consumerA;
+      should(m10kA.timeOut).equal(m10kA.timeIn);
     }
+    let send1 =  producer.send({ topic: topicT, messages: [msgA1] });
+    await send1;
+    let m10kA = dbg ? consumerA._messageClock : undefined;
+    if (dbg) {
+      m10kA.running = true; // simulate start
+      should(m10kA.timeIn).above(m10kA.timeOut);
+      should(Date.now()-m10kA.timeIn).above(-1).below(10);
+      cc.fyi(msg+0.11, 'before next()');
+      (await m10kA.next());
+      cc.fyi(msg+0.12, 'after next()');
+      should(m10kA.timeOut).equal(m10kA.timeIn);
+    }
+    should.deepEqual(await admin.listTopics(), [topicT]);
+    let send2 = producer.send();
+    await send2;
+    should.deepEqual(await admin.listTopics(), [topicT, 'no-topic']);
+
+    dbg && should(t4a.partitions[0]._messages[0]).properties(msgA1);
 
     let onEachMessage =
       (rProp) =>
@@ -203,24 +232,56 @@ describe('kafka', function () {
           );
       };
 
-    // STEP2: consumerA subscribes AFTER msgA1 is sent but still gets it
-    await consumerA.subscribe({ topics: [topicA], fromBeginning: true });
-    let { committed: committed1 } = await consumerA._processConsumer({
-      eachMessage: onEachMessage('A'),
+    // STEP3: consumerB subscribes AFTER msgA1 is sent but does not know it
+    await consumerB.subscribe({ topics: [topicT], fromBeginning: true });
+    let m10kB = dbg ? consumerB._messageClock : undefined;
+    if (dbg) {
+      m10kB.running = true; // simulate start
+    }
+    let { committed: committedA1 } = await consumerA._processConsumer({
+      eachMessage: onEachMessage('TA'),
     });
-    should(received.A[0]).properties(msgA1);
-    should(received.A.length).equal(1);
-    should(committed1).equal(1);
+    should(received?.TA?.length).equal(1);
+    should(received.TA[0]).properties(msgA1);
+    should(committedA1).equal(1);
+    dbg && should(m10kB.timeIn).equal(0); // consumerB is not running
 
-    // STEP3: send msgA2
-    await producer.send({ topic: topicA, messages: [msgA2] });
-    let { committed: committed2 } = await consumerA._processConsumer({
-      eachMessage: onEachMessage('A'),
+    // STEP4: send msgA2 and consumerB is "aware" of it but not running.
+    let res4 = producer.send({ topic: topicT, messages: [msgA2] });
+    await res4;
+    let { committed: committedA2 } = await consumerA._processConsumer({
+      eachMessage: onEachMessage('TA'),
     });
-    should(received.A[0]).properties(msgA1);
-    should(received.A.length).equal(2);
-    should(received.A[1]).properties(msgA2);
-    should(committed2).equal(1);
+    should(received.TA[0]).properties(msgA1);
+    should(received.TA.length).equal(2);
+    should(received.TA[1]).properties(msgA2);
+    should(committedA2).equal(1);
+    dbg && should(m10kB.timeIn).above(m10kB.timeOut); // aware but not running
+    should(received.TB).equal(undefined);
+
+    // STEP5: consumerB wakes up and processes both messages
+    let { committed: committedB1 } = await consumerB._processConsumer({
+      eachMessage: onEachMessage('TB'),
+    });
+    should(received.TB[0]).properties(msgA1);
+    should(received.TB[1]).properties(msgA2);
+    should(committedB1).equal(2);
+    // m10kB clock didn't change because there were no new messages
+    should(m10kB.timeIn).above(m10kB.timeOut);
+
+    // STEP6: third message is sent to both conumsers
+    let res6 = producer.send({ topic: topicT, messages: [msgA3] });
+    await res6;
+    let { committed: committedA3 } = await consumerA._processConsumer({
+      eachMessage: onEachMessage('TA'),
+    });
+    should(received.TA.length).equal(3);
+    should(received.TA[2]).properties(msgA3);
+    let { committed: committedB2 } = await consumerB._processConsumer({
+      eachMessage: onEachMessage('TB'),
+    });
+    should(received.TB.length).equal(3);
+    should(received.TB[2]).properties(msgA3);
 
     await consumerA.stop();
     await consumerA.disconnect();
@@ -323,7 +384,7 @@ describe('kafka', function () {
     consumer.disconnect();
     producer.disconnect();
   });
-  it('TESTTESTmessageClock', async () => {
+  it('messageClock', async () => {
     const msg = 'tMessageClock';
     const dbg = 1;
     let msIdle = heartbeatInterval / 2;
