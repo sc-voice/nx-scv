@@ -139,7 +139,7 @@ export class _Runner {
       eachBatch,
       eachMessage,
       kafka,
-      msSleep = 0,
+      msSleep,
       onCrash,
     } = cfg;
 
@@ -151,6 +151,9 @@ export class _Runner {
     }
     if (eachBatch) {
       throw new Error(`${msg} eachBatch TBD`);
+    }
+    if (msSleep == null) {
+      msSleep = consumer.heartbeatInterval;
     }
 
     this.iterations = 0;
@@ -343,7 +346,7 @@ export class Consumer extends Role {
   async _processConsumer(cfg = {}) {
     const msg = 'c6r._processConsumer';
     const dbg = DBG.K3A_PROCESS_CONSUMER;
-    let { kafka } = this;
+    let { kafka, _id, groupId } = this;
     let group = this._consumerGroup();
     let { eachMessage } = cfg;
     let { _groupOffsetsetsMap } = group;
@@ -375,7 +378,7 @@ export class Consumer extends Role {
       }
     }
 
-    dbg && cc.ok1(msg + OK, this._id, 'committed:', committed);
+    dbg && cc.ok1(msg + OK, groupId + ':', _id, 'committed:', committed);
     return { committed };
   } // _processConsumer
 

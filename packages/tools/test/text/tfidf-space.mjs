@@ -50,7 +50,7 @@ describe('text/tfidf-space', () => {
     should(ws.normalizeText('a "fox"!?')).equal('a fox');
     should(ws.corpus.size).equal(1);
   });
-  it('TESTTESTbowOfText() FOX', () => {
+  it('bowOfText() FOX', () => {
     let ws = new TfidfSpace();
     let v = ws.bowOfText(FOX);
     should(v).instanceOf(WordVector);
@@ -69,7 +69,7 @@ describe('text/tfidf-space', () => {
     );
     should(v.length).equal(8);
   });
-  it('TESTTESTwordWeightFromPrefix', () => {
+  it('wordWeightFromPrefix', () => {
     let word = 'test-word';
     let prefixLength = 3;
     let prefixBias = 0.9;
@@ -102,7 +102,7 @@ describe('text/tfidf-space', () => {
     should(wordWeight(word, 0, 3)).equal(1);
     should(wordWeight(word, 0, 5)).equal(1.5);
   });
-  it('TESTTESTbowOfText() wordWeight', () => {
+  it('bowOfText() wordWeight', () => {
     const msg = 'tbowOfText.wordWeight';
     const dbg = 0;
     const ws = new TfidfSpace();

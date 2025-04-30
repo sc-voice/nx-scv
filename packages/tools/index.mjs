@@ -52,13 +52,18 @@ export const Graph = {
 
 
 import { 
-  Kafka1, Producer, Consumer, Admin, _Runner, _MessageClock,
+  // kafkajs API:
+  Kafka1, Producer, Consumer, Admin, 
+  // non-kafkajs API:
+  _Runner, _MessageClock,
 } from './src/nameforma/kafka1.mjs';
+import { Timers } from './src/nameforma/timers.mjs';
 export const NameForma = {
   Admin,
   Consumer,
   Kafka1,
   Producer,
-  _MessageClock,
-  _Runner,
+  Timers,
+  _MessageClock, 
+  _Runner, 
 }

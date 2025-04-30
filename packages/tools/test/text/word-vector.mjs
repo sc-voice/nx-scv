@@ -69,7 +69,7 @@ describe('text/word-vector', () => {
     should(xyz.similar(wxyz)).equal(0.8660254037844387);
     should(wxyz.similar(xyz)).equal(0.8660254037844387);
   });
-  it('TESTTESThadamardL1', () => {
+  it('hadamardL1', () => {
     const msg = 'tw8e.hadamardL1:';
     // L1 norm of Hadamard product
     let v1 = new WordVector({ a: 1, b: 1 });
@@ -149,12 +149,12 @@ describe('text/word-vector', () => {
       'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,a8:0',
     );
   });
-  it('TESTTESTandOneHot()', () => {
+  it('andOneHot()', () => {
     let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
     let v2 = new WordVector({ b: 1, c: 3, d: 4 });
     should.deepEqual(v1.andOneHot(v2), new WordVector({ b: 1, c: 1 }));
   });
-  it('TESTTESTorOneHot()', () => {
+  it('orOneHot()', () => {
     let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
     let v2 = new WordVector({ b: 1, c: 3, d: 4 });
     should.deepEqual(

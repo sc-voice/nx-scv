@@ -105,7 +105,7 @@ describe('kafka', function () {
     await producer.disconnect();
     should(producer.connections).equal(0);
   });
-  it('TESTTESTk3a.consumer()', async () => {
+  it('k3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
     const dbg = 0;
     let ka = new Kafka1();
@@ -165,7 +165,7 @@ describe('kafka', function () {
 
     await admin.disconnect();
   });
-  it('TESTTESTk3a.send() _processConsumer', async () => {
+  it('k3a.send() _processConsumer', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
     const dbg = 0; // enable implementation internal tests
