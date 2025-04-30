@@ -20,7 +20,7 @@ const {
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
 
-describe('kafka', function () {
+describe('TESTTESTkafka', function () {
   this.timeout(4 * heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
@@ -297,7 +297,7 @@ describe('kafka', function () {
   });
   it('_Runner', async () => {
     const msg = 'tk3a.r4r';
-    const dbg = 1;
+    const dbg = 0;
     const ka = new Kafka1();
     const groupId = 'tR4R.G1';
     const consumer = ka.consumer({ groupId });
@@ -410,5 +410,8 @@ describe('kafka', function () {
     should(clock.timeIn).equal(3);
     res2 = await res2;
     should(res2).properties({ done: false, value: 3 });
+
+    clock.stop();
+    should.deepEqual(await clock.next(), {done:true});
   });
 });
