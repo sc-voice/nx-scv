@@ -63,7 +63,7 @@ export class Timers {
         default:
           break;
       }
-      cc.ok1(msg + OK, {topic, action});
+      dbg && cc.ok1(msg + OK, {topic, action});
     } catch(e) {
       cc.bad1(msg, 'ERROR', e.message, message);
     }
@@ -74,10 +74,10 @@ export class Timers {
     const dbg = DBG.T4S_START;
     let { topic, groupId, consumer } = this;
 
-    dbg && cc.fyi(msg+1.1, groupId, 'subscribe', topic);
+    dbg>1 && cc.fyi(msg+1.1, groupId, 'subscribe', topic);
     await consumer.subscribe({ topics: [topic] });
 
-    dbg && cc.fyi(msg+1.2, groupId, 'run');
+    dbg && cc.fyi(msg+1.2, 'run:', groupId, 'topic:', topic);
     return consumer.run({
       eachMessage: req=>this.eachMessage(req),
     });

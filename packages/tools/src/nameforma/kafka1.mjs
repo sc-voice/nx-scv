@@ -171,7 +171,7 @@ export class _Runner {
 
   async start() {
     const msg = 'r4r.start';
-    const dbg = DBG.K3A_R4R_RUNNING;
+    const dbg = DBG.K3A_R4R_START;
     let { consumer, eachMessage, msSleep } = this;
 
     if (this.running) {

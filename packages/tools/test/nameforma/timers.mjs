@@ -48,12 +48,14 @@ describe('TESTTESTtimers', function () {
     const msg = 'tt4s.list';
     const dbg = 1;
     const topic = 'tt4s.list';
+    dbg && cc.tag1(msg, 'begin');
     let t4s = new Timers({kafka, topic});
-    dbg && cc.fyi(msg+1.1, 'start');
+    dbg>1 && cc.fyi(msg+1.1, 'start');
     t4s.start();
-    dbg && cc.fyi(msg+1.2, 'list');
+    dbg>1 && cc.fyi(msg+1.2, 'list');
     let producer = kafka.producer();
     let msgList = { action: 'list', }
     await producer.send({topic, messages:[msgList]});
+    dbg && cc.tag1(msg, 'end');
   });
 });
