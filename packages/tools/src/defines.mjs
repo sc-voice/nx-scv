@@ -32,9 +32,11 @@ export const DBG = {
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
   ML_DOC_VECTORS: 0, // 'mn8:3.4',
   MN8_MOHAN: 0,
+  T3R_CTOR: 0,
+  T3R_UPDATE: 0,
   T4S_CTOR: 0,
   T4S_EACH_MESSAGE: 0,
-  T4S_ON_LIST: 1,
+  T4S_ON_LIST: 0,
   T4S_START: 0,
   W7E_BOW_OF_TEXT: 0,
   WORD_MAP_TRANFORMER: 0,

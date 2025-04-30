@@ -5,6 +5,73 @@ const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
 import { Admin, Consumer, Kafka1, Producer } from './kafka1.mjs';
 
+let timerInstances = 0;
+
+export class Timer {
+  constructor(cfg = {}) {
+    const msg = 't3r.ctor';
+    const dbg = DBG.T3R_CTOR;
+    let {
+      count = 0, // iterations completed
+      created = Date.now(),
+      delay = 0, // ms
+      duration = 1000, // ms
+      iterations = 1, // # iterations
+      name,
+      topic = 't3r.event', // consumer
+    } = cfg;
+
+    timerInstances++;
+    name = name || `T3R-${('' + timerInstances).padStart(3, '0')}`;
+
+    Object.assign(this, {
+      count,
+      created,
+      delay,
+      duration,
+      iterations,
+      name,
+      topic,
+    });
+
+    // biome-ignore format:
+    dbg && cc.ok1(msg + OK, name, 'ms:', delay + '+' + duration,
+      'n:', count + '/' + iterations, 'topic:', topic);
+  }
+
+  async update(cfg = {}) {
+    const msg = 't3r.update';
+    const dbg = DBG.T3R_UPDATE;
+    let { 
+      count, created, delay, duration, iterations, name, topic 
+    } = this;
+    let { now = Date.now(), key = name, producer } = cfg;
+    let elapsed = now - created;
+    let period = delay + duration;
+    let countActual = Math.min(iterations, Math.floor(elapsed / period));
+
+    let messages = [];
+    while (count < countActual) {
+      count++;
+      messages.push({
+        key,
+        value: { name, created, delay, duration, count, iterations},
+      });
+      dbg>1 && cc.fyi1(msg+2.1, {elapsed, count, countActual, period,
+        messages: messages.length});
+    }
+
+    if (messages.length) {
+      if (producer) {
+        await producer.send({ topic, messages });
+      }
+      this.count = count;
+    }
+
+    dbg && cc.ok1(msg + OK, {topic, messages:messages.length});
+  } // t3r.update
+} // Timer
+
 export class Timers {
   constructor(cfg = {}) {
     const msg = 't4s.ctor';
@@ -33,7 +100,7 @@ export class Timers {
     });
     this.producer.connect();
     Object.defineProperty(this, 'consumer', {
-      value: kafka.consumer({groupId}),
+      value: kafka.consumer({ groupId }),
     });
     this.consumer.connect();
     dbg && cc.ok1(msg + OK);
@@ -45,7 +112,7 @@ export class Timers {
     let { timerMap } = this;
     let { action } = message;
     let timers = Object.keys(timerMap);
-    dbg && cc.ok1(msg+OK, JSON.stringify(timers));
+    dbg && cc.ok1(msg + OK, JSON.stringify(timers));
   }
 
   async eachMessage(req) {
@@ -57,14 +124,14 @@ export class Timers {
     let timers = Object.keys(timerMap);
     try {
       switch (action) {
-        case 'list': 
+        case 'list':
           this.onList(message);
           break;
         default:
           break;
       }
-      dbg && cc.ok1(msg + OK, {topic, action});
-    } catch(e) {
+      dbg && cc.ok1(msg + OK, { topic, action });
+    } catch (e) {
       cc.bad1(msg, 'ERROR', e.message, message);
     }
   }
@@ -74,12 +141,12 @@ export class Timers {
     const dbg = DBG.T4S_START;
     let { topic, groupId, consumer } = this;
 
-    dbg>1 && cc.fyi(msg+1.1, groupId, 'subscribe', topic);
+    dbg > 1 && cc.fyi(msg + 1.1, groupId, 'subscribe', topic);
     await consumer.subscribe({ topics: [topic] });
 
-    dbg && cc.fyi(msg+1.2, 'run:', groupId, 'topic:', topic);
+    dbg && cc.fyi(msg + 1.2, 'run:', groupId, 'topic:', topic);
     return consumer.run({
-      eachMessage: req=>this.eachMessage(req),
+      eachMessage: (req) => this.eachMessage(req),
     });
   }
 }

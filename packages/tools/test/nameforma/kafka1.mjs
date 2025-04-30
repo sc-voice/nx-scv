@@ -1,9 +1,8 @@
 import util from 'node:util';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { 
-  _MessageClock, _Runner, Kafka1, Producer, Consumer, Admin 
-} = NameForma;
+const { _MessageClock, _Runner, Kafka1, Producer, Consumer, Admin } =
+  NameForma;
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
@@ -19,10 +18,10 @@ const {
 } = Unicode.LINUX_STYLE;
 
 const PRODUCTION = false;
-const heartbeatInterval = PRODUCTION ? 3000 : 1000; 
+const heartbeatInterval = PRODUCTION ? 3000 : 1000;
 
 describe('kafka', function () {
-  this.timeout(4*heartbeatInterval);
+  this.timeout(4 * heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
     should(ka).properties({
@@ -138,14 +137,17 @@ describe('kafka', function () {
     let t4A = ka._topicOfName(topicA);
 
     // _consumeMap is used to update consumer _MessageClocks
-    let consumerOther = ka.consumer({groupId:groupOther});
+    let consumerOther = ka.consumer({ groupId: groupOther });
     should(t4A._consumerMap.get(consumer)).equal(undefined);
     should.deepEqual([...t4A._consumerMap.keys()], []);
     await consumerOther.subscribe({ topics: [topicA] });
     should.deepEqual([...t4A._consumerMap.keys()], [consumerOther]);
     should(t4A._consumerMap.get(consumerOther)).equal(true);
     await consumer.subscribe({ topics: [topicA] });
-    should.deepEqual([...t4A._consumerMap.keys()], [consumerOther, consumer]);
+    should.deepEqual(
+      [...t4A._consumerMap.keys()],
+      [consumerOther, consumer],
+    );
     should(t4A._consumerMap.get(consumer)).equal(true);
     should(t4A._consumerMap.get(consumerOther)).equal(true);
 
@@ -193,19 +195,21 @@ describe('kafka', function () {
 
     // Step2: send msgA1
     if (dbg) {
-      let { _messageClock:m10kA } = consumerA;
+      let { _messageClock: m10kA } = consumerA;
       should(m10kA.timeOut).equal(m10kA.timeIn);
     }
-    let send1 =  producer.send({ topic: topicT, messages: [msgA1] });
+    let send1 = producer.send({ topic: topicT, messages: [msgA1] });
     await send1;
     let m10kA = dbg ? consumerA._messageClock : undefined;
     if (dbg) {
       m10kA.running = true; // simulate start
       should(m10kA.timeIn).above(m10kA.timeOut);
-      should(Date.now()-m10kA.timeIn).above(-1).below(10);
-      cc.fyi(msg+0.11, 'before next()');
-      (await m10kA.next());
-      cc.fyi(msg+0.12, 'after next()');
+      should(Date.now() - m10kA.timeIn)
+        .above(-1)
+        .below(10);
+      cc.fyi(msg + 0.11, 'before next()');
+      await m10kA.next();
+      cc.fyi(msg + 0.12, 'after next()');
       should(m10kA.timeOut).equal(m10kA.timeIn);
     }
     should.deepEqual(await admin.listTopics(), [topicT]);
@@ -391,20 +395,20 @@ describe('kafka', function () {
     let timestamp = Date.now();
     let stop = false;
 
-    const clock = _MessageClock.create({msIdle});
+    const clock = _MessageClock.create({ msIdle });
     should(clock.timeIn).equal(0);
     should(clock.timeOut).equal(0);
 
     clock.update(1);
     should(clock.timeIn).equal(1);
     let res1 = await clock.next();
-    should(res1).properties({done: false, value:1});
+    should(res1).properties({ done: false, value: 1 });
 
     let res2 = clock.next();
     clock.update(2);
     clock.update(3);
     should(clock.timeIn).equal(3);
-    res2 = await(res2);
-    should(res2).properties({done: false, value:3});
+    res2 = await res2;
+    should(res2).properties({ done: false, value: 3 });
   });
 });

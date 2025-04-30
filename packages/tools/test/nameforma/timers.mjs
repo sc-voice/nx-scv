@@ -1,13 +1,7 @@
 import util from 'node:util';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { 
-  Timers,
-  Kafka1, 
-  Admin,
-  Producer,
-  Consumer,
-} = NameForma;
+const { Timer, Timers, Kafka1, Admin, Producer, Consumer } = NameForma;
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole } = Text;
@@ -24,38 +18,103 @@ const {
 } = Unicode.LINUX_STYLE;
 
 const PRODUCTION = false;
-const heartbeatInterval = PRODUCTION ? 3000 : 1000; 
+const heartbeatInterval = PRODUCTION ? 3000 : 1000;
 
 const kafka = new Kafka1({
   clientId: 'test-timers',
 });
 
-describe('TESTTESTtimers', function () {
-  it('ctor', ()=>{
-    let t4s = new Timers({kafka});
+describe('timers', () => {
+  it('t3r.ctor', () => {
+    let created = Date.now();
+    let t1 = new Timer();
+    should(t1.name).match(/T3R-[0-9]+/);
+    should(t1).properties({
+      created,
+      count: 0,
+      delay: 0,
+      duration: 1000,
+      iterations: 1,
+      topic: 't3r.event',
+    });
+  });
+  it('t3r.update', async () => {
+    let iterations = 4;
+    let created = 1000;
+    let name = 'tt3r.update.name';
+    let topic = 'tt3r.update';
+    let key = 'test-key';
+    let count = 1;
+    let delay = 2;
+    let duration = 3;
+    let t3r = new Timer({
+      name,
+      created,
+      count,
+      delay,
+      duration,
+      iterations,
+      topic,
+    });
+    let events = [];
+    let producer = {
+      send: (event) => {
+        events.push(event);
+      },
+    };
+
+    // nothing happens for a previously handled update
+    await t3r.update({ producer, now: created + 9 });
+    should(events.length).equal(0);
+
+    // new update triggers 1 message
+    await t3r.update({ producer, key, now: created + 10 });
+    should(events.length).equal(1);
+    should(events[0].topic).equal(topic);
+    should(events[0].messages.length).equal(1);
+    should(events[0].messages[0].key).equal(key);
+    should(events[0].messages[0].value).properties({
+      count: 2,
+      created,
+      delay,
+      duration,
+      iterations,
+      name,
+    });
+
+    // new, delayed update triggers all remaining messages
+    await t3r.update({ producer, key, now: created + 100 });
+    should(events.length).equal(2);
+    should(events[1].topic).equal(topic);
+    should(events[1].messages.length).equal(2);
+    should(events[1].messages[0].key).equal(key);
+    should(events[1].messages[0].value).properties({ count: 3 });
+    should(events[1].messages[1].key).equal(key);
+    should(events[1].messages[1].value).properties({ count: 4 });
+  });
+  it('t4sctor', () => {
+    let t4s = new Timers({ kafka });
     should(t4s).properties({
       groupId: 'g5d.timers',
       topic: 't3c.timers',
       timerMap: {},
     });
-    should(t4s).properties([
-      'groupId', 'topic', 'timerMap'
-    ]);
+    should(t4s).properties(['groupId', 'topic', 'timerMap']);
     should(t4s.consumer).instanceOf(Consumer);
     should(t4s.producer).instanceOf(Producer);
   });
-  it('list', async()=>{
+  it('list', async () => {
     const msg = 'tt4s.list';
-    const dbg = 1;
+    const dbg = 0;
     const topic = 'tt4s.list';
     dbg && cc.tag1(msg, 'begin');
-    let t4s = new Timers({kafka, topic});
-    dbg>1 && cc.fyi(msg+1.1, 'start');
+    let t4s = new Timers({ kafka, topic });
+    dbg > 1 && cc.fyi(msg + 1.1, 'start');
     t4s.start();
-    dbg>1 && cc.fyi(msg+1.2, 'list');
+    dbg > 1 && cc.fyi(msg + 1.2, 'list');
     let producer = kafka.producer();
-    let msgList = { action: 'list', }
-    await producer.send({topic, messages:[msgList]});
+    let msgList = { action: 'list' };
+    await producer.send({ topic, messages: [msgList] });
     dbg && cc.tag1(msg, 'end');
   });
 });
