@@ -411,7 +411,7 @@ describe('TESTTESTkafka', function () {
     res2 = await res2;
     should(res2).properties({ done: false, value: 3 });
 
-    clock.stop();
-    should.deepEqual(await clock.next(), {done:true});
+    await clock.stop();
+    should.deepEqual(await clock.next(), { done: true });
   });
 });

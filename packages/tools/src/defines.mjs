@@ -35,6 +35,11 @@ export const DBG = {
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
   ML_DOC_VECTORS: 0, // 'mn8:3.4',
   MN8_MOHAN: 0,
+  N8A: {
+    C3K: {
+      CTOR: 1,
+    },
+  },
   T3R_CTOR: 0,
   T3R_UPDATE: 0,
   T4S_CTOR: 0,

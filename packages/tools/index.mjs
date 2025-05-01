@@ -55,16 +55,18 @@ import {
   // kafkajs API:
   Kafka1, Producer, Consumer, Admin, 
   // non-kafkajs API:
-  _Runner, _MessageClock,
+  _Runner,
 } from './src/nameforma/kafka1.mjs';
 import { Timer, Timers } from './src/nameforma/timers.mjs';
+import { Clock } from './src/nameforma/clock.mjs';
 export const NameForma = {
   Admin,
+  Clock,
   Consumer,
   Kafka1,
   Producer,
   Timer,
   Timers,
-  _MessageClock, 
+  _MessageClock: Clock, 
   _Runner, 
 }

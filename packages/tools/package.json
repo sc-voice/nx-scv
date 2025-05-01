@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "test": "mocha --inline-diffs --recursive",
-    "test:test": "mocha --config test/mocha-config.json --recursive"
+    "test:test": "mocha --config test/mocha-config.json --recursive --watch",
+    "test:one": "mocha --config test/mocha-config.json --recursive"
   },
   "repository": {
     "type": "git",

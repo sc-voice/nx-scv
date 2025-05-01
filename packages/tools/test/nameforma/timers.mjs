@@ -24,19 +24,19 @@ const kafka = new Kafka1({
   clientId: 'test-timers',
 });
 
-describe('timers', () => {
+describe('TESTTESTtimers', () => {
   it('t3r.ctor', () => {
     let created = Date.now();
     let t1 = new Timer();
     should(t1.name).match(/T3R-[0-9]+/);
     should(t1).properties({
-      created,
       count: 0,
       delay: 0,
       duration: 1000,
       iterations: 1,
       topic: 't3r.event',
     });
+    should(t1.created).above(created-1).below(created+2);
   });
   it('t3r.update', async () => {
     let iterations = 4;
@@ -110,11 +110,13 @@ describe('timers', () => {
     dbg && cc.tag1(msg, 'begin');
     let t4s = new Timers({ kafka, topic });
     dbg > 1 && cc.fyi(msg + 1.1, 'start');
-    t4s.start();
+    t4s.start(); // do not await
     dbg > 1 && cc.fyi(msg + 1.2, 'list');
     let producer = kafka.producer();
     let msgList = { action: 'list' };
     await producer.send({ topic, messages: [msgList] });
     dbg && cc.tag1(msg, 'end');
+    await t4s.stop();
+    producer.disconnect();
   });
 });

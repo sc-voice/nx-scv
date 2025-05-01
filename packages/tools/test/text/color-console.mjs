@@ -4,6 +4,7 @@ import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, Corpus } = Text;
 const { Interval } = ScvMath;
+const { cc } = ColorConsole;
 
 const dbg = DBG.COLOR_CONSOLE;
 
@@ -304,7 +305,6 @@ describe('text/color-console', () => {
     const dbg = DBG.COLOR_CONSOLE;
     let { styleText, inspect } = util;
 
-    let { cc } = ColorConsole;
     let { okColor2: ok, badColor2: bad } = cc;
 
     dbg &&
@@ -336,5 +336,33 @@ describe('text/color-console', () => {
     should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
     should(cc.isOk(Math.PI, null)).equal(`${bad}3.142`);
     should(cc.isOk(null)).equal(`${bad}null`);
+  });
+  it('TESTTESTprops()', () => {
+    let obj = {
+      vstring: 'test-text',
+      vnumber: 1.23,
+      vboolean: true,
+      vobj: { a: 1, b: 'one', c: false },
+      vundefined: undefined,
+      vnull: null,
+    };
+    let props = cc.props(obj);
+    should.deepEqual(
+      [...props],
+      [
+        'vstring:',
+        'test-text',
+        'vnumber:',
+        1.23,
+        'vboolean:',
+        true,
+        'vobj:',
+        '{"a":1,"b":"one","c":false}',
+        'vundefined:',
+        undefined,
+        'vnull:',
+        null,
+      ],
+    );
   });
 });

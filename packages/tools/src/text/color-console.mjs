@@ -23,6 +23,55 @@ const {
 
 let CC;
 
+class Props {
+  constructor(obj) {
+    let entries = Object.entries(obj);
+
+    Object.assign(this, {
+      obj,
+      entries,
+      i: 0,
+      done: false,
+      value: undefined,
+      key: undefined,
+      emitKey: true,
+    });
+  }
+
+  [Symbol.iterator]() {
+    return this;
+  }
+
+  next() {
+    let { entries, i, emitKey, done } = this;
+    let value;
+    let entry = entries[i];
+    if (i < entries.length) {
+      if (emitKey) {
+        value = entry[0] + ':';
+      } else {
+        value = entry[1];
+        switch (typeof value) {
+          case 'object':
+            value = value === null ? null : JSON.stringify(value);
+            break;
+          default:
+            break;
+        }
+      }
+      if (!emitKey) {
+        this.i++;
+      }
+      this.emitKey = !this.emitKey;
+    } else {
+      done = true;
+    }
+    this.value = value;
+
+    return { done, value };
+  }
+}
+
 export class ColorConsole {
   constructor(opts = {}) {
     let {
@@ -100,6 +149,10 @@ export class ColorConsole {
       case NO_COLOR:
         return 'noColor';
     }
+  }
+
+  props(obj) {
+    return new Props(obj);
   }
 
   writeColor(color, rest) {

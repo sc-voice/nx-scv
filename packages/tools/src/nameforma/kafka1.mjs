@@ -3,6 +3,7 @@ const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
+import { Clock } from './clock.mjs';
 
 /*
  * Kafka1 is a single cluster, single node, single partition,
@@ -178,7 +179,7 @@ export class _Runner {
       return;
     }
     this.running = true;
-    dbg>1 && cc.ok(msg + 1, 'starting...');
+    dbg > 1 && cc.ok(msg + 1, 'starting...');
 
     let crashed = false;
 
@@ -188,7 +189,7 @@ export class _Runner {
         await consumer._processConsumer({ eachMessage });
         msSleep &&
           (await new Promise((res) => setTimeout(() => res(), msSleep)));
-        dbg>2 && cc.ok(msg, 'iterations:', this.iterations);
+        dbg > 2 && cc.ok(msg, 'iterations:', this.iterations);
       } catch (e) {
         await this.stop();
         cc.bad1(`${msg} CRASH`, e.message);
@@ -275,7 +276,7 @@ export class Consumer extends Role {
       value: null,
     });
     Object.defineProperty(this, '_messageClock', {
-      value: _MessageClock.create({
+      value: Clock.create({
         msgIdle: heartbeatInterval / 2,
       }),
     });
@@ -605,80 +606,6 @@ export class KRaftNode {
     return group;
   }
 } // KRaftNode
-
-export class _MessageClock {
-  static #privateCtor = false;
-  constructor(cfg = {}) {
-    const msg = 'm10k.ctor';
-    if (!_MessageClock.#privateCtor) {
-      throw Error(`${msg} create()!`);
-    }
-    let { kafka, msIdle = HEARTBEAT_INTERVAL / 2 } = cfg;
-    this.running = false;
-    this.timeIn = 0;
-    this.timeOut = 0;
-    this.msIdle = msIdle;
-    Object.defineProperty(this, 'generator', {
-      writable: true,
-      value: null,
-    });
-  }
-
-  static create(cfg) {
-    _MessageClock.#privateCtor = true;
-    let clock = new _MessageClock(cfg);
-    _MessageClock.#privateCtor = false;
-    clock.generator = _MessageClock.#generator(clock);
-    return clock;
-  }
-
-  static async *#generator(clock) {
-    const msg = 'm10k.generator';
-    const dbg = DBG.K3A_M10K_GENERATOR;
-    clock.running = true;
-    dbg>1 && cc.ok(msg, 'started...');
-    while (clock.running) {
-      if (clock.timeIn === clock.timeOut) {
-        dbg>2 && cc.fyi(msg + 0.1, 'zzzz', clock.msIdle);
-        await new Promise((res) => setTimeout(() => res(), clock.msIdle));
-      } else {
-        clock.timeOut = clock.timeIn;
-        dbg>2 && cc.ok1(msg + OK, 'before yield', clock.timeOut);
-        yield clock.timeOut;
-      }
-    }
-    dbg && cc.ok1(msg+OK, 'stopped');
-    return clock;
-  }
-
-  async next() {
-    const msg = 'm10k.next';
-    const dbg = DBG.K3A_M10K_NEXT;
-    let { generator } = this;
-    let result =  {done:true};
-    if (generator) {
-      result = await (generator && generator.next());
-      dbg && cc.ok1(msg + 9.1 + OK, result);
-    } else {
-      dbg && cc.ok1(msg + 9.2 + OK, result);
-    }
-    return result;
-  }
-
-  stop() {
-    this.running = false;
-    if (this.generator) {
-      this.generator = null;
-    }
-  }
-
-  update(timestamp = Date.now()) {
-    const msg = 'm10k.update';
-    const dbg = DBG.K3A_MESSAGE_CLOCK;
-    this.timeIn = timestamp;
-    dbg && cc.ok1(msg + OK, timestamp);
-  }
-} // _MessageClock
 
 export class Kafka1 extends KRaftNode {
   constructor(cfg = {}) {

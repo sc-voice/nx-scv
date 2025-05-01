@@ -3,7 +3,7 @@ const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
-import { Admin, Consumer, Kafka1, Producer } from './kafka1.mjs';
+import { Admin, Consumer, Producer } from './kafka1.mjs';
 
 let timerInstances = 0;
 
@@ -42,9 +42,8 @@ export class Timer {
   async update(cfg = {}) {
     const msg = 't3r.update';
     const dbg = DBG.T3R_UPDATE;
-    let { 
-      count, created, delay, duration, iterations, name, topic 
-    } = this;
+    let { count, created, delay, duration, iterations, name, topic } =
+      this;
     let { now = Date.now(), key = name, producer } = cfg;
     let elapsed = now - created;
     let period = delay + duration;
@@ -55,10 +54,16 @@ export class Timer {
       count++;
       messages.push({
         key,
-        value: { name, created, delay, duration, count, iterations},
+        value: { name, created, delay, duration, count, iterations },
       });
-      dbg>1 && cc.fyi1(msg+2.1, {elapsed, count, countActual, period,
-        messages: messages.length});
+      dbg > 1 &&
+        cc.fyi1(msg + 2.1, {
+          elapsed,
+          count,
+          countActual,
+          period,
+          messages: messages.length,
+        });
     }
 
     if (messages.length) {
@@ -68,7 +73,7 @@ export class Timer {
       this.count = count;
     }
 
-    dbg && cc.ok1(msg + OK, {topic, messages:messages.length});
+    dbg && cc.ok1(msg + OK, { topic, messages: messages.length });
   } // t3r.update
 } // Timer
 
@@ -81,6 +86,7 @@ export class Timers {
       groupId = 'g5d.timers',
       topic = 't3c.timers',
       timerMap = {},
+      period = 500, // sampling period in ms
     } = cfg;
     if (kafka == null) {
       cc.bad1(msg + -1.1, 'kafka?');
@@ -148,5 +154,11 @@ export class Timers {
     return consumer.run({
       eachMessage: (req) => this.eachMessage(req),
     });
+  }
+
+  async stop() {
+    await this.consumer.stop();
+    this.consumer.disconnect();
+    this.producer.disconnect();
   }
 }
