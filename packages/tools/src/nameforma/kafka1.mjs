@@ -192,7 +192,7 @@ export class _Runner {
     while (this.running) {
       try {
         this.iterations++;
-        await consumer._processConsumer({ eachMessage });
+        await consumer._c6rProcess({ eachMessage });
         msSleep &&
           (await new Promise((res) => setTimeout(() => res(), msSleep)));
         dbg > 2 && cc.ok(msg, 'iterations:', this.iterations);
@@ -296,30 +296,19 @@ export class Consumer extends Role {
     let group = this._consumerGroup();
     group._consumers.push(this);
     _consumerCount++;
-    Object.defineProperty(this, '_id', {
-      value: `C6R${('' + _consumerCount).padStart(3, '0')}`,
-    });
+    let _id = `C6R${('' + _consumerCount).padStart(3, '0')}`;
+    Object.defineProperty(this, '_id', { value: _id });
     Object.defineProperty(this, '_runner', {
       writable: true,
       value: null,
     });
-    Object.defineProperty(this, '_messageClock', {
-      value: Clock.create({
-        msIdle: _msIdle,
-      }),
-    });
+    let _messageClock = Clock.create({msIdle: _msIdle});
+    Object.defineProperty(this, '_messageClock', {value: _messageClock});
 
     this.eachMessage = null;
 
     dbg &&
-      cc.ok1(
-        msg + OK,
-        ...cc.props({
-          _id: this._id,
-          groupId,
-          _msIdle,
-        }),
-      );
+      cc.ok1(msg + OK, ...cc.props({ _id, groupId, _msIdle }));
   } // c6r.ctor
 
   get running() {
@@ -383,8 +372,8 @@ export class Consumer extends Role {
     cc.fyi(msg);
   }
 
-  async _processConsumer(cfg = {}) {
-    const msg = 'c6r._processConsumer';
+  async _c6rProcess(cfg = {}) {
+    const msg = 'c6r._c6rProcess';
     const dbg = C6R.PROCESS_CONSUMER;
     let { kafka, _id, groupId } = this;
     let group = this._consumerGroup();
@@ -420,7 +409,7 @@ export class Consumer extends Role {
 
     dbg && cc.ok1(msg + OK, ...cc.props({ _id, committed, groupId }));
     return { committed };
-  } // _processConsumer
+  } // _c6rProcess
 
   async run(cfg = {}) {
     const msg = 'c6r.run';
