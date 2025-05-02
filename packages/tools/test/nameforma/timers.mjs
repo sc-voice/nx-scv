@@ -24,7 +24,7 @@ const kafka = new Kafka1({
   clientId: 'test-timers',
 });
 
-describe('TESTTESTtimers', () => {
+describe('timers', () => {
   it('t3r.ctor', () => {
     let created = Date.now();
     let t1 = new Timer();
@@ -92,7 +92,7 @@ describe('TESTTESTtimers', () => {
     should(events[1].messages[1].key).equal(key);
     should(events[1].messages[1].value).properties({ count: 4 });
   });
-  it('t4sctor', () => {
+  it('t4s.ctor', () => {
     let t4s = new Timers({ kafka });
     should(t4s).properties({
       groupId: 'g5d.timers',
@@ -103,7 +103,7 @@ describe('TESTTESTtimers', () => {
     should(t4s.consumer).instanceOf(Consumer);
     should(t4s.producer).instanceOf(Producer);
   });
-  it('list', async () => {
+  it('TESTTESTlist', async () => {
     const msg = 'tt4s.list';
     const dbg = 0;
     const topic = 'tt4s.list';
@@ -113,10 +113,11 @@ describe('TESTTESTtimers', () => {
     t4s.start(); // do not await
     dbg > 1 && cc.fyi(msg + 1.2, 'list');
     let producer = kafka.producer();
+    await producer.connect();
     let msgList = { action: 'list' };
     await producer.send({ topic, messages: [msgList] });
     dbg && cc.tag1(msg, 'end');
     await t4s.stop();
-    producer.disconnect();
+    await producer.disconnect();
   });
 });

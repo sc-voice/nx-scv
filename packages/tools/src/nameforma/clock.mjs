@@ -15,7 +15,7 @@ export class Clock {
     if (!Clock.#privateCtor) {
       throw Error(`${msg} create()!`);
     }
-    let { msIdle = HEARTBEAT_INTERVAL / 2 } = cfg;
+    let { msIdle = 100 } = cfg;
     this.running = false;
     this.timeIn = 0;
     this.timeOut = 0;

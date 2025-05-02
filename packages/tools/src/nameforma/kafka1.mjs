@@ -74,7 +74,7 @@ class Role {
       this.connections--;
       dbg && cc.ok1(msg + 9.1, 'connections:', this.connections);
     } else {
-      cc.bad1(msg - 9.2, 'connections:', this.connections);
+      cc.bad1(msg + 9.2, 'connections:', this.connections);
       throw new Error(msg, 'no connections?');
     }
   }
