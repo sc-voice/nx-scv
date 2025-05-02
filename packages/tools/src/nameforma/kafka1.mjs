@@ -3,7 +3,7 @@ const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
-const { R4R } = DBG.N8A;
+const { C6R, R4R } = DBG.N8A;
 import { Clock } from './clock.mjs';
 
 /*
@@ -38,7 +38,7 @@ class Timestamp {
 class Role {
   constructor(opts = {}) {
     let { tla = 'tla?', kafka } = opts;
-    const msg = `${tla}.r2e.ctor`;
+    const msg = `${tla}_r2e.ctor`;
 
     let warn;
     if (!ROLE_CONSTRUCTOR) {
@@ -274,14 +274,19 @@ class GroupOffsets {
 export class Consumer extends Role {
   constructor(cfg = {}) {
     const msg = 'c6r.ctor';
-    const dbg = DBG.K3A_CTOR || DBG.K3A_C6R_CTOR;
+    const dbg = C6R.CTOR;
     const {
       kafka,
       groupId = 'no-group-id',
       heartbeatInterval = HEARTBEAT_INTERVAL,
       sessionTimeout = HEARTBEAT_INTERVAL * 10,
+      _msIdle = heartbeatInterval / 2, // clock idle time
     } = cfg;
     super({ tla: 'c6r', kafka });
+    dbg>1 && cc.ok(msg + OK, ...cc.props({
+      groupId,
+      _msIdle,
+    }));
 
     Object.assign(this, {
       groupId,
@@ -292,7 +297,7 @@ export class Consumer extends Role {
     group._consumers.push(this);
     _consumerCount++;
     Object.defineProperty(this, '_id', {
-      value: `C6R-${('' + _consumerCount).padStart(3, '0')}`,
+      value: `C6R${('' + _consumerCount).padStart(3, '0')}`,
     });
     Object.defineProperty(this, '_runner', {
       writable: true,
@@ -300,13 +305,17 @@ export class Consumer extends Role {
     });
     Object.defineProperty(this, '_messageClock', {
       value: Clock.create({
-        msgIdle: heartbeatInterval / 2,
+        msIdle: _msIdle,
       }),
     });
 
     this.eachMessage = null;
 
-    dbg && cc.ok1(msg + OK, this._id, groupId);
+    dbg && cc.ok1(msg + OK, ...cc.props({
+      _id:this._id, 
+      groupId,
+      _msIdle,
+    }));
   } // c6r.ctor
 
   get running() {
@@ -321,7 +330,7 @@ export class Consumer extends Role {
 
   async subscribe(cfg = {}) {
     const msg = 'c6r.subscribe';
-    const dbg = DBG.K3A_SUBSCRIBE;
+    const dbg = C6R.SUBSCRIBE;
     let { topics = [], fromBeginning = false } = cfg;
     const { kafka, groupId } = this;
     const group = this._consumerGroup();
@@ -335,7 +344,7 @@ export class Consumer extends Role {
       topic._consumerMap.set(this, true);
       let g10s = _groupOffsetsetsMap[topicName];
       if (g10s) {
-        dbg > 1 && cc.ok(msg + 2.1, groupId + '=:', topicName);
+        dbg > 1 && cc.ok(msg + 2.1, ...cc.props({groupId, topicName}));
       } else {
         g10s = new GroupOffsets({ topic, fromBeginning });
         _groupOffsetsetsMap[topicName] = g10s;
@@ -352,7 +361,7 @@ export class Consumer extends Role {
     }
 
     dbg &&
-      cc.ok1(msg + OK, `${groupId}:`, JSON.stringify(group._topics()));
+      cc.ok1(msg + OK, ...cc.props({groupId, _topics:group._topics().join(',')}));
 
     //return this; // WARNING: kafkajs does not chain
   } // subscribe
@@ -369,7 +378,7 @@ export class Consumer extends Role {
 
   async _processConsumer(cfg = {}) {
     const msg = 'c6r._processConsumer';
-    const dbg = DBG.K3A_PROCESS_CONSUMER;
+    const dbg = C6R.PROCESS_CONSUMER;
     let { kafka, _id, groupId } = this;
     let group = this._consumerGroup();
     let { eachMessage } = cfg;
@@ -398,17 +407,17 @@ export class Consumer extends Role {
             cc.bad(msg, 'empty message?');
           }
         } // for
-        partitions[i].offset = offset;
+        partitions[i].offset = offset; // commit
       }
     }
 
-    dbg && cc.ok1(msg + OK, groupId + ':', _id, 'committed:', committed);
+    dbg && cc.ok1(msg + OK, ...cc.props({ _id, committed, groupId }));
     return { committed };
   } // _processConsumer
 
   async run(cfg = {}) {
     const msg = 'c6r.run';
-    const dbg = DBG.K3A_RUN;
+    const dbg = C6R.RUN;
     let { kafka, _runner } = this;
     if (_runner) {
       throw new Error(`${msg} _runner already exists`);
@@ -426,7 +435,7 @@ export class Consumer extends Role {
     });
 
     let promise = this._runner.start(); // do not await!
-    dbg && cc.ok1(msg + ok, 'started');
+    dbg && cc.ok1(msg + OK, 'started');
 
     return promise;
   }

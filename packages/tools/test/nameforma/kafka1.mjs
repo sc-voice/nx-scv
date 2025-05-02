@@ -338,15 +338,15 @@ describe('kafka', function () {
     producer.disconnect();
   });
   it('TESTTESTrun', async () => {
-    const msg = 'tk3a.run';
+    const msg = 'tc6r_run';
     const dbg = 1;
     const ka = new Kafka1();
-    const groupId = 'trun.G1';
-    const topic = 'tc6r.run.TA';
-    const key = 'tc6r.run.KA';
-    const msgA1 = { key, value: 'tc6r.run.V1' };
-    const msgA2 = { key, value: 'c6r.run.V1' };
-    const msgA3 = { key, value: 'c6r.run.V1' };
+    const groupId = `${msg}.G1`;
+    const topic = `${msg}.TA`;
+    const key = `${msg}.KA`;
+    const msgA1 = { key, value: `${msg}.V1` };
+    const msgA2 = { key, value: `${msg}.V2` };
+    const msgA3 = { key, value: `${msg}.V3` };
     dbg && cc.tag1(msg, 'START');
     let consumed = []; // save each message consumed for testing
     let eachMessage = async (cfg = {}) => {
@@ -361,7 +361,8 @@ describe('kafka', function () {
     await producer.send({ topic, messages: [msgA1, msgA2] });
 
     // STEP2: create and run consumer to receive messages
-    const consumer = ka.consumer({ groupId });
+    let _msIdle = 100;
+    const consumer = ka.consumer({ groupId, _msIdle });
     await consumer.connect();
     await consumer.subscribe({ topics: [topic], fromBeginning: true });
     let _msSleep = 1;

@@ -18,7 +18,7 @@ export class Clock {
     }
     Clock.#instances++;
     let { 
-      id = 'C3K-'+String(Clock.#instances).padStart(3, '0'), 
+      id = 'C3K'+String(Clock.#instances).padStart(3, '0'), 
       msIdle = 100,
     } = cfg;
     Object.assign(this, {
@@ -36,10 +36,13 @@ export class Clock {
   }
 
   static create(cfg) {
+    const msg = 'c3k.create';
+    const dbg = C3K.CREATE;
     Clock.#privateCtor = true;
     let clock = new Clock(cfg);
     Clock.#privateCtor = false;
     clock.generator = Clock.#generator(clock);
+    dbg && cc.ok1(msg+OK);
     return clock;
   }
 
