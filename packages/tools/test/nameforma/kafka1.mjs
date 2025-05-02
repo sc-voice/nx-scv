@@ -352,7 +352,7 @@ describe('kafka', function () {
     let eachMessage = async (cfg = {}) => {
       let { topic, partition, message, heartbeat, pause } = cfg;
       consumed.push(message);
-      dbg>1 && cc.tag(msg, 'eachMessage', message);
+      dbg > 1 && cc.tag(msg, 'eachMessage', message);
     };
 
     // STEP1: send first two messages BEFORE consumer is created

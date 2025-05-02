@@ -173,10 +173,14 @@ export class _Runner {
     Object.defineProperty(this, 'resProcess', {
       writable: true,
     });
-    dbg && cc.ok1(msg+OK, ...cc.props({
-      c6r_groupId: consumer.groupId,
-      msSleep,
-    }));
+    dbg &&
+      cc.ok1(
+        msg + OK,
+        ...cc.props({
+          c6r_groupId: consumer.groupId,
+          msSleep,
+        }),
+      );
   } // ctor
 
   async process() {
@@ -200,10 +204,8 @@ export class _Runner {
       }
     }
 
-    dbg && (crashed
-      ? cc.bad1(msg, 'crashed')
-      : cc.ok1(msg+OK, 'stopped')
-    );
+    dbg &&
+      (crashed ? cc.bad1(msg, 'crashed') : cc.ok1(msg + OK, 'stopped'));
 
     return false; // resolved when no longer running
   }
@@ -283,10 +285,8 @@ export class Consumer extends Role {
       _msIdle = heartbeatInterval / 2, // clock idle time
     } = cfg;
     super({ tla: 'c6r', kafka });
-    dbg>1 && cc.ok(msg + OK, ...cc.props({
-      groupId,
-      _msIdle,
-    }));
+    // biome-ignore format:
+    dbg > 1 && cc.ok( msg + OK, ...cc.props({ groupId, _msIdle }));
 
     Object.assign(this, {
       groupId,
@@ -311,11 +311,15 @@ export class Consumer extends Role {
 
     this.eachMessage = null;
 
-    dbg && cc.ok1(msg + OK, ...cc.props({
-      _id:this._id, 
-      groupId,
-      _msIdle,
-    }));
+    dbg &&
+      cc.ok1(
+        msg + OK,
+        ...cc.props({
+          _id: this._id,
+          groupId,
+          _msIdle,
+        }),
+      );
   } // c6r.ctor
 
   get running() {
@@ -344,7 +348,7 @@ export class Consumer extends Role {
       topic._consumerMap.set(this, true);
       let g10s = _groupOffsetsetsMap[topicName];
       if (g10s) {
-        dbg > 1 && cc.ok(msg + 2.1, ...cc.props({groupId, topicName}));
+        dbg > 1 && cc.ok(msg + 2.1, ...cc.props({ groupId, topicName }));
       } else {
         g10s = new GroupOffsets({ topic, fromBeginning });
         _groupOffsetsetsMap[topicName] = g10s;
@@ -361,7 +365,10 @@ export class Consumer extends Role {
     }
 
     dbg &&
-      cc.ok1(msg + OK, ...cc.props({groupId, _topics:group._topics().join(',')}));
+      cc.ok1(
+        msg + OK,
+        ...cc.props({ groupId, _topics: group._topics().join(',') }),
+      );
 
     //return this; // WARNING: kafkajs does not chain
   } // subscribe

@@ -17,8 +17,8 @@ export class Clock {
       throw Error(`${msg} create()!`);
     }
     Clock.#instances++;
-    let { 
-      id = 'C3K'+String(Clock.#instances).padStart(3, '0'), 
+    let {
+      id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       msIdle = 100,
     } = cfg;
     Object.assign(this, {
@@ -42,7 +42,7 @@ export class Clock {
     let clock = new Clock(cfg);
     Clock.#privateCtor = false;
     clock.generator = Clock.#generator(clock);
-    dbg && cc.ok1(msg+OK);
+    dbg && cc.ok1(msg + OK);
     return clock;
   }
 
