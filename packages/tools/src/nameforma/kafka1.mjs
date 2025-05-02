@@ -3,6 +3,7 @@ const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
+const { R4R } = DBG.N8A;
 import { Clock } from './clock.mjs';
 
 /*
@@ -134,6 +135,7 @@ export class Message {
 export class _Runner {
   constructor(cfg = {}) {
     const msg = 'r4r.ctor';
+    const dbg = R4R.CTOR;
     let {
       autoCommit = true,
       consumer,
@@ -168,21 +170,21 @@ export class _Runner {
       msSleep,
       onCrash,
     });
-  }
+    Object.defineProperty(this, 'resProcess', {
+      writable: true,
+    });
+    dbg && cc.ok1(msg+OK, ...cc.props({
+      c6r_groupId: consumer.groupId,
+      msSleep,
+    }));
+  } // ctor
 
-  async start() {
-    const msg = 'r4r.start';
-    const dbg = DBG.K3A_R4R_START;
+  async process() {
+    const msg = 'r4r.process';
+    const dbg = R4R.PROCESS;
     let { consumer, eachMessage, msSleep } = this;
 
-    if (this.running) {
-      return;
-    }
-    this.running = true;
-    dbg > 1 && cc.ok(msg + 1, 'starting...');
-
     let crashed = false;
-
     while (this.running) {
       try {
         this.iterations++;
@@ -197,14 +199,35 @@ export class _Runner {
         this.onCrash && this.onCrash(e);
       }
     }
-    dbg && !crashed && cc.ok1(msg + OK, 'stopped');
+
+    dbg && (crashed
+      ? cc.bad1(msg, 'crashed')
+      : cc.ok1(msg+OK, 'stopped')
+    );
+
+    return false; // resolved when no longer running
+  }
+
+  async start() {
+    const msg = 'r4r.start';
+    const dbg = R4R.START;
+
+    if (this.running) {
+      return;
+    }
+    this.running = true;
+    dbg > 1 && cc.ok(msg + 1, 'starting...');
+
+    this.resProcess = this.process();
+    return this.running; // true when resolved
   } // r4r.start
 
   async stop() {
-    const msg = 'rfr.stop';
-    const dbg = DBG.K3A_R4R_RUNNING;
+    const msg = 'r4r.stop';
+    const dbg = R4R.STOP;
     this.running = false;
     dbg && cc.ok1(msg + OK, 'stopped');
+    return this.resProcess; // false when resolved
   }
 } // _Runner
 

@@ -337,7 +337,7 @@ describe('text/color-console', () => {
     should(cc.isOk(Math.PI, null)).equal(`${bad}3.142`);
     should(cc.isOk(null)).equal(`${bad}null`);
   });
-  it('TESTTESTprops()', () => {
+  it('props()', () => {
     let obj = {
       vstring: 'test-text',
       vnumber: 1.23,

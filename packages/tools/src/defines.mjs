@@ -21,8 +21,6 @@ export const DBG = {
   K3A_FETCH_OFFSETS: 0,
   K3A_GROUP_OF_ID: 0,
   K3A_MESSAGE_CLOCK: 0,
-  K3A_M10K_GENERATOR: 2,
-  K3A_M10K_NEXT: 2,
   K3A_PROCESS_CONSUMER: 0,
   K3A_R4R_RUNNING: 0,
   K3A_RUN: 0,
@@ -36,8 +34,15 @@ export const DBG = {
   ML_DOC_VECTORS: 0, // 'mn8:3.4',
   MN8_MOHAN: 0,
   N8A: {
+    R4R: {
+      CTOR: 1,
+      START: 1,
+      STOP: 1,
+    },
     C3K: {
       CTOR: 1,
+      NEXT: 1,
+      GENERATOR: 1,
     },
   },
   T3R_CTOR: 0,

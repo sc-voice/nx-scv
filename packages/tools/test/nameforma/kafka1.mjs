@@ -1,8 +1,7 @@
 import util from 'node:util';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { _Runner, Kafka1, Producer, Consumer, Admin } =
-  NameForma;
+const { _Runner, Kafka1, Producer, Consumer, Admin } = NameForma;
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
@@ -20,7 +19,7 @@ const {
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
 
-describe('TESTTESTkafka', function () {
+describe('kafka', function () {
   this.timeout(4 * heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
@@ -136,7 +135,7 @@ describe('TESTTESTkafka', function () {
       cc.fyi1(msg + 2, groupId, 'offsets2:', JSON.stringify(offsets2));
     let t4A = ka._topicOfName(topicA);
 
-    // _consumeMap is used to update consumer _MessageClocks
+    // _consumeMap is used to update consumer Clocks
     let consumerOther = ka.consumer({ groupId: groupOther });
     should(t4A._consumerMap.get(consumer)).equal(undefined);
     should.deepEqual([...t4A._consumerMap.keys()], []);
@@ -287,7 +286,7 @@ describe('TESTTESTkafka', function () {
     should(received.TB.length).equal(3);
     should(received.TB[2]).properties(msgA3);
 
-    await consumerA.stop();
+    await consumerA.stop(); // release resources
     await consumerA.disconnect();
     await consumerB.disconnect();
     await producer.disconnect();
@@ -329,7 +328,7 @@ describe('TESTTESTkafka', function () {
     /* await */ r4r.start(); // do not await!
     await new Promise((res) => setTimeout(() => res(), msSleep * 3));
     should(r4r).properties({ running: true, eachMessage });
-    await r4r.stop();
+    await r4r.stop(); // release resources
     should(r4r).properties({ running: false, eachMessage });
     should(r4r.iterations).above(1).below(4);
     should(consumed.length).equal(2);
@@ -338,39 +337,35 @@ describe('TESTTESTkafka', function () {
     consumer.disconnect();
     producer.disconnect();
   });
-  it('run', async () => {
+  it('TESTTESTrun', async () => {
     const msg = 'tk3a.run';
-    const dbg = 0;
+    const dbg = 1;
     const ka = new Kafka1();
     const groupId = 'trun.G1';
+    const topic = 'tc6r.run.TA';
+    const key = 'tc6r.run.KA';
+    const msgA1 = { key, value: 'tc6r.run.V1' };
+    const msgA2 = { key, value: 'c6r.run.V1' };
+    const msgA3 = { key, value: 'c6r.run.V1' };
+    dbg && cc.tag1(msg, 'START');
+    let consumed = []; // save each message consumed for testing
+    let eachMessage = async (cfg = {}) => {
+      let { topic, partition, message, heartbeat, pause } = cfg;
+      consumed.push(message);
+      dbg>1 && cc.tag(msg, 'eachMessage', message);
+    };
+
+    // STEP1: send first two messages BEFORE consumer is created
     const producer = ka.producer();
-    const topic = 'tR4R.TA';
-    const msgA1 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA1' };
-    const msgA2 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA2' };
-    const msgA3 = { key: 'tr4rMsgKeyA', value: 'tr4rMsgValueA3' };
-
     await producer.connect();
-
-    // STEP1: send first two messages before consumer is created
     await producer.send({ topic, messages: [msgA1, msgA2] });
 
     // STEP2: create and run consumer to receive messages
     const consumer = ka.consumer({ groupId });
     await consumer.connect();
     await consumer.subscribe({ topics: [topic], fromBeginning: true });
-    let consumed = [];
-    let eachMessage = async ({
-      topic,
-      partition,
-      message,
-      heartbeat,
-      pause,
-    }) => {
-      consumed.push(message);
-      dbg && cc.tag(msg, 'eachMessage', message);
-    };
     let _msSleep = 1;
-    consumer.run({ eachMessage, _msSleep });
+    await consumer.run({ eachMessage, _msSleep });
     should(consumer).properties({ running: true });
     await new Promise((res) => setTimeout(() => res(), _msSleep * 3));
     should(consumed.length).equal(2);
@@ -383,9 +378,10 @@ describe('TESTTESTkafka', function () {
     should.deepEqual(consumed, [msgA1, msgA2, msgA3]);
 
     // STEP4: shutdown kafka
-    await consumer.stop();
+    await consumer.stop(); // release resources
     should(consumer).properties({ running: false });
     consumer.disconnect();
     producer.disconnect();
+    dbg && cc.tag1(msg, 'END');
   });
 });

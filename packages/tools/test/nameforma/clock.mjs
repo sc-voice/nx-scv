@@ -19,7 +19,7 @@ const {
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
 
-describe('TESTTESTclock', function () {
+describe('clock', function () {
   this.timeout(4 * heartbeatInterval);
   it('ctor', async () => {
     const msg = 'ctor';

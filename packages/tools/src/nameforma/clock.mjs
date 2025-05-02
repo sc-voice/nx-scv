@@ -8,6 +8,7 @@ const { cc } = ColorConsole;
 let HEARTBEAT_INTERVAL = 3000; // default
 
 export class Clock {
+  static #instances = 0;
   static #privateCtor = false;
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
@@ -15,11 +16,18 @@ export class Clock {
     if (!Clock.#privateCtor) {
       throw Error(`${msg} create()!`);
     }
-    let { msIdle = 100 } = cfg;
-    this.running = false;
-    this.timeIn = 0;
-    this.timeOut = 0;
-    this.msIdle = msIdle;
+    Clock.#instances++;
+    let { 
+      id = 'C3K-'+String(Clock.#instances).padStart(3, '0'), 
+      msIdle = 100,
+    } = cfg;
+    Object.assign(this, {
+      id,
+      running: false,
+      timeIn: 0,
+      timeOut: 0,
+      msIdle,
+    });
     Object.defineProperty(this, 'generator', {
       writable: true,
       value: null,

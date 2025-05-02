@@ -36,7 +36,9 @@ describe('timers', () => {
       iterations: 1,
       topic: 't3r.event',
     });
-    should(t1.created).above(created-1).below(created+2);
+    should(t1.created)
+      .above(created - 1)
+      .below(created + 2);
   });
   it('t3r.update', async () => {
     let iterations = 4;
@@ -103,7 +105,7 @@ describe('timers', () => {
     should(t4s.consumer).instanceOf(Consumer);
     should(t4s.producer).instanceOf(Producer);
   });
-  it('TESTTESTlist', async () => {
+  it('list', async () => {
     const msg = 'tt4s.list';
     const dbg = 0;
     const topic = 'tt4s.list';
