@@ -62,7 +62,6 @@ export class Clock {
       }
     }
     dbg && cc.ok1(msg + OK, 'stopped');
-    return clock;
   }
 
   async next() {
@@ -79,7 +78,7 @@ export class Clock {
     return result;
   }
 
-  stop() {
+  async stop() {
     this.running = false;
     if (this.generator) {
       this.generator = null;

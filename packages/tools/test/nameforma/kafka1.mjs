@@ -194,22 +194,22 @@ describe('kafka', function () {
 
     // Step2: send msgA1
     if (dbg) {
-      let { _messageClock: m10kA } = consumerA;
-      should(m10kA.timeOut).equal(m10kA.timeIn);
+      let { _sendClock: s7kA } = consumerA;
+      should(s7kA.timeOut).equal(s7kA.timeIn);
     }
     let send1 = producer.send({ topic: topicT, messages: [msgA1] });
     await send1;
-    let m10kA = dbg ? consumerA._messageClock : undefined;
+    let s7kA = dbg ? consumerA._sendClock : undefined;
     if (dbg) {
-      m10kA.running = true; // simulate start
-      should(m10kA.timeIn).above(m10kA.timeOut);
-      should(Date.now() - m10kA.timeIn)
+      s7kA.running = true; // simulate start
+      should(s7kA.timeIn).above(s7kA.timeOut);
+      should(Date.now() - s7kA.timeIn)
         .above(-1)
         .below(10);
       cc.fyi(msg + 0.11, 'before next()');
-      await m10kA.next();
+      await s7kA.next();
       cc.fyi(msg + 0.12, 'after next()');
-      should(m10kA.timeOut).equal(m10kA.timeIn);
+      should(s7kA.timeOut).equal(s7kA.timeIn);
     }
     should.deepEqual(await admin.listTopics(), [topicT]);
     let send2 = producer.send();
@@ -237,9 +237,9 @@ describe('kafka', function () {
 
     // STEP3: consumerB subscribes AFTER msgA1 is sent but does not know it
     await consumerB.subscribe({ topics: [topicT], fromBeginning: true });
-    let m10kB = dbg ? consumerB._messageClock : undefined;
+    let s7kB = dbg ? consumerB._sendClock : undefined;
     if (dbg) {
-      m10kB.running = true; // simulate start
+      s7kB.running = true; // simulate start
     }
     let { committed: committedA1 } = await consumerA._c6rProcess({
       eachMessage: onEachMessage('TA'),
@@ -247,7 +247,7 @@ describe('kafka', function () {
     should(received?.TA?.length).equal(1);
     should(received.TA[0]).properties(msgA1);
     should(committedA1).equal(1);
-    dbg && should(m10kB.timeIn).equal(0); // consumerB is not running
+    dbg && should(s7kB.timeIn).equal(0); // consumerB is not running
 
     // STEP4: send msgA2 and consumerB is "aware" of it but not running.
     let res4 = producer.send({ topic: topicT, messages: [msgA2] });
@@ -259,7 +259,7 @@ describe('kafka', function () {
     should(received.TA.length).equal(2);
     should(received.TA[1]).properties(msgA2);
     should(committedA2).equal(1);
-    dbg && should(m10kB.timeIn).above(m10kB.timeOut); // aware but not running
+    dbg && should(s7kB.timeIn).above(s7kB.timeOut); // aware but not running
     should(received.TB).equal(undefined);
 
     // STEP5: consumerB wakes up and processes both messages
@@ -269,8 +269,8 @@ describe('kafka', function () {
     should(received.TB[0]).properties(msgA1);
     should(received.TB[1]).properties(msgA2);
     should(committedB1).equal(2);
-    // m10kB clock didn't change because there were no new messages
-    dbg && should(m10kB.timeIn).above(m10kB.timeOut);
+    // s7kB clock didn't change because there were no new messages
+    dbg && should(s7kB.timeIn).above(s7kB.timeOut);
 
     // STEP6: third message is sent to both conumsers
     let res6 = producer.send({ topic: topicT, messages: [msgA3] });

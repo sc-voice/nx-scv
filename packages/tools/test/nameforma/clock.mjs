@@ -17,9 +17,9 @@ const {
 } = Unicode.LINUX_STYLE;
 
 const PRODUCTION = false;
-const heartbeatInterval = PRODUCTION ? 3000 : 1000;
+const heartbeatInterval = PRODUCTION ? 3000 : 100;
 
-describe('clock', function () {
+describe('TESTTESTclock', function () {
   this.timeout(4 * heartbeatInterval);
   it('ctor', async () => {
     const msg = 'ctor';

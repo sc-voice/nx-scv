@@ -145,6 +145,7 @@ export class _Runner {
       msSleep,
       onCrash,
     } = cfg;
+    let { _sendClock } = consumer;
 
     if (!consumer) {
       throw new Error(`${msg} consumer?`);
@@ -191,21 +192,21 @@ export class _Runner {
     let crashed = false;
     while (this.running) {
       try {
+        let { committed } = await consumer._c6rProcess({ eachMessage });
         this.iterations++;
-        await consumer._c6rProcess({ eachMessage });
         msSleep &&
           (await new Promise((res) => setTimeout(() => res(), msSleep)));
-        dbg > 2 && cc.ok(msg, 'iterations:', this.iterations);
+        dbg > 1 && 
+          cc.ok(msg, ...cc.props({committed, iterations: this.iterations}));
       } catch (e) {
-        await this.stop();
         cc.bad1(`${msg} CRASH`, e.message);
         crashed = true;
+        await this.stop();
         this.onCrash && this.onCrash(e);
       }
     }
 
-    dbg &&
-      (crashed ? cc.bad1(msg, 'crashed') : cc.ok1(msg + OK, 'stopped'));
+    dbg && !crashed && cc.ok1(msg + OK, 'stopped');
 
     return false; // resolved when no longer running
   }
@@ -302,8 +303,8 @@ export class Consumer extends Role {
       writable: true,
       value: null,
     });
-    let _messageClock = Clock.create({msIdle: _msIdle});
-    Object.defineProperty(this, '_messageClock', {value: _messageClock});
+    let _sendClock = Clock.create({msIdle: _msIdle});
+    Object.defineProperty(this, '_sendClock', {value: _sendClock});
 
     this.eachMessage = null;
 
@@ -374,7 +375,7 @@ export class Consumer extends Role {
 
   async _c6rProcess(cfg = {}) {
     const msg = 'c6r._c6rProcess';
-    const dbg = C6R.PROCESS_CONSUMER;
+    const dbg = C6R.PROCESS;
     let { kafka, _id, groupId } = this;
     let group = this._consumerGroup();
     let { eachMessage } = cfg;
@@ -489,7 +490,7 @@ export class Producer extends Role {
     let consumers = [...topic._consumerMap.keys()];
     for (let i = 0; i < consumers.length; i++) {
       let c6r = consumers[i];
-      c6r._messageClock.update(Date.now());
+      c6r._sendClock.update(Date.now());
     }
 
     if (dbg) {

@@ -33,6 +33,7 @@ export const DBG = {
   N8A: {
     R4R: {
       CTOR: 1,
+      PROCESS: 2,
       START: 1,
       STOP: 1,
     },
@@ -46,7 +47,7 @@ export const DBG = {
       CTOR: 2,
       RUN: 1,
       SUBSCRIBE: 1,
-      PROCESS_CONSUMER: 1,
+      PROCESS: 0,
     },
   },
   T3R_CTOR: 0,
