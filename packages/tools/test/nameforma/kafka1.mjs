@@ -337,7 +337,7 @@ describe('kafka', function () {
     consumer.disconnect();
     producer.disconnect();
   });
-  it('TESTTESTrun', async () => {
+  it('run', async () => {
     const msg = 'tc6r_run';
     const dbg = 1;
     const ka = new Kafka1();

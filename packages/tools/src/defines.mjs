@@ -21,7 +21,6 @@ export const DBG = {
   K3A_FETCH_OFFSETS: 0,
   K3A_GROUP_OF_ID: 0,
   K3A_MESSAGE_CLOCK: 0,
-  K3A_R4R_RUNNING: 0,
   K3A_SEND: 0,
   K3A_TOPIC_OF_NAME: 0,
   K3A_R4R_START: 2,
@@ -31,31 +30,41 @@ export const DBG = {
   ML_DOC_VECTORS: 0, // 'mn8:3.4',
   MN8_MOHAN: 0,
   N8A: {
+    T4S: { // Timers
+      CTOR: 0,
+      EACH_MESSAGE: 2,
+      ON_LIST: 0,
+      START: 2,
+      STOP: 2,
+    },
     R4R: {
+      // _Runner
       CTOR: 1,
       PROCESS: 2,
       START: 1,
-      STOP: 1,
+      STOP: 2,
     },
     C3K: {
-      CREATE: 1,
-      CTOR: 1,
-      NEXT: 1,
-      GENERATOR: 3,
+      // Clock
+      CREATE: 0,
+      START: 0,
+      CTOR: 0,
+      NEXT: 0,
+      GENERATOR: 0,
+      UPDATE: 0,
     },
     C6R: {
+      // Consumer
       CTOR: 2,
       RUN: 1,
       SUBSCRIBE: 1,
-      PROCESS: 0,
+      PROCESS: 3,
+    },
+    T3R: { // Timer
+      CTOR: 0,
+      UPDATE: 0,
     },
   },
-  T3R_CTOR: 0,
-  T3R_UPDATE: 0,
-  T4S_CTOR: 0,
-  T4S_EACH_MESSAGE: 0,
-  T4S_ON_LIST: 0,
-  T4S_START: 2,
   W7E_BOW_OF_TEXT: 0,
   WORD_MAP_TRANFORMER: 0,
 };

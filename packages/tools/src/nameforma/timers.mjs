@@ -3,6 +3,7 @@ const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
 import { DBG } from '../defines.mjs';
+const { T3R, T4S } = DBG.N8A;
 import { Admin, Consumer, Producer } from './kafka1.mjs';
 
 let timerInstances = 0;
@@ -10,7 +11,7 @@ let timerInstances = 0;
 export class Timer {
   constructor(cfg = {}) {
     const msg = 't3r.ctor';
-    const dbg = DBG.T3R_CTOR;
+    const dbg = T3R.CTOR;
     let {
       count = 0, // iterations completed
       created = Date.now(),
@@ -41,7 +42,7 @@ export class Timer {
 
   async update(cfg = {}) {
     const msg = 't3r.update';
-    const dbg = DBG.T3R_UPDATE;
+    const dbg = T3R.UPDATE;
     let { count, created, delay, duration, iterations, name, topic } =
       this;
     let { now = Date.now(), key = name, producer } = cfg;
@@ -80,7 +81,7 @@ export class Timer {
 export class Timers {
   constructor(cfg = {}) {
     const msg = 't4s.ctor';
-    const dbg = DBG.T4S_CTOR;
+    const dbg = T4S.CTOR;
     let {
       kafka,
       groupId = 'g5d.timers',
@@ -114,7 +115,7 @@ export class Timers {
 
   async onList(message) {
     const msg = 't4s.onList';
-    const dbg = DBG.T4S_ON_LIST;
+    const dbg = T4S.ON_LIST;
     let { timerMap } = this;
     let { action } = message;
     let timers = Object.keys(timerMap);
@@ -123,7 +124,7 @@ export class Timers {
 
   async eachMessage(req) {
     const msg = 't4s.eachMessage';
-    const dbg = DBG.T4S_EACH_MESSAGE;
+    const dbg = T4S.EACH_MESSAGE;
     let { timerMap } = this;
     let { topic, partition, message } = req;
     let { action } = message;
@@ -142,10 +143,11 @@ export class Timers {
     }
   }
 
-  async start() {
+  async start(cfg={}) {
     const msg = 't4s.start';
-    const dbg = DBG.T4S_START;
+    const dbg = T4S.START;
     let { topic, groupId, consumer } = this;
+    let { _msSleep } = cfg;
 
     dbg > 1 && cc.fyi(msg + 1.1, groupId, 'subscribe', topic);
     await consumer.subscribe({ topics: [topic] });
@@ -153,12 +155,15 @@ export class Timers {
     dbg && cc.fyi(msg + 1.2, 'run:', groupId, 'topic:', topic);
     return consumer.run({
       eachMessage: (req) => this.eachMessage(req),
+      _msSleep,
     });
   }
 
   async stop() {
+    const msg = 't4s.stop';
+    const dbg = T4S.STOP;
     await this.consumer.stop();
     this.consumer.disconnect();
     this.producer.disconnect();
   }
-}
+} // Timers

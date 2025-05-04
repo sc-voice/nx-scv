@@ -107,19 +107,20 @@ describe('timers', () => {
   });
   it('list', async () => {
     const msg = 'tt4s.list';
-    const dbg = 0;
+    const dbg = 1;
     const topic = 'tt4s.list';
     dbg && cc.tag1(msg, 'begin');
     let t4s = new Timers({ kafka, topic });
     dbg > 1 && cc.fyi(msg + 1.1, 'start');
-    t4s.start(); // do not await
+    t4s.start({_msSleep:10}); // do not await
     dbg > 1 && cc.fyi(msg + 1.2, 'list');
     let producer = kafka.producer();
     await producer.connect();
     let msgList = { action: 'list' };
     await producer.send({ topic, messages: [msgList] });
-    dbg && cc.tag1(msg, 'end');
     await t4s.stop();
+    dbg > 1 && cc.tag1(msg, 'timers stopped');
     await producer.disconnect();
+    dbg && cc.tag1(msg, 'end');
   });
 });

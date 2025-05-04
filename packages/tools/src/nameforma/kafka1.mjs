@@ -194,12 +194,14 @@ export class _Runner {
       try {
         let { committed } = await consumer._c6rProcess({ eachMessage });
         this.iterations++;
+        dbg > 1 && cc.ok1(msg, ...cc.props({msSleep}));
         msSleep &&
           (await new Promise((res) => setTimeout(() => res(), msSleep)));
         dbg > 1 && 
           cc.ok(msg, ...cc.props({committed, iterations: this.iterations}));
       } catch (e) {
         cc.bad1(`${msg} CRASH`, e.message);
+        console.log(msg, e);
         crashed = true;
         await this.stop();
         this.onCrash && this.onCrash(e);
@@ -229,8 +231,9 @@ export class _Runner {
     const msg = 'r4r.stop';
     const dbg = R4R.STOP;
     this.running = false;
+    dbg>1 && cc.ok(msg + OK, 'stopping...');
+    let res = await this.resProcess; // false when resolved
     dbg && cc.ok1(msg + OK, 'stopped');
-    return this.resProcess; // false when resolved
   }
 } // _Runner
 
@@ -303,7 +306,7 @@ export class Consumer extends Role {
       writable: true,
       value: null,
     });
-    let _sendClock = Clock.create({msIdle: _msIdle});
+    let _sendClock = new Clock({msIdle: _msIdle});
     Object.defineProperty(this, '_sendClock', {value: _sendClock});
 
     this.eachMessage = null;
@@ -382,30 +385,38 @@ export class Consumer extends Role {
     let { _groupOffsetsetsMap } = group;
 
     let committed = 0;
-    for (const offsets of group._offsets()) {
+    let groupOffsets = group._offsets();
+    dbg > 1 && cc.ok(msg, 'groupOffsets:', groupOffsets.length);
+    for (const offsets of groupOffsets) {
       let { topic: topicName, partitions } = offsets;
       let topic = kafka._topicOfName(topicName);
+      dbg > 1 && cc.ok(msg, ' topic:', `${topicName}`);
       for (let i = 0; i < partitions.length; i++) {
         let { offset } = partitions[i];
         let messages = topic.partitions[i]._messages;
-        for (; offset < messages.length; offset++) {
-          let message = messages[offset];
-          if (message) {
-            dbg > 1 && cc.fyi(msg, `${topicName}.${i}:`, message);
-            await eachMessage({
-              topic: topicName,
-              partition: i,
-              message,
-              heartbeat: this.heartbeat,
-              pause: this.pause,
-            });
-            committed++;
-          } else {
-            cc.bad(msg, 'empty message?');
-          }
-        } // for
-        partitions[i].offset = offset; // commit
-      }
+        if (offset < messages.length) {
+          dbg > 1 && cc.ok(msg, '  partition:', `${topicName}.${i}`);
+          for (; offset < messages.length; offset++) {
+            let message = messages[offset];
+            if (message) {
+              dbg > 2 && cc.ok(msg, '   eachMessage:', message);
+              await eachMessage({
+                topic: topicName,
+                partition: i,
+                message,
+                heartbeat: this.heartbeat,
+                pause: this.pause,
+              });
+              committed++;
+            } else {
+              cc.bad(msg, 'empty message?');
+            }
+          } // for
+          partitions[i].offset = offset; // commit
+        } else {
+          dbg > 1 && cc.fyi(msg, 'no new messages:', `${topicName}.${i}`);
+        }
+      } // partitions
     }
 
     dbg && cc.ok1(msg + OK, ...cc.props({ _id, committed, groupId }));
@@ -424,6 +435,7 @@ export class Consumer extends Role {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
+    await this._sendClock.start();
     this._runner = new _Runner({
       kafka,
       eachMessage,
@@ -438,7 +450,12 @@ export class Consumer extends Role {
   }
 
   async stop() {
-    this._runner && this._runner.stop();
+    if (this._runner) {
+      await this._runner.stop();
+    }
+    if (this._sendClock) {
+      await this._sendClock.stop();
+    }
   }
 } // Consumer
 

@@ -9,17 +9,14 @@ let HEARTBEAT_INTERVAL = 3000; // default
 
 export class Clock {
   static #instances = 0;
-  static #privateCtor = false;
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
     const dbg = C3K.CTOR;
-    if (!Clock.#privateCtor) {
-      throw Error(`${msg} create()!`);
-    }
     Clock.#instances++;
     let {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       msIdle = 100,
+      period = 1000, // ms
     } = cfg;
     Object.assign(this, {
       id,
@@ -27,6 +24,12 @@ export class Clock {
       timeIn: 0,
       timeOut: 0,
       msIdle,
+      created: Date.now(),
+      period,
+    });
+    Object.defineProperty(this, 'interval', {
+      writable: true,
+      value: null,
     });
     Object.defineProperty(this, 'generator', {
       writable: true,
@@ -35,33 +38,40 @@ export class Clock {
     dbg && cc.ok1(msg + OK, ...cc.props(this));
   }
 
-  static create(cfg) {
-    const msg = 'c3k.create';
-    const dbg = C3K.CREATE;
-    Clock.#privateCtor = true;
-    let clock = new Clock(cfg);
-    Clock.#privateCtor = false;
-    clock.generator = Clock.#generator(clock);
-    dbg && cc.ok1(msg + OK);
-    return clock;
-  }
-
   static async *#generator(clock) {
     const msg = 'c3k.generator';
     const dbg = C3K.GENERATOR;
-    clock.running = true;
-    dbg > 1 && cc.ok(msg, 'started...');
     while (clock.running) {
       if (clock.timeIn === clock.timeOut) {
-        dbg > 2 && cc.fyi(msg + 0.1, 'zzzz', clock.msIdle);
+        dbg > 1 && cc.fyi(msg + 0.1, 'idle:', clock.msIdle);
         await new Promise((res) => setTimeout(() => res(), clock.msIdle));
       } else {
         clock.timeOut = clock.timeIn;
-        dbg > 2 && cc.ok1(msg + OK, 'before yield', clock.timeOut);
+        dbg > 1 && cc.ok1(msg + OK, 'before yield', clock.timeOut);
         yield clock.timeOut;
       }
     }
     dbg && cc.ok1(msg + OK, 'stopped');
+  }
+
+  async start() {
+    const msg = 'c3k.start';
+    const dbg = C3K.START;
+    if (this.running) {
+      cc.bad1(msg, 'running?');
+      throw new Error(`${msg} running?`);
+    }
+    this.running = true;
+    this.generator = Clock.#generator(this);
+    if (this.period > 0) {
+      dbg > 1 && cc.fyi1(msg + 2.1, 'setInterval:', Date.now());
+      this.interval = setInterval(() => {
+        let now = Date.now();
+        dbg > 1 && cc.fyi1(msg + 2, 'autoUpdate:', now);
+        this.update(now);
+      }, this.period);
+    }
+    dbg && cc.ok1(msg + OK, 'started:', this.id);
   }
 
   async next() {
@@ -80,6 +90,10 @@ export class Clock {
 
   async stop() {
     this.running = false;
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = undefined;
+    }
     if (this.generator) {
       this.generator = null;
     }
@@ -88,7 +102,11 @@ export class Clock {
   update(timestamp = Date.now()) {
     const msg = 'c3k.update';
     const dbg = C3K.UPDATE;
-    this.timeIn = timestamp;
-    dbg && cc.ok1(msg + OK, timestamp);
+    if (timestamp < this.timeIn) {
+      dbg && cc.ok1(msg, 'ignored:', timestamp); // monotonic updates
+    } else {
+      this.timeIn = timestamp;
+      dbg && cc.ok1(msg + OK, timestamp);
+    }
   }
 } // Clock
