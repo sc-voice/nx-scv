@@ -1,24 +1,12 @@
-import util from 'node:util';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { Clock, _Runner, Kafka1, Producer, Consumer, Admin } = NameForma;
+const { Clock } = NameForma;
 import { Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
-const { Unicode, ColorConsole, List, ListFactory } = Text;
+const { ColorConsole } = Text;
 const { cc } = ColorConsole;
-const { GREEN, BLUE, MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
-const {
-  UNDERLINE,
-  NO_UNDERLINE,
-  STRIKETHROUGH,
-  NO_STRIKETHROUGH,
-  BOLD,
-  NO_BOLD,
-} = Unicode.LINUX_STYLE;
 
-describe('clock', () => {
-  const msg = 'tclok';
-  cc.tag1(msg, 'TOOD'); return;
+describe('TESTTESTclock', () => {
+  const msg = 'tclock';
   it('ctor', async () => {
     const msg = 'tc3k.ctor';
     const dbg = 1;
