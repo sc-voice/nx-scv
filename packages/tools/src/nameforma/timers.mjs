@@ -143,7 +143,7 @@ export class Timers {
     }
   }
 
-  async start(cfg={}) {
+  async start(cfg = {}) {
     const msg = 't4s.start';
     const dbg = T4S.START;
     let { topic, groupId, consumer } = this;

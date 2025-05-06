@@ -112,7 +112,7 @@ describe('timers', () => {
     dbg && cc.tag1(msg, 'begin');
     let t4s = new Timers({ kafka, topic });
     dbg > 1 && cc.fyi(msg + 1.1, 'start');
-    t4s.start({_msSleep:10}); // do not await
+    t4s.start({ _msSleep: 10 }); // do not await
     dbg > 1 && cc.fyi(msg + 1.2, 'list');
     let producer = kafka.producer();
     await producer.connect();

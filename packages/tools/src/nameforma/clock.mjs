@@ -15,8 +15,8 @@ export class Clock {
     Clock.#instances++;
     let {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
-      msIdle = 100,
       period = 1000, // ms
+      msIdle = period/2,
     } = cfg;
     Object.assign(this, {
       id,
@@ -24,8 +24,8 @@ export class Clock {
       timeIn: 0,
       timeOut: 0,
       msIdle,
-      created: Date.now(),
       period,
+      startTime: undefined,
     });
     Object.defineProperty(this, 'interval', {
       writable: true,
@@ -42,49 +42,69 @@ export class Clock {
     const msg = 'c3k.generator';
     const dbg = C3K.GENERATOR;
     while (clock.running) {
+      dbg > 1 && cc.ok(msg + 2.1, 'running', clock.timeOut);
       if (clock.timeIn === clock.timeOut) {
-        dbg > 1 && cc.fyi(msg + 0.1, 'idle:', clock.msIdle);
-        await new Promise((res) => setTimeout(() => res(), clock.msIdle));
+        yield new Promise((res) => {
+          setTimeout(() => {
+            dbg && cc.ok1(msg + OK, '==timeOut:', clock.timeOut);
+            res(clock.timeOut);
+          });
+        }, clock.msIdle);
       } else {
         clock.timeOut = clock.timeIn;
-        dbg > 1 && cc.ok1(msg + OK, 'before yield', clock.timeOut);
+        dbg && cc.ok1(msg+OK, '++timeOut:', clock.timeOut);
         yield clock.timeOut;
       }
     }
     dbg && cc.ok1(msg + OK, 'stopped');
   }
 
-  async start() {
+  async start(cfg={}) {
     const msg = 'c3k.start';
     const dbg = C3K.START;
+    let { startTime = Date.now() } = this;
     if (this.running) {
-      cc.bad1(msg, 'running?');
-      throw new Error(`${msg} running?`);
+      dbg && cc.bad1(msg, 'ignored');
+      return;
     }
+
+    if ( cfg.startTime != null) {
+      startTime = cfg.startTime;
+    }
+    this.startTime = startTime;
+
     this.running = true;
+    this.update(startTime);
     this.generator = Clock.#generator(this);
     if (this.period > 0) {
-      dbg > 1 && cc.fyi1(msg + 2.1, 'setInterval:', Date.now());
+      dbg > 1 && cc.ok(msg + 2.1, 'setInterval:', Date.now());
       this.interval = setInterval(() => {
         let now = Date.now();
-        dbg > 1 && cc.fyi1(msg + 2, 'autoUpdate:', now);
-        this.update(now);
+        dbg > 1 && cc.ok(msg + 2, 'autoUpdate:', now);
+        this.update(now-startTime);
       }, this.period);
     }
     dbg && cc.ok1(msg + OK, 'started:', this.id);
+
+    return this;
   }
 
   async next() {
     const msg = 'c3k.next';
     const dbg = C3K.NEXT;
-    let { generator } = this;
-    let result = { done: true };
-    if (generator) {
-      result = await (generator && generator.next());
-      dbg && cc.ok1(msg + 9.1 + OK, result);
-    } else {
-      dbg && cc.ok1(msg + 9.2 + OK, result);
+    let { running, timeOut, generator } = this;
+    if (!running) {
+      return { done: false, value: timeOut }
     }
+    if (generator == null) {
+      dbg && cc.ok1(msg + 9.1 + OK, 'no-generator:', result);
+      return { done: true };
+    }
+
+    dbg > 1 && cc.ok(msg + 2.1, ' g7r.next...');
+    let result = await generator.next();
+    dbg && cc.ok1(msg + 9.2 + OK, '...g7r.next=>', result);
+
     return result;
   }
 

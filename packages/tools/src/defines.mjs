@@ -30,27 +30,13 @@ export const DBG = {
   ML_DOC_VECTORS: 0, // 'mn8:3.4',
   MN8_MOHAN: 0,
   N8A: {
-    T4S: { // Timers
-      CTOR: 0,
-      EACH_MESSAGE: 2,
-      ON_LIST: 0,
-      START: 2,
-      STOP: 2,
-    },
-    R4R: {
-      // _Runner
-      CTOR: 1,
-      PROCESS: 2,
-      START: 1,
-      STOP: 2,
-    },
     C3K: {
       // Clock
       CREATE: 0,
-      START: 0,
-      CTOR: 0,
-      NEXT: 0,
-      GENERATOR: 0,
+      START: 1,
+      CTOR: 1,
+      NEXT: 1,
+      GENERATOR: 1,
       UPDATE: 0,
     },
     C6R: {
@@ -60,7 +46,23 @@ export const DBG = {
       SUBSCRIBE: 1,
       PROCESS: 3,
     },
-    T3R: { // Timer
+    R4R: {
+      // _Runner
+      CTOR: 1,
+      PROCESS: 2,
+      START: 1,
+      STOP: 2,
+    },
+    T4S: {
+      // Timers
+      CTOR: 0,
+      EACH_MESSAGE: 2,
+      ON_LIST: 0,
+      START: 2,
+      STOP: 2,
+    },
+    T3R: {
+      // Timer
       CTOR: 0,
       UPDATE: 0,
     },
