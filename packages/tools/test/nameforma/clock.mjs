@@ -41,7 +41,7 @@ describe('clock', () => {
 
     // started clocks know the current time
     let resStart = await clock.start();
-    should(Math.abs(now - clock.startTime)).below(msTolerance);
+    should(Math.abs(now - clock.now())).below(msTolerance);
     should(clock).properties({ period, running: true });
     should(resStart).equal(clock);
 
@@ -60,29 +60,6 @@ describe('clock', () => {
     should(Math.abs(now - res2.value)).below(msTolerance);
 
     dbg && cc.tag1(msg, 'END');
-  });
-  it('startTime', async() => {
-    const msg = 'tc3k.startTime';
-    const dbg = 1;
-    dbg && cc.tag(msg, 'START');
-    const period = 50;
-    const clock = new Clock({period});
-
-    let now = Date.now();
-    should(clock).properties({ period, running: false });
-
-    // started clocks know the current time
-    let resStart = await clock.start();
-    should(Math.abs(now - clock.startTime)).below(2);
-    should(clock).properties({ period, running: true });
-
-    // started clocks can return the current time
-    await new Promise(res=>setTimeout(()=>res(), 100));
-    let res1 = await clock.next();
-    should(res1.done).equal(false);
-    should(Math.abs(now - res1.value)).below(2);
-
-    dbg && cc.tag(msg, 'END');
   });
   it('create', async () => {
     const msg = 'tc3k.create';

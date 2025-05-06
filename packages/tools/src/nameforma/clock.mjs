@@ -7,8 +7,12 @@ const { cc } = ColorConsole;
 
 let HEARTBEAT_INTERVAL = 3000; // default
 
+function DEFAULT_TIME() { return Date.now(); }
+
 export class Clock {
   static #instances = 0;
+  #referenceBase;
+  #clockBase;
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
     const dbg = C3K.CTOR;
@@ -17,6 +21,8 @@ export class Clock {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       period = 1000, // ms
       msIdle = period/2,
+      clockBase, // clock time when started (default: referenceTime())
+      referenceTime = () => Date.now(),
     } = cfg;
     Object.assign(this, {
       id,
@@ -24,9 +30,10 @@ export class Clock {
       timeIn: 0,
       timeOut: 0,
       msIdle,
+      referenceTime, 
       period,
-      startTime: undefined,
     });
+    this.#clockBase = clockBase;
     Object.defineProperty(this, 'interval', {
       writable: true,
       value: null,
@@ -59,29 +66,33 @@ export class Clock {
     dbg && cc.ok1(msg + OK, 'stopped');
   }
 
-  async start(cfg={}) {
+  now() {
+    let { referenceTime } = this;
+    let elapsed = referenceTime() - this.#referenceBase;
+    return elapsed + this.#clockBase;
+  }
+
+  async start() {
     const msg = 'c3k.start';
     const dbg = C3K.START;
-    let { startTime = Date.now() } = this;
+    let { referenceTime } = this;
+    let now = referenceTime();
     if (this.running) {
       dbg && cc.bad1(msg, 'ignored');
       return;
     }
 
-    if ( cfg.startTime != null) {
-      startTime = cfg.startTime;
-    }
-    this.startTime = startTime;
-
+    this.#clockBase = this.#clockBase == null ? now : this.#clockBase;
+    this.#referenceBase = now;
     this.running = true;
-    this.update(startTime);
+    this.update(this.now());
     this.generator = Clock.#generator(this);
     if (this.period > 0) {
       dbg > 1 && cc.ok(msg + 2.1, 'setInterval:', Date.now());
       this.interval = setInterval(() => {
-        let now = Date.now();
+        let now = this.now();
         dbg > 1 && cc.ok(msg + 2, 'autoUpdate:', now);
-        this.update(now-startTime);
+        this.update(now);
       }, this.period);
     }
     dbg && cc.ok1(msg + OK, 'started:', this.id);
