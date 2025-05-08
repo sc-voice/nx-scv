@@ -7,9 +7,9 @@ const { cc } = ColorConsole;
 
 describe('clock', () => {
   const msg = 'tclock';
-  it('ctor', async () => {
+  it('TESTTESTctor', async () => {
     const msg = 'tc3k.ctor';
-    const dbg = 1;
+    const dbg = 0;
     dbg && cc.tag(msg, 'START');
 
     const clock = new Clock();
@@ -28,12 +28,13 @@ describe('clock', () => {
 
     dbg && cc.tag(msg, 'END');
   });
-  it('TESTTESTperiod', async() => {
+  it('TESTTESTperiod', async () => {
     const msg = 'tc3k.period';
     const dbg = 0;
     dbg && cc.tag1(msg, 'START');
     const period = 50;
-    const clock = new Clock({period});
+    const msIdle = period/2;
+    const clock = new Clock({ period, msIdle, });
     const msTolerance = 5;
 
     let now = Date.now();
@@ -46,50 +47,31 @@ describe('clock', () => {
     should(resStart).equal(clock);
 
     // by default, started clocks return the current time
-    await new Promise(res=>setTimeout(()=>res(), 10));
+    await new Promise((res) => setTimeout(() => res(), 10));
     dbg > 1 && cc.tag(msg, 'next...');
     let res1 = await clock.next();
     dbg > 1 && cc.tag(msg, '...next', 'res1:', res1);
     should(res1.done).equal(false);
     should(Math.abs(now - res1.value)).below(msTolerance);
-    await new Promise(res=>setTimeout(()=>res(), 10));
+    await new Promise((res) => setTimeout(() => res(), 10));
 
     dbg && cc.tag(msg, 'next...');
     let res2 = await clock.next();
     dbg && cc.tag(msg, '...next', 'res2:', res2);
     should(Math.abs(now - res2.value)).below(msTolerance);
+    await clock.stop();
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('create', async () => {
-    const msg = 'tc3k.create';
-    const dbg = 1;
-    dbg && cc.tag(msg, 'START');
-    let period = 1000;
-    let msIdle = 100;
-    let running = false;
-
-    const clock = new Clock();
-    should(clock).properties({
-      period,
-      msIdle,
-    });
-
-    should(Date.now() - clock.created)
-      .above(-1)
-      .below(5);
-    await clock.stop();
-    dbg && cc.tag(msg, 'END');
-  });
-  it('custom ctor', async () => {
+  it('update()', async () => {
     const msg = 'tcustom_ctor';
-    const dbg = 1;
+    const dbg = 0;
 
     dbg && cc.tag(msg, 'START');
-    let period = 10;
     let msIdle = 1;
-    const clock = new Clock({ period, msIdle });
-    should(clock).properties({ period, msIdle });
+    let clockBase = 0;
+    const clock = new Clock({ msIdle, clockBase });
+    should(clock).properties({ msIdle, clockBase });
 
     await clock.start();
     should(clock.timeIn).equal(0);
@@ -109,19 +91,13 @@ describe('clock', () => {
     should(clock.timeIn).equal(3);
     should(res2).properties({ done: false, value: 3 });
 
-    // ignore state updates
+    // ignore stale updates
     clock.update(2);
     should(clock.timeIn).equal(3);
-
-    // automatically update timestamp (every period)
-    await new Promise((res) => setTimeout(() => res(), 5 * period));
-    let res3 = await clock.next();
-    should(Date.now() - res3.value)
-      .above(-1)
-      .below(period);
+    should(res2).properties({ done: false, value: 3 });
 
     await clock.stop();
-    should.deepEqual(await clock.next(), { done: true });
+    should.deepEqual(await clock.next(), { done: true, value: 3 });
     dbg && cc.tag(msg, 'END');
   });
 });

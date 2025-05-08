@@ -339,7 +339,7 @@ describe('kafka', function () {
   });
   it('run', async () => {
     const msg = 'tc6r_run';
-    const dbg = 1;
+    const dbg = 0;
     const ka = new Kafka1();
     const groupId = `${msg}.G1`;
     const topic = `${msg}.TA`;

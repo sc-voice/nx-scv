@@ -107,7 +107,7 @@ describe('timers', () => {
   });
   it('list', async () => {
     const msg = 'tt4s.list';
-    const dbg = 1;
+    const dbg = 0;
     const topic = 'tt4s.list';
     dbg && cc.tag1(msg, 'begin');
     let t4s = new Timers({ kafka, topic });

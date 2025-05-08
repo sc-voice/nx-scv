@@ -33,33 +33,33 @@ export const DBG = {
     C3K: {
       // Clock
       CREATE: 0,
-      START: 1,
-      CTOR: 1,
-      NEXT: 1,
-      GENERATOR: 1,
+      START: 0,
+      CTOR: 0,
+      NEXT: 0,
+      GENERATOR: 0,
       UPDATE: 0,
     },
     C6R: {
       // Consumer
-      CTOR: 2,
-      RUN: 1,
-      SUBSCRIBE: 1,
-      PROCESS: 3,
+      CTOR: 0,
+      RUN: 0,
+      SUBSCRIBE: 0,
+      PROCESS: 0,
     },
     R4R: {
       // _Runner
-      CTOR: 1,
-      PROCESS: 2,
-      START: 1,
-      STOP: 2,
+      CTOR: 0,
+      PROCESS: 0,
+      START: 0,
+      STOP: 0,
     },
     T4S: {
       // Timers
       CTOR: 0,
-      EACH_MESSAGE: 2,
+      EACH_MESSAGE: 0,
       ON_LIST: 0,
-      START: 2,
-      STOP: 2,
+      START: 0,
+      STOP: 0,
     },
     T3R: {
       // Timer

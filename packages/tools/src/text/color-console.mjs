@@ -55,6 +55,9 @@ class Props {
           case 'object':
             value = value === null ? null : JSON.stringify(value);
             break;
+          case 'function':
+            value = `[Function ${value.name}]`;
+            break;
           default:
             break;
         }

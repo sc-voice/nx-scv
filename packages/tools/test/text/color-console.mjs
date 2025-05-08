@@ -365,4 +365,11 @@ describe('text/color-console', () => {
       ],
     );
   });
+  it('props() function', () => {
+    let obj = {
+      vfun: () => Date.now(),
+    };
+    let props = cc.props(obj);
+    should.deepEqual([...props], ['vfun:', '[Function vfun]']);
+  });
 });
