@@ -5,9 +5,9 @@ import { Text } from '../../index.mjs';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-describe('clock', () => {
+describe('TESTTESTclock', () => {
   const msg = 'tclock';
-  it('TESTTESTctor', async () => {
+  it('ctor', async () => {
     const msg = 'tc3k.ctor';
     const dbg = 0;
     dbg && cc.tag(msg, 'START');
@@ -28,13 +28,13 @@ describe('clock', () => {
 
     dbg && cc.tag(msg, 'END');
   });
-  it('TESTTESTperiod', async () => {
+  it('period', async () => {
     const msg = 'tc3k.period';
     const dbg = 0;
     dbg && cc.tag1(msg, 'START');
     const period = 50;
-    const msIdle = period/2;
-    const clock = new Clock({ period, msIdle, });
+    const msIdle = period / 2;
+    const clock = new Clock({ period, msIdle });
     const msTolerance = 5;
 
     let now = Date.now();
@@ -63,15 +63,17 @@ describe('clock', () => {
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('update()', async () => {
-    const msg = 'tcustom_ctor';
-    const dbg = 0;
+  it('TESTTESTreferenceTime', async () => {
+    const msg = 'treferenceTime';
+    const dbg = 1;
 
     dbg && cc.tag(msg, 'START');
     let msIdle = 1;
-    let clockBase = 0;
-    const clock = new Clock({ msIdle, clockBase });
-    should(clock).properties({ msIdle, clockBase });
+    let refNow = 0;
+    let referenceTime = () => refNow;
+    const clock = new Clock({ msIdle, referenceTime });
+    should(refNow).equal(0);
+    should(clock).properties({ msIdle, referenceTime });
 
     await clock.start();
     should(clock.timeIn).equal(0);

@@ -14,7 +14,6 @@ function DEFAULT_TIME() {
 export class Clock {
   static #instances = 0;
   #referenceBase;
-  #clockBase;
   #done = false;
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
@@ -24,7 +23,6 @@ export class Clock {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       period = 1000, // ms
       msIdle = period / 2,
-      clockBase, // clock time when started (default: referenceTime())
       referenceTime = () => Date.now(),
     } = cfg;
     Object.assign(this, {
@@ -36,7 +34,6 @@ export class Clock {
       referenceTime,
       period,
     });
-    this.#clockBase = clockBase;
     Object.defineProperty(this, 'interval', {
       writable: true,
       value: null,
@@ -68,14 +65,9 @@ export class Clock {
     dbg && cc.ok1(msg + OK, 'stopped');
   }
 
-  get clockBase() {
-    return this.#clockBase;
-  }
-
   now() {
     let { referenceTime } = this;
-    let elapsed = referenceTime() - this.#referenceBase;
-    return elapsed + this.clockBase;
+    return referenceTime();
   }
 
   async start() {
@@ -88,7 +80,6 @@ export class Clock {
       return;
     }
 
-    this.#clockBase = this.#clockBase == null ? now : this.#clockBase;
     this.#referenceBase = now;
     this.update(this.now());
     this.generator = Clock.#generator(this);
