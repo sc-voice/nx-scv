@@ -24,7 +24,6 @@ export class Clock {
     let {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       period = 1000, // ms
-      msIdle = period / 2,
       referenceTime = () => Date.now(),
       idle = async () => {
         await new Promise((res) => setTimeout(() => res(), period / 2));
@@ -35,7 +34,6 @@ export class Clock {
       running: false,
       timeIn: 0,
       timeOut: 0,
-      msIdle,
       period,
     });
     this.#idle = idle;
@@ -57,7 +55,6 @@ export class Clock {
     while (this.running) {
       dbg > 1 && cc.ok(msg + 2.1, 'running', this.timeOut);
       if (this.timeIn === this.timeOut) {
-        //await new Promise((res) => setTimeout(() => res(), this.msIdle));
         await this.#idle();
         if (this.timeIn === this.timeOut) {
           yield this.timeOut;

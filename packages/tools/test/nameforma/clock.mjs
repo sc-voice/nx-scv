@@ -28,13 +28,12 @@ describe('TESTTESTclock', () => {
 
     dbg && cc.tag(msg, 'END');
   });
-  it('period', async () => {
+  it('TESTTESTperiod', async () => {
     const msg = 'tc3k.period';
     const dbg = 0;
     dbg && cc.tag1(msg, 'START');
     const period = 50;
-    const msIdle = period / 2;
-    const clock = new Clock({ period, msIdle });
+    const clock = new Clock({ period });
     const msTolerance = 5;
 
     let now = Date.now();
@@ -68,10 +67,10 @@ describe('TESTTESTclock', () => {
     const dbg = 1;
 
     dbg && cc.tag(msg, 'START');
-    let msIdle = 1;
+    let period = 10;
     let refNow = 0;
     let referenceTime = () => refNow;
-    const clock = new Clock({ msIdle, referenceTime });
+    const clock = new Clock({ period, referenceTime });
     should(refNow).equal(0);
 
     await clock.start();
