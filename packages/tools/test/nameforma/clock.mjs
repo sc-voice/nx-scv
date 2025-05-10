@@ -73,7 +73,6 @@ describe('TESTTESTclock', () => {
     let referenceTime = () => refNow;
     const clock = new Clock({ msIdle, referenceTime });
     should(refNow).equal(0);
-    should(clock).properties({ msIdle, referenceTime });
 
     await clock.start();
     should(clock.timeIn).equal(0);
