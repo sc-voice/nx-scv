@@ -23,10 +23,9 @@ export class Clock {
     Clock.#instances++;
     let {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
-      period = 1000, // ms
       referenceTime = () => Date.now(),
       idle = async () => {
-        await new Promise((res) => setTimeout(() => res(), period / 2));
+        await new Promise((res) => setTimeout(() => res(), 500));
       },
     } = cfg;
     Object.assign(this, {
@@ -34,7 +33,6 @@ export class Clock {
       running: false,
       timeIn: 0,
       timeOut: 0,
-      period,
     });
     this.#idle = idle;
     this.#referenceTime = referenceTime;
@@ -85,14 +83,6 @@ export class Clock {
     this.#referenceBase = now;
     this.update(this.now());
     this.generator = this.#createGenerator();
-    if (this.period > 0) {
-      dbg > 1 && cc.ok(msg + 2.1, 'setInterval:', Date.now());
-      this.interval = setInterval(() => {
-        let now = this.now();
-        dbg > 1 && cc.ok(msg + 2, 'autoUpdate:', now);
-        this.update(now);
-      }, this.period);
-    }
     this.running = true;
     dbg && cc.ok1(msg + OK, 'started:', this.id);
 

@@ -13,7 +13,7 @@ describe('TESTTESTclock', () => {
     dbg && cc.tag(msg, 'START');
 
     const clock = new Clock();
-    should(clock).properties({ period: 1000, running: false });
+    should(clock).properties({ running: false });
     should(clock.id).match(/C3K[0-9]+/);
 
     // Clocks are distinguishable
@@ -28,21 +28,20 @@ describe('TESTTESTclock', () => {
 
     dbg && cc.tag(msg, 'END');
   });
-  it('TESTTESTperiod', async () => {
-    const msg = 'tc3k.period';
+  it('referenceTime default', async () => {
+    const msg = 'tc3k.referenceTime-default';
     const dbg = 0;
     dbg && cc.tag1(msg, 'START');
-    const period = 50;
-    const clock = new Clock({ period });
+    const clock = new Clock({ });
     const msTolerance = 5;
 
     let now = Date.now();
-    should(clock).properties({ period, running: false });
+    should(clock).properties({ running: false });
 
     // started clocks know the current time
     let resStart = await clock.start();
     should(Math.abs(now - clock.now())).below(msTolerance);
-    should(clock).properties({ period, running: true });
+    should(clock).properties({ running: true });
     should(resStart).equal(clock);
 
     // by default, started clocks return the current time
@@ -62,15 +61,14 @@ describe('TESTTESTclock', () => {
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('TESTTESTreferenceTime', async () => {
-    const msg = 'treferenceTime';
-    const dbg = 1;
+  it('referenceTime-custom', async () => {
+    const msg = 'tc3k.referenceTime-custom';
+    const dbg = 0;
 
     dbg && cc.tag(msg, 'START');
-    let period = 10;
     let refNow = 0;
     let referenceTime = () => refNow;
-    const clock = new Clock({ period, referenceTime });
+    const clock = new Clock({ referenceTime });
     should(refNow).equal(0);
 
     await clock.start();
