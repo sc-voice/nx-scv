@@ -5,18 +5,16 @@ import { Unicode } from '../../src/text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
 const { cc } = ColorConsole;
 
-let HEARTBEAT_INTERVAL = 3000; // default
-
-function DEFAULT_TIME() {
-  return Date.now();
-}
-
 export class Clock {
   static #instances = 0;
   #referenceBase;
   #referenceTime;
   #idle;
   #done = false;
+  #timeIn = 0;
+  #timeOut = 0;
+  #generator;
+
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
     const dbg = C3K.CTOR;
@@ -31,37 +29,30 @@ export class Clock {
     Object.assign(this, {
       id,
       running: false,
-      timeIn: 0,
-      timeOut: 0,
     });
     this.#idle = idle;
     this.#referenceTime = referenceTime;
-    Object.defineProperty(this, 'interval', {
-      writable: true,
-      value: null,
-    });
-    Object.defineProperty(this, 'generator', {
-      writable: true,
-      value: null,
-    });
     dbg && cc.ok1(msg + OK, ...cc.props(this));
   }
 
+  get timeIn() { return this.#timeIn; }
+  get timeOut() { return this.#timeOut; }
+
   async *#createGenerator() {
-    const msg = 'c3k.generator';
-    const dbg = C3K.GENERATOR;
+    const msg = 'c3k.creatGenerator';
+    const dbg = C3K.CREATE_GENERATOR;
     while (this.running) {
       dbg > 1 && cc.ok(msg + 2.1, 'running', this.timeOut);
-      if (this.timeIn === this.timeOut) {
+      if (this.#timeIn === this.#timeOut) {
         await this.#idle();
-        if (this.timeIn === this.timeOut) {
-          yield this.timeOut;
-          dbg && cc.ok1(msg + OK, '==timeOut:', this.timeOut);
+        if (this.#timeIn === this.#timeOut) {
+          yield this.#timeOut;
+          dbg && cc.ok1(msg + OK, '==timeOut:', this.#timeOut);
         }
       } else {
-        this.timeOut = this.timeIn;
-        dbg && cc.ok1(msg + OK, '++timeOut:', this.timeOut);
-        yield this.timeOut;
+        this.#timeOut = this.#timeIn;
+        dbg && cc.ok1(msg + OK, '++timeOut:', this.#timeOut);
+        yield this.#timeOut;
       }
     }
     dbg && cc.ok1(msg + OK, 'stopped');
@@ -82,7 +73,7 @@ export class Clock {
 
     this.#referenceBase = now;
     this.update(this.now());
-    this.generator = this.#createGenerator();
+    this.#generator = this.#createGenerator();
     this.running = true;
     dbg && cc.ok1(msg + OK, 'started:', this.id);
 
@@ -92,13 +83,13 @@ export class Clock {
   async next() {
     const msg = 'c3k.next';
     const dbg = C3K.NEXT;
-    let { running, timeOut, generator } = this;
+    let { running, timeOut } = this;
     if (!running) {
       return { done: this.#done, value: timeOut };
     }
 
     dbg > 1 && cc.ok(msg + 2.1, ' g7r.next...');
-    let result = await generator.next();
+    let result = await this.#generator.next();
     dbg && cc.ok1(msg + OK, '...g7r.next=>', result);
 
     return result;
@@ -107,12 +98,8 @@ export class Clock {
   async stop() {
     this.running = false;
     this.#done = true;
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = undefined;
-    }
-    if (this.generator) {
-      this.generator = null;
+    if (this.#generator) {
+      this.#generator = null;
     }
   } // stop
 
@@ -122,10 +109,10 @@ export class Clock {
     if (timestamp == null) {
       throw new Error(`${msg} timestamp?`);
     }
-    if (timestamp < this.timeIn) {
+    if (timestamp < this.#timeIn) {
       dbg && cc.ok1(msg, 'ignored:', timestamp); // monotonic updates
     } else {
-      this.timeIn = timestamp;
+      this.#timeIn = timestamp;
       dbg && cc.ok1(msg + OK, timestamp);
     }
   } // update

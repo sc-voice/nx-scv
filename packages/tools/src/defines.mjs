@@ -32,11 +32,10 @@ export const DBG = {
   N8A: {
     C3K: {
       // Clock
-      CREATE: 0,
       START: 0,
       CTOR: 0,
       NEXT: 0,
-      GENERATOR: 0,
+      CREATE_GENERATOR: 0,
       UPDATE: 0,
     },
     C6R: {
