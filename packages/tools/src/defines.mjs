@@ -23,7 +23,6 @@ export const DBG = {
   K3A_MESSAGE_CLOCK: 0,
   K3A_SEND: 0,
   K3A_TOPIC_OF_NAME: 0,
-  K3A_R4R_START: 2,
   L2T_TO_STRING: 0,
   L7C_FETCH_LEGACY: 0,
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC

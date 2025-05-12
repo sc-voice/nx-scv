@@ -5,7 +5,7 @@ import { Text } from '../../index.mjs';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-describe('clock', () => {
+describe('TESTTESTclock', () => {
   const msg = 'tclock';
   it('ctor', async () => {
     const msg = 'tc3k.ctor';
@@ -28,7 +28,7 @@ describe('clock', () => {
 
     dbg && cc.tag(msg, 'END');
   });
-  it('TESTTESTreferenceTime default', async () => {
+  it('referenceTime default', async () => {
     const msg = 'tc3k.referenceTime-default';
     const dbg = 0;
     dbg && cc.tag1(msg, 'START');
@@ -38,27 +38,27 @@ describe('clock', () => {
     let now = Date.now();
     should(clock).properties({ running: false });
 
-    // started clocks know the current time
+    dbg && cc.tag(msg, 'started clocks know the current time');
     let resStart = await clock.start();
     should(Math.abs(now - clock.now())).below(msTolerance);
     should(clock).properties({ running: true });
     should(resStart).equal(clock);
 
-    // by default, started clocks return the current time
+    dbg && cc.tag(msg, 'started clocks return the start reference time');
     await new Promise((res) => setTimeout(() => res(), 10));
     dbg > 1 && cc.tag(msg, 'next...');
-    let res1 = await clock.next();
-    dbg > 1 && cc.tag(msg, '...next', 'res1:', res1);
-    should(res1.done).equal(false);
-    should(Math.abs(now - res1.value)).below(msTolerance);
+    let { value: value1 } = await clock.next();
+    dbg && cc.tag(msg, '...next', { value1 });
+    should(Math.abs(now - value1)).below(msTolerance);
+
+    dbg && cc.tag(msg, 'clocks with consumers sync up with referenceTime');
     await new Promise((res) => setTimeout(() => res(), 10));
+    let { value: value2 } = await clock.next();
+    dbg && cc.tag(msg, '...next', {value2});
+    should(value2).above(value1); 
+    should(Math.abs(Date.now()-value2)).below(msTolerance);
 
-    dbg && cc.tag(msg, 'next...');
-    let res2 = await clock.next();
-    dbg && cc.tag(msg, '...next', 'res2:', res2);
-    should(Math.abs(now - res2.value)).below(msTolerance);
     await clock.stop();
-
     dbg && cc.tag1(msg, 'END');
   });
   it('referenceTime-custom', async () => {
@@ -100,7 +100,7 @@ describe('clock', () => {
   });
   it('idle', async()=>{
     let msg = 'tc3k.idle';
-    let dbg = 1;
+    let dbg = 0;
     let msIdle = 50;
     let nIdle = 0;
     let idle = async () => {
@@ -154,10 +154,8 @@ describe('clock', () => {
     should(nIdle).equal(2);
     should(value4).equal(msActive);
 
-    let elapsed = Date.now() - msStart;
-    cc.ok1(msg, elapsed);
-
     await c3k.stop();
-    dbg && cc.tag1(msg, 'END');
+    let elapsed = Date.now() - msStart;
+    dbg && cc.tag1(msg, 'END', elapsed);
   });
 });
