@@ -23,7 +23,7 @@ export class Clock {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       referenceTime = () => Date.now(),
       idle = async () => {
-        await new Promise((res) => setTimeout(() => res(), 500));
+        return new Promise((res) => setTimeout(() => res(), 500));
       },
     } = cfg;
     Object.assign(this, {
@@ -42,18 +42,17 @@ export class Clock {
     const msg = 'c3k.creatGenerator';
     const dbg = C3K.CREATE_GENERATOR;
     while (this.running) {
-      dbg > 1 && cc.ok(msg + 2.1, 'running', this.timeOut);
+      dbg > 1 && cc.ok(msg + 2.1, 'running', this.#timeOut);
       if (this.#timeIn === this.#timeOut) {
+        dbg > 1 && cc.ok(msg + OK, 'idle...', this.#timeIn, this.#timeOut);
         await this.#idle();
-        if (this.#timeIn === this.#timeOut) {
-          yield this.#timeOut;
-          dbg && cc.ok1(msg + OK, '==timeOut:', this.#timeOut);
-        }
+        this.update(this.now());
+        dbg && cc.ok1(msg + OK, '...idle', this.#timeIn, this.#timeOut);
       } else {
-        this.#timeOut = this.#timeIn;
-        dbg && cc.ok1(msg + OK, '++timeOut:', this.#timeOut);
-        yield this.#timeOut;
+        dbg && cc.ok1(msg + OK, 'new', this.#timeIn, this.#timeOut);
       }
+      this.#timeOut = this.#timeIn;
+      yield this.#timeOut;
     }
     dbg && cc.ok1(msg + OK, 'stopped');
   }
@@ -110,10 +109,11 @@ export class Clock {
       throw new Error(`${msg} timestamp?`);
     }
     if (timestamp < this.#timeIn) {
-      dbg && cc.ok1(msg, 'ignored:', timestamp); // monotonic updates
+      dbg && cc.bad1(msg + '?', 'ignored:', this.#timeIn, timestamp); // monotonic updates
+      //dbg && cc.ok1(msg + '?', 'ignored:', this.#timeIn, timestamp); // monotonic updates
     } else {
       this.#timeIn = timestamp;
-      dbg && cc.ok1(msg + OK, timestamp);
+      dbg && cc.ok1(msg + OK, this.#timeIn, timestamp);
     }
   } // update
 } // Clock
