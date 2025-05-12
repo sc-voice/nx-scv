@@ -145,7 +145,7 @@ export class _Runner {
       msSleep,
       onCrash,
     } = cfg;
-    let { _sendClock } = consumer;
+    let { _inboxClock } = consumer;
 
     if (!consumer) {
       throw new Error(`${msg} consumer?`);
@@ -309,8 +309,8 @@ export class Consumer extends Role {
       writable: true,
       value: null,
     });
-    let _sendClock = new Clock({ msIdle: _msIdle });
-    Object.defineProperty(this, '_sendClock', { value: _sendClock });
+    let _inboxClock = new Clock({ msIdle: _msIdle });
+    Object.defineProperty(this, '_inboxClock', { value: _inboxClock });
 
     this.eachMessage = null;
 
@@ -437,7 +437,7 @@ export class Consumer extends Role {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
-    await this._sendClock.start();
+    await this._inboxClock.start();
     this._runner = new _Runner({
       kafka,
       eachMessage,
@@ -455,8 +455,8 @@ export class Consumer extends Role {
     if (this._runner) {
       await this._runner.stop();
     }
-    if (this._sendClock) {
-      await this._sendClock.stop();
+    if (this._inboxClock) {
+      await this._inboxClock.stop();
     }
   }
 } // Consumer
@@ -509,7 +509,7 @@ export class Producer extends Role {
     let consumers = [...topic._consumerMap.keys()];
     for (let i = 0; i < consumers.length; i++) {
       let c6r = consumers[i];
-      c6r._sendClock.update(Date.now());
+      c6r._inboxClock.update(timestamp);
     }
 
     if (dbg) {

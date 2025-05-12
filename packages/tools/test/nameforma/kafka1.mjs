@@ -18,8 +18,9 @@ const {
 
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
+const TEST_DBG = 1;
 
-describe('kafka', function () {
+describe('TESTTESTkafka', function () {
   this.timeout(4 * heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
@@ -105,7 +106,7 @@ describe('kafka', function () {
   });
   it('k3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
-    const dbg = 0;
+    const dbg = TEST_DBG;
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
@@ -169,7 +170,7 @@ describe('kafka', function () {
   it('k3a.send() _c6rProcess', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
-    const dbg = 0; // enable implementation internal tests
+    const dbg = TEST_DBG; // enable implementation internal tests
     dbg && cc.tag1(msg + 0.1, 'BEGIN');
     const producer = ka.producer();
     const groupId1 = 'tS2D.G1';
@@ -194,14 +195,14 @@ describe('kafka', function () {
 
     // Step2: send msgA1
     if (dbg) {
-      let { _sendClock: s7kA } = consumerA;
+      let { _inboxClock: s7kA } = consumerA;
       should(s7kA.timeOut).equal(s7kA.timeIn);
     }
     let send1 = producer.send({ topic: topicT, messages: [msgA1] });
     await send1;
-    let s7kA = dbg ? consumerA._sendClock : undefined;
+    let s7kA = dbg ? consumerA._inboxClock : undefined;
     if (dbg) {
-      s7kA.running = true; // simulate start
+      !s7kA.running && (await s7kA.start()); // simulate run()
       should(s7kA.timeIn).above(s7kA.timeOut);
       should(Date.now() - s7kA.timeIn)
         .above(-1)
@@ -237,9 +238,9 @@ describe('kafka', function () {
 
     // STEP3: consumerB subscribes AFTER msgA1 is sent but does not know it
     await consumerB.subscribe({ topics: [topicT], fromBeginning: true });
-    let s7kB = dbg ? consumerB._sendClock : undefined;
+    let s7kB = dbg ? consumerB._inboxClock : undefined;
     if (dbg) {
-      s7kB.running = true; // simulate start
+      s7kB.running === false && (await s7kB.start()); // simulate run()
     }
     let { committed: committedA1 } = await consumerA._c6rProcess({
       eachMessage: onEachMessage('TA'),
@@ -247,7 +248,7 @@ describe('kafka', function () {
     should(received?.TA?.length).equal(1);
     should(received.TA[0]).properties(msgA1);
     should(committedA1).equal(1);
-    dbg && should(s7kB.timeIn).equal(0); // consumerB is not running
+    dbg && should(s7kB.timeOut).equal(0); // consumerB is not running
 
     // STEP4: send msgA2 and consumerB is "aware" of it but not running.
     let res4 = producer.send({ topic: topicT, messages: [msgA2] });
@@ -296,7 +297,7 @@ describe('kafka', function () {
   });
   it('_Runner', async () => {
     const msg = 'tk3a.r4r';
-    const dbg = 0;
+    const dbg = TEST_DBG;
     const ka = new Kafka1();
     const groupId = 'tR4R.G1';
     const consumer = ka.consumer({ groupId });
@@ -339,7 +340,7 @@ describe('kafka', function () {
   });
   it('run', async () => {
     const msg = 'tc6r_run';
-    const dbg = 0;
+    const dbg = TEST_DBG;
     const ka = new Kafka1();
     const groupId = `${msg}.G1`;
     const topic = `${msg}.TA`;

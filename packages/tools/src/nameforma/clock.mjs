@@ -14,6 +14,7 @@ export class Clock {
   #timeIn = 0;
   #timeOut = 0;
   #generator;
+  #running = false;
 
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
@@ -26,10 +27,7 @@ export class Clock {
         return new Promise((res) => setTimeout(() => res(), 500));
       },
     } = cfg;
-    Object.assign(this, {
-      id,
-      running: false,
-    });
+    Object.assign(this, { id });
     this.#idle = idle;
     this.#referenceTime = referenceTime;
     dbg && cc.ok1(msg + OK, ...cc.props(this));
@@ -37,11 +35,12 @@ export class Clock {
 
   get timeIn() { return this.#timeIn; }
   get timeOut() { return this.#timeOut; }
+  get running() { return this.#running; }
 
   async *#createGenerator() {
     const msg = 'c3k.creatGenerator';
     const dbg = C3K.CREATE_GENERATOR;
-    while (this.running) {
+    while (this.#running) {
       dbg > 1 && cc.ok(msg + 2.1, 'running', this.#timeOut);
       if (this.#timeIn === this.#timeOut) {
         dbg > 1 && cc.ok(msg + OK, 'idle...', this.#timeIn, this.#timeOut);
@@ -65,7 +64,7 @@ export class Clock {
     const msg = 'c3k.start';
     const dbg = C3K.START;
     let now = this.#referenceTime();
-    if (this.running) {
+    if (this.#running) {
       dbg && cc.bad1(msg, 'ignored');
       return;
     }
@@ -73,7 +72,7 @@ export class Clock {
     this.#referenceBase = now;
     this.update(this.now());
     this.#generator = this.#createGenerator();
-    this.running = true;
+    this.#running = true;
     dbg && cc.ok1(msg + OK, 'started:', this.id);
 
     return this;
@@ -82,8 +81,8 @@ export class Clock {
   async next() {
     const msg = 'c3k.next';
     const dbg = C3K.NEXT;
-    let { running, timeOut } = this;
-    if (!running) {
+    let { timeOut } = this;
+    if (!this.#running) {
       return { done: this.#done, value: timeOut };
     }
 
@@ -95,7 +94,7 @@ export class Clock {
   } // next
 
   async stop() {
-    this.running = false;
+    this.#running = false;
     this.#done = true;
     if (this.#generator) {
       this.#generator = null;
