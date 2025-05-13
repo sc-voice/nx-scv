@@ -145,7 +145,6 @@ export class _Runner {
       eachBatch,
       eachMessage,
       kafka,
-      msSleep,
       onCrash,
     } = cfg;
     let { _inboxClock } = consumer;
@@ -159,9 +158,6 @@ export class _Runner {
     if (eachBatch) {
       throw new Error(`${msg} eachBatch TBD`);
     }
-    if (msSleep == null) {
-      msSleep = consumer.heartbeatInterval;
-    }
 
     this.running = false;
     Object.assign(this, {
@@ -170,56 +166,19 @@ export class _Runner {
       eachBatch,
       eachMessage,
       kafka,
-      msSleep,
       onCrash,
     });
     Object.defineProperty(this, 'resProcess', {
       writable: true,
     });
     dbg &&
-      cc.ok1(
-        msg + UOK,
-        ...cc.props({
-          c6r_groupId: consumer.groupId,
-          msSleep,
-        }),
-      );
+      cc.ok1(msg + UOK, ...cc.props({c6r_groupId: consumer.groupId}));
   } // ctor
 
   async process() {
     const msg = 'r4r.process';
     const dbg = R4R.PROCESS;
-    let { consumer, eachMessage, msSleep } = this;
-
-    let crashed = false;
-    while (this.running) {
-      try {
-        dbg > 1 && cc.ok(msg, '_readTopics...');
-        let { committed } = await consumer._readTopics({ eachMessage });
-        dbg > 1 && cc.ok(msg, '..._readTopics', ...cc.props({ committed }));
-
-        dbg > 1 && cc.ok(msg, 'sleep...', msSleep);
-        msSleep && (await new Promise(r => setTimeout(() => r(), msSleep)));
-
-        dbg && cc.ok1( msg+URA, ...cc.props({ committed }));
-      } catch (e) {
-        cc.bad1(`${msg} CRASH`, e.message);
-        console.log(msg, e);
-        crashed = true;
-        await this.stop();
-        this.onCrash && this.onCrash(e);
-      }
-    }
-
-    dbg && !crashed && cc.ok1(msg + UOK, 'stopped');
-
-    return false; // resolved when no longer running
-  } // process
-
-  async process2() {
-    const msg = 'r4r.process2';
-    const dbg = R4R.PROCESS;
-    let { consumer, eachMessage, msSleep } = this;
+    let { consumer, eachMessage } = this;
     let { _inboxClock } = consumer;
 
     let crashed = false;
@@ -245,7 +204,7 @@ export class _Runner {
     dbg && !crashed && cc.ok1(msg + UOK, 'stopped');
 
     return false; // resolved when no longer running
-  } // process2
+  } // process
 
   async start() {
     const msg = 'r4r.start';
@@ -261,11 +220,7 @@ export class _Runner {
 
     _inboxClock.start();
 
-    if (1) {
-      this.resProcess = this.process();
-    } else {
-      this.resProcess = this.process2();
-    }
+    this.resProcess = this.process();
 
     dbg && cc.ok1(msg+UOK, 'running:', this.running);
     return this.running; // true when resolved
@@ -350,8 +305,7 @@ export class Consumer extends Role {
       writable: true,
       value: null,
     });
-    let idle = () => new Promise(r=>setTimeout(()=>r(),_msIdle));
-    let _inboxClock = new Clock({ idle });
+    let _inboxClock = new Clock();
     Object.defineProperty(this, '_inboxClock', { value: _inboxClock });
 
     this.eachMessage = null;
@@ -474,17 +428,20 @@ export class Consumer extends Role {
     if (_runner) {
       throw new Error(`${msg} _runner already exists`);
     }
-    let { eachMessage, _msSleep } = cfg;
+    let { 
+      eachMessage, 
+      _msIdle = this._msIdle,
+    } = cfg;
     if (eachMessage == null) {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
-    await this._inboxClock.start();
+    let idle = () => new Promise(r=>setTimeout(()=>r(),_msIdle));
+    await this._inboxClock.start({idle});
     this._runner = new _Runner({
       kafka,
       eachMessage,
       consumer: this,
-      msSleep: _msSleep,
     });
 
     let promise = this._runner.start(); // do not await!

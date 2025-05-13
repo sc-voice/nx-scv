@@ -26,7 +26,7 @@ export const DBG = {
   L2T_TO_STRING: 0,
   L7C_FETCH_LEGACY: 0,
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
-  ML_DOC_VECTORS: 0, // 'mn8:3.4',
+  ML_DOC_VECTORS: 0, // 'mn8:3.4'
   MN8_MOHAN: 0,
   N8A: {
     C3K: {
@@ -40,15 +40,15 @@ export const DBG = {
     C6R: {
       // Consumer
       CTOR: 0,
-      RUN: 2,
+      RUN: 0,
       SUBSCRIBE: 0,
       READ_TOPICS: 0,
     },
     R4R: {
       // _Runner
-      CTOR: 2,
-      PROCESS: 2,
-      START: 1,
+      CTOR: 0,
+      PROCESS: 0,
+      START: 0,
       STOP: 0,
     },
     T4S: {
@@ -67,4 +67,7 @@ export const DBG = {
   },
   W7E_BOW_OF_TEXT: 0,
   WORD_MAP_TRANFORMER: 0,
+  TEST: {
+    VERBOSE: 0,
+  },
 };

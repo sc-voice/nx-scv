@@ -18,7 +18,7 @@ const {
 
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
-const TEST_DBG = 1;
+const TEST_DBG = DBG.TEST.VERBOSE;
 
 describe('kafka', function () {
   this.timeout(4 * heartbeatInterval);
@@ -297,7 +297,7 @@ describe('kafka', function () {
   });
   it('_Runner', async () => {
     const msg = 'tk3a.r4r';
-    const dbg = 2 || TEST_DBG;
+    const dbg = TEST_DBG;
     dbg && cc.tag1(msg, 'START');
     const ka = new Kafka1();
     const groupId = 'tR4R.G1';
@@ -324,27 +324,27 @@ describe('kafka', function () {
       consumed.push(message);
       dbg && cc.tag(msg, 'eachMessage', message);
     };
-    let msSleep = 1; // throttle for testing (default is 0)
-    let r4r = new _Runner({ eachMessage, consumer, msSleep });
-    should(r4r).properties({ running: false, eachMessage, msSleep });
+    let r4r = new _Runner({ eachMessage, consumer });
+    should(r4r).properties({ running: false, eachMessage });
     dbg > 1 && cc.tag(msg, 'r4r.start');
     /* await */ r4r.start(); // do not await!
     dbg > 1 && cc.tag(msg, 'sleep...');
-    await new Promise((res) => setTimeout(() => res(), msSleep * 3));
+    await new Promise((res) => setTimeout(() => res(), 30));
     dbg > 1 && cc.tag(msg, '...sleep');
     should(r4r).properties({ running: true, eachMessage });
-    await r4r.stop(); // release resources
+
+    dbg > 1 && cc.tag(msg, 'release resources');
+    await r4r.stop(); 
     should(r4r).properties({ running: false, eachMessage });
     should(consumed.length).equal(2);
     should.deepEqual(consumed, [msgA1, msgA2]);
-
     consumer.disconnect();
     producer.disconnect();
     dbg && cc.tag1(msg, 'END');
   }); // tk3a.rfr
   it('TESTTESTrun', async () => {
     const msg = 'tc6r_run';
-    const dbg = 2 || TEST_DBG;
+    const dbg = TEST_DBG;
     const ka = new Kafka1();
     const groupId = `${msg}.G1`;
     const topic = `${msg}.TA`;
@@ -371,7 +371,7 @@ describe('kafka', function () {
     await consumer.connect();
     await consumer.subscribe({ topics: [topic], fromBeginning: true });
     let _msSleep = 1;
-    await consumer.run({ eachMessage, _msSleep });
+    await consumer.run({ eachMessage, });
     should(consumer).properties({ running: true });
     await new Promise((res) => setTimeout(() => res(), _msSleep * 3));
     should(consumed.length).equal(2);
