@@ -33,9 +33,15 @@ export class Clock {
     dbg && cc.ok1(msg + OK, ...cc.props(this));
   }
 
-  get timeIn() { return this.#timeIn; }
-  get timeOut() { return this.#timeOut; }
-  get running() { return this.#running; }
+  get timeIn() {
+    return this.#timeIn;
+  }
+  get timeOut() {
+    return this.#timeOut;
+  }
+  get running() {
+    return this.#running;
+  }
 
   async *#createGenerator() {
     const msg = 'c3k.creatGenerator';

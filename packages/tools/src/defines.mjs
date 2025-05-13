@@ -40,9 +40,9 @@ export const DBG = {
     C6R: {
       // Consumer
       CTOR: 0,
-      RUN: 0,
+      RUN: 2,
       SUBSCRIBE: 0,
-      PROCESS: 0,
+      READ_TOPICS: 0,
     },
     R4R: {
       // _Runner

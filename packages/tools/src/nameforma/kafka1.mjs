@@ -192,16 +192,14 @@ export class _Runner {
     let crashed = false;
     while (this.running) {
       try {
-        let { committed } = await consumer._c6rProcess({ eachMessage });
+        let { committed } = await consumer._readTopics({ eachMessage });
         this.iterations++;
         dbg > 1 && cc.ok1(msg, ...cc.props({ msSleep }));
         msSleep &&
           (await new Promise((res) => setTimeout(() => res(), msSleep)));
+        let iterations = this.iterations;
         dbg > 1 &&
-          cc.ok(
-            msg,
-            ...cc.props({ committed, iterations: this.iterations }),
-          );
+          cc.ok( msg, ...cc.props({ committed, iterations}));
       } catch (e) {
         cc.bad1(`${msg} CRASH`, e.message);
         console.log(msg, e);
@@ -378,9 +376,9 @@ export class Consumer extends Role {
     cc.fyi(msg);
   }
 
-  async _c6rProcess(cfg = {}) {
-    const msg = 'c6r._c6rProcess';
-    const dbg = C6R.PROCESS;
+  async _readTopics(cfg = {}) {
+    const msg = 'c6r._readTopics';
+    const dbg = C6R.READ_TOPICS;
     let { kafka, _id, groupId } = this;
     let group = this._consumerGroup();
     let { eachMessage } = cfg;
@@ -423,7 +421,7 @@ export class Consumer extends Role {
 
     dbg && cc.ok1(msg + OK, ...cc.props({ _id, committed, groupId }));
     return { committed };
-  } // _c6rProcess
+  } // _readTopics
 
   async run(cfg = {}) {
     const msg = 'c6r.run';

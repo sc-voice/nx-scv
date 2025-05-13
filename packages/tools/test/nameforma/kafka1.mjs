@@ -18,9 +18,9 @@ const {
 
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
-const TEST_DBG = 1;
+const TEST_DBG = 0;
 
-describe('TESTTESTkafka', function () {
+describe('kafka', function () {
   this.timeout(4 * heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
@@ -167,7 +167,7 @@ describe('TESTTESTkafka', function () {
 
     await admin.disconnect();
   });
-  it('k3a.send() _c6rProcess', async () => {
+  it('k3a.send() _readTopics', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
     const dbg = TEST_DBG; // enable implementation internal tests
@@ -242,7 +242,7 @@ describe('TESTTESTkafka', function () {
     if (dbg) {
       i8kB.running === false && (await i8kB.start()); // simulate run()
     }
-    let { committed: committedA1 } = await consumerA._c6rProcess({
+    let { committed: committedA1 } = await consumerA._readTopics({
       eachMessage: onEachMessage('TA'),
     });
     should(received?.TA?.length).equal(1);
@@ -253,7 +253,7 @@ describe('TESTTESTkafka', function () {
     // STEP4: send msgA2 and consumerB is "aware" of it but not running.
     let res4 = producer.send({ topic: topicT, messages: [msgA2] });
     await res4;
-    let { committed: committedA2 } = await consumerA._c6rProcess({
+    let { committed: committedA2 } = await consumerA._readTopics({
       eachMessage: onEachMessage('TA'),
     });
     should(received.TA[0]).properties(msgA1);
@@ -264,7 +264,7 @@ describe('TESTTESTkafka', function () {
     should(received.TB).equal(undefined);
 
     // STEP5: consumerB wakes up and processes both messages
-    let { committed: committedB1 } = await consumerB._c6rProcess({
+    let { committed: committedB1 } = await consumerB._readTopics({
       eachMessage: onEachMessage('TB'),
     });
     should(received.TB[0]).properties(msgA1);
@@ -276,12 +276,12 @@ describe('TESTTESTkafka', function () {
     // STEP6: third message is sent to both conumsers
     let res6 = producer.send({ topic: topicT, messages: [msgA3] });
     await res6;
-    let { committed: committedA3 } = await consumerA._c6rProcess({
+    let { committed: committedA3 } = await consumerA._readTopics({
       eachMessage: onEachMessage('TA'),
     });
     should(received.TA.length).equal(3);
     should(received.TA[2]).properties(msgA3);
-    let { committed: committedB2 } = await consumerB._c6rProcess({
+    let { committed: committedB2 } = await consumerB._readTopics({
       eachMessage: onEachMessage('TB'),
     });
     should(received.TB.length).equal(3);
