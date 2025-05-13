@@ -23,9 +23,7 @@ export class Clock {
     let {
       id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       referenceTime = () => Date.now(),
-      idle = async () => {
-        return new Promise((res) => setTimeout(() => res(), 500));
-      },
+      idle = () => new Promise(r => setTimeout(() => r(), 500)),
     } = cfg;
     Object.assign(this, { id });
     this.#idle = idle;
@@ -66,9 +64,13 @@ export class Clock {
     return this.#referenceTime();
   }
 
-  async start() {
+  async start(cfg={}) {
     const msg = 'c3k.start';
     const dbg = C3K.START;
+    let {
+      idle = this.#idle,
+    } = cfg;
+    this.#idle = idle;
     let now = this.#referenceTime();
     if (this.#running) {
       dbg && cc.bad1(msg, 'ignored');

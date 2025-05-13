@@ -18,7 +18,7 @@ const {
 
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
-const TEST_DBG = 0;
+const TEST_DBG = 1;
 
 describe('kafka', function () {
   this.timeout(4 * heartbeatInterval);
@@ -297,7 +297,8 @@ describe('kafka', function () {
   });
   it('_Runner', async () => {
     const msg = 'tk3a.r4r';
-    const dbg = TEST_DBG;
+    const dbg = 2 || TEST_DBG;
+    dbg && cc.tag1(msg, 'START');
     const ka = new Kafka1();
     const groupId = 'tR4R.G1';
     const consumer = ka.consumer({ groupId });
@@ -326,21 +327,24 @@ describe('kafka', function () {
     let msSleep = 1; // throttle for testing (default is 0)
     let r4r = new _Runner({ eachMessage, consumer, msSleep });
     should(r4r).properties({ running: false, eachMessage, msSleep });
+    dbg > 1 && cc.tag(msg, 'r4r.start');
     /* await */ r4r.start(); // do not await!
+    dbg > 1 && cc.tag(msg, 'sleep...');
     await new Promise((res) => setTimeout(() => res(), msSleep * 3));
+    dbg > 1 && cc.tag(msg, '...sleep');
     should(r4r).properties({ running: true, eachMessage });
     await r4r.stop(); // release resources
     should(r4r).properties({ running: false, eachMessage });
-    should(r4r.iterations).above(1).below(4);
     should(consumed.length).equal(2);
     should.deepEqual(consumed, [msgA1, msgA2]);
 
     consumer.disconnect();
     producer.disconnect();
-  });
-  it('run', async () => {
+    dbg && cc.tag1(msg, 'END');
+  }); // tk3a.rfr
+  it('TESTTESTrun', async () => {
     const msg = 'tc6r_run';
-    const dbg = TEST_DBG;
+    const dbg = 2 || TEST_DBG;
     const ka = new Kafka1();
     const groupId = `${msg}.G1`;
     const topic = `${msg}.TA`;

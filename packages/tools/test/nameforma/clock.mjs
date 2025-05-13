@@ -5,7 +5,7 @@ import { Text } from '../../index.mjs';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-describe('clock', () => {
+describe('TESTTESTclock', () => {
   const msg = 'tclock';
   it('ctor', async () => {
     const msg = 'tc3k.ctor';
@@ -105,15 +105,15 @@ describe('clock', () => {
     let nIdle = 0;
     let idle = async () => {
       nIdle++;
-      await new Promise(r5e=>setTimeout(()=>r5e(),msIdle));
+      return new Promise(r5e=>setTimeout(()=>r5e(),msIdle));
     }
     let tolerance = 10;
     let msStart = Date.now();
     dbg && cc.tag1(msg, 'START');
-    let c3k = new Clock({idle});
+    let c3k = new Clock();
 
     // started clocks are not idle and offer the start time
-    await c3k.start();
+    await c3k.start({idle});
     should(c3k.timeIn).not.equal(c3k.timeOut);
     let { value: value1 } = await c3k.next();
     should(value1).equal(c3k.timeIn);

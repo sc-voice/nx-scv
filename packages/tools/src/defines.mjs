@@ -46,9 +46,9 @@ export const DBG = {
     },
     R4R: {
       // _Runner
-      CTOR: 0,
-      PROCESS: 0,
-      START: 0,
+      CTOR: 2,
+      PROCESS: 2,
+      START: 1,
       STOP: 0,
     },
     T4S: {

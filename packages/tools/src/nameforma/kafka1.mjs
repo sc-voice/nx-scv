@@ -1,7 +1,10 @@
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
-const { CHECKMARK: OK } = Unicode;
+const { 
+  CHECKMARK: UOK, 
+  RIGHT_ARROW: URA,
+} = Unicode;
 import { DBG } from '../defines.mjs';
 const { C6R, R4R } = DBG.N8A;
 import { Clock } from './clock.mjs';
@@ -160,7 +163,6 @@ export class _Runner {
       msSleep = consumer.heartbeatInterval;
     }
 
-    this.iterations = 0;
     this.running = false;
     Object.assign(this, {
       autoCommit,
@@ -176,7 +178,7 @@ export class _Runner {
     });
     dbg &&
       cc.ok1(
-        msg + OK,
+        msg + UOK,
         ...cc.props({
           c6r_groupId: consumer.groupId,
           msSleep,
@@ -192,14 +194,14 @@ export class _Runner {
     let crashed = false;
     while (this.running) {
       try {
+        dbg > 1 && cc.ok(msg, '_readTopics...');
         let { committed } = await consumer._readTopics({ eachMessage });
-        this.iterations++;
-        dbg > 1 && cc.ok1(msg, ...cc.props({ msSleep }));
-        msSleep &&
-          (await new Promise((res) => setTimeout(() => res(), msSleep)));
-        let iterations = this.iterations;
-        dbg > 1 &&
-          cc.ok( msg, ...cc.props({ committed, iterations}));
+        dbg > 1 && cc.ok(msg, '..._readTopics', ...cc.props({ committed }));
+
+        dbg > 1 && cc.ok(msg, 'sleep...', msSleep);
+        msSleep && (await new Promise(r => setTimeout(() => r(), msSleep)));
+
+        dbg && cc.ok1( msg+URA, ...cc.props({ committed }));
       } catch (e) {
         cc.bad1(`${msg} CRASH`, e.message);
         console.log(msg, e);
@@ -209,22 +211,63 @@ export class _Runner {
       }
     }
 
-    dbg && !crashed && cc.ok1(msg + OK, 'stopped');
+    dbg && !crashed && cc.ok1(msg + UOK, 'stopped');
 
     return false; // resolved when no longer running
-  }
+  } // process
+
+  async process2() {
+    const msg = 'r4r.process2';
+    const dbg = R4R.PROCESS;
+    let { consumer, eachMessage, msSleep } = this;
+    let { _inboxClock } = consumer;
+
+    let crashed = false;
+    while (this.running) {
+      try {
+        dbg > 1 && cc.ok(msg, '_readTopics...');
+        let { committed } = await consumer._readTopics({ eachMessage });
+        dbg > 1 && cc.ok(msg, '..._readTopics', ...cc.props({ committed }));
+
+        dbg > 1 && cc.ok( msg, '_inboxClock...');
+        let { done, value:clock } = await _inboxClock.next();
+
+        dbg && cc.ok1( msg+URA, ...cc.props({ clock, committed }));
+      } catch (e) {
+        cc.bad1(`${msg} CRASH`, e.message);
+        console.log(msg, e);
+        crashed = true;
+        await this.stop();
+        this.onCrash && this.onCrash(e);
+      }
+    }
+
+    dbg && !crashed && cc.ok1(msg + UOK, 'stopped');
+
+    return false; // resolved when no longer running
+  } // process2
 
   async start() {
     const msg = 'r4r.start';
     const dbg = R4R.START;
+    let { _inboxClock } = this.consumer;
 
     if (this.running) {
+      cc.bad1(msg, 'running!');
       return;
     }
     this.running = true;
     dbg > 1 && cc.ok(msg + 1, 'starting...');
 
-    this.resProcess = this.process();
+    _inboxClock.start();
+
+    if (1) {
+      this.resProcess = this.process();
+    } else {
+      this.resProcess = this.process2();
+    }
+
+    dbg && cc.ok1(msg+UOK, 'running:', this.running);
     return this.running; // true when resolved
   } // r4r.start
 
@@ -232,9 +275,9 @@ export class _Runner {
     const msg = 'r4r.stop';
     const dbg = R4R.STOP;
     this.running = false;
-    dbg > 1 && cc.ok(msg + OK, 'stopping...');
+    dbg > 1 && cc.ok(msg + UOK, 'stopping...');
     let res = await this.resProcess; // false when resolved
-    dbg && cc.ok1(msg + OK, 'stopped');
+    dbg && cc.ok1(msg + UOK, 'stopped');
   }
 } // _Runner
 
@@ -291,7 +334,7 @@ export class Consumer extends Role {
     } = cfg;
     super({ tla: 'c6r', kafka });
     // biome-ignore format:
-    dbg > 1 && cc.ok( msg + OK, ...cc.props({ groupId, _msIdle }));
+    dbg > 1 && cc.ok( msg + UOK, ...cc.props({ groupId, _msIdle }));
 
     Object.assign(this, {
       groupId,
@@ -307,12 +350,13 @@ export class Consumer extends Role {
       writable: true,
       value: null,
     });
-    let _inboxClock = new Clock({ msIdle: _msIdle });
+    let idle = () => new Promise(r=>setTimeout(()=>r(),_msIdle));
+    let _inboxClock = new Clock({ idle });
     Object.defineProperty(this, '_inboxClock', { value: _inboxClock });
 
     this.eachMessage = null;
 
-    dbg && cc.ok1(msg + OK, ...cc.props({ _id, groupId, _msIdle }));
+    dbg && cc.ok1(msg + UOK, ...cc.props({ _id, groupId, _msIdle }));
   } // c6r.ctor
 
   get running() {
@@ -359,7 +403,7 @@ export class Consumer extends Role {
 
     dbg &&
       cc.ok1(
-        msg + OK,
+        msg + UOK,
         ...cc.props({ groupId, _topics: group._topics().join(',') }),
       );
 
@@ -419,7 +463,7 @@ export class Consumer extends Role {
       } // partitions
     }
 
-    dbg && cc.ok1(msg + OK, ...cc.props({ _id, committed, groupId }));
+    dbg && cc.ok1(msg + UOK, ...cc.props({ _id, committed, groupId }));
     return { committed };
   } // _readTopics
 
@@ -444,7 +488,7 @@ export class Consumer extends Role {
     });
 
     let promise = this._runner.start(); // do not await!
-    dbg && cc.ok1(msg + OK, 'started');
+    dbg && cc.ok1(msg + UOK, 'started');
 
     return promise;
   }
@@ -515,7 +559,7 @@ export class Producer extends Role {
         hour12: false,
       });
       cc.ok1(
-        msg + OK,
+        msg + UOK,
         this._id,
         ts,
         topicName,
@@ -597,7 +641,7 @@ export class Admin extends Role {
       g10s && a.push(g10s);
       return a;
     }, []);
-    dbg && cc.ok1(msg + OK, groupId, JSON.stringify(offsets));
+    dbg && cc.ok1(msg + UOK, groupId, JSON.stringify(offsets));
 
     return offsets;
   }
