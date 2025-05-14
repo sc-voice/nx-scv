@@ -1,10 +1,7 @@
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
-const { 
-  CHECKMARK: UOK, 
-  RIGHT_ARROW: URA,
-} = Unicode;
+const { CHECKMARK: UOK, RIGHT_ARROW: URA } = Unicode;
 import { DBG } from '../defines.mjs';
 const { C6R, R4R } = DBG.N8A;
 import { Clock } from './clock.mjs';
@@ -172,7 +169,7 @@ export class _Runner {
       writable: true,
     });
     dbg &&
-      cc.ok1(msg + UOK, ...cc.props({c6r_groupId: consumer.groupId}));
+      cc.ok1(msg + UOK, ...cc.props({ c6r_groupId: consumer.groupId }));
   } // ctor
 
   async process() {
@@ -186,12 +183,13 @@ export class _Runner {
       try {
         dbg > 1 && cc.ok(msg, '_readTopics...');
         let { committed } = await consumer._readTopics({ eachMessage });
-        dbg > 1 && cc.ok(msg, '..._readTopics', ...cc.props({ committed }));
+        dbg > 1 &&
+          cc.ok(msg, '..._readTopics', ...cc.props({ committed }));
 
-        dbg > 1 && cc.ok( msg, '_inboxClock...');
-        let { done, value:clock } = await _inboxClock.next();
+        dbg > 1 && cc.ok(msg, '_inboxClock...');
+        let { done, value: clock } = await _inboxClock.next();
 
-        dbg && cc.ok1( msg+URA, ...cc.props({ clock, committed }));
+        dbg && cc.ok1(msg + URA, ...cc.props({ clock, committed }));
       } catch (e) {
         cc.bad1(`${msg} CRASH`, e.message);
         console.log(msg, e);
@@ -222,7 +220,7 @@ export class _Runner {
 
     this.resProcess = this.process();
 
-    dbg && cc.ok1(msg+UOK, 'running:', this.running);
+    dbg && cc.ok1(msg + UOK, 'running:', this.running);
     return this.running; // true when resolved
   } // r4r.start
 
@@ -428,16 +426,13 @@ export class Consumer extends Role {
     if (_runner) {
       throw new Error(`${msg} _runner already exists`);
     }
-    let { 
-      eachMessage, 
-      _msIdle = this._msIdle,
-    } = cfg;
+    let { eachMessage, _msIdle = this._msIdle } = cfg;
     if (eachMessage == null) {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
-    let idle = () => new Promise(r=>setTimeout(()=>r(),_msIdle));
-    await this._inboxClock.start({idle});
+    let idle = () => new Promise((r) => setTimeout(() => r(), _msIdle));
+    await this._inboxClock.start({ idle });
     this._runner = new _Runner({
       kafka,
       eachMessage,

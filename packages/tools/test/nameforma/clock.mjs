@@ -5,7 +5,7 @@ import { Text } from '../../index.mjs';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-describe('TESTTESTclock', () => {
+describe('clock', () => {
   const msg = 'tclock';
   it('ctor', async () => {
     const msg = 'tc3k.ctor';

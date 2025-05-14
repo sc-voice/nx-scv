@@ -29,6 +29,9 @@ export const DBG = {
   ML_DOC_VECTORS: 0, // 'mn8:3.4'
   MN8_MOHAN: 0,
   N8A: {
+    F3A: {
+      CTOR: 0,
+    },
     C3K: {
       // Clock
       START: 0,

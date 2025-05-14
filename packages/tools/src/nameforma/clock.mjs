@@ -2,11 +2,11 @@ import { DBG } from '../../src/defines.mjs';
 const { C3K } = DBG.N8A;
 import { ColorConsole } from '../../src/text/color-console.mjs';
 import { Unicode } from '../../src/text/unicode.mjs';
+import { Forma } from './forma.mjs';
 const { CHECKMARK: OK } = Unicode;
 const { cc } = ColorConsole;
 
-export class Clock {
-  static #instances = 0;
+export class Clock extends Forma {
   #referenceBase;
   #referenceTime;
   #idle;
@@ -18,14 +18,13 @@ export class Clock {
 
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
+    super();
     const dbg = C3K.CTOR;
-    Clock.#instances++;
     let {
-      id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
+      //id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       referenceTime = () => Date.now(),
-      idle = () => new Promise(r => setTimeout(() => r(), 500)),
+      idle = () => new Promise((r) => setTimeout(() => r(), 500)),
     } = cfg;
-    Object.assign(this, { id });
     this.#idle = idle;
     this.#referenceTime = referenceTime;
     dbg && cc.ok1(msg + OK, ...cc.props(this));
@@ -64,12 +63,10 @@ export class Clock {
     return this.#referenceTime();
   }
 
-  async start(cfg={}) {
+  async start(cfg = {}) {
     const msg = 'c3k.start';
     const dbg = C3K.START;
-    let {
-      idle = this.#idle,
-    } = cfg;
+    let { idle = this.#idle } = cfg;
     this.#idle = idle;
     let now = this.#referenceTime();
     if (this.#running) {

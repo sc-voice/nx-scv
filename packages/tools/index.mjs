@@ -59,10 +59,12 @@ import {
 } from './src/nameforma/kafka1.mjs';
 import { Timer, Timers } from './src/nameforma/timers.mjs';
 import { Clock } from './src/nameforma/clock.mjs';
+import { Forma } from './src/nameforma/forma.mjs';
 export const NameForma = {
   Admin,
   Clock,
   Consumer,
+  Forma,
   Kafka1,
   Producer,
   Timer,

@@ -342,7 +342,7 @@ describe('kafka', function () {
     producer.disconnect();
     dbg && cc.tag1(msg, 'END');
   }); // tk3a.rfr
-  it('TESTTESTrun', async () => {
+  it('run', async () => {
     const msg = 'tc6r_run';
     const dbg = TEST_DBG;
     const ka = new Kafka1();
