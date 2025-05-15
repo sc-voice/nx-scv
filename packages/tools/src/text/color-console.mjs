@@ -60,7 +60,10 @@ class Props {
         dbg>1 && CC.ok(msg, 'emitKey', value);
         switch (typeof value) {
           case 'object': {
-            if (value && value.toString !== {}.toString) {
+            if (value instanceof Array) {
+              dbg>1 && CC.ok(msg, 'Array', value);
+              value = value === null ? null : JSON.stringify(value);
+            } else if (value && value.toString !== {}.toString) {
               dbg>1 && CC.ok(msg, 'toString', value);
               value = value.toString();
             } else {

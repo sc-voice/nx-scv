@@ -20,14 +20,15 @@ class Phase extends Forma {
   }
 
   toString() {
-    let { name } = this;
-    return name;
+    let { name, progress } = this;
+    return `${name} (${progress})`;
   }
 }
 
 class Sequence extends Forma {
   #age;
   #phases;
+  #phaseIndex;
 
   constructor(cfg={}) {
     super(cfg);
@@ -35,10 +36,12 @@ class Sequence extends Forma {
     let {
       phases = [],
       name = this.id,
+      phaseIndex = 0,
       age = 0,
     } = cfg;
 
     this.#age = age;
+    this.#phaseIndex = phaseIndex;
     this.name = name;
     Object.defineProperty(this, 'age', {
       enumerable: true,
@@ -54,6 +57,8 @@ class Sequence extends Forma {
     this.#phases = phases;
     cc.ok1(msg+UOK, ...cc.props(this));
   }
+
+  get phaseIndex() { return this.#phaseIndex; }
 
   toString() {
     return `(${this.name})[${this.#phases.length}]`;
@@ -85,7 +90,7 @@ class Sequence extends Forma {
   }
 }
 
-describe('Sequence', () => {
+describe('TESTTESTsequence', () => {
   it('ctor', () => {
     let s6e = new Sequence();
     should(s6e.id).match(/^S6E[0-9]+$/);
@@ -99,12 +104,13 @@ describe('Sequence', () => {
       color: 'red',
     }
     let s6e = new Sequence({id, name});
-    s6e.addPhase({name: 'heat pan on medium heat to 300F'});
-    s6e.addPhase({name: 'add oil'});
-    s6e.addPhase({name: 'break egg into pan'});
-    s6e.addPhase({name: 'cover pan'});
-    s6e.addPhase({name: 'cook 5 minutes'});
-    s6e.addPhase({name: 'turn off heat and serve'});
+    should(s6e.phaseIndex).equal(0);
+    s6e.addPhase({name: 'heat pan medium heat', progress: new Fraction(70,300,'F')});
+    s6e.addPhase({name: 'add oil', progress: new Fraction(0,3,'Tbs')});
+    s6e.addPhase({name: 'break egg into pan', progress: new Fraction(0,2,'Egg')});
+    s6e.addPhase({name: 'cover pan', progress: new Fraction(0,1,'lid')});
+    s6e.addPhase({name: 'cook', progress: new Fraction(0,5,'minutes')});
+    s6e.addPhase({name: 'turn off heat and serve', progress: new Fraction(0,1,'serving')});
     cc.ok1(msg+UOK, s6e);
   });
   it('advance', () => {

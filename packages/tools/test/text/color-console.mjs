@@ -383,4 +383,16 @@ describe('text/color-console', () => {
       'vzero:', '0/1',
     ]);
   });
+  it('props() Array', () => {
+    let obj = {
+      varr: [1,2,3],
+      vobj: [{a:1},{b:2}],
+    };
+    should(obj.vobj.toString).not.equal({}.toString);
+    let props = cc.props(obj);
+    should.deepEqual([...props], [
+      'varr:', '[1,2,3]',
+      'vobj:', JSON.stringify(obj.vobj),
+    ]);
+  });
 });
