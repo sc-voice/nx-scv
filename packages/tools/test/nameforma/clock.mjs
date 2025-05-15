@@ -32,7 +32,7 @@ describe('clock', () => {
     const msg = 'tc3k.referenceTime-default';
     const dbg = 0;
     dbg && cc.tag1(msg, 'START');
-    const clock = new Clock({ });
+    const clock = new Clock({});
     const msTolerance = 5;
 
     let now = Date.now();
@@ -54,9 +54,9 @@ describe('clock', () => {
     dbg && cc.tag(msg, 'clocks with consumers sync up with referenceTime');
     await new Promise((res) => setTimeout(() => res(), 10));
     let { value: value2 } = await clock.next();
-    dbg && cc.tag(msg, '...next', {value2});
-    should(value2).above(value1); 
-    should(Math.abs(Date.now()-value2)).below(msTolerance);
+    dbg && cc.tag(msg, '...next', { value2 });
+    should(value2).above(value1);
+    should(Math.abs(Date.now() - value2)).below(msTolerance);
 
     await clock.stop();
     dbg && cc.tag1(msg, 'END');
@@ -98,27 +98,28 @@ describe('clock', () => {
     should.deepEqual(await clock.next(), { done: true, value: 3 });
     dbg && cc.tag(msg, 'END');
   });
-  it('idle', async()=>{
+  it('idle', async () => {
     let msg = 'tc3k.idle';
     let dbg = 0;
     let msIdle = 50;
     let nIdle = 0;
     let idle = async () => {
       nIdle++;
-      return new Promise(r5e=>setTimeout(()=>r5e(),msIdle));
-    }
+      return new Promise((r5e) => setTimeout(() => r5e(), msIdle));
+    };
     let tolerance = 10;
     let msStart = Date.now();
     dbg && cc.tag1(msg, 'START');
     let c3k = new Clock();
 
     // started clocks are not idle and offer the start time
-    await c3k.start({idle});
+    await c3k.start({ idle });
     should(c3k.timeIn).not.equal(c3k.timeOut);
     let { value: value1 } = await c3k.next();
     should(value1).equal(c3k.timeIn);
-    should(Math.abs(msStart-value1)).below(tolerance);
-    dbg && cc.tag(msg, 'Clocks are idle after the external update is consumed');
+    should(Math.abs(msStart - value1)).below(tolerance);
+    dbg &&
+      cc.tag(msg, 'Clocks are idle after the external update is consumed');
     should(c3k.timeIn).equal(c3k.timeOut);
     should(nIdle).equal(0);
 
@@ -127,23 +128,25 @@ describe('clock', () => {
     should(c3k.timeIn).equal(c3k.timeOut);
     should(nIdle).equal(1);
     should(Date.now() - msStart).above(msIdle);
-    should(value2-value1).above(msIdle);
-    should(Math.abs(value2-msStart-msIdle)).below(tolerance);
+    should(value2 - value1).above(msIdle);
+    should(Math.abs(value2 - msStart - msIdle)).below(tolerance);
 
     dbg && cc.tag(msg, 'clocks without consumers are NOT updated', value2);
     // IMPORTANT:
     // Idle clocks BLOCK after yielding a value that awaits a consumer.
     // Even that the yielded value becomes stale, future consumers will catch up.
-    let msLongIdle = 2*msIdle;
-    await (new Promise(r=>setTimeout(()=>r(), msLongIdle)));
+    let msLongIdle = 2 * msIdle;
+    await new Promise((r) => setTimeout(() => r(), msLongIdle));
     should(c3k.timeIn).equal(value2); // stale value
     should(nIdle).equal(1);
     let { value: value3 } = await c3k.next();
     should(c3k.timeIn).equal(c3k.timeOut);
-    should(value2-value1).above(msIdle).below(msLongIdle); // stale value
+    should(value2 - value1)
+      .above(msIdle)
+      .below(msLongIdle); // stale value
 
     dbg && cc.tag(msg, 'clocks offer external updates immediately');
-    await new Promise(r=>setTimeout(()=>r(), 10));
+    await new Promise((r) => setTimeout(() => r(), 10));
     let msExternal = Date.now();
     should(msExternal).above(value3);
     c3k.update(msExternal);

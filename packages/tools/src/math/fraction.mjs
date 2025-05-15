@@ -84,7 +84,7 @@ export class Fraction {
       d = -d;
       n = -n;
     }
-    let s = d === 1 ? `${n}` : `${n}/${d}`;
+    let s = (n < 0 || n >= 1) && d === 1 ? `${n}` : `${n}/${d}`;
 
     return units ? `${s} ${units}` : s;
   }

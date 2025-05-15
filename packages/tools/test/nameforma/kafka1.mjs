@@ -334,7 +334,7 @@ describe('kafka', function () {
     should(r4r).properties({ running: true, eachMessage });
 
     dbg > 1 && cc.tag(msg, 'release resources');
-    await r4r.stop(); 
+    await r4r.stop();
     should(r4r).properties({ running: false, eachMessage });
     should(consumed.length).equal(2);
     should.deepEqual(consumed, [msgA1, msgA2]);
@@ -371,7 +371,7 @@ describe('kafka', function () {
     await consumer.connect();
     await consumer.subscribe({ topics: [topic], fromBeginning: true });
     let _msSleep = 1;
-    await consumer.run({ eachMessage, });
+    await consumer.run({ eachMessage });
     should(consumer).properties({ running: true });
     await new Promise((res) => setTimeout(() => res(), _msSleep * 3));
     should(consumed.length).equal(2);

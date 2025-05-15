@@ -1,5 +1,9 @@
 import util from 'node:util';
 import { Unicode } from './unicode.mjs';
+import { DBG } from '../defines.mjs';
+const { F6N } = DBG;
+
+const { CHECKMARK: UOK } = Unicode;
 
 const {
   BLACK,
@@ -43,6 +47,8 @@ class Props {
   }
 
   next() {
+    const msg = 'p3s.next';
+    const dbg = F6N.P3S.NEXT;
     let { entries, i, emitKey, done } = this;
     let value;
     let entry = entries[i];
@@ -51,14 +57,24 @@ class Props {
         value = entry[0] + ':';
       } else {
         value = entry[1];
+        dbg>1 && CC.ok(msg, 'emitKey', value);
         switch (typeof value) {
-          case 'object':
-            value = value === null ? null : JSON.stringify(value);
+          case 'object': {
+            if (value && value.toString !== {}.toString) {
+              dbg>1 && CC.ok(msg, 'toString', value);
+              value = value.toString();
+            } else {
+              dbg>1 && CC.ok(msg, 'object', value);
+              value = value === null ? null : JSON.stringify(value);
+            }
             break;
+          }
           case 'function':
+            dbg>1 && CC.ok(msg, 'function', value);
             value = `[Function ${value.name}]`;
             break;
           default:
+            dbg>1 && CC.ok(msg, 'default', value);
             break;
         }
       }
@@ -70,6 +86,7 @@ class Props {
       done = true;
     }
     this.value = value;
+    dbg && CC.ok1(msg+UOK, {done, value});
 
     return { done, value };
   }

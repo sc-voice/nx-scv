@@ -3,7 +3,7 @@ import should from 'should';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, Corpus } = Text;
-const { Interval } = ScvMath;
+const { Fraction, Interval } = ScvMath;
 const { cc } = ColorConsole;
 
 const dbg = DBG.COLOR_CONSOLE;
@@ -371,5 +371,16 @@ describe('text/color-console', () => {
     };
     let props = cc.props(obj);
     should.deepEqual([...props], ['vfun:', '[Function vfun]']);
+  });
+  it('props() Fraction', () => {
+    let obj = {
+      vfrac: new Fraction(1,10),
+      vzero: new Fraction(0,1),
+    };
+    let props = cc.props(obj);
+    should.deepEqual([...props], [
+      'vfrac:', '1/10',
+      'vzero:', '0/1',
+    ]);
   });
 });

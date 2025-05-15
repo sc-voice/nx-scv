@@ -4,12 +4,28 @@ import { ScvMath } from '../../index.mjs';
 const { Fraction } = ScvMath;
 
 describe('scv-math/fraction', () => {
-  it('default ctor', () => {
+  it('TESTTESTdefault ctor', () => {
+    const msg = 'tf6n.ctor';
     let f = new Fraction();
     should(f.numerator).equal(undefined);
     should(f.denominator).equal(1);
     should(f.toString()).equal('undefined/1');
     should(Number.isNaN(f.value)).equal(true);
+    let proto = Object.getPrototypeOf(f);
+    console.log(msg, 'proto', Object.hasOwn(proto, 'toString'));
+    let obj1 = {a:1};
+    let obj2 = {b:2};
+    should({}.toString).equal(obj1?.toString);
+    should(obj1?.toString).equal(obj2?.toString);
+    should(f?.toString).not.equal(obj2?.toString);
+    should(typeof f?.toString).equal('function');
+  });
+  it('custom ctor 0', () => {
+    let f01 = new Fraction(0,1);
+    should(f01.numerator).equal(0);
+    should(f01.denominator).equal(1);
+    should(f01.toString()).equal('0/1');
+    should(f01.value).equal(0);
   });
   it('custom ctor 1', () => {
     let f = new Fraction(1);

@@ -8,7 +8,7 @@ const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
 class Thing extends Forma {
-  constructor(cfg={}) {
+  constructor(cfg = {}) {
     const msg = 't3g.ctor';
     super();
     cc.fyi1(msg, ...cc.props(this));
