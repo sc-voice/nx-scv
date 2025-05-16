@@ -37,8 +37,8 @@ export const DBG = {
     F3A: {
       CTOR: 0,
     },
-    P3E: {
-      UPDATE: 2,
+    S2P: {
+      UPDATE: 1,
     },
     S6E: {
       UPDATE_PHASE: 2,
