@@ -1,118 +1,173 @@
-
 import should from 'should';
 import { NameForma } from '../../index.mjs';
 const { Forma } = NameForma;
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
+const { P3E, S6E } = DBG.N8A;
 const { Fraction } = ScvMath;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
-const { CHECKMARK: UOK } = Unicode;
+const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
 
 class Phase extends Forma {
-  constructor(cfg={}) {
-    super(cfg);
-    let {
-      name,
-      progress = new Fraction(0,1), 
-    } = cfg;
-    Object.assign(this, {name, progress });
+  constructor(cfg = {}) {
+    super({id:cfg.id});
+    let { name, progress = new Fraction(0, 1) } = cfg;
+    let msStart = undefined;
+    let msEnd = undefined;
+    Object.assign(this, { name, progress, msStart, msEnd });
+
+    Object.defineProperty(this, 'started', {
+      enumerable: true,
+      get() { return this.msStart != null; },
+    });
+    Object.defineProperty(this, 'done', {
+      enumerable: true,
+      get() { return this.msEnd != null; },
+    });
+  }
+
+  update(value) {
+    const msg = 'p3e.update';
+    const dbg = P3E.UPDATE;
+    const now = Date.now();
+    let { msStart, msEnd, progress } = this;
+    if (this.msStart == null) {
+      this.msStart = now;
+      dbg > 1 && cc.ok(msg, 'msStart:', now);
+    }
+    progress.numerator = value;
+    if (msEnd == null && progress.value >= 1) {
+      this.msEnd = Date.now();
+      dbg > 1 && cc.ok(msg, 'msStart:', now);
+    }
+    dbg && cc.ok(msg+UOK, this.toString());
   }
 
   toString() {
-    let { name, progress } = this;
-    return `${name} (${progress})`;
+    let { id, name, progress, msStart, msEnd, done, started } = this;
+    let time = '';
+    let now = Date.now();
+    let symbol = ' ';
+    let status = progress.toString();
+    if (done) {
+      symbol = UOK;
+      status = '' + progress.denominator + progress.units;
+    } else if (started) {
+      symbol = Unicode.RIGHT_GUILLEMET;
+    }
+    if (msStart != null) {
+      let elapsed = (((msEnd || now) - msStart)/1000).toFixed(1);
+      time = ' ' + elapsed + 's';
+    }
+
+    return `${symbol} ${id}. ${name} (${status}${time})`;
   }
 }
 
 class Sequence extends Forma {
-  #age;
   #phases;
   #phaseIndex;
 
-  constructor(cfg={}) {
+  constructor(cfg = {}) {
     super(cfg);
     const msg = `${this.prefix}.ctor`;
-    let {
-      phases = [],
-      name = this.id,
-      phaseIndex = 0,
-      age = 0,
-    } = cfg;
+    let { phases = [], name = this.id, phaseIndex = 0, } = cfg;
 
-    this.#age = age;
     this.#phaseIndex = phaseIndex;
     this.name = name;
-    Object.defineProperty(this, 'age', {
-      enumerable: true,
-      get: ()=>this.#age,
-    });
+
+    // phrases are not externally mutable
+    this.#phases = [];
+    phases.forEach(p => this.addPhase(p));
+    cc.ok1(msg + UOK, ...cc.props(this), 'phases:', phases.length);
     Object.defineProperty(this, 'phases', {
       enumerable: true,
-      get: () => this.#phases.map(p=>({
-        id:p.id,
-        duration:p.duration,
-      })),
+      get: () => this.#phases.map(p => p.toString()),
     });
-    this.#phases = phases;
-    cc.ok1(msg+UOK, ...cc.props(this));
   }
 
-  get phaseIndex() { return this.#phaseIndex; }
+  get phaseIndex() {
+    return this.#phaseIndex;
+  }
 
   toString() {
     return `(${this.name})[${this.#phases.length}]`;
   }
 
-  addPhase(cfg={}) {
+  addPhase(cfg = {}) {
     const msg = `${this.prefix}.addPhase`;
-    let { id:seqId } = this;
-    let phaseNum= this.#phases.length + 1;
-    let {
-      id = `${seqId}.${phaseNum}`,
-      name,
-      duration,
-      progress,
-    } = cfg;
-    let p3e = new Phase({id, duration, name, progress});
+    let { id: seqId } = this;
+    let phaseNum = this.#phases.length + 1;
+    let { id = `P${phaseNum}`, name, progress } = cfg;
+    let p3e = new Phase({ id, name, progress });
     this.#phases.push(p3e);
-    cc.ok1(msg+UOK, id+':', p3e);
+    cc.ok1(msg + UOK, id + ':', p3e);
   }
 
-  advance(dAge = 1) {
-    let { phase, phases } = this;
-    let nextAge = Math.min(phases.length-1, age + dAge);
-    if (nextAge <= age) {
-      return false;
-    }
-
-    this.age = nextAge;
+  updatePhase(phaseNum, value) {
+    const msg = 's6e.updatePhase';
+    const dbg = S6E.UPDATE_PHASE;
+    this.#phases[phaseNum-1].update(value)
   }
+
 }
 
-describe('TESTTESTsequence', () => {
+const FRY_EGG = [
+  { name: 'heat pan medium heat', progress: new Fraction(70, 300, 'F') },
+  { name: 'add oil', progress: new Fraction(0, 1, 'Tbs') },
+  { name: 'break egg into pan', progress: new Fraction(0, 2, 'Egg') },
+  { name: 'cover pan', progress: new Fraction(0, 1, 'lid') },
+  { name: 'cook', progress: new Fraction(0, 5, 'minutes') },
+  {
+    name: 'turn off heat and serve',
+    progress: new Fraction(0, 1, 'serving'),
+  },
+];
+
+describe('sequence', () => {
   it('ctor', () => {
     let s6e = new Sequence();
     should(s6e.id).match(/^S6E[0-9]+$/);
-    should(s6e.age).equal(0);
+    should(s6e.name).equal(s6e.id);
+    should(s6e.phases.length).equal(0);
   });
-  it('addPhase()', () => {
-    let msg = 'ts6e.addPhase';
-    let id = 'ts6e.a6e';
+  it('TESTTESTaddPhase() recipe', () => {
+    let msg = 'ts6e.recipe';
+    let id = 't.recipe';
     let name = 'fry egg';
-    let state = {
-      color: 'red',
-    }
-    let s6e = new Sequence({id, name});
+
+    // Create a recipe by enumerating the steps (phases)
+    let s6e = new Sequence({ id, name });
     should(s6e.phaseIndex).equal(0);
-    s6e.addPhase({name: 'heat pan medium heat', progress: new Fraction(70,300,'F')});
-    s6e.addPhase({name: 'add oil', progress: new Fraction(0,3,'Tbs')});
-    s6e.addPhase({name: 'break egg into pan', progress: new Fraction(0,2,'Egg')});
-    s6e.addPhase({name: 'cover pan', progress: new Fraction(0,1,'lid')});
-    s6e.addPhase({name: 'cook', progress: new Fraction(0,5,'minutes')});
-    s6e.addPhase({name: 'turn off heat and serve', progress: new Fraction(0,1,'serving')});
-    cc.ok1(msg+UOK, s6e);
+    FRY_EGG.forEach((p) => s6e.addPhase(p));
+    let { phases } = s6e;
+
+    // phases are immutable views
+    should(phases.length).equal(FRY_EGG.length);
+    should(phases[3]).equal('  P4. cover pan (0/1 lid)');
   });
-  it('advance', () => {
+  it('TESTTESTupdatePhase() cook', async () => {
+    let msg = 'ts6e.cook';
+    let id = 't.cook';
+    let name = 'fry egg';
+    let s6e = new Sequence({ id, name, phases: FRY_EGG });
+    should(s6e.phaseIndex).equal(0);
+    should(s6e.phases.length).equal(FRY_EGG.length);
+
+    // heat pan
+    s6e.updatePhase(1, 70); 
+    cc.tag(msg, s6e.phases[0]);
+    should(s6e.phases[0]).match(new RegExp(`.*${FRY_EGG[0].name}.*`));
+    should(s6e.phases[0]).match(new RegExp(`.*70/300 F 0.0s`));
+    await new Promise(r=>setTimeout(()=>r(),100));
+    should(s6e.phases[0]).match(new RegExp(`.*70/300 F 0.1s`));
+    await new Promise(r=>setTimeout(()=>r(),100));
+    s6e.updatePhase(1, 80); 
+    should(s6e.phases[0]).match(new RegExp(`.*80/300 F 0.2s`));
+
+    await new Promise(r=>setTimeout(()=>r(),200));
+    s6e.updatePhase(1, 300); 
+    should(s6e.phases[0]).match(new RegExp(`.*300F 0.4s`));
   });
 });

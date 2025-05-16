@@ -22,10 +22,7 @@ export class Forma {
     instances++;
     Forma.#instances[prefix] = instances;
 
-    let {
-      id = `${prefix}${('' + instances).padStart(3, '0')}`,
-    } = cfg;
-
+    let { id = `${prefix}${('' + instances).padStart(3, '0')}` } = cfg;
 
     Object.defineProperty(this, 'prefix', {
       value: prefix,

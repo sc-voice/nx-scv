@@ -12,13 +12,13 @@ describe('scv-math/fraction', () => {
     should(f.toString()).equal('undefined/1');
     should(Number.isNaN(f.value)).equal(true);
     let proto = Object.getPrototypeOf(f);
-    let obj1 = {a:1};
+    let obj1 = { a: 1 };
     should({}.toString).equal(obj1?.toString);
     should(f?.toString).not.equal({}.toString);
     should(typeof f?.toString).equal('function');
   });
   it('custom ctor 0', () => {
-    let f01 = new Fraction(0,1);
+    let f01 = new Fraction(0, 1);
     should(f01.numerator).equal(0);
     should(f01.denominator).equal(1);
     should(f01.toString()).equal('0/1');

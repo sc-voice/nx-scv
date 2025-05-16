@@ -374,25 +374,22 @@ describe('text/color-console', () => {
   });
   it('props() Fraction', () => {
     let obj = {
-      vfrac: new Fraction(1,10),
-      vzero: new Fraction(0,1),
+      vfrac: new Fraction(1, 10),
+      vzero: new Fraction(0, 1),
     };
     let props = cc.props(obj);
-    should.deepEqual([...props], [
-      'vfrac:', '1/10',
-      'vzero:', '0/1',
-    ]);
+    should.deepEqual([...props], ['vfrac:', '1/10', 'vzero:', '0/1']);
   });
   it('props() Array', () => {
     let obj = {
-      varr: [1,2,3],
-      vobj: [{a:1},{b:2}],
+      varr: [1, 2, 3],
+      vobj: [{ a: 1 }, { b: 2 }],
     };
     should(obj.vobj.toString).not.equal({}.toString);
     let props = cc.props(obj);
-    should.deepEqual([...props], [
-      'varr:', '[1,2,3]',
-      'vobj:', JSON.stringify(obj.vobj),
-    ]);
+    should.deepEqual(
+      [...props],
+      ['varr:', '[1,2,3]', 'vobj:', JSON.stringify(obj.vobj)],
+    );
   });
 });
