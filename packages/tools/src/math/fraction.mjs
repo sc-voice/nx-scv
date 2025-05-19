@@ -75,16 +75,21 @@ export class Fraction {
     return this;
   }
 
-  toString() {
+  toString(cfg={}) {
     let { units, numerator: n, denominator: d, value } = this;
-    if (n == null || d == null) {
-      return `${n}/${d}`;
+    let s;
+    let { showDenominator, fixed } = cfg;
+    if (n == null || d == null || showDenominator) {
+      s = `${n}/${d}`;
+    } else if (d === 1) {
+      s = `${n}`;
+    } else {
+      if (d < 0) {
+        d = -d;
+        n = -n;
+      }
+      s = (n < 0 || n >= 1) && d === 1 ? `${n}` : `${n}/${d}`;
     }
-    if (d < 0) {
-      d = -d;
-      n = -n;
-    }
-    let s = (n < 0 || n >= 1) && d === 1 ? `${n}` : `${n}/${d}`;
 
     return units ? `${s} ${units}` : s;
   }

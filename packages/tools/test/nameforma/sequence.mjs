@@ -52,7 +52,7 @@ class Step extends Forma {
     let time = '';
     let now = Date.now();
     let symbol = '.';
-    let status = progress.toString();
+    let status = progress.toString({showDenominator:true});
     if (done) {
       symbol = UOK;
       status = '' + progress.denominator + progress.units;
@@ -141,7 +141,7 @@ const FRY_EGG = [
 
 let dbg = 2;
 
-describe('sequence', () => {
+describe('TESTTESTsequence', () => {
   it('ctor', () => {
     const msg = 's6e.ctor';
     dbg && cc.tag1(msg, 'START');

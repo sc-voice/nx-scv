@@ -38,10 +38,10 @@ export const DBG = {
       CTOR: 0,
     },
     S2P: {
-      UPDATE: 1,
+      UPDATE: 0,
     },
     S6E: {
-      UPDATE_PHASE: 2,
+      UPDATE_PHASE: 0,
     },
     C3K: {
       // Clock
@@ -81,6 +81,11 @@ export const DBG = {
   },
   W7E_BOW_OF_TEXT: 0,
   WORD_MAP_TRANFORMER: 0,
+  S5H: {
+    U3S: {
+      CONVERT_FRACTION: 0,
+    },
+  },
   TEST: {
     VERBOSE: 0,
   },

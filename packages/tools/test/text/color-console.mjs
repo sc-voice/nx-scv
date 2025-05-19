@@ -378,7 +378,7 @@ describe('text/color-console', () => {
       vzero: new Fraction(0, 1),
     };
     let props = cc.props(obj);
-    should.deepEqual([...props], ['vfrac:', '1/10', 'vzero:', '0/1']);
+    should.deepEqual([...props], ['vfrac:', '1/10', 'vzero:', '0']);
   });
   it('props() Array', () => {
     let obj = {

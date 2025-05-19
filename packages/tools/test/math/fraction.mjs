@@ -21,14 +21,14 @@ describe('scv-math/fraction', () => {
     let f01 = new Fraction(0, 1);
     should(f01.numerator).equal(0);
     should(f01.denominator).equal(1);
-    should(f01.toString()).equal('0/1');
+    should(f01.toString()).equal('0');
     should(f01.value).equal(0);
   });
   it('custom ctor 1', () => {
-    let f = new Fraction(1);
+    let f = new Fraction(1, 1, 'inch');
     should(f.numerator).equal(1);
     should(f.denominator).equal(1);
-    should(f.toString()).equal('1');
+    should(f.toString()).equal('1 inch');
     should(f.value).equal(1);
 
     // Fractions can be copied
