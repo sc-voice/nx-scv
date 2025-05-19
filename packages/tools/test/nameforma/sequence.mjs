@@ -10,23 +10,23 @@ const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
 
 class Step extends Forma {
   constructor(cfg = {}) {
-    super({id:cfg.id});
-    let { 
-      name, 
-      progress = new Fraction(0, 1),
-      unit = 'Step', 
-    } = cfg;
+    super({ id: cfg.id });
+    let { name, progress = new Fraction(0, 1), unit = 'Step' } = cfg;
     let msStart = undefined;
     let msEnd = undefined;
     Object.assign(this, { unit, name, progress, msStart, msEnd });
 
     Object.defineProperty(this, 'started', {
       enumerable: true,
-      get() { return this.msStart != null; },
+      get() {
+        return this.msStart != null;
+      },
     });
     Object.defineProperty(this, 'done', {
       enumerable: true,
-      get() { return this.msEnd != null; },
+      get() {
+        return this.msEnd != null;
+      },
     });
   } // s2p.ctor
 
@@ -44,13 +44,11 @@ class Step extends Forma {
       this.msEnd = Date.now();
       dbg > 1 && cc.ok(msg, 'msStart:', now);
     }
-    dbg && cc.ok(msg+UOK, this.toString());
+    dbg && cc.ok(msg + UOK, this.toString());
   } // s2p.update
 
   toString() {
-    let { 
-      unit, id, name, progress, msStart, msEnd, done, started,
-    } = this;
+    let { unit, id, name, progress, msStart, msEnd, done, started } = this;
     let time = '';
     let now = Date.now();
     let symbol = '.';
@@ -62,7 +60,7 @@ class Step extends Forma {
       symbol = Unicode.RIGHT_GUILLEMET;
     }
     if (msStart != null) {
-      let elapsed = (((msEnd || now) - msStart)/1000).toFixed(1);
+      let elapsed = (((msEnd || now) - msStart) / 1000).toFixed(1);
       time = ' ' + elapsed + 's';
     }
 
@@ -77,23 +75,18 @@ class Sequence extends Forma {
   constructor(cfg = {}) {
     super(cfg);
     const msg = `${this.prefix}.ctor`;
-    let { 
-      unit = 'Step',
-      steps = [], 
-      name = this.id, 
-      stepIndex = 0, 
-    } = cfg;
+    let { unit = 'Step', steps = [], name = this.id, stepIndex = 0 } = cfg;
 
     this.#stepIndex = stepIndex;
-    Object.assign(this, {unit, name});
+    Object.assign(this, { unit, name });
 
     // phrases are not externally mutable
     this.#steps = [];
-    steps.forEach(p => this.addStep(p));
+    steps.forEach((p) => this.addStep(p));
     cc.ok1(msg + UOK, ...cc.props(this), 'steps:', steps.length);
     Object.defineProperty(this, 'steps', {
       enumerable: true,
-      get: () => this.#steps.map(p => p.toString()),
+      get: () => this.#steps.map((p) => p.toString()),
     });
   }
 
@@ -104,7 +97,7 @@ class Sequence extends Forma {
   progress() {
     let steps = this.#steps;
     let denominator = steps.length;
-    let numerator = steps.reduce((a,s)=>{
+    let numerator = steps.reduce((a, s) => {
       return a + s.progress.value;
     }, 0);
 
@@ -119,11 +112,7 @@ class Sequence extends Forma {
     const msg = `${this.prefix}.addStep`;
     let { unit, id: seqId } = this;
     let stepNum = this.#steps.length + 1;
-    let { 
-      id = `${stepNum}`, 
-      name, 
-      progress,
-    } = cfg;
+    let { id = `${stepNum}`, name, progress } = cfg;
     let s2p = new Step({ unit, id, name, progress });
     this.#steps.push(s2p);
     cc.ok1(msg + UOK, id + ':', s2p);
@@ -132,9 +121,8 @@ class Sequence extends Forma {
   updateStep(stepNum, value) {
     const msg = 's6e.updateStep';
     const dbg = S6E.UPDATE_STEP;
-    this.#steps[stepNum-1].update(value)
+    this.#steps[stepNum - 1].update(value);
   } // s6e.updateStep
-
 } // class Sequence
 
 import should from 'should';
@@ -153,7 +141,7 @@ const FRY_EGG = [
 
 let dbg = 2;
 
-describe('TESTTESTsequence', () => {
+describe('sequence', () => {
   it('ctor', () => {
     const msg = 's6e.ctor';
     dbg && cc.tag1(msg, 'START');
@@ -161,17 +149,17 @@ describe('TESTTESTsequence', () => {
     should(s6e.id).match(/^S6E[0-9]+$/);
     should(s6e.name).equal(s6e.id);
     should(s6e.steps.length).equal(0);
-    should.deepEqual(s6e.progress(), new Fraction(0,0));
+    should.deepEqual(s6e.progress(), new Fraction(0, 0));
     dbg && cc.tag1(msg, 'END');
   });
-  it('TESTTESTaddStep() recipe', () => {
+  it('addStep() recipe', () => {
     const msg = 'ts6e.recipe';
     dbg && cc.tag1(msg, 'START');
     const id = 't.recipe';
     const name = 'fry egg';
     const unit = 'P';
 
-    // Create a recipe by enumerating the steps 
+    // Create a recipe by enumerating the steps
     let s6e = new Sequence({ unit, id, name });
     should(s6e.stepIndex).equal(0);
     FRY_EGG.forEach((p) => s6e.addStep(p));
@@ -180,7 +168,7 @@ describe('TESTTESTsequence', () => {
     let { steps } = s6e;
     let p6s = s6e.progress();
     should(p6s.denominator).equal(6);
-    should(p6s.numerator).equal(0/300); 
+    should(p6s.numerator).equal(0 / 300);
     should(p6s.units).equal(undefined); // unitless
 
     // steps are immutable views
@@ -189,7 +177,7 @@ describe('TESTTESTsequence', () => {
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('TESTTESTupdateStep() cook', async () => {
+  it('updateStep() cook', async () => {
     const msg = 'ts6e.cook';
     const id = 't.cook';
     const name = 'fry egg';
@@ -200,23 +188,23 @@ describe('TESTTESTsequence', () => {
     should(s6e.steps.length).equal(FRY_EGG.length);
 
     dbg > 1 && cc.tag(msg, 'room temperature pan is progress');
-    s6e.updateStep(1, 70); 
+    s6e.updateStep(1, 70);
     let p6s = s6e.progress();
     should(s6e.steps[0]).match(new RegExp(`.*${FRY_EGG[0].name}.*`));
-    should(s6e.steps[0]).match(new RegExp(`.*70/300 F 0.0s`));
-    await new Promise(r=>setTimeout(()=>r(),100));
-    should(s6e.steps[0]).match(new RegExp(`.*70/300 F 0.1s`));
-    await new Promise(r=>setTimeout(()=>r(),100));
-    s6e.updateStep(1, 80); 
-    should(s6e.steps[0]).match(new RegExp(`.*80/300 F 0.2s`));
+    should(s6e.steps[0]).match(/.*70\/300 F 0.0s/);
+    await new Promise((r) => setTimeout(() => r(), 100));
+    should(s6e.steps[0]).match(/.*70\/300 F 0.1s/);
+    await new Promise((r) => setTimeout(() => r(), 100));
+    s6e.updateStep(1, 80);
+    should(s6e.steps[0]).match(/.*80\/300 F 0.2s/);
     p6s = s6e.progress();
     should(p6s.denominator).equal(6);
-    should(p6s.numerator).equal(80/300); // pan got warmer
+    should(p6s.numerator).equal(80 / 300); // pan got warmer
 
     dbg > 1 && cc.tag(msg, 'pan is heated to 300F');
-    await new Promise(r=>setTimeout(()=>r(),200));
-    s6e.updateStep(1, 300); 
-    should(s6e.steps[0]).match(new RegExp(`.*300F 0.4s`));
+    await new Promise((r) => setTimeout(() => r(), 200));
+    s6e.updateStep(1, 300);
+    should(s6e.steps[0]).match(/.*300F 0.4s/);
     p6s = s6e.progress();
     should(p6s.denominator).equal(6);
     should(p6s.numerator).equal(1); // Step 1 done!

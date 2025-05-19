@@ -5,12 +5,14 @@ export const JS = {
 
 import { Activation } from './src/math/activation.mjs';
 import { Fraction } from './src/math/fraction.mjs';
+import { Units } from './src/math/units.mjs';
 import { Interval } from './src/math/interval.mjs';
 
 export const ScvMath = {
   Activation,
   Fraction,
   Interval,
+  Units,
 };
 
 import { BilaraPath } from './src/text/bilara-path.mjs';
