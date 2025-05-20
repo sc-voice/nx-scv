@@ -52,7 +52,7 @@ class Step extends Forma {
     let time = '';
     let now = Date.now();
     let symbol = '.';
-    let status = progress.toString({showDenominator:true});
+    let status = progress.toString({ asRange: '/' });
     if (done) {
       symbol = UOK;
       status = '' + progress.denominator + progress.units;
@@ -169,7 +169,7 @@ describe('TESTTESTsequence', () => {
     let p6s = s6e.progress();
     should(p6s.denominator).equal(6);
     should(p6s.numerator).equal(0 / 300);
-    should(p6s.units).equal(undefined); // unitless
+    should(p6s.units).equal(''); // unitless
 
     // steps are immutable views
     should(steps.length).equal(FRY_EGG.length);

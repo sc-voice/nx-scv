@@ -1,18 +1,28 @@
 export class Fraction {
   constructor(...args) {
-    //constructor(numerator, denominator = 1, units = undefined) {
     const msg = 'Fraction.ctor:';
-    if (args[0] instanceof Fraction) {
-      let { numerator: n, denominator: d, units: u } = args[0];
-      args = [n, d, u];
-    }
-    let [numerator, denominator = 1, units = undefined] = args;
+    let cfg = args[0];
+    
+    if (typeof cfg === 'object') {
+      this.put(args[0]);
+    } else {
+      let [numerator, denominator, units] = args;
 
-    Object.assign(this, {
-      numerator,
-      denominator,
-      units,
-    });
+      this.put({ numerator, denominator, units });
+    }
+  }
+
+  static get SCHEMA() {
+    return {
+      name: 'Fraction',
+      namespace: 'scVoice.tools.scvMath',
+      type: 'record',
+      fields: [
+        { name: 'numerator', type: 'int' },
+        { name: 'denominator', type: 'int' },
+        { name: 'units', type: 'string' },
+      ],
+    };
   }
 
   static gcd(a, b) {
@@ -20,6 +30,24 @@ export class Fraction {
       return a;
     }
     return Fraction.gcd(b, a % b);
+  }
+
+  put(json = {}) {
+    let { numerator = 0, denominator = 1, units = '' } = json;
+    Object.assign(this, { numerator, denominator, units });
+  }
+
+  patch(json = {}) {
+    let { numerator, denominator, units } = json;
+    if (numerator != null) {
+      this.numerator = numerator;
+    }
+    if (denominator != null) {
+      this.denominator = denominator;
+    }
+    if (units != null) {
+      this.units = units;
+    }
   }
 
   get remainder() {
@@ -75,11 +103,13 @@ export class Fraction {
     return this;
   }
 
-  toString(cfg={}) {
+  toString(cfg = {}) {
     let { units, numerator: n, denominator: d, value } = this;
     let s;
-    let { showDenominator, fixed } = cfg;
-    if (n == null || d == null || showDenominator) {
+    let { asRange, fixed } = cfg;
+    if (asRange) {
+      s = `${n}${asRange}${d}`;
+    } else if (n == null || d == null) {
       s = `${n}/${d}`;
     } else if (d === 1) {
       s = `${n}`;
@@ -99,7 +129,7 @@ export class Fraction {
     let { numerator: n1, denominator: d1, units: u1 } = this;
     let { numerator: n2, denominator: d2, units: u2 } = f;
     if (this.units !== f.units) {
-      throw new Error(`${msg} units? ${u1}? ${u2}?`);
+      throw new Error(`${msg} units? "${u1}" vs. "${u2}"`);
     }
 
     return new Fraction(n1 * d2 + n2 * d1, d1 * d2).reduce();

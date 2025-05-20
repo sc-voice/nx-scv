@@ -32,6 +32,7 @@
   "homepage": "https://github.com/sc-voice/tools#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "avro-js": "^1.12.0",
     "deepl-node": "^1.15.0",
     "eslint": "^9.17.0",
     "mocha": "^11.0.1",

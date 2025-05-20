@@ -14,12 +14,9 @@ describe('units', () => {
     let units = new Units();
     let F32 = new Fraction(32, 1, 'F');
     let F212 = new Fraction(212, 1, 'Fahrenheit');
+    should.deepEqual(units.convert(F32).to('C'), new Fraction(0, 1, 'C'));
     should.deepEqual(
-      units.convert(F32).to('C'), 
-      new Fraction(0, 1, 'C'),
-    );
-    should.deepEqual(
-      units.convert(F32).to('Centigrade'), 
+      units.convert(F32).to('Centigrade'),
       new Fraction(0, 1, 'Centigrade'),
     );
     should.deepEqual(
@@ -34,8 +31,8 @@ describe('units', () => {
     // convert to same value
     should.deepEqual(units.convert(F32).to('F'), F32);
     should.deepEqual(
-      units.convert(F32).to('Fahrenheit'), 
-      new Fraction(32,1,'Fahrenheit')
+      units.convert(F32).to('Fahrenheit'),
+      new Fraction(32, 1, 'Fahrenheit'),
     );
   });
   it('convert C to F', () => {
@@ -45,11 +42,11 @@ describe('units', () => {
     let C100 = new Fraction(100, 1, 'Centigrade');
     should.deepEqual(units.convert(C0).to('F'), new Fraction(32, 1, 'F'));
     should.deepEqual(
-      units.convert(C0).to('Fahrenheit'), 
+      units.convert(C0).to('Fahrenheit'),
       new Fraction(32, 1, 'Fahrenheit'),
     );
     should.deepEqual(
-      units.convert(C100).to('F'), 
+      units.convert(C100).to('F'),
       new Fraction(212, 1, 'F'),
     );
     should.deepEqual(
@@ -60,8 +57,8 @@ describe('units', () => {
     // convert to same value
     should.deepEqual(units.convert(C0).to('C'), C0);
     should.deepEqual(
-      units.convert(C0).to('Centigrade'), 
-      new Fraction(0,1,'Centigrade')
+      units.convert(C0).to('Centigrade'),
+      new Fraction(0, 1, 'Centigrade'),
     );
   });
   it('convert to nonsense', () => {
@@ -84,19 +81,19 @@ describe('units', () => {
     let IN1 = new Fraction(1, 1, 'in');
     let IN34 = new Fraction(3, 4, 'inch');
     should.deepEqual(
-      units.convert(IN1).to('cm'), 
+      units.convert(IN1).to('cm'),
       new Fraction(254, 100, 'cm').reduce(),
     );
     should.deepEqual(
-      units.convert(IN34).to('centimeter'), 
-      new Fraction(3*254, 4*100, 'centimeter').reduce(),
+      units.convert(IN34).to('centimeter'),
+      new Fraction(3 * 254, 4 * 100, 'centimeter').reduce(),
     );
 
     // convert to same value
     should.deepEqual(units.convert(IN34).to('inch'), IN34);
     should.deepEqual(
-      units.convert(IN1).to('in'), 
-      new Fraction(1,1,'in')
+      units.convert(IN1).to('in'),
+      new Fraction(1, 1, 'in'),
     );
   });
 });

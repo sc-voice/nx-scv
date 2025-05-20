@@ -1,16 +1,19 @@
+import avro from 'avro-js';
 import should from 'should';
-
-import { ScvMath } from '../../index.mjs';
+import { ScvMath, Text } from '../../index.mjs';
 const { Fraction } = ScvMath;
+const { cc } = Text.ColorConsole;
 
-describe('scv-math/fraction', () => {
+const dbg = 1;
+
+describe('TESTTESTscv-math/fraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();
-    should(f.numerator).equal(undefined);
+    should(f.numerator).equal(0);
     should(f.denominator).equal(1);
-    should(f.toString()).equal('undefined/1');
-    should(Number.isNaN(f.value)).equal(true);
+    should(f.toString()).equal('0');
+    should(Number.isNaN(f.value)).equal(false);
     let proto = Object.getPrototypeOf(f);
     let obj1 = { a: 1 };
     should({}.toString).equal(obj1?.toString);
@@ -123,7 +126,7 @@ describe('scv-math/fraction', () => {
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).match(/units.*dollars.*undefined/);
+    should(eCaught.message).match(/units.*"dollars".*""/);
     let f4 = new Fraction(30, 3, 'euros');
     eCaught = undefined;
     try {
@@ -132,5 +135,30 @@ describe('scv-math/fraction', () => {
       eCaught = e;
     }
     should(eCaught.message).match(/units.*dollars.*euros/);
+  });
+  it('patch', () => {
+    let f6n = new Fraction(1,2,'meter');
+    f6n.patch({numerator: 3});
+    should(f6n.toString()).equal('3/2 meter');
+    f6n.patch({numerator: 4, denominator:5, units: 'feet'});
+    should(f6n.toString()).equal('4/5 feet');
+  });
+  it('avro', ()=>{
+    const msg = 'tavro';
+    let type = avro.parse(Fraction.SCHEMA);
+
+    dbg && cc.tag(msg, 'fraction with units');
+    let tsp2 = new Fraction(2,3,'tbsp');
+    let tsp2Buf = type.toBuffer(tsp2);
+    let tsp2Parsed = type.fromBuffer(tsp2Buf);
+    should(tsp2.toString()).equal('2/3 tbsp');
+    should.deepEqual(new Fraction(tsp2Parsed), tsp2);
+
+    dbg && cc.tag(msg, 'fraction without units');
+    let half = new Fraction(1,2);
+    should(half.units).equal('');
+    let halfBuf = type.toBuffer(half);
+    let halfCopy = new Fraction(type.fromBuffer(halfBuf));
+    should.deepEqual(halfCopy, half);
   });
 });
