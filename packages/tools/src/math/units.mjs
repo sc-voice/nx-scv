@@ -14,18 +14,16 @@ const DEFAULT_ABBREVIATIONS = {
   m: ['meter', 'metre'],
   cm: ['centimeter', 'centimetre'],
   mm: ['millimeter', 'millimetre'],
-}
+};
 
 export class Units {
   #abbrMap;
-  constructor(cfg={}) {
-    let {
-      abbreviations = DEFAULT_ABBREVIATIONS,
-    } = cfg;
-    this.#abbrMap = Object.entries(abbreviations).reduce((a,entry)=>{
+  constructor(cfg = {}) {
+    let { abbreviations = DEFAULT_ABBREVIATIONS } = cfg;
+    this.#abbrMap = Object.entries(abbreviations).reduce((a, entry) => {
       let [abbr, names] = entry;
       a[abbr] = abbr;
-      names.forEach(n=>a[n] = abbr);
+      names.forEach((n) => (a[n] = abbr));
       return a;
     }, {});
   }
@@ -51,7 +49,7 @@ export class Units {
           case 'in':
             switch (srcAbbr) {
               case 'cm':
-                vDst = new Fraction(n * 100, d* 254, uDst).reduce();
+                vDst = new Fraction(n * 100, d * 254, uDst).reduce();
                 dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
                 break;
             }
@@ -67,7 +65,11 @@ export class Units {
           case 'C':
             switch (srcAbbr) {
               case 'F':
-                vDst = new Fraction((n - 32 * d) * 5, 9 * d, uDst).reduce();
+                vDst = new Fraction(
+                  (n - 32 * d) * 5,
+                  9 * d,
+                  uDst,
+                ).reduce();
                 dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
                 break;
             }
@@ -87,7 +89,7 @@ export class Units {
         dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
       }
       return vDst;
-    }
+    };
 
     return { to: convertTo };
   } // convertFraction

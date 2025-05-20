@@ -141,7 +141,7 @@ const FRY_EGG = [
 
 let dbg = 2;
 
-describe('sequence', () => {
+describe('TESTTESTsequence', () => {
   it('ctor', () => {
     const msg = 's6e.ctor';
     dbg && cc.tag1(msg, 'START');
@@ -173,7 +173,7 @@ describe('sequence', () => {
 
     // steps are immutable views
     should(steps.length).equal(FRY_EGG.length);
-    should(steps[3]).equal('P4. cover pan (0/1 lid)');
+    should(steps[3]).equal('P4. cover pan (0/1lid)');
 
     dbg && cc.tag1(msg, 'END');
   });
@@ -191,12 +191,12 @@ describe('sequence', () => {
     s6e.updateStep(1, 70);
     let p6s = s6e.progress();
     should(s6e.steps[0]).match(new RegExp(`.*${FRY_EGG[0].name}.*`));
-    should(s6e.steps[0]).match(/.*70\/300 F 0.0s/);
+    should(s6e.steps[0]).match(/.*70\/300F 0.0s/);
     await new Promise((r) => setTimeout(() => r(), 100));
-    should(s6e.steps[0]).match(/.*70\/300 F 0.1s/);
+    should(s6e.steps[0]).match(/.*70\/300F 0.1s/);
     await new Promise((r) => setTimeout(() => r(), 100));
     s6e.updateStep(1, 80);
-    should(s6e.steps[0]).match(/.*80\/300 F 0.2s/);
+    should(s6e.steps[0]).match(/.*80\/300F 0.2s/);
     p6s = s6e.progress();
     should(p6s.denominator).equal(6);
     should(p6s.numerator).equal(80 / 300); // pan got warmer

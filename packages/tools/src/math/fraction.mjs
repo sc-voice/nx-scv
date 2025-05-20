@@ -106,22 +106,18 @@ export class Fraction {
   toString(cfg = {}) {
     let { units, numerator: n, denominator: d, value } = this;
     let s;
-    let { asRange, fixed } = cfg;
-    if (asRange) {
-      s = `${n}${asRange}${d}`;
-    } else if (n == null || d == null) {
-      s = `${n}/${d}`;
-    } else if (d === 1) {
-      s = `${n}`;
+    let { asRange, fixed=2 } = cfg;
+    if (asRange == null) {
+      let sFraction = `${n}/${d}`;
+      let sValue = value.toString();
+      let sFixed = value.toFixed(fixed);
+      s = sValue.length < sFixed.length ? sValue : sFixed;
+      s = s.length < sFraction.length ? s : sFraction;
     } else {
-      if (d < 0) {
-        d = -d;
-        n = -n;
-      }
-      s = (n < 0 || n >= 1) && d === 1 ? `${n}` : `${n}/${d}`;
+      let sRange = `${n}${asRange}${d}`;
+      s = sRange;
     }
-
-    return units ? `${s} ${units}` : s;
+    return units ? `${s}${units}` : s;
   }
 
   add(f) {
