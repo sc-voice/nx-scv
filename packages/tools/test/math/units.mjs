@@ -8,7 +8,7 @@ import should from 'should';
 
 const dbg = 0;
 
-describe('units', () => {
+describe('TESTTESTunits', () => {
   it('convert F to C', () => {
     const msg = 'u3s.convertFraction';
     let units = new Units();
@@ -76,7 +76,7 @@ describe('units', () => {
     dbg && cc.tag1(msg, 'END');
   });
   it('TESTTESTconvert in to cm', () => {
-    const msg = 'u3s.convertFraction';
+    const msg = 'u3s.convertFraction.in.cm';
     let units = new Units();
     let IN1 = new Fraction(1, 1, 'in');
     let IN34 = new Fraction(3, 4, 'inch');
@@ -92,8 +92,22 @@ describe('units', () => {
     // convert to same value
     should.deepEqual(units.convert(IN34).to('inch'), IN34);
     should.deepEqual(
-      units.convert(IN1).to('in'),
-      new Fraction(1, 1, 'in'),
+      units.convert(IN1).to('inch'),
+      new Fraction(1, 1, 'inch'),
+    );
+  });
+  it('TESTTESTconvert in to cm', () => {
+    const msg = 'u3s.convertFraction.cm.in';
+    let units = new Units();
+    let CM1 = new Fraction(254, 100, 'cm');
+    let CM34 = new Fraction(3*254, 4*100, 'centimeter');
+    should.deepEqual(
+      units.convert(CM1).to('in'),
+      new Fraction(1,1, 'in'),
+    );
+    should.deepEqual(
+      units.convert(CM34).to('inch'),
+      new Fraction(3, 4, 'inch'),
     );
   });
 });

@@ -141,7 +141,7 @@ const FRY_EGG = [
 
 let dbg = 2;
 
-describe('TESTTESTsequence', () => {
+describe('sequence', () => {
   it('ctor', () => {
     const msg = 's6e.ctor';
     dbg && cc.tag1(msg, 'START');
