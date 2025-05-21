@@ -61,6 +61,7 @@ import {
 } from './src/nameforma/kafka1.mjs';
 import { Timer, Timers } from './src/nameforma/timers.mjs';
 import { Clock } from './src/nameforma/clock.mjs';
+import { Task } from './src/nameforma/task.mjs';
 import { Forma } from './src/nameforma/forma.mjs';
 export const NameForma = {
   Admin,
@@ -69,6 +70,7 @@ export const NameForma = {
   Forma,
   Kafka1,
   Producer,
+  Task,
   Timer,
   Timers,
   _Runner, 

@@ -23,7 +23,9 @@ export class Units {
     this.#abbrMap = Object.entries(abbreviations).reduce((a, entry) => {
       let [abbr, names] = entry;
       a[abbr] = abbr;
-      names.forEach((n) => (a[n] = abbr));
+      names.forEach((n) => {
+        a[n] = abbr;
+      });
       return a;
     }, {});
   }

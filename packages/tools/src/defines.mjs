@@ -65,6 +65,10 @@ export const DBG = {
       START: 0,
       STOP: 0,
     },
+    T2K: {
+      CTOR: 1,
+      TO_STRING: 1,
+    },
     T4S: {
       // Timers
       CTOR: 0,

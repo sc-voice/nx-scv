@@ -6,7 +6,7 @@ const { cc } = Text.ColorConsole;
 
 const dbg = 1;
 
-describe('TESTTESTscv-math/fraction', () => {
+describe('scv-math/fraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();
@@ -68,12 +68,12 @@ describe('TESTTESTscv-math/fraction', () => {
     should(f.value).equal(2 / 3);
   });
   it('reduce() 3/64', () => {
-    let f = new Fraction(9, 64*3, 'in');
+    let f = new Fraction(9, 64 * 3, 'in');
     let fr = f.reduce(); // mutative
     should(fr.numerator).equal(3);
     should(fr.denominator).equal(64);
     should(fr.toString()).equal('3/64in');
-    should(fr.value).equal(3/64);
+    should(fr.value).equal(3 / 64);
     should(fr).equal(f);
   });
   it('remainder', () => {
@@ -137,44 +137,44 @@ describe('TESTTESTscv-math/fraction', () => {
     should(eCaught.message).match(/units.*dollars.*euros/);
   });
   it('patch', () => {
-    let f6n = new Fraction(1,2,'meter');
-    f6n.patch({numerator: 3});
+    let f6n = new Fraction(1, 2, 'meter');
+    f6n.patch({ numerator: 3 });
     should(f6n.toString()).equal('3/2meter');
-    f6n.patch({numerator: 4, denominator:5, units: 'feet'});
+    f6n.patch({ numerator: 4, denominator: 5, units: 'feet' });
     should(f6n.toString()).equal('4/5feet');
   });
-  it('avro', ()=>{
+  it('avro', () => {
     const msg = 'tavro';
     let type = avro.parse(Fraction.SCHEMA);
 
     dbg && cc.tag(msg, 'fraction with units');
-    let tsp2 = new Fraction(2,3,'tbsp');
+    let tsp2 = new Fraction(2, 3, 'tbsp');
     let tsp2Buf = type.toBuffer(tsp2);
     let tsp2Parsed = type.fromBuffer(tsp2Buf);
     should(tsp2.toString()).equal('2/3tbsp');
     should.deepEqual(new Fraction(tsp2Parsed), tsp2);
 
     dbg && cc.tag(msg, 'fraction without units');
-    let half = new Fraction(1,2);
+    let half = new Fraction(1, 2);
     should(half.units).equal('');
     let halfBuf = type.toBuffer(half);
     let halfCopy = new Fraction(type.fromBuffer(halfBuf));
     should.deepEqual(halfCopy, half);
   });
-  it('toString()', ()=>{
-    let f12 = new Fraction(1,2,'in');
-    let f13 = new Fraction(1,3,'in');
-    let f34 = new Fraction(3,4,'in');
-    let f18 = new Fraction(1,8, 'in');
-    let f232 = new Fraction(2,32, 'in');
-    let f1632 = new Fraction(16,32, 'in');
+  it('toString()', () => {
+    let f12 = new Fraction(1, 2, 'in');
+    let f13 = new Fraction(1, 3, 'in');
+    let f34 = new Fraction(3, 4, 'in');
+    let f18 = new Fraction(1, 8, 'in');
+    let f232 = new Fraction(2, 32, 'in');
+    let f1632 = new Fraction(16, 32, 'in');
     let f254 = new Fraction(254, 100, 'cm');
     should(f12.toString()).equal('1/2in');
     should(f13.toString()).equal('1/3in');
     should(f34.toString()).equal('3/4in');
     should(f18.toString()).equal('1/8in');
     should(f232.toString()).equal('2/32in');
-    should(f232.toString({fixed:1})).equal('0.1in');
+    should(f232.toString({ fixed: 1 })).equal('0.1in');
     should(f232.reduce().toString()).equal('1/16in');
     should(f1632.toString()).equal('0.5in');
     should(f1632.reduce().toString()).equal('1/2in');

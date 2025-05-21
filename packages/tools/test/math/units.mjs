@@ -8,7 +8,7 @@ import should from 'should';
 
 const dbg = 0;
 
-describe('TESTTESTunits', () => {
+describe('units', () => {
   it('convert F to C', () => {
     const msg = 'u3s.convertFraction';
     let units = new Units();
@@ -100,10 +100,10 @@ describe('TESTTESTunits', () => {
     const msg = 'u3s.convertFraction.cm.in';
     let units = new Units();
     let CM1 = new Fraction(254, 100, 'cm');
-    let CM34 = new Fraction(3*254, 4*100, 'centimeter');
+    let CM34 = new Fraction(3 * 254, 4 * 100, 'centimeter');
     should.deepEqual(
       units.convert(CM1).to('in'),
-      new Fraction(1,1, 'in'),
+      new Fraction(1, 1, 'in'),
     );
     should.deepEqual(
       units.convert(CM34).to('inch'),

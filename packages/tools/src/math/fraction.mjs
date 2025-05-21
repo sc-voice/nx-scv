@@ -2,7 +2,7 @@ export class Fraction {
   constructor(...args) {
     const msg = 'Fraction.ctor:';
     let cfg = args[0];
-    
+
     if (typeof cfg === 'object') {
       this.put(args[0]);
     } else {
@@ -106,7 +106,7 @@ export class Fraction {
   toString(cfg = {}) {
     let { units, numerator: n, denominator: d, value } = this;
     let s;
-    let { asRange, fixed=2 } = cfg;
+    let { asRange, fixed = 2 } = cfg;
     if (asRange == null) {
       let sFraction = `${n}/${d}`;
       let sValue = value.toString();

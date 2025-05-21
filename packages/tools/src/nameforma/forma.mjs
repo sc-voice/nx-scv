@@ -35,6 +35,19 @@ export class Forma {
     dbg && cc.ok1(msg + UOK, id);
   }
 
+  static get SCHEMA_FIELDS() {
+    return [{ name: 'id', type: 'string' }];
+  }
+
+  static get SCHEMA() {
+    return {
+      name: 'Forma',
+      namespace: 'scVoice.tools.nameforma',
+      type: 'record',
+      fields: Forma.SCHEMA_FIELDS,
+    };
+  }
+
   static abbreviateName(name) {
     let length = name.length;
     return [name[0], length - 2, name[length - 1]].join('');
