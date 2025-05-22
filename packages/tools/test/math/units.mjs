@@ -9,6 +9,7 @@ import should from 'should';
 
 const dbg = 0;
 const units = new Units();
+const G_OZ = new Fraction(10000000000, 352739619);
 
 function testConvert(msg, srcN, srcD, srcU, dstN, dstD, dstU) {
   let src = new Fraction(srcN, srcD, srcU);
@@ -115,8 +116,8 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'milligrams');
 
     testConvert(msg, 1, 1, 'g', 1000, 1, 'mg');
-    testConvert(msg, 1, 1, 'oz', 100000000*1000, 3527396, 'mg');
-    testConvert(msg, 1, 1, 'lb', 16*100000000*1000, 3527396, 'mg');
+    testConvert(msg, 1, 1, 'oz', G_OZ.n*1000, G_OZ.d, 'mg');
+    testConvert(msg, 1, 1, 'lb', 16*G_OZ.n*1000, G_OZ.d, 'mg');
   });
   it('convert to g', () => {
     const msg = 'u3s.convert.g';
@@ -125,8 +126,8 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'kg', 1000, 1, 'grams');
 
     testConvert(msg, 1000, 1, 'mg', 1, 1, 'g');
-    testConvert(msg, 1, 1, 'oz', 100000000, 3527396, 'g');
-    testConvert(msg, 1, 16, 'lb', 100000000, 3527396, 'g');
+    testConvert(msg, 1, 1, 'oz', G_OZ.n, G_OZ.d, 'g');
+    testConvert(msg, 1, 16, 'lb', G_OZ.n, G_OZ.d, 'g');
   });
   it('convert to kg', () => {
     const msg = 'u3s.convert.kg';
@@ -135,8 +136,8 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'g', 1, 1000, 'kilograms');
 
     testConvert(msg, 1000*1000, 1, 'mg', 1, 1, 'kg');
-    testConvert(msg, 1, 1, 'oz', 100000, 3527396, 'kg');
-    testConvert(msg, 1, 16, 'lb', 100000, 3527396, 'kg');
+    testConvert(msg, 1, 1, 'oz', G_OZ.n, 1000*G_OZ.d, 'kg');
+    testConvert(msg, 1, 16, 'lb', G_OZ.n, 1000*G_OZ.d, 'kg');
   });
   it('convert to oz', () => {
     const msg = 'u3s.convert.oz';
@@ -144,8 +145,8 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'lb', 16, 1, 'ounce');
     testConvert(msg, 1, 1, 'lb', 16, 1, 'ounces');
 
-    testConvert(msg, 100, 1, 'g', 100*3527396, 100000000, 'oz');
-    testConvert(msg, 1, 1, 'kg', 1000*3527396, 100000000, 'oz');
+    testConvert(msg, 100, 1, 'g', 100*G_OZ.d, G_OZ.n, 'oz');
+    testConvert(msg, 1, 1, 'kg', 1000*G_OZ.d, G_OZ.n, 'oz');
   });
   it('convert to lb', () => {
     const msg = 'u3s.convert.lb';
@@ -154,7 +155,7 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'oz', 1, 16, 'pound');
     testConvert(msg, 1, 1, 'oz', 1, 16, 'pounds');
 
-    testConvert(msg, 100, 1, 'g', 100*3527396, 16*100000000, 'lb');
-    testConvert(msg, 1, 1, 'kg', 1000*3527396, 16*100000000, 'lb');
+    testConvert(msg, 100, 1, 'g', 100*G_OZ.d, 16*G_OZ.n, 'lb');
+    testConvert(msg, 1, 1, 'kg', 1000*G_OZ.d, 16*G_OZ.n, 'lb');
   });
 });

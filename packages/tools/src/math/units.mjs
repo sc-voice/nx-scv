@@ -111,14 +111,16 @@ const DEFAULT_TIME = {
   },
 }; // DEFAULT_TIME
 
+const G_OZ = new Fraction(10000000000, 352739619);
+
 const DEFAULT_WEIGHT = {
   mg: {
     aliases: ['milligram', 'milligrams'],
     from: {
       kg: [1000 * 1000, 0, 0, 1],
       g: [1000, 0, 0, 1],
-      oz: [100000000*1000, 0, 0, 3527396],
-      lb: [16*100000000*1000, 0, 0, 3527396],
+      oz: [G_OZ.n*1000, 0, 0, G_OZ.d],
+      lb: [16*G_OZ.n*1000, 0, 0, G_OZ.d],
     },
   },
   g: {
@@ -126,8 +128,8 @@ const DEFAULT_WEIGHT = {
     from: {
       kg: [1000, 0, 0, 1],
       mg: [1, 0, 0, 1000],
-      oz: [100000000, 0, 0, 3527396],
-      lb: [16*100000000, 0, 0, 3527396],
+      oz: [G_OZ.n, 0, 0, G_OZ.d],
+      lb: [16*G_OZ.n, 0, 0, G_OZ.d],
     },
   },
   kg: {
@@ -135,15 +137,15 @@ const DEFAULT_WEIGHT = {
     from: {
       g: [1, 0, 0, 1000],
       mg: [1, 0, 0, 1000 * 1000],
-      oz: [100000, 0, 0, 3527396],
-      lb: [16*100000, 0, 0, 3527396],
+      oz: [G_OZ.n, 0, 0, 1000*G_OZ.d],
+      lb: [16*G_OZ.n, 0, 0, 1000*G_OZ.d],
     },
   },
   oz: {
     aliases: ['ounce', 'ounces'],
     from: {
-      g: [3527396, 0, 0, 100000000],
-      kg: [3527396, 0, 0, 100000],
+      g: [G_OZ.d, 0, 0, G_OZ.n],
+      kg: [G_OZ.d * 1000, 0, 0, G_OZ.n],
       lb: [16, 0, 0, 1],
     },
   },
@@ -151,8 +153,8 @@ const DEFAULT_WEIGHT = {
     aliases: ['pound', 'pounds', 'lbs'],
     from: {
       oz: [1, 0, 0, 16],
-      g: [3527396, 0, 0, 16*100000000],
-      kg: [3527396, 0, 0, 16*100000],
+      g: [G_OZ.d, 0, 0, 16*G_OZ.n],
+      kg: [1000*G_OZ.d, 0, 0, 16*G_OZ.n],
     },
   },
 };
