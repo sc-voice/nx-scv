@@ -6,24 +6,124 @@ const { CHECKMARK: UOK, RIGHT_ARROW: URA } = Unicode;
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 
-const DEFAULT_ABBREVIATIONS = {
-  in: ['inch'],
-  ft: ['foot'],
-  F: ['Fahrenheit'],
-  C: ['Centigrade'],
-  m: ['meter', 'metre'],
-  cm: ['centimeter', 'centimetre'],
-  mm: ['millimeter', 'millimetre'],
-};
+const DEFAULT_LENGTH = {
+  in: {
+    aliases: ['inch'],
+    from: {
+      ft: [12, 0, 0, 1],
+      mm: [10, 0, 0, 254],
+      cm: [100, 0, 0, 254],
+      m: [100*100, 0, 0, 254],
+    }
+  },
+  ft: {
+    aliases: ['foot', 'feet'],
+    from: {
+      in: [1, 0, 0, 12],
+      mm: [100, 0, 0, 10*254*12],
+      cm: [100, 0, 0, 254*12],
+      m: [100*100, 0, 0, 254*12],
+    }
+  },
+  m: {
+    aliases: ['meter', 'metre'],
+    from: {
+      mm: [1, 0, 0, 1000],
+      cm: [1, 0, 0, 100],
+      ft: [12*254, 0, 0, 100*100],
+      in: [254, 0, 0, 100*100]
+    }
+  },
+  cm: {
+    aliases: ['centimeter', 'centimetre'],
+    from: {
+      in: [254, 0, 0, 100],
+      ft: [12*254, 0, 0, 100],
+      mm: [1, 0, 0, 10],
+      m: [1, 0, 0, 100],
+    },
+  },
+  mm: {
+    aliases: ['millimeter', 'millimetre'],
+  },
+} // DEFAULT_LENGTH
+
+const DEFAULT_TEMPERATURE = {
+  F: {
+    aliases: ['Fahrenheit'],
+    from: {
+      C: [9, 160, 0, 5],
+    }
+  },
+  C: {
+    aliases: ['Centigrade'],
+    from: {
+      F: [5, -5*32, 0, 9],
+    }
+  },
+}
+
+const DEFAULT_TIME = {
+  ms: {
+    aliases: ['millisecond', 'milliseconds'],
+    from: {
+      s: [1000, 0, 0, 1],
+      min: [60*1000, 0, 0, 1],
+      h: [60*60*1000, 0, 0, 1],
+      d: [24*60*60*1000, 0, 0, 1],
+    }
+  },
+  s: {
+    aliases: ['seconds'],
+    from: {
+      ms: [1, 0, 0, 1000],
+      min: [60, 0, 0, 1],
+      h: [60*60, 0, 0, 1],
+      d: [24*60*60, 0, 0, 1],
+    }
+  },
+  min: {
+    aliases: ['minutes'],
+    from: {
+      ms: [1, 0, 0, 60 * 1000],
+      s: [1, 0, 0, 60],
+      h: [60, 0, 0, 1],
+      d: [24 *60, 0, 0, 1],
+    }
+  },
+  h: {
+    aliases: ['hour', 'hours', 'hr'],
+    from: {
+      ms: [1, 0, 0, 60*60*1000],
+      s: [1, 0, 0, 60*60],
+      min: [1, 0, 0, 60],
+      d: [24, 0, 0, 1],
+    },
+  },
+  d: {
+    aliases: ['day', 'days'],
+    from: {
+      ms: [1, 0, 0, 24*60*60*1000],
+      s: [1, 0, 0, 24*60*60],
+      min: [1, 0, 0, 24*60],
+      h: [1, 0, 0, 24],
+    }
+  },
+} // DEFAULT_TIME
+
+const DEFAULT_UNITS = Object.assign({}, DEFAULT_LENGTH, DEFAULT_TEMPERATURE, DEFAULT_TIME);
 
 export class Units {
   #abbrMap;
+  #unitMap;
   constructor(cfg = {}) {
-    let { abbreviations = DEFAULT_ABBREVIATIONS } = cfg;
-    this.#abbrMap = Object.entries(abbreviations).reduce((a, entry) => {
-      let [abbr, names] = entry;
+    let { unitMap = DEFAULT_UNITS } = cfg;
+    this.#unitMap = unitMap;
+    this.#abbrMap = Object.entries(unitMap).reduce((a, entry) => {
+      const [abbr, def] = entry;
+      const { aliases } = def;
       a[abbr] = abbr;
-      names.forEach((n) => {
+      aliases.forEach((n) => {
         a[n] = abbr;
       });
       return a;
@@ -47,48 +147,18 @@ export class Units {
         vDst = new Fraction(n, d, uDst);
         dbg && cc.ok1(msg + 1 + UOK, vSrc, URA, vDst);
       } else {
-        switch (dstAbbr) {
-          case 'in':
-            switch (srcAbbr) {
-              case 'cm':
-                vDst = new Fraction(n * 100, d * 254, uDst).reduce();
-                dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
-                break;
-            }
-            break;
-          case 'cm':
-            switch (srcAbbr) {
-              case 'in':
-                vDst = new Fraction(n * 254, d * 100, uDst).reduce();
-                dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
-                break;
-            }
-            break;
-          case 'C':
-            switch (srcAbbr) {
-              case 'F':
-                vDst = new Fraction(
-                  (n - 32 * d) * 5,
-                  9 * d,
-                  uDst,
-                ).reduce();
-                dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
-                break;
-            }
-            break;
-          case 'F':
-            switch (srcAbbr) {
-              case 'C':
-                vDst = new Fraction(9 * n + 160 * d, 5 * d, uDst).reduce();
-                dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
-                break;
-            }
-            break;
-        }
-      }
+        let dstBase = this.#unitMap[dstAbbr];
+        let srcMatrix = dstBase?.from?.[srcAbbr];
+        if (srcMatrix) {
+          let nDst = srcMatrix[0]*n + srcMatrix[1]*d;
+          let dDst = srcMatrix[2]*n + srcMatrix[3]*d;
+          vDst = new Fraction(nDst, dDst, uDst).reduce();
+          dbg && cc.ok1(msg + 2 + UOK, vSrc, URA, vDst);
+        } // srcMatrix
+      } // dstAbbr !== srcAbbr
       if (vDst == null) {
         vDst = vSrc;
-        dbg && cc.ok1(msg + UOK, vSrc, URA, vDst);
+        dbg && cc.ok1(msg + 3 + UOK, vSrc, URA, vDst);
       }
       return vDst;
     };

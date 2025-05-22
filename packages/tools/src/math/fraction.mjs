@@ -12,16 +12,20 @@ export class Fraction {
     }
   }
 
+  static get SCHEMA_FIELDS() {
+    return [
+      { name: 'numerator', type: 'int' },
+      { name: 'denominator', type: 'int' },
+      { name: 'units', type: 'string' },
+    ];
+  }
+
   static get SCHEMA() {
     return {
       name: 'Fraction',
       namespace: 'scVoice.tools.scvMath',
       type: 'record',
-      fields: [
-        { name: 'numerator', type: 'int' },
-        { name: 'denominator', type: 'int' },
-        { name: 'units', type: 'string' },
-      ],
+      fields: Fraction.SCHEMA_FIELDS,
     };
   }
 

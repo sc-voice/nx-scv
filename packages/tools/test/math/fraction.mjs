@@ -6,7 +6,7 @@ const { cc } = Text.ColorConsole;
 
 const dbg = 1;
 
-describe('scv-math/fraction', () => {
+describe('TESTTESTscv-math/fraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();
