@@ -13,32 +13,32 @@ const DEFAULT_LENGTH = {
       ft: [12, 0, 0, 1],
       mm: [10, 0, 0, 254],
       cm: [100, 0, 0, 254],
-      m: [100*100, 0, 0, 254],
-    }
+      m: [100 * 100, 0, 0, 254],
+    },
   },
   ft: {
     aliases: ['foot', 'feet'],
     from: {
       in: [1, 0, 0, 12],
-      mm: [100, 0, 0, 10*254*12],
-      cm: [100, 0, 0, 254*12],
-      m: [100*100, 0, 0, 254*12],
-    }
+      mm: [100, 0, 0, 10 * 254 * 12],
+      cm: [100, 0, 0, 254 * 12],
+      m: [100 * 100, 0, 0, 254 * 12],
+    },
   },
   m: {
     aliases: ['meter', 'metre'],
     from: {
       mm: [1, 0, 0, 1000],
       cm: [1, 0, 0, 100],
-      ft: [12*254, 0, 0, 100*100],
-      in: [254, 0, 0, 100*100]
-    }
+      ft: [12 * 254, 0, 0, 100 * 100],
+      in: [254, 0, 0, 100 * 100],
+    },
   },
   cm: {
     aliases: ['centimeter', 'centimetre'],
     from: {
       in: [254, 0, 0, 100],
-      ft: [12*254, 0, 0, 100],
+      ft: [12 * 254, 0, 0, 100],
       mm: [1, 0, 0, 10],
       m: [1, 0, 0, 100],
     },
@@ -46,41 +46,41 @@ const DEFAULT_LENGTH = {
   mm: {
     aliases: ['millimeter', 'millimetre'],
   },
-} // DEFAULT_LENGTH
+}; // DEFAULT_LENGTH
 
 const DEFAULT_TEMPERATURE = {
   F: {
     aliases: ['Fahrenheit'],
     from: {
       C: [9, 160, 0, 5],
-    }
+    },
   },
   C: {
     aliases: ['Centigrade'],
     from: {
-      F: [5, -5*32, 0, 9],
-    }
+      F: [5, -5 * 32, 0, 9],
+    },
   },
-}
+};
 
 const DEFAULT_TIME = {
   ms: {
     aliases: ['millisecond', 'milliseconds'],
     from: {
       s: [1000, 0, 0, 1],
-      min: [60*1000, 0, 0, 1],
-      h: [60*60*1000, 0, 0, 1],
-      d: [24*60*60*1000, 0, 0, 1],
-    }
+      min: [60 * 1000, 0, 0, 1],
+      h: [60 * 60 * 1000, 0, 0, 1],
+      d: [24 * 60 * 60 * 1000, 0, 0, 1],
+    },
   },
   s: {
     aliases: ['seconds'],
     from: {
       ms: [1, 0, 0, 1000],
       min: [60, 0, 0, 1],
-      h: [60*60, 0, 0, 1],
-      d: [24*60*60, 0, 0, 1],
-    }
+      h: [60 * 60, 0, 0, 1],
+      d: [24 * 60 * 60, 0, 0, 1],
+    },
   },
   min: {
     aliases: ['minutes'],
@@ -88,14 +88,14 @@ const DEFAULT_TIME = {
       ms: [1, 0, 0, 60 * 1000],
       s: [1, 0, 0, 60],
       h: [60, 0, 0, 1],
-      d: [24 *60, 0, 0, 1],
-    }
+      d: [24 * 60, 0, 0, 1],
+    },
   },
   h: {
     aliases: ['hour', 'hours', 'hr'],
     from: {
-      ms: [1, 0, 0, 60*60*1000],
-      s: [1, 0, 0, 60*60],
+      ms: [1, 0, 0, 60 * 60 * 1000],
+      s: [1, 0, 0, 60 * 60],
       min: [1, 0, 0, 60],
       d: [24, 0, 0, 1],
     },
@@ -103,15 +103,67 @@ const DEFAULT_TIME = {
   d: {
     aliases: ['day', 'days'],
     from: {
-      ms: [1, 0, 0, 24*60*60*1000],
-      s: [1, 0, 0, 24*60*60],
-      min: [1, 0, 0, 24*60],
+      ms: [1, 0, 0, 24 * 60 * 60 * 1000],
+      s: [1, 0, 0, 24 * 60 * 60],
+      min: [1, 0, 0, 24 * 60],
       h: [1, 0, 0, 24],
-    }
+    },
   },
-} // DEFAULT_TIME
+}; // DEFAULT_TIME
 
-const DEFAULT_UNITS = Object.assign({}, DEFAULT_LENGTH, DEFAULT_TEMPERATURE, DEFAULT_TIME);
+const DEFAULT_WEIGHT = {
+  mg: {
+    aliases: ['milligram', 'milligrams'],
+    from: {
+      kg: [1000 * 1000, 0, 0, 1],
+      g: [1000, 0, 0, 1],
+      oz: [100000000*1000, 0, 0, 3527396],
+      lb: [16*100000000*1000, 0, 0, 3527396],
+    },
+  },
+  g: {
+    aliases: ['gram', 'grams'],
+    from: {
+      kg: [1000, 0, 0, 1],
+      mg: [1, 0, 0, 1000],
+      oz: [100000000, 0, 0, 3527396],
+      lb: [16*100000000, 0, 0, 3527396],
+    },
+  },
+  kg: {
+    aliases: ['kilogram', 'kilograms'],
+    from: {
+      g: [1, 0, 0, 1000],
+      mg: [1, 0, 0, 1000 * 1000],
+      oz: [100000, 0, 0, 3527396],
+      lb: [16*100000, 0, 0, 3527396],
+    },
+  },
+  oz: {
+    aliases: ['ounce', 'ounces'],
+    from: {
+      g: [3527396, 0, 0, 100000000],
+      kg: [3527396, 0, 0, 100000],
+      lb: [16, 0, 0, 1],
+    },
+  },
+  lb: {
+    aliases: ['pound', 'pounds', 'lbs'],
+    from: {
+      oz: [1, 0, 0, 16],
+      g: [3527396, 0, 0, 16*100000000],
+      kg: [3527396, 0, 0, 16*100000],
+    },
+  },
+};
+
+const DEFAULT_UNITS = Object.assign(
+  {},
+  DEFAULT_LENGTH,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_TIME,
+  DEFAULT_WEIGHT,
+);
 
 export class Units {
   #abbrMap;
@@ -150,8 +202,8 @@ export class Units {
         let dstBase = this.#unitMap[dstAbbr];
         let srcMatrix = dstBase?.from?.[srcAbbr];
         if (srcMatrix) {
-          let nDst = srcMatrix[0]*n + srcMatrix[1]*d;
-          let dDst = srcMatrix[2]*n + srcMatrix[3]*d;
+          let nDst = srcMatrix[0] * n + srcMatrix[1] * d;
+          let dDst = srcMatrix[2] * n + srcMatrix[3] * d;
           vDst = new Fraction(nDst, dDst, uDst).reduce();
           dbg && cc.ok1(msg + 2 + UOK, vSrc, URA, vDst);
         } // srcMatrix

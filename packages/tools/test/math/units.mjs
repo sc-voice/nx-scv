@@ -108,4 +108,53 @@ describe('units', () => {
     testConvert(msg, 10, 1, 'min', 10, 60, 'h');
     testConvert(msg, 2, 24, 'd', 2 * 24, 24, 'h');
   });
+  it('convert to mg', () => {
+    const msg = 'u3s.convert.mg';
+    testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'mg');
+    testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'milligram');
+    testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'milligrams');
+
+    testConvert(msg, 1, 1, 'g', 1000, 1, 'mg');
+    testConvert(msg, 1, 1, 'oz', 100000000*1000, 3527396, 'mg');
+    testConvert(msg, 1, 1, 'lb', 16*100000000*1000, 3527396, 'mg');
+  });
+  it('convert to g', () => {
+    const msg = 'u3s.convert.g';
+    testConvert(msg, 1, 1, 'kg', 1000, 1, 'g');
+    testConvert(msg, 1, 1, 'kg', 1000, 1, 'gram');
+    testConvert(msg, 1, 1, 'kg', 1000, 1, 'grams');
+
+    testConvert(msg, 1000, 1, 'mg', 1, 1, 'g');
+    testConvert(msg, 1, 1, 'oz', 100000000, 3527396, 'g');
+    testConvert(msg, 1, 16, 'lb', 100000000, 3527396, 'g');
+  });
+  it('convert to kg', () => {
+    const msg = 'u3s.convert.kg';
+    testConvert(msg, 1, 1, 'g', 1, 1000, 'kg');
+    testConvert(msg, 1, 1, 'g', 1, 1000, 'kilogram');
+    testConvert(msg, 1, 1, 'g', 1, 1000, 'kilograms');
+
+    testConvert(msg, 1000*1000, 1, 'mg', 1, 1, 'kg');
+    testConvert(msg, 1, 1, 'oz', 100000, 3527396, 'kg');
+    testConvert(msg, 1, 16, 'lb', 100000, 3527396, 'kg');
+  });
+  it('convert to oz', () => {
+    const msg = 'u3s.convert.oz';
+    testConvert(msg, 1, 1, 'lb', 16, 1, 'oz');
+    testConvert(msg, 1, 1, 'lb', 16, 1, 'ounce');
+    testConvert(msg, 1, 1, 'lb', 16, 1, 'ounces');
+
+    testConvert(msg, 100, 1, 'g', 100*3527396, 100000000, 'oz');
+    testConvert(msg, 1, 1, 'kg', 1000*3527396, 100000000, 'oz');
+  });
+  it('convert to lb', () => {
+    const msg = 'u3s.convert.lb';
+    testConvert(msg, 1, 1, 'oz', 1, 16, 'lb');
+    testConvert(msg, 1, 1, 'oz', 1, 16, 'lbs');
+    testConvert(msg, 1, 1, 'oz', 1, 16, 'pound');
+    testConvert(msg, 1, 1, 'oz', 1, 16, 'pounds');
+
+    testConvert(msg, 100, 1, 'g', 100*3527396, 16*100000000, 'lb');
+    testConvert(msg, 1, 1, 'kg', 1000*3527396, 16*100000000, 'lb');
+  });
 });
