@@ -37,7 +37,7 @@ export class Fraction {
   }
 
   put(json = {}) {
-    let { numerator = 0, denominator = 1, units = '' } = json;
+    let { numerator = null, denominator = 1, units = '' } = json;
     Object.assign(this, { numerator, denominator, units });
   }
 
@@ -87,7 +87,9 @@ export class Fraction {
 
   get value() {
     let { numerator, denominator } = this;
-    return numerator / denominator;
+    return numerator == null 
+      ? null
+      : numerator / denominator;
   }
 
   increment(delta = 1) {
@@ -110,6 +112,9 @@ export class Fraction {
   toString(cfg = {}) {
     let { units, numerator: n, denominator: d, value } = this;
     let s;
+    if (n == null) {
+      return n;
+    }
     let { asRange, fixed = 2 } = cfg;
     if (asRange == null) {
       let sFraction = `${n}/${d}`;

@@ -6,14 +6,14 @@ const { cc } = Text.ColorConsole;
 
 const dbg = 1;
 
-describe('TESTTESTscv-math/fraction', () => {
+describe('scv-math/fraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();
-    should(f.numerator).equal(0);
+    should(f.numerator).equal(null);
     should(f.denominator).equal(1);
-    should(f.toString()).equal('0');
-    should(Number.isNaN(f.value)).equal(false);
+    should(f.toString()).equal(null);
+    should(f.value == null).equal(true);
     let proto = Object.getPrototypeOf(f);
     let obj1 = { a: 1 };
     should({}.toString).equal(obj1?.toString);
