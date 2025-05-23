@@ -4,7 +4,7 @@ import { ScvMath, Text } from '../../index.mjs';
 const { Fraction } = ScvMath;
 const { cc } = Text.ColorConsole;
 
-const dbg = 1;
+const dbg = 0;
 
 describe('scv-math/fraction', () => {
   it('default ctor', () => {
@@ -144,7 +144,7 @@ describe('scv-math/fraction', () => {
     should(f6n.toString()).equal('4/5feet');
   });
   it('avro', () => {
-    const msg = 'tavro';
+    const msg = 'f6n.tavro';
     let type = avro.parse(Fraction.SCHEMA);
 
     dbg && cc.tag(msg, 'fraction with units');

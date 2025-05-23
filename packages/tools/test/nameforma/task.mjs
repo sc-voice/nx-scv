@@ -33,19 +33,20 @@ describe('task', () => {
     let { id } = t2k;
     should(t2k).properties({ title: `${id}-title?` });
     should.deepEqual(t2k.progress, new Fraction(0, 1, 'done'));
+    should.deepEqual(t2k.duration, new Fraction(null, 1, 's'));
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('TESTTESTavro', () => {
+  it('avro', () => {
     const msg = 'tavro';
     const title = 'avro-title';
     const progress = new Fraction(3, 4, 'tbsp');
+    const duration = new Fraction(3, 4, 's');
     dbg && cc.tag1(msg, 'START');
 
     let type = avro.parse(Task.SCHEMA);
 
-    dbg && cc.tag(msg, 'fraction with units');
-    let thing1 = new Task({ title, progress });
+    let thing1 = new Task({ title, progress, duration });
     let buf = type.toBuffer(thing1);
     let parsed = type.fromBuffer(buf);
     let thing2 = new Task(parsed);

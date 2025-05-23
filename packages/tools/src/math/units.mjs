@@ -119,8 +119,8 @@ const DEFAULT_WEIGHT = {
     from: {
       kg: [1000 * 1000, 0, 0, 1],
       g: [1000, 0, 0, 1],
-      oz: [G_OZ.n*1000, 0, 0, G_OZ.d],
-      lb: [16*G_OZ.n*1000, 0, 0, G_OZ.d],
+      oz: [G_OZ.n * 1000, 0, 0, G_OZ.d],
+      lb: [16 * G_OZ.n * 1000, 0, 0, G_OZ.d],
     },
   },
   g: {
@@ -129,7 +129,7 @@ const DEFAULT_WEIGHT = {
       kg: [1000, 0, 0, 1],
       mg: [1, 0, 0, 1000],
       oz: [G_OZ.n, 0, 0, G_OZ.d],
-      lb: [16*G_OZ.n, 0, 0, G_OZ.d],
+      lb: [16 * G_OZ.n, 0, 0, G_OZ.d],
     },
   },
   kg: {
@@ -137,8 +137,8 @@ const DEFAULT_WEIGHT = {
     from: {
       g: [1, 0, 0, 1000],
       mg: [1, 0, 0, 1000 * 1000],
-      oz: [G_OZ.n, 0, 0, 1000*G_OZ.d],
-      lb: [16*G_OZ.n, 0, 0, 1000*G_OZ.d],
+      oz: [G_OZ.n, 0, 0, 1000 * G_OZ.d],
+      lb: [16 * G_OZ.n, 0, 0, 1000 * G_OZ.d],
     },
   },
   oz: {
@@ -153,8 +153,8 @@ const DEFAULT_WEIGHT = {
     aliases: ['pound', 'pounds', 'lbs'],
     from: {
       oz: [1, 0, 0, 16],
-      g: [G_OZ.d, 0, 0, 16*G_OZ.n],
-      kg: [1000*G_OZ.d, 0, 0, 16*G_OZ.n],
+      g: [G_OZ.d, 0, 0, 16 * G_OZ.n],
+      kg: [1000 * G_OZ.d, 0, 0, 16 * G_OZ.n],
     },
   },
 };

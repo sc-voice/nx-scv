@@ -87,9 +87,7 @@ export class Fraction {
 
   get value() {
     let { numerator, denominator } = this;
-    return numerator == null 
-      ? null
-      : numerator / denominator;
+    return numerator == null ? null : numerator / denominator;
   }
 
   increment(delta = 1) {

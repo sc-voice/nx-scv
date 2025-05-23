@@ -68,6 +68,8 @@ export const DBG = {
     T2K: {
       CTOR: 1,
       TO_STRING: 1,
+      PUT: 1,
+      PATCH: 1,
     },
     T4S: {
       // Timers
