@@ -27,11 +27,11 @@ export class Task extends Forma {
         ...Forma.SCHEMA_FIELDS,
         { name: 'title', type: 'string' },
         { name: 'progress', type: sFraction },
-        { name: 'duration', type: sFraction },
+        { name: 'duration', type: sFraction.name },
       ],
     };
   }
-  
+
   put(value) {
     const msg = 't2k.put';
     const dbg = T2K.PUT;

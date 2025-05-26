@@ -10,22 +10,48 @@ describe('scv-math/fraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();
-    should(f.numerator).equal(null);
+    should(f.isNull).equal(true);
+    should(f.numerator).equal(0);
     should(f.denominator).equal(1);
-    should(f.toString()).equal(null);
+    should(f.toString()).equal('?');
     should(f.value == null).equal(true);
     let proto = Object.getPrototypeOf(f);
     let obj1 = { a: 1 };
     should({}.toString).equal(obj1?.toString);
     should(f?.toString).not.equal({}.toString);
     should(typeof f?.toString).equal('function');
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
   });
   it('custom ctor 0', () => {
-    let f01 = new Fraction(0, 1);
-    should(f01.numerator).equal(0);
-    should(f01.denominator).equal(1);
-    should(f01.toString()).equal('0');
-    should(f01.value).equal(0);
+    let f = new Fraction(0, 1);
+    should(f.numerator).equal(0);
+    should(f.denominator).equal(1);
+    should(f.toString()).equal('0');
+    should(f.value).equal(0);
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
+  });
+  it('null', () => {
+    let f = new Fraction();
+    let numerator = Math.random();
+    let denominator = Math.random();
+    let units = 'test-units';
+    let fNull = new Fraction({isNull:true, numerator, denominator, units});
+    let fUnits = new Fraction({isNull:true, units});
+    
+    // Null values can have units but numerator and denominator are 0/1
+    should.deepEqual(fNull, fUnits);
+    should(fNull).not.equal(fUnits);
+    should(fNull.numerator).equal(0);
+    should(fNull.denominator).equal(1);
+    should(fNull.toString()).equal(`?${units}`);
   });
   it('custom ctor 1', () => {
     let f = new Fraction(1, 1, 'inch');
@@ -45,6 +71,11 @@ describe('scv-math/fraction', () => {
     should(f.denominator).equal(1);
     should(f.toString()).equal('-123');
     should(f.value).equal(-123);
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
   });
   it('custom ctor 2/3', () => {
     let f = new Fraction(2, 3);
@@ -52,6 +83,11 @@ describe('scv-math/fraction', () => {
     should(f.denominator).equal(3);
     should(f.toString()).equal('2/3');
     should(f.value).equal(2 / 3);
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
   });
   it('custom ctor 240/9', () => {
     let f = new Fraction(240, 9);
@@ -66,6 +102,11 @@ describe('scv-math/fraction', () => {
     should(f.denominator).equal(3);
     should(f.toString()).equal('2/3cm');
     should(f.value).equal(2 / 3);
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
   });
   it('reduce() 3/64', () => {
     let f = new Fraction(9, 64 * 3, 'in');
@@ -179,5 +220,14 @@ describe('scv-math/fraction', () => {
     should(f1632.toString()).equal('0.5in');
     should(f1632.reduce().toString()).equal('1/2in');
     should(f254.toString()).equal('2.54cm');
+  });
+  it('patch', () => {
+    let f = new Fraction(4,5,'F');
+    f.patch({numerator:3});
+    should.deepEqual(f, new Fraction(3,5,'F'));
+    f.patch({denominator:7});
+    should.deepEqual(f, new Fraction(3,7,'F'));
+    f.patch({units:'Fahrenheit'});
+    should.deepEqual(f, new Fraction(3,7,'Fahrenheit'));
   });
 });

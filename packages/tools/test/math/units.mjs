@@ -54,45 +54,45 @@ describe('units', () => {
   it('convert to cm', () => {
     const msg = 'u3s.convert.cm';
     testConvert(msg, 1, 1, 'in', 254, 100, 'cm');
-    testConvert(msg, 1, 2, 'ft', 6*254, 100, 'cm');
+    testConvert(msg, 1, 2, 'ft', 6 * 254, 100, 'cm');
     testConvert(msg, 2, 1, 'mm', 2, 10, 'cm');
     testConvert(msg, 1, 2, 'meter', 1, 200, 'cm');
   });
   it('convert to in', () => {
     const msg = 'u3s.convert.in';
     testConvert(msg, 254, 100, 'cm', 1, 1, 'in');
-    testConvert(msg, 3*254, 4*100, 'centimetre', 3, 4, 'in');
+    testConvert(msg, 3 * 254, 4 * 100, 'centimetre', 3, 4, 'in');
     testConvert(msg, 1, 2, 'foot', 6, 1, 'in');
     testConvert(msg, 254, 100, 'mm', 1, 10, 'in');
     testConvert(msg, 254, 100, 'm', 100, 1, 'in');
   });
   it('convert to ft', () => {
-    const msg = 'u3s.convert.ft'
-    testConvert(msg, 1, 1, 'mm', 10, 12*254, 'ft');
-    testConvert(msg, 1, 1, 'cm', 100, 12*254, 'ft');
-    testConvert(msg, 1, 1, 'm', 100*100, 12*254, 'ft');
+    const msg = 'u3s.convert.ft';
+    testConvert(msg, 1, 1, 'mm', 10, 12 * 254, 'ft');
+    testConvert(msg, 1, 1, 'cm', 100, 12 * 254, 'ft');
+    testConvert(msg, 1, 1, 'm', 100 * 100, 12 * 254, 'ft');
     testConvert(msg, 1, 1, 'in', 1, 12, 'ft');
   });
   it('convert to m', () => {
     const msg = 'u3s.convert.ms';
     testConvert(msg, 1, 1, 'mm', 1, 1000, 'm');
     testConvert(msg, 1, 1, 'cm', 1, 100, 'm');
-    testConvert(msg, 1, 1, 'in', 254, 100*100, 'm');
-    testConvert(msg, 1, 1, 'ft', 254*12, 100*100, 'm');
+    testConvert(msg, 1, 1, 'in', 254, 100 * 100, 'm');
+    testConvert(msg, 1, 1, 'ft', 254 * 12, 100 * 100, 'm');
   });
 
   it('convert to ms', () => {
     const msg = 'u3s.convert.ms';
     testConvert(msg, 1, 2, 's', 500, 1, 'ms');
-    testConvert(msg, 10, 1, 'min', 10*60*1000, 1, 'ms');
-    testConvert(msg, 3, 4, 'hour', 3*60*60*1000, 4, 'ms');
-    testConvert(msg, 2, 24, 'd', 2 * 24 * 60 * 60*1000, 24, 'ms');
+    testConvert(msg, 10, 1, 'min', 10 * 60 * 1000, 1, 'ms');
+    testConvert(msg, 3, 4, 'hour', 3 * 60 * 60 * 1000, 4, 'ms');
+    testConvert(msg, 2, 24, 'd', 2 * 24 * 60 * 60 * 1000, 24, 'ms');
   });
   it('convert to s', () => {
     const msg = 'u3s.convert.s';
     testConvert(msg, 1000, 2, 'ms', 1, 2, 's');
-    testConvert(msg, 10, 1, 'min', 10*60, 1, 's');
-    testConvert(msg, 3, 4, 'hour', 3*60*60, 4, 's');
+    testConvert(msg, 10, 1, 'min', 10 * 60, 1, 's');
+    testConvert(msg, 3, 4, 'hour', 3 * 60 * 60, 4, 's');
     testConvert(msg, 2, 24, 'd', 2 * 24 * 60 * 60, 24, 's');
   });
   it('convert to min', () => {
@@ -111,13 +111,13 @@ describe('units', () => {
   });
   it('convert to mg', () => {
     const msg = 'u3s.convert.mg';
-    testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'mg');
-    testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'milligram');
-    testConvert(msg, 1, 1, 'kg', 1000*1000, 1, 'milligrams');
+    testConvert(msg, 1, 1, 'kg', 1000 * 1000, 1, 'mg');
+    testConvert(msg, 1, 1, 'kg', 1000 * 1000, 1, 'milligram');
+    testConvert(msg, 1, 1, 'kg', 1000 * 1000, 1, 'milligrams');
 
     testConvert(msg, 1, 1, 'g', 1000, 1, 'mg');
-    testConvert(msg, 1, 1, 'oz', G_OZ.n*1000, G_OZ.d, 'mg');
-    testConvert(msg, 1, 1, 'lb', 16*G_OZ.n*1000, G_OZ.d, 'mg');
+    testConvert(msg, 1, 1, 'oz', G_OZ.n * 1000, G_OZ.d, 'mg');
+    testConvert(msg, 1, 1, 'lb', 16 * G_OZ.n * 1000, G_OZ.d, 'mg');
   });
   it('convert to g', () => {
     const msg = 'u3s.convert.g';
@@ -135,9 +135,9 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'g', 1, 1000, 'kilogram');
     testConvert(msg, 1, 1, 'g', 1, 1000, 'kilograms');
 
-    testConvert(msg, 1000*1000, 1, 'mg', 1, 1, 'kg');
-    testConvert(msg, 1, 1, 'oz', G_OZ.n, 1000*G_OZ.d, 'kg');
-    testConvert(msg, 1, 16, 'lb', G_OZ.n, 1000*G_OZ.d, 'kg');
+    testConvert(msg, 1000 * 1000, 1, 'mg', 1, 1, 'kg');
+    testConvert(msg, 1, 1, 'oz', G_OZ.n, 1000 * G_OZ.d, 'kg');
+    testConvert(msg, 1, 16, 'lb', G_OZ.n, 1000 * G_OZ.d, 'kg');
   });
   it('convert to oz', () => {
     const msg = 'u3s.convert.oz';
@@ -145,8 +145,8 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'lb', 16, 1, 'ounce');
     testConvert(msg, 1, 1, 'lb', 16, 1, 'ounces');
 
-    testConvert(msg, 100, 1, 'g', 100*G_OZ.d, G_OZ.n, 'oz');
-    testConvert(msg, 1, 1, 'kg', 1000*G_OZ.d, G_OZ.n, 'oz');
+    testConvert(msg, 100, 1, 'g', 100 * G_OZ.d, G_OZ.n, 'oz');
+    testConvert(msg, 1, 1, 'kg', 1000 * G_OZ.d, G_OZ.n, 'oz');
   });
   it('convert to lb', () => {
     const msg = 'u3s.convert.lb';
@@ -155,7 +155,7 @@ describe('units', () => {
     testConvert(msg, 1, 1, 'oz', 1, 16, 'pound');
     testConvert(msg, 1, 1, 'oz', 1, 16, 'pounds');
 
-    testConvert(msg, 100, 1, 'g', 100*G_OZ.d, 16*G_OZ.n, 'lb');
-    testConvert(msg, 1, 1, 'kg', 1000*G_OZ.d, 16*G_OZ.n, 'lb');
+    testConvert(msg, 100, 1, 'g', 100 * G_OZ.d, 16 * G_OZ.n, 'lb');
+    testConvert(msg, 1, 1, 'kg', 1000 * G_OZ.d, 16 * G_OZ.n, 'lb');
   });
 });

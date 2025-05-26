@@ -37,7 +37,7 @@ describe('task', () => {
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('avro', () => {
+  it('TESTTESTavro', () => {
     const msg = 'tavro';
     const title = 'avro-title';
     const progress = new Fraction(3, 4, 'tbsp');

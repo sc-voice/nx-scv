@@ -1,19 +1,32 @@
 export class Fraction {
+  #isNull;
   constructor(...args) {
     const msg = 'Fraction.ctor:';
     let cfg = args[0];
+    let numerator;
+    let denominator;
+    let units;
+    let isNull;
 
-    if (typeof cfg === 'object') {
-      this.put(args[0]);
+    if (cfg && (typeof cfg === 'object')) {
+      let { isNull:i4l, numerator:n, denominator:d, units:u } = cfg;
+      isNull = i4l;
+      numerator = n;
+      denominator = d;
+      units = u;
     } else {
-      let [numerator, denominator, units] = args;
-
-      this.put({ numerator, denominator, units });
+      let [ n, d=1, u = '' ] = args;
+      numerator = n;
+      denominator = d;
+      units = u;
     }
+
+    this.put({ isNull, numerator, denominator, units });
   }
 
   static get SCHEMA_FIELDS() {
     return [
+      { name: 'isNull', type: 'boolean' },
       { name: 'numerator', type: 'int' },
       { name: 'denominator', type: 'int' },
       { name: 'units', type: 'string' },
@@ -36,22 +49,27 @@ export class Fraction {
     return Fraction.gcd(b, a % b);
   }
 
+  get isNull() {
+    return this.#isNull;
+  }
+
   put(json = {}) {
-    let { numerator = null, denominator = 1, units = '' } = json;
+    let { isNull, numerator, denominator = 1, units = '' } = json;
+
+    if (isNull || numerator == null) {
+      this.#isNull = true;
+      numerator = 0;
+      denominator = 1;
+    } else {
+      this.#isNull = false;
+    }
     Object.assign(this, { numerator, denominator, units });
   }
 
   patch(json = {}) {
-    let { numerator, denominator, units } = json;
-    if (numerator != null) {
-      this.numerator = numerator;
-    }
-    if (denominator != null) {
-      this.denominator = denominator;
-    }
-    if (units != null) {
-      this.units = units;
-    }
+    let { numerator = this.n, denominator=this.d, units=this.units } = json;
+
+    this.put({numerator, denominator, units});
   }
 
   get remainder() {
@@ -86,8 +104,8 @@ export class Fraction {
   }
 
   get value() {
-    let { numerator, denominator } = this;
-    return numerator == null ? null : numerator / denominator;
+    let { isNull, numerator, denominator } = this;
+    return isNull ? null : numerator / denominator;
   }
 
   increment(delta = 1) {
@@ -108,21 +126,22 @@ export class Fraction {
   }
 
   toString(cfg = {}) {
-    let { units, numerator: n, denominator: d, value } = this;
+    let { isNull, units, numerator: n, denominator: d, value } = this;
     let s;
-    if (n == null) {
-      return n;
-    }
-    let { asRange, fixed = 2 } = cfg;
-    if (asRange == null) {
-      let sFraction = `${n}/${d}`;
-      let sValue = value.toString();
-      let sFixed = value.toFixed(fixed);
-      s = sValue.length < sFixed.length ? sValue : sFixed;
-      s = s.length < sFraction.length ? s : sFraction;
+    if (isNull) {
+      s = '?';
     } else {
-      let sRange = `${n}${asRange}${d}`;
-      s = sRange;
+      let { asRange, fixed = 2 } = cfg;
+      if (asRange == null) {
+        let sFraction = `${n}/${d}`;
+        let sValue = value.toString();
+        let sFixed = value.toFixed(fixed);
+        s = sValue.length < sFixed.length ? sValue : sFixed;
+        s = s.length < sFraction.length ? s : sFraction;
+      } else {
+        let sRange = `${n}${asRange}${d}`;
+        s = sRange;
+      }
     }
     return units ? `${s}${units}` : s;
   }
