@@ -28,9 +28,14 @@ export const DBG = {
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
   ML_DOC_VECTORS: 0, // 'mn8:3.4'
   MN8_MOHAN: 0,
-  F6N: {
+  C10E: {
     P3S: {
       NEXT: 0,
+    },
+  },
+  M2H: {
+    F6N: {
+      REDUCE: 0,
     },
   },
   N8A: {
@@ -66,10 +71,10 @@ export const DBG = {
       STOP: 0,
     },
     T2K: {
-      CTOR: 1,
-      TO_STRING: 1,
-      PUT: 1,
-      PATCH: 1,
+      CTOR: 0,
+      TO_STRING: 0,
+      PUT: 0,
+      PATCH: 0,
     },
     T4S: {
       // Timers

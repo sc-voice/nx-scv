@@ -22,7 +22,7 @@ const FRY_EGG = [
   },
 ];
 
-let dbg = 2;
+let dbg = 0;
 
 describe('task', () => {
   it('ctor', () => {
@@ -37,7 +37,7 @@ describe('task', () => {
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('TESTTESTavro', () => {
+  it('avro', () => {
     const msg = 'tavro';
     const title = 'avro-title';
     const progress = new Fraction(3, 4, 'tbsp');

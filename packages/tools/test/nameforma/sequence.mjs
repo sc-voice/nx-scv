@@ -83,7 +83,7 @@ class Sequence extends Forma {
     // phrases are not externally mutable
     this.#steps = [];
     steps.forEach((p) => this.addStep(p));
-    cc.ok1(msg + UOK, ...cc.props(this), 'steps:', steps.length);
+    // cc.ok1(msg + UOK, ...cc.props(this), 'steps:', steps.length);
     Object.defineProperty(this, 'steps', {
       enumerable: true,
       get: () => this.#steps.map((p) => p.toString()),
@@ -115,7 +115,7 @@ class Sequence extends Forma {
     let { id = `${stepNum}`, name, progress } = cfg;
     let s2p = new Step({ unit, id, name, progress });
     this.#steps.push(s2p);
-    cc.ok1(msg + UOK, id + ':', s2p);
+    // cc.ok1(msg + UOK, id + ':', s2p);
   } // s6e.addStep
 
   updateStep(stepNum, value) {
@@ -139,7 +139,7 @@ const FRY_EGG = [
   },
 ];
 
-let dbg = 2;
+let dbg = 0;
 
 describe('sequence', () => {
   it('ctor', () => {

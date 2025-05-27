@@ -26,6 +26,26 @@ describe('scv-math/fraction', () => {
     should.deepEqual(fCopy, f);
     should(fCopy).not.equal(f);
   });
+  it('custom ctor PI', () => {
+    // Is this useful?
+    let n = Math.PI;
+    let d = 1;
+    let f = new Fraction(n, d);
+    should(f.numerator).equal(n);
+    should(f.denominator).equal(d);
+    should(f.toString()).equal('3.14');
+    should(Math.abs(Math.PI-f.value)).below(1e-15);
+
+    f.reduce();
+    should(Math.abs(Math.PI-f.value)).below(1e-15);
+    should(f.numerator).equal(1570796326794897);
+    should(f.denominator).equal(5e14);
+
+    // Fractions can be copied
+    let fCopy = new Fraction(f);
+    should.deepEqual(fCopy, f);
+    should(fCopy).not.equal(f);
+  });
   it('custom ctor 0', () => {
     let f = new Fraction(0, 1);
     should(f.numerator).equal(0);
@@ -43,9 +63,14 @@ describe('scv-math/fraction', () => {
     let numerator = Math.random();
     let denominator = Math.random();
     let units = 'test-units';
-    let fNull = new Fraction({isNull:true, numerator, denominator, units});
-    let fUnits = new Fraction({isNull:true, units});
-    
+    let fNull = new Fraction({
+      isNull: true,
+      numerator,
+      denominator,
+      units,
+    });
+    let fUnits = new Fraction({ isNull: true, units });
+
     // Null values can have units but numerator and denominator are 0/1
     should.deepEqual(fNull, fUnits);
     should(fNull).not.equal(fUnits);
@@ -222,12 +247,12 @@ describe('scv-math/fraction', () => {
     should(f254.toString()).equal('2.54cm');
   });
   it('patch', () => {
-    let f = new Fraction(4,5,'F');
-    f.patch({numerator:3});
-    should.deepEqual(f, new Fraction(3,5,'F'));
-    f.patch({denominator:7});
-    should.deepEqual(f, new Fraction(3,7,'F'));
-    f.patch({units:'Fahrenheit'});
-    should.deepEqual(f, new Fraction(3,7,'Fahrenheit'));
+    let f = new Fraction(4, 5, 'F');
+    f.patch({ numerator: 3 });
+    should.deepEqual(f, new Fraction(3, 5, 'F'));
+    f.patch({ denominator: 7 });
+    should.deepEqual(f, new Fraction(3, 7, 'F'));
+    f.patch({ units: 'Fahrenheit' });
+    should.deepEqual(f, new Fraction(3, 7, 'Fahrenheit'));
   });
 });

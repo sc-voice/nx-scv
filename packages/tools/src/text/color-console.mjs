@@ -1,7 +1,7 @@
 import util from 'node:util';
 import { DBG } from '../defines.mjs';
 import { Unicode } from './unicode.mjs';
-const { F6N } = DBG;
+const { C10E } = DBG;
 
 const { CHECKMARK: UOK } = Unicode;
 
@@ -48,7 +48,7 @@ class Props {
 
   next() {
     const msg = 'p3s.next';
-    const dbg = F6N.P3S.NEXT;
+    const dbg = C10E.P3S.NEXT;
     let { entries, i, emitKey, done } = this;
     let value;
     let entry = entries[i];

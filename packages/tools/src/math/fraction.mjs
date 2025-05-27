@@ -1,3 +1,10 @@
+import { DBG } from '../defines.mjs';
+import { ColorConsole } from '../text/color-console.mjs'
+import { Unicode } from '../text/unicode.mjs'
+const { CHECKMARK: UOK } = Unicode;
+const { F6N } = DBG.M2H;
+const { cc } = ColorConsole;
+
 export class Fraction {
   #isNull;
   constructor(...args) {
@@ -27,8 +34,8 @@ export class Fraction {
   static get SCHEMA_FIELDS() {
     return [
       { name: 'isNull', type: 'boolean' },
-      { name: 'numerator', type: 'int' },
-      { name: 'denominator', type: 'int' },
+      { name: 'numerator', type: 'double' },
+      { name: 'denominator', type: 'double' },
       { name: 'units', type: 'string' },
     ];
   }
@@ -114,6 +121,8 @@ export class Fraction {
   }
 
   reduce() {
+    const msg = 'f6n.reduce';
+    const dbg = F6N.REDUCE;
     let { numerator: n, denominator: d, units } = this;
     if (Number.isInteger(n) && Number.isInteger(d)) {
       let g = Fraction.gcd(n, d);
@@ -121,6 +130,21 @@ export class Fraction {
         this.numerator /= g;
         this.denominator /= g;
       }
+      dbg && cc.ok1(msg+UOK, this.n, '/', this.d);
+    } else {
+      // Is this useful?
+      for (let i = 0; i < 20; i++) {
+        n *= 10;
+        d *= 10;
+        if (Number.isInteger(n) && Number.isInteger(d)) {
+          this.n = n;
+          this.d = d;
+          this.reduce();
+          dbg && cc.ok1(msg+UOK, n, '/', d);
+          return this;
+        }
+      }
+      throw new Error(`${msg} Why are you reducing non-integers? ${n}/${d}`);
     }
     return this;
   }
