@@ -1,6 +1,6 @@
 import { DBG } from '../defines.mjs';
-import { ColorConsole } from '../text/color-console.mjs'
-import { Unicode } from '../text/unicode.mjs'
+import { ColorConsole } from '../text/color-console.mjs';
+import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { F6N } = DBG.M2H;
 const { cc } = ColorConsole;
@@ -15,14 +15,14 @@ export class Fraction {
     let units;
     let isNull;
 
-    if (cfg && (typeof cfg === 'object')) {
-      let { isNull:i4l, numerator:n, denominator:d, units:u } = cfg;
+    if (cfg && typeof cfg === 'object') {
+      let { isNull: i4l, numerator: n, denominator: d, units: u } = cfg;
       isNull = i4l;
       numerator = n;
       denominator = d;
       units = u;
     } else {
-      let [ n, d=1, u = '' ] = args;
+      let [n, d = 1, u = ''] = args;
       numerator = n;
       denominator = d;
       units = u;
@@ -74,9 +74,13 @@ export class Fraction {
   }
 
   patch(json = {}) {
-    let { numerator = this.n, denominator=this.d, units=this.units } = json;
+    let {
+      numerator = this.n,
+      denominator = this.d,
+      units = this.units,
+    } = json;
 
-    this.put({numerator, denominator, units});
+    this.put({ numerator, denominator, units });
   }
 
   get remainder() {
@@ -130,7 +134,7 @@ export class Fraction {
         this.numerator /= g;
         this.denominator /= g;
       }
-      dbg && cc.ok1(msg+UOK, this.n, '/', this.d);
+      dbg && cc.ok1(msg + UOK, this.n, '/', this.d);
     } else {
       // Is this useful?
       for (let i = 0; i < 20; i++) {
@@ -140,11 +144,13 @@ export class Fraction {
           this.n = n;
           this.d = d;
           this.reduce();
-          dbg && cc.ok1(msg+UOK, n, '/', d);
+          dbg && cc.ok1(msg + UOK, n, '/', d);
           return this;
         }
       }
-      throw new Error(`${msg} Why are you reducing non-integers? ${n}/${d}`);
+      throw new Error(
+        `${msg} Why are you reducing non-integers? ${n}/${d}`,
+      );
     }
     return this;
   }

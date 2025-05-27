@@ -22,7 +22,7 @@ const FRY_EGG = [
   },
 ];
 
-let dbg = 0;
+let dbg = DBG.T2T.TASK;
 
 describe('task', () => {
   it('ctor', () => {
@@ -37,14 +37,16 @@ describe('task', () => {
 
     dbg && cc.tag1(msg, 'END');
   });
-  it('avro', () => {
-    const msg = 'tavro';
+  it('TESTTESTavro', () => {
+    const msg = 'tt2k.avro';
+    dbg>1 && cc.tag(msg, '==============');
+
     const title = 'avro-title';
     const progress = new Fraction(3, 4, 'tbsp');
     const duration = new Fraction(3, 4, 's');
-    dbg && cc.tag1(msg, 'START');
 
-    let type = avro.parse(Task.SCHEMA);
+    let typeFraction = Forma.register(Fraction.SCHEMA, {avro});
+    let type = Forma.register(Task.SCHEMA);
 
     let thing1 = new Task({ title, progress, duration });
     let buf = type.toBuffer(thing1);
@@ -52,6 +54,6 @@ describe('task', () => {
     let thing2 = new Task(parsed);
     should.deepEqual(thing2, thing1);
 
-    dbg && cc.tag1(msg, 'START');
+    dbg && cc.tag1(msg, 'Task serialized with avro');
   });
 });

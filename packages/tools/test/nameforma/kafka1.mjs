@@ -18,7 +18,7 @@ const {
 
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
-const TEST_DBG = DBG.TEST.VERBOSE;
+const TEST_DBG = DBG.T2T.KAFKA;
 
 describe('kafka', function () {
   this.timeout(4 * heartbeatInterval);

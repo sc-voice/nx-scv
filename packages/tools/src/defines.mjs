@@ -41,6 +41,7 @@ export const DBG = {
   N8A: {
     F3A: {
       CTOR: 0,
+      REGISTER: 0,
     },
     S2P: {
       UPDATE: 0,
@@ -97,7 +98,10 @@ export const DBG = {
       CONVERT_FRACTION: 0,
     },
   },
-  TEST: {
-    VERBOSE: 0,
+  T2T: {
+    FORMA: 0,
+    FRACTION: 0,
+    KAFKA: 0,
+    TASK: 2,
   },
 };

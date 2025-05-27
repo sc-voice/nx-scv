@@ -1,10 +1,13 @@
 import avro from 'avro-js';
 import should from 'should';
-import { ScvMath, Text } from '../../index.mjs';
+import { NameForma, ScvMath, Text } from '../../index.mjs';
+import { DBG } from '../../src/defines.mjs';
 const { Fraction } = ScvMath;
+const { Forma } = NameForma;
 const { cc } = Text.ColorConsole;
+const { CHECKMARK: UOK } = Text.Unicode;
 
-const dbg = 0;
+const dbg = DBG.T2T.FRACTION;
 
 describe('scv-math/fraction', () => {
   it('default ctor', () => {
@@ -34,10 +37,10 @@ describe('scv-math/fraction', () => {
     should(f.numerator).equal(n);
     should(f.denominator).equal(d);
     should(f.toString()).equal('3.14');
-    should(Math.abs(Math.PI-f.value)).below(1e-15);
+    should(Math.abs(Math.PI - f.value)).below(1e-15);
 
     f.reduce();
-    should(Math.abs(Math.PI-f.value)).below(1e-15);
+    should(Math.abs(Math.PI - f.value)).below(1e-15);
     should(f.numerator).equal(1570796326794897);
     should(f.denominator).equal(5e14);
 
@@ -209,23 +212,26 @@ describe('scv-math/fraction', () => {
     f6n.patch({ numerator: 4, denominator: 5, units: 'feet' });
     should(f6n.toString()).equal('4/5feet');
   });
-  it('avro', () => {
-    const msg = 'f6n.tavro';
-    let type = avro.parse(Fraction.SCHEMA);
+  it('TESTTESTavro', () => {
+    const msg = 'tf6n.avro';
+    dbg > 1 && cc.tag(msg, '===============', 'register schema');
+    let type = Forma.register(Fraction.SCHEMA, { avro });
 
-    dbg && cc.tag(msg, 'fraction with units');
     let tsp2 = new Fraction(2, 3, 'tbsp');
     let tsp2Buf = type.toBuffer(tsp2);
     let tsp2Parsed = type.fromBuffer(tsp2Buf);
     should(tsp2.toString()).equal('2/3tbsp');
     should.deepEqual(new Fraction(tsp2Parsed), tsp2);
+    dbg > 1 && cc.tag(msg, 'fraction with units');
 
-    dbg && cc.tag(msg, 'fraction without units');
+    dbg > 1 && cc.tag(msg, 'fraction without units');
     let half = new Fraction(1, 2);
     should(half.units).equal('');
     let halfBuf = type.toBuffer(half);
     let halfCopy = new Fraction(type.fromBuffer(halfBuf));
     should.deepEqual(halfCopy, half);
+
+    dbg && cc.tag1(msg + UOK, 'Fraction serialized with avro');
   });
   it('toString()', () => {
     let f12 = new Fraction(1, 2, 'in');

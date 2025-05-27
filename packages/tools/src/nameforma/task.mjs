@@ -18,7 +18,7 @@ export class Task extends Forma {
   } // t2k.ctor
 
   static get SCHEMA() {
-    let sFraction = Fraction.SCHEMA;
+    let sFraction = `${Fraction.SCHEMA.namespace}.Fraction`;
     return {
       name: 'Task',
       namespace: 'scVoice.tools.nameforma',
@@ -26,8 +26,8 @@ export class Task extends Forma {
       fields: [
         ...Forma.SCHEMA_FIELDS,
         { name: 'title', type: 'string' },
-        { name: 'progress', type: sFraction },
-        { name: 'duration', type: sFraction.name },
+        { name: 'progress', type: sFraction},
+        { name: 'duration', type: sFraction},
       ],
     };
   }

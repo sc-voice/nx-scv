@@ -8,6 +8,8 @@ import { Admin, Consumer, Producer } from './kafka1.mjs';
 
 export class Forma {
   static #instances = {};
+  static #registry = {};
+  static #avro;
   #prefix;
 
   constructor(cfg = {}) {
@@ -33,6 +35,37 @@ export class Forma {
     });
 
     dbg && cc.ok1(msg + UOK, id);
+  }
+
+  static get REGISTRY() {
+    return Object.assign({}, Forma.#registry);
+  }
+
+  static register(schema, opts = {}) {
+    const msg = 'f3a.register';
+    const dbg = F3A.REGISTER;
+
+    let { name, namespace } = schema;
+    if (name == null) {
+      throw new Error(`${msg} name?`);
+    }
+    let fullName = namespace ? `${namespace}.${name}` : `${name}`;
+    dbg > 1 && cc.ok(msg, 'parsing:', fullName);
+    let { avro = Forma.#avro, registry = Forma.#registry } = opts;
+    if (avro == null) {
+      throw new Error(`${msg} avro?`);
+    }
+    Forma.#avro = avro;
+    let type = registry[fullName];
+
+    if (type == null) {
+      type = avro.parse(schema, Object.assign({ registry }, opts));
+      dbg && cc.ok1(msg + UOK, fullName);
+      registry[fullName] = type;
+      Forma.#registry[fullName] = type;
+    }
+
+    return type;
   }
 
   static get SCHEMA_FIELDS() {
