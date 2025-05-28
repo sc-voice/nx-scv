@@ -72,16 +72,12 @@ export class Forma {
     return type;
   }
 
-  static get SCHEMA_FIELDS() {
-    return [{ name: 'id', type: 'string' }];
-  }
-
   static get SCHEMA() {
     return {
       name: 'Forma',
       namespace: 'scvoice.nameforma',
       type: 'record',
-      fields: Forma.SCHEMA_FIELDS,
+      fields: [{ name: 'id', type: 'string' }],
     };
   }
 

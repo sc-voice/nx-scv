@@ -3,9 +3,12 @@ import { Fraction } from '../../src/math/fraction.mjs';
 import { ColorConsole } from '../../src/text/color-console.mjs';
 import { Unicode } from '../../src/text/unicode.mjs';
 import { Forma } from './forma.mjs';
+import { Schema } from './schema.mjs';
 const { T2K } = DBG.N8A;
 const { cc } = ColorConsole;
 const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
+const FRACTION = Fraction.SCHEMA;
+const FORMA = Forma.SCHEMA;
 
 export class Task extends Forma {
   constructor(cfg = {}) {
@@ -18,23 +21,22 @@ export class Task extends Forma {
   } // t2k.ctor
 
   static register(opts={}) {
-    Forma.registerSchema(Fraction.SCHEMA, opts);
+    Forma.registerSchema(FRACTION, opts);
     return Forma.registerSchema(Task.SCHEMA);
   }
 
   static get SCHEMA() {
-    let sFraction = `${Fraction.SCHEMA.namespace}.Fraction`;
-    return {
+    return new Schema({
       name: 'Task',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        ...Forma.SCHEMA_FIELDS,
+        ...FORMA.fields,
         { name: 'title', type: 'string' },
-        { name: 'progress', type: sFraction},
-        { name: 'duration', type: sFraction},
+        { name: 'progress', type: FRACTION.fullName},
+        { name: 'duration', type: FRACTION.fullName},
       ],
-    };
+    });
   }
 
   put(value) {

@@ -9,7 +9,7 @@ const { CHECKMARK: UOK } = Text.Unicode;
 
 const dbg = DBG.T2T.FRACTION;
 
-describe('scv-math/fraction', () => {
+describe('TESTTESTfraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();

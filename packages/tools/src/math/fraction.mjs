@@ -1,6 +1,7 @@
 import { DBG } from '../defines.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
+import { Schema } from '../nameforma/schema.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { F6N } = DBG.M2H;
 const { cc } = ColorConsole;
@@ -31,22 +32,18 @@ export class Fraction {
     this.put({ isNull, numerator, denominator, units });
   }
 
-  static get SCHEMA_FIELDS() {
-    return [
-      { name: 'isNull', type: 'boolean' },
-      { name: 'numerator', type: 'double' },
-      { name: 'denominator', type: 'double' },
-      { name: 'units', type: 'string' },
-    ];
-  }
-
   static get SCHEMA() {
-    return {
+    return new Schema({
       name: 'Fraction',
-      namespace: 'scvoice.scvMath',
+      namespace: 'scvoice.math',
       type: 'record',
-      fields: Fraction.SCHEMA_FIELDS,
-    };
+      fields: [
+        { name: 'isNull', type: 'boolean' },
+        { name: 'numerator', type: 'double' },
+        { name: 'denominator', type: 'double' },
+        { name: 'units', type: 'string' },
+      ],
+    });
   }
 
   static gcd(a, b) {

@@ -102,6 +102,7 @@ export const DBG = {
     FORMA: 0,
     FRACTION: 0,
     KAFKA: 0,
+    SCHEMA: 0,
     TASK: 2,
   },
 };
