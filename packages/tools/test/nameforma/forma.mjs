@@ -26,7 +26,7 @@ describe('forma', () => {
     let t3g = new Thing();
     should(t3g.id).match(/^T3G[0-9]+$/);
   });
-  it('TESTTESTavro', () => {
+  it('avro', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, '===========');
 

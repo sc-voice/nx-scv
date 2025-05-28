@@ -10,36 +10,40 @@ const { CHECKMARK: UOK } = Unicode;
 
 const dbg = DBG.T2T.SCHEMA;
 
-describe('TESTTESTschema', () => {
+describe('schema', () => {
   it('ctor', () => {
     const msg = 'ts4a.ctor';
-    dbg>1 && cc.tag(msg, '==============');
+    dbg > 1 && cc.tag(msg, '==============');
     const name = 'test-name';
     const namespace = 'test-namespace';
 
     let s4aEmpty = new Schema();
     const noName = 'UnnamedSchema';
     should(s4aEmpty).properties({
-      name: noName, 
+      name: noName,
       fullName: noName,
     });
     should(s4aEmpty.namespace).equal(undefined);
-    dbg>1 && cc.tag(msg, 'default ctor');
+    dbg > 1 && cc.tag(msg, 'default ctor');
 
-    const fEvil = () => {throw new Error(msg, 'EVIL');}
-    let s4aFun = new Schema({name, namespace, fullName: fEvil});
+    const fEvil = () => {
+      throw new Error(msg, 'EVIL');
+    };
+    let s4aFun = new Schema({ name, namespace, fullName: fEvil });
     should(s4aFun).properties({
-      name, namespace,
+      name,
+      namespace,
       fullName: `${namespace}.${name}`,
     });
-    dbg>1 && cc.tag(msg, 'evil ctor');
+    dbg > 1 && cc.tag(msg, 'evil ctor');
 
-    let s4a = new Schema({name, namespace});
+    let s4a = new Schema({ name, namespace });
     should(s4a).properties({
-      name, namespace,
+      name,
+      namespace,
       fullName: `${namespace}.${name}`,
     });
 
-    dbg && cc.tag1(msg+UOK, 'typical ctor');
+    dbg && cc.tag1(msg + UOK, 'typical ctor');
   });
 });

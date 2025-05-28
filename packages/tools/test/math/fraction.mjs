@@ -9,7 +9,7 @@ const { CHECKMARK: UOK } = Text.Unicode;
 
 const dbg = DBG.T2T.FRACTION;
 
-describe('TESTTESTfraction', () => {
+describe('fraction', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Fraction();
@@ -212,7 +212,7 @@ describe('TESTTESTfraction', () => {
     f6n.patch({ numerator: 4, denominator: 5, units: 'feet' });
     should(f6n.toString()).equal('4/5feet');
   });
-  it('TESTTESTavro', () => {
+  it('avro', () => {
     const msg = 'tf6n.avro';
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
     let type = Forma.registerSchema(Fraction.SCHEMA, { avro });
