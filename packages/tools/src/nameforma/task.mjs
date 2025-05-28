@@ -17,6 +17,11 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   } // t2k.ctor
 
+  static register(opts={}) {
+    Forma.registerSchema(Fraction.SCHEMA, opts);
+    return Forma.registerSchema(Task.SCHEMA);
+  }
+
   static get SCHEMA() {
     let sFraction = `${Fraction.SCHEMA.namespace}.Fraction`;
     return {

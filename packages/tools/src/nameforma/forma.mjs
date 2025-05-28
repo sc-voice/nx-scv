@@ -41,9 +41,13 @@ export class Forma {
     return Object.assign({}, Forma.#registry);
   }
 
-  static register(schema, opts = {}) {
-    const msg = 'f3a.register';
-    const dbg = F3A.REGISTER;
+  static register(opts = {}) {
+    return Forma.registerSchema(Forma.SCHEMA, opts);
+  }
+
+  static registerSchema(schema, opts = {}) {
+    const msg = 'f3a.registerSchema';
+    const dbg = F3A.REGISTER_SCHEMA;
 
     let { name, namespace } = schema;
     if (name == null) {

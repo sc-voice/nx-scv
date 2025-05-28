@@ -34,9 +34,9 @@ describe('forma', () => {
 
     const registry = {};
     const s4a = Forma.SCHEMA;
-    dbg > 1 && cc.tag(msg, 'register schema');
-    let type = Forma.register(s4a, { avro, registry });
-    let typeAgain = Forma.register(s4a);
+    dbg > 1 && cc.tag(msg, 'registerSchema');
+    let type = Forma.registerSchema(s4a, { avro, registry });
+    let typeAgain = Forma.register();
     should(typeAgain).equal(type);
     let typeExpected = avro.parse(s4a);
     let name = `${s4a.namespace}.${s4a.name}`;

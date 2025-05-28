@@ -45,8 +45,7 @@ describe('task', () => {
     const progress = new Fraction(3, 4, 'tbsp');
     const duration = new Fraction(3, 4, 's');
 
-    let typeFraction = Forma.register(Fraction.SCHEMA, {avro});
-    let type = Forma.register(Task.SCHEMA);
+    let type = Task.register({avro});
 
     let thing1 = new Task({ title, progress, duration });
     let buf = type.toBuffer(thing1);

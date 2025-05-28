@@ -215,7 +215,7 @@ describe('scv-math/fraction', () => {
   it('TESTTESTavro', () => {
     const msg = 'tf6n.avro';
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
-    let type = Forma.register(Fraction.SCHEMA, { avro });
+    let type = Forma.registerSchema(Fraction.SCHEMA, { avro });
 
     let tsp2 = new Fraction(2, 3, 'tbsp');
     let tsp2Buf = type.toBuffer(tsp2);
