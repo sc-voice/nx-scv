@@ -43,7 +43,7 @@ export class Fraction {
   static get SCHEMA() {
     return {
       name: 'Fraction',
-      namespace: 'scVoice.tools.scvMath',
+      namespace: 'scvoice.scvMath',
       type: 'record',
       fields: Fraction.SCHEMA_FIELDS,
     };

@@ -79,7 +79,7 @@ export class Forma {
   static get SCHEMA() {
     return {
       name: 'Forma',
-      namespace: 'scVoice.tools.nameforma',
+      namespace: 'scvoice.nameforma',
       type: 'record',
       fields: Forma.SCHEMA_FIELDS,
     };

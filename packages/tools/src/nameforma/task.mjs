@@ -26,7 +26,7 @@ export class Task extends Forma {
     let sFraction = `${Fraction.SCHEMA.namespace}.Fraction`;
     return {
       name: 'Task',
-      namespace: 'scVoice.tools.nameforma',
+      namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
         ...Forma.SCHEMA_FIELDS,
