@@ -1,6 +1,6 @@
 // an Avro schema
 export class Schema {
-  constructor(cfg={}) {
+  constructor(cfg = {}) {
     let sCfg = JSON.stringify(cfg);
     Object.assign(this, JSON.parse(sCfg));
     this.name = this.name || 'UnnamedSchema';
@@ -8,8 +8,6 @@ export class Schema {
 
   get fullName() {
     let { namespace, name } = this;
-    return namespace == null
-      ? name
-      : `${namespace}.${name}`;
+    return namespace == null ? name : `${namespace}.${name}`;
   }
 }

@@ -20,7 +20,7 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   } // t2k.ctor
 
-  static register(opts={}) {
+  static register(opts = {}) {
     Forma.registerSchema(FRACTION, opts);
     return Forma.registerSchema(Task.SCHEMA);
   }
@@ -33,8 +33,8 @@ export class Task extends Forma {
       fields: [
         ...FORMA.fields,
         { name: 'title', type: 'string' },
-        { name: 'progress', type: FRACTION.fullName},
-        { name: 'duration', type: FRACTION.fullName},
+        { name: 'progress', type: FRACTION.fullName },
+        { name: 'duration', type: FRACTION.fullName },
       ],
     });
   }
@@ -43,7 +43,7 @@ export class Task extends Forma {
     const msg = 't2k.put';
     const dbg = T2K.PUT;
     let {
-      title = `${this.id}-title?`,
+      title = 'title?',
       progress = new Fraction(0, 1, 'done'),
       duration = new Fraction(null, 1, 's'),
     } = value;
@@ -58,7 +58,7 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   }
 
-  patch(value) {
+  patch(value={}) {
     const msg = 't2k.patch';
     const dbg = T2K.PATCH;
     let {
@@ -73,20 +73,21 @@ export class Task extends Forma {
 
   toString() {
     const dbg = T2K.TO_STRING;
-    let { id, title, progress, msStart, msEnd, done, started } = this;
+    let { id, title, progress, duration, started } =
+      this;
     let time = '';
     let now = Date.now();
     let symbol = '.';
     let status = progress.toString({ asRange: '/' });
+    let done = progress.value >= 1;
     if (done) {
       symbol = UOK;
       status = '' + progress.denominator + progress.units;
     } else if (started) {
       symbol = Unicode.RIGHT_GUILLEMET;
     }
-    if (msStart != null) {
-      let elapsed = (((msEnd || now) - msStart) / 1000).toFixed(1);
-      time = ' ' + elapsed + 's';
+    if (!duration.isNull) {
+      time = ' ' + duration.toString();
     }
 
     return `${id}${symbol} ${title} (${status}${time})`;

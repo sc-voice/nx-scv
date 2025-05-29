@@ -3,7 +3,7 @@ import { DBG } from '../defines.mjs';
 import { Unicode } from './unicode.mjs';
 const { C10E } = DBG;
 
-const { CHECKMARK: UOK } = Unicode;
+const { RED_X: URX, CHECKMARK: UOK } = Unicode;
 
 const {
   BLACK,
@@ -128,6 +128,14 @@ export class ColorConsole {
       valueColor,
       write,
     });
+  }
+
+  static get URX() {
+    return URX;
+  }
+
+  static get UOK() {
+    return UOK;
   }
 
   static get cc() {

@@ -5,37 +5,9 @@ import { DBG } from '../../src/defines.mjs';
 const { S2P, S6E } = DBG.N8A;
 const { Fraction } = ScvMath;
 const { Unicode, ColorConsole } = Text;
-const { cc } = ColorConsole;
-const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
+const { UOK, URX, cc } = ColorConsole;
 
 const dbg = 2;
-
-class Step extends Task {
-  constructor(cfg = {}) {
-    const msg = 's2p.ctor';
-    super(cfg);
-
-    dbg && cc.ok1(msg + UOK, ...cc.props(this));
-  } // s2p.ctor
-
-  update(value) {
-    const msg = 's2p.update';
-    const dbg = S2P.UPDATE;
-    const now = Date.now();
-    let { msStart, msEnd, progress } = this;
-    if (this.msStart == null) {
-      this.msStart = now;
-      dbg > 1 && cc.ok(msg, 'msStart:', now);
-    }
-    progress.numerator = value;
-    if (msEnd == null && progress.value >= 1) {
-      this.msEnd = Date.now();
-      dbg > 1 && cc.ok(msg, 'msStart:', now);
-    }
-    dbg && cc.ok(msg + UOK, this.toString());
-  } // s2p.update
-
-} // class Step
 
 class Sequence extends Forma {
   #steps;
@@ -46,7 +18,6 @@ class Sequence extends Forma {
     const msg = `${this.prefix}.ctor`;
     let { unit = 'Step', steps = [], name = this.id, stepIndex = 0 } = cfg;
 
-    this.#stepIndex = stepIndex;
     Object.assign(this, { unit, name });
 
     // phrases are not externally mutable
@@ -59,18 +30,20 @@ class Sequence extends Forma {
     });
   }
 
-  get stepIndex() {
-    return this.#stepIndex;
-  }
-
-  progress() {
+  get progress() {
+    const msg = 's6e.progress';
+    const dbg = S6E.PROGRESS;
+    let { unit } = this;
     let steps = this.#steps;
     let denominator = steps.length;
     let numerator = steps.reduce((a, s) => {
       return a + s.progress.value;
     }, 0);
 
-    return new Fraction(numerator, denominator);
+    let p6s = new Fraction(numerator, denominator, unit);
+
+    dbg && cc.ok1(msg + UOK, p6s);
+    return p6s;
   }
 
   toString() {
@@ -83,16 +56,39 @@ class Sequence extends Forma {
     let stepNum = this.#steps.length + 1;
     let { id = `${unit}${stepNum}`, name = 'no-name', progress } = cfg;
     let title = name;
-    let s2p = new Step({ id, title, progress });
+    let s2p = new Task({ id, title, progress });
     this.#steps.push(s2p);
     // cc.ok1(msg + UOK, id + ':', s2p);
   } // s6e.addStep
 
-  updateStep(stepNum, value) {
-    const msg = 's6e.updateStep';
-    const dbg = S6E.UPDATE_STEP;
-    this.#steps[stepNum - 1].update(value);
-  } // s6e.updateStep
+  patch(value = {}) {
+    const msg = 's6e.patch';
+    const dbg = S6E.PATCH;
+    let { steps:srcSteps=[] } = value;
+    let { unit } = this;
+    let dstSteps = this.#steps;
+    let patched = 0;
+    for (let i = 0; i < srcSteps.length; i++) {
+      let srcStep = srcSteps[i];
+      dbg > 2 && cc.fyi1(msg, srcStep);
+      let matched = 0;
+      for (let j = 0; j < dstSteps.length; j++) {
+        let dstStep = dstSteps[j];
+        if (srcStep.id === dstStep.id) {
+          dstStep.patch(srcStep);
+          dbg > 1 && cc.ok(msg, 'patch:', dstStep);
+          matched = 1;
+          break;
+        }
+      }
+      if (matched) {
+        patched++;
+      } else {
+        dbg > 1 && cc.bad(msg, 'ignored:', srcStep);
+      }
+    }
+    dbg && cc.ok1(msg+UOK, 'patched:', patched);
+  } // patch
 } // class Sequence
 
 import should from 'should';
@@ -117,7 +113,7 @@ describe('TESTTESTsequence', () => {
     should(s6e.id).match(/^S6E[0-9]+$/);
     should(s6e.name).equal(s6e.id);
     should(s6e.steps.length).equal(0);
-    should.deepEqual(s6e.progress(), new Fraction(0, 0));
+    should.deepEqual(s6e.progress, new Fraction(0, 0, 'Step'));
 
     dbg && cc.tag1(msg, 'default ctor');
   });
@@ -130,15 +126,14 @@ describe('TESTTESTsequence', () => {
 
     // Create a recipe by enumerating the steps
     let s6e = new Sequence({ unit, id, name });
-    should(s6e.stepIndex).equal(0);
     FRY_EGG.forEach((p) => s6e.addStep(p));
 
     dbg > 1 && cc.tag(msg, 'initial progress starts at 0F');
     let { steps } = s6e;
-    let p6s = s6e.progress();
+    let p6s = s6e.progress;
     should(p6s.denominator).equal(6);
     should(p6s.numerator).equal(0 / 300);
-    should(p6s.units).equal(''); // unitless
+    should(p6s.units).equal('P'); 
 
     // steps are immutable views
     should(steps.length).equal(FRY_EGG.length);
@@ -146,38 +141,35 @@ describe('TESTTESTsequence', () => {
 
     dbg && cc.tag1(msg + UOK, 'pan is covered');
   });
-  it('updateStep() cook', async () => {
-    const msg = 'ts6e.cook';
-    const id = 't.cook';
+  it('patch', () => {
+    const msg = 'ts6e.patch';
+    const id = 't.patch';
     const name = 'fry egg';
     dbg && cc.tag(msg, '===============');
 
     let s6e = new Sequence({ id, name, steps: FRY_EGG });
-    should(s6e.stepIndex).equal(0);
     should(s6e.steps.length).equal(FRY_EGG.length);
-    dbg > 1 && cc.tag(msg, 'room temperature pan is progress');
+    should(s6e.progress.toString()).equal('0Step');
+    dbg > 1 && cc.tag(msg, 'sequence created');
 
-    s6e.updateStep(1, 70);
-    let p6s = s6e.progress();
-    should(s6e.steps[0]).match(new RegExp(`.*${FRY_EGG[0].name}.*`));
-    should(s6e.steps[0]).match(/.*70\/300F 0.0s/);
-    await new Promise((r) => setTimeout(() => r(), 100));
-    should(s6e.steps[0]).match(/.*70\/300F 0.1s/);
-    await new Promise((r) => setTimeout(() => r(), 100));
-    s6e.updateStep(1, 80);
-    should(s6e.steps[0]).match(/.*80\/300F 0.2s/);
-    p6s = s6e.progress();
-    should(p6s.denominator).equal(6);
-    should(p6s.numerator).equal(80 / 300); // pan got warmer
-    dbg > 1 && cc.tag(msg, 'pan is heated to 300F');
+    s6e.patch();
+    should(s6e.steps[0]).match(/0.300F/);
+    should(s6e.progress.toString()).equal('0Step');
+    dbg > 1 && cc.tag(msg, 'empty patch');
 
-    await new Promise((r) => setTimeout(() => r(), 200));
-    s6e.updateStep(1, 300);
-    should(s6e.steps[0]).match(/.*300F 0.4s/);
-    p6s = s6e.progress();
-    should(p6s.denominator).equal(6);
-    should(p6s.numerator).equal(1);
+    s6e.patch({ steps: [], });
+    should(s6e.steps[0]).match(/0.300F/);
+    should(s6e.progress.toString()).equal('0Step');
+    dbg > 1 && cc.tag(msg, 'patched no steps');
 
+    let step1Patch = {
+      id: 'Step1',
+      progress: new Fraction(75, 300, 'F'),
+    };
+    let noStep = { id: 'NoStep' }
+    s6e.patch({ steps: [step1Patch, noStep], });
+    should(s6e.steps[0]).match(/75.300F/);
+    should(s6e.progress.toString()).equal('0.04Step');
     dbg && cc.tag1(msg + UOK, 'Step1 is done!');
   });
 });

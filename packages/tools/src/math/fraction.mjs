@@ -1,7 +1,7 @@
 import { DBG } from '../defines.mjs';
+import { Schema } from '../nameforma/schema.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
-import { Schema } from '../nameforma/schema.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { F6N } = DBG.M2H;
 const { cc } = ColorConsole;

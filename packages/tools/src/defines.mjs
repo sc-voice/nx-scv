@@ -47,7 +47,9 @@ export const DBG = {
       UPDATE: 0,
     },
     S6E: {
-      UPDATE_PHASE: 0,
+      UPDATE_STEP: 0,
+      PATCH: 0,
+      PROGRESS: 0,
     },
     C3K: {
       // Clock
@@ -103,6 +105,6 @@ export const DBG = {
     FRACTION: 0,
     KAFKA: 0,
     SCHEMA: 0,
-    TASK: 2,
+    TASK: 0,
   },
 };
