@@ -61,33 +61,84 @@ class Sequence extends Forma {
     // cc.ok1(msg + UOK, id + ':', s2p);
   } // s6e.addStep
 
-  patch(value = {}) {
-    const msg = 's6e.patch';
-    const dbg = S6E.PATCH;
-    let { steps:srcSteps=[] } = value;
+  remove(value = {}) {
+    const msg = 's6e.remove';
+    const dbg = S6E.REMOVE;
+    dbg > 2 && cc.ok(msg, value);
+
+    let { steps: srcSteps = [] } = value;
     let { unit } = this;
     let dstSteps = this.#steps;
-    let patched = 0;
+    let result = { removed: 0 }
     for (let i = 0; i < srcSteps.length; i++) {
       let srcStep = srcSteps[i];
-      dbg > 2 && cc.fyi1(msg, srcStep);
+      dbg > 2 && cc.ok(msg, srcStep);
       let matched = 0;
       for (let j = 0; j < dstSteps.length; j++) {
         let dstStep = dstSteps[j];
         if (srcStep.id === dstStep.id) {
-          dstStep.patch(srcStep);
-          dbg > 1 && cc.ok(msg, 'patch:', dstStep);
+          dstSteps.splice(j,1);
+          dbg > 1 && cc.ok(msg, 'removed:', dstStep);
           matched = 1;
           break;
         }
       }
       if (matched) {
-        patched++;
+        result.removed++;
       } else {
         dbg > 1 && cc.bad(msg, 'ignored:', srcStep);
       }
     }
-    dbg && cc.ok1(msg+UOK, 'patched:', patched);
+    dbg && cc.ok1(msg + UOK, result);
+
+    return result;
+  }
+
+  update(value = {}) {
+    const msg = 's6e.update';
+    const dbg = S6E.UPDATE;
+    dbg > 2 && cc.ok(msg, value);
+
+    let { steps: srcSteps = [] } = value;
+    let { unit } = this;
+    let dstSteps = this.#steps;
+    let result = { updated: 0, added: 0, }
+    for (let i = 0; i < srcSteps.length; i++) {
+      let srcStep = srcSteps[i];
+      dbg > 2 && cc.ok(msg, srcStep);
+      let matched = 0;
+      for (let j = 0; j < dstSteps.length; j++) {
+        let dstStep = dstSteps[j];
+        if (srcStep.id === dstStep.id) {
+          dstStep.patch(srcStep);
+          dbg > 1 && cc.ok(msg, 'updated:', dstStep);
+          matched = 1;
+          break;
+        }
+      }
+      if (matched) {
+        result.updated++;
+      } else {
+        this.addStep(srcStep);
+        dbg > 1 && cc.ok(msg, 'added:', srcStep);
+      }
+    }
+    result.added++;
+    dbg && cc.ok1(msg + UOK, result);
+
+    return result;
+  } // update
+
+  patch(value = {}) {
+    const msg = 's6e.patch';
+    const dbg = S6E.PATCH;
+    const { remove, update } = value;
+    const removed = this.remove(remove);
+    const updated = this.update(update);
+
+    dbg && cc.ok1(msg + UOK, { updated, removed });
+
+    return Object.assign({}, removed, updated);
   } // patch
 } // class Sequence
 
@@ -105,7 +156,7 @@ const FRY_EGG = [
   },
 ];
 
-describe('TESTTESTsequence', () => {
+describe('sequence', () => {
   it('ctor', () => {
     const msg = 's6e.ctor';
     dbg > 1 && cc.tag1(msg, '=========');
@@ -133,7 +184,7 @@ describe('TESTTESTsequence', () => {
     let p6s = s6e.progress;
     should(p6s.denominator).equal(6);
     should(p6s.numerator).equal(0 / 300);
-    should(p6s.units).equal('P'); 
+    should(p6s.units).equal('P');
 
     // steps are immutable views
     should(steps.length).equal(FRY_EGG.length);
@@ -141,7 +192,7 @@ describe('TESTTESTsequence', () => {
 
     dbg && cc.tag1(msg + UOK, 'pan is covered');
   });
-  it('patch', () => {
+  it('TESTTESTpatch', () => {
     const msg = 'ts6e.patch';
     const id = 't.patch';
     const name = 'fry egg';
@@ -157,7 +208,7 @@ describe('TESTTESTsequence', () => {
     should(s6e.progress.toString()).equal('0Step');
     dbg > 1 && cc.tag(msg, 'empty patch');
 
-    s6e.patch({ steps: [], });
+    s6e.patch({ update: { steps: [] } });
     should(s6e.steps[0]).match(/0.300F/);
     should(s6e.progress.toString()).equal('0Step');
     dbg > 1 && cc.tag(msg, 'patched no steps');
@@ -166,10 +217,19 @@ describe('TESTTESTsequence', () => {
       id: 'Step1',
       progress: new Fraction(75, 300, 'F'),
     };
-    let noStep = { id: 'NoStep' }
-    s6e.patch({ steps: [step1Patch, noStep], });
+    let newStep = { name: 'NewStep' };
+    const res3 = s6e.patch({
+      remove: {
+        steps: [{id:'Step6'}],
+      },
+      update: {
+        steps: [step1Patch, newStep],
+      },
+    });
+    should.deepEqual(res3, { removed:1, updated: 1, added: 1});
     should(s6e.steps[0]).match(/75.300F/);
     should(s6e.progress.toString()).equal('0.04Step');
-    dbg && cc.tag1(msg + UOK, 'Step1 is done!');
+    should(s6e.steps[5]).equal('Step6. NewStep (0/1done)');
+    dbg && cc.tag1(msg + UOK, 'Step1 updated; NewStep added');
   });
 });

@@ -47,8 +47,9 @@ export const DBG = {
       UPDATE: 0,
     },
     S6E: {
-      UPDATE_STEP: 0,
       PATCH: 0,
+      UPDATE: 0,
+      REMOVE: 0,
       PROGRESS: 0,
     },
     C3K: {
