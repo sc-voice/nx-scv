@@ -6,10 +6,12 @@ import { Activation } from './src/math/activation.mjs';
 import { Fraction } from './src/math/fraction.mjs';
 import { Units } from './src/math/units.mjs';
 import { Interval } from './src/math/interval.mjs';
+import { Hadamard } from './src/math/hadamard.mjs';
 
 export const ScvMath = {
   Activation,
   Fraction,
+  Hadamard,
   Interval,
   Units,
 };

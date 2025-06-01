@@ -39,13 +39,13 @@ describe('task', () => {
   });
   it('TESTTESTavro', () => {
     const msg = 'tt2k.avro';
-    dbg>1 && cc.tag(msg, '==============');
+    dbg > 1 && cc.tag(msg, '==============');
 
     const title = 'avro-title';
     const progress = new Fraction(3, 4, 'tbsp');
     const duration = new Fraction(3, 4, 's');
 
-    let type = Task.register({avro});
+    let type = Task.register({ avro });
 
     let thing1 = new Task({ title, progress, duration });
     let buf = type.toBuffer(thing1);

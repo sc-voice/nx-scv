@@ -17,7 +17,7 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   } // t2k.ctor
 
-  static register(opts={}) {
+  static register(opts = {}) {
     Forma.registerSchema(Fraction.SCHEMA, opts);
     return Forma.registerSchema(Task.SCHEMA);
   }
@@ -31,8 +31,8 @@ export class Task extends Forma {
       fields: [
         ...Forma.SCHEMA_FIELDS,
         { name: 'title', type: 'string' },
-        { name: 'progress', type: sFraction},
-        { name: 'duration', type: sFraction},
+        { name: 'progress', type: sFraction },
+        { name: 'duration', type: sFraction },
       ],
     };
   }

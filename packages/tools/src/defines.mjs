@@ -37,6 +37,11 @@ export const DBG = {
     F6N: {
       REDUCE: 0,
     },
+    H6D: {
+      FWHT: 0,
+      ENCODE: 0,
+      DECODE: 0,
+    },
   },
   N8A: {
     F3A: {
@@ -101,6 +106,7 @@ export const DBG = {
   T2T: {
     FORMA: 0,
     FRACTION: 0,
+    HADAMARD: 0,
     KAFKA: 0,
     TASK: 2,
   },
