@@ -26,7 +26,7 @@ export class Hadamard {
     let h = 1;
     let scale = 1;
     let output = [...input];
-    dbg && cc.fyi(msg, {output});
+    dbg && cc.ok(msg, 'input:', ...input);
     while (h < length) {
       let hNext = h * 2;
       for (let i = 0; i < length; i += hNext) {
@@ -35,9 +35,10 @@ export class Hadamard {
           let y = output[j + h];
           output[j] = x + y;
           output[j + h] = x - y;
-          dbg > 1 && cc.fyi(msg, {h, length, i,j, ih: i + h, jh:j+h});
+          dbg > 2 && cc.fyi(msg, {h, length, i,j, ih: i + h, jh:j+h});
         }
       }
+      dbg > 1 && cc.ok(msg, 'h:', h, 'output:', ...output);
       output = output.map(v=>v/SQRT2);
       h = hNext;
     }
@@ -50,11 +51,11 @@ export class Hadamard {
     const msg = 'h6d.encode';
     const dbg = H6D.ENCODE;
     let length = signal.length;
-    let n = Math.ceil(Math.log2(length)+1);
+    let n = Math.ceil(Math.log2(length));
     let fullLength = Math.pow(2,n); 
     let zeros = new Array(fullLength-length).fill(0);
     let input = [...signal, ...zeros];
-    let output  = Hadamard.fwht(input);
+    let output = Hadamard.fwht(input);
 
     let h6d;
     try {
@@ -63,7 +64,8 @@ export class Hadamard {
     } finally {
       Hadamard.#ctor = false;
     } 
-    dbg && cc.ok1(msg, {length, n, fullLength, output});
+    dbg > 1 && cc.ok(msg, 'output:', ...output);
+    dbg && cc.ok1(msg, {length, n, fullLength });
     return h6d;
   }
 
