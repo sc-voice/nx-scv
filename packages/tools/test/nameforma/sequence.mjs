@@ -69,7 +69,7 @@ class Sequence extends Forma {
     let { steps: srcSteps = [] } = value;
     let { unit } = this;
     let dstSteps = this.#steps;
-    let result = { removed: 0 }
+    let result = { removed: 0 };
     for (let i = 0; i < srcSteps.length; i++) {
       let srcStep = srcSteps[i];
       dbg > 2 && cc.ok(msg, srcStep);
@@ -77,7 +77,7 @@ class Sequence extends Forma {
       for (let j = 0; j < dstSteps.length; j++) {
         let dstStep = dstSteps[j];
         if (srcStep.id === dstStep.id) {
-          dstSteps.splice(j,1);
+          dstSteps.splice(j, 1);
           dbg > 1 && cc.ok(msg, 'removed:', dstStep);
           matched = 1;
           break;
@@ -102,7 +102,7 @@ class Sequence extends Forma {
     let { steps: srcSteps = [] } = value;
     let { unit } = this;
     let dstSteps = this.#steps;
-    let result = { updated: 0, added: 0, }
+    let result = { updated: 0, added: 0 };
     for (let i = 0; i < srcSteps.length; i++) {
       let srcStep = srcSteps[i];
       dbg > 2 && cc.ok(msg, srcStep);
@@ -192,7 +192,7 @@ describe('sequence', () => {
 
     dbg && cc.tag1(msg + UOK, 'pan is covered');
   });
-  it('TESTTESTpatch', () => {
+  it('patch', () => {
     const msg = 'ts6e.patch';
     const id = 't.patch';
     const name = 'fry egg';
@@ -220,13 +220,13 @@ describe('sequence', () => {
     let newStep = { name: 'NewStep' };
     const res3 = s6e.patch({
       remove: {
-        steps: [{id:'Step6'}],
+        steps: [{ id: 'Step6' }],
       },
       update: {
         steps: [step1Patch, newStep],
       },
     });
-    should.deepEqual(res3, { removed:1, updated: 1, added: 1});
+    should.deepEqual(res3, { removed: 1, updated: 1, added: 1 });
     should(s6e.steps[0]).match(/75.300F/);
     should(s6e.progress.toString()).equal('0.04Step');
     should(s6e.steps[5]).equal('Step6. NewStep (0/1done)');

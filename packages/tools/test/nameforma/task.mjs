@@ -75,7 +75,7 @@ describe('task', () => {
     should(t2k.toString()).equal(`${id}. title? (0/1done 5min)`);
     dbg && cc.tag1(msg + UOK, 'put with defaults');
   });
-  it('TESTTESTpatch', () => {
+  it('patch', () => {
     const msg = 't2k.patch';
     dbg > 1 && cc.tag(msg, '===================');
     let id = 't2k.patch.id';

@@ -28,7 +28,7 @@ describe('hadamard', () => {
 
     dbg && cc.tag1(msg + UOK, ...output);
   });
-  it('TESTTESTencode/decode n=8', () => {
+  it('encode/decode n=8', () => {
     const msg = 'th6d.encode.decode.8';
     const signal = '10100110'.split('').map(n=>Number(n));
     dbg > 1 && cc.tag(msg, '====================');
