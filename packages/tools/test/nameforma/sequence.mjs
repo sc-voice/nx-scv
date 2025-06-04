@@ -22,7 +22,7 @@ class Sequence extends Forma {
     Object.assign(this, { unit, name });
 
     // phrases are not externally mutable
-    this.#steps = steps.reduce((a,cfg) => {
+    this.#steps = steps.reduce((a, cfg) => {
       let step = new Task(cfg);
       a.push(step);
       return a;
@@ -42,7 +42,7 @@ class Sequence extends Forma {
     const dbg = S6E.PROGRESS;
     let { unit } = this;
     let steps = this.#steps;
-    
+
     let numerator = steps.reduce((a, s) => {
       return a + s.progress.value;
     }, 0);
@@ -66,11 +66,11 @@ class Sequence extends Forma {
     for (let i = 0; i < steps.length; i++) {
       let step = steps[i];
       let { id, title } = step;
-      let name = `${unit}${i+1}`;
-      step.patch({name});
-      dbg > 1 && cc.ok(msg, {id, name, title});
+      let name = `${unit}${i + 1}`;
+      step.patch({ name });
+      dbg > 1 && cc.ok(msg, { id, name, title });
     }
-    dbg && cc.ok1(msg+UOK, 'steps:', steps.length);
+    dbg && cc.ok1(msg + UOK, 'steps:', steps.length);
   }
 
   remove(value = {}) {
@@ -118,7 +118,7 @@ class Sequence extends Forma {
     let cursor = 0;
     for (let i = 0; i < srcSteps.length; i++) {
       let srcStep = srcSteps[i];
-      let { id:srcId, name:srcName } = srcStep;
+      let { id: srcId, name: srcName } = srcStep;
       dbg > 2 && cc.ok(msg, 'srcStep:', srcStep);
       let matched = 0;
       for (let j = 0; j < dstSteps.length; j++) {
@@ -133,7 +133,7 @@ class Sequence extends Forma {
       }
       if (matched) {
         result.updated++;
-      } else if (srcId == null && srcName == null ) {
+      } else if (srcId == null && srcName == null) {
         let s2p = new Task(srcStep);
         this.#steps.splice(cursor, 0, s2p);
         result.inserted++;
@@ -164,7 +164,10 @@ class Sequence extends Forma {
 import should from 'should';
 
 const FRY_EGG = [
-  { title: '#0 heat pan medium heat', progress: new Fraction(0, 300, 'F') },
+  {
+    title: '#0 heat pan medium heat',
+    progress: new Fraction(0, 300, 'F'),
+  },
   { title: '#1 add oil', progress: new Fraction(0, 1, 'Tbs') },
   { title: '#2 break egg into pan', progress: new Fraction(0, 2, 'Egg') },
   { title: '#3 cover pan', progress: new Fraction(0, 1, 'lid') },
@@ -205,7 +208,7 @@ describe('sequence', () => {
         steps: [{ name: 'Step4' }],
       },
     });
-    let { steps:steps1 } = s6e;
+    let { steps: steps1 } = s6e;
     should(steps1[0]).match(/Step1. #0 heat pan.*$/);
     should(steps1[1]).match(/Step2. #1 add oil.*$/);
     should(steps1[2]).match(/Step3. #2 break egg.*$/);
@@ -246,6 +249,10 @@ describe('sequence', () => {
     should(s6e.progress.toString()).equal('0.03Step');
     should.deepEqual(res, { removed: 0, updated: 1, inserted: 2 });
 
-    dbg && cc.tag1(msg + UOK, 'updated Step1 updated; inserted newStep1, newStep2');
+    dbg &&
+      cc.tag1(
+        msg + UOK,
+        'updated Step1 updated; inserted newStep1, newStep2',
+      );
   });
 });

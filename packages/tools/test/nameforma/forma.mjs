@@ -1,4 +1,9 @@
 import should from 'should';
+import { 
+  version as uuidVersion,
+  validate as uuidValid,
+  v7 as uuidv7,
+} from 'uuid';
 import { NameForma } from '../../index.mjs';
 const { Forma } = NameForma;
 import avro from 'avro-js';
@@ -79,5 +84,28 @@ describe('forma', () => {
     let thing2 = new Forma(parsed);
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
+  });
+  it('TESTTESTuuidv7', ()=>{
+    const msg = 'tf3a.uuidv7';
+    let id0 = uuidv7({msecs:0});
+    let id1 = uuidv7({msecs:1});
+    let idNow = uuidv7();
+    let idBad = idNow.replace(/..../, '0s6d');
+
+    should(uuidValid(idBad)).equal(false); // not hexadecimal
+    dbg > 1 && cc.tag(msg, 'check for invalid v7 id', {idBad});
+
+    dbg > 1 && cc.tag(msg, {id0});
+    dbg > 1 && cc.tag(msg, {id1});
+    dbg > 1 && cc.tag(msg, {idNow});
+    should(id1).above(id0);
+    should(id1).below(idNow);
+    should(uuidVersion(id0)).equal(7);
+    should(uuidVersion(id1)).equal(7);
+    should(uuidVersion(idNow)).equal(7);
+    should(uuidValid(id0)).equal(true);
+    should(uuidValid(id1)).equal(true);
+    should(uuidValid(idNow)).equal(true);
+    dbg && cc.tag(msg + UOK, 'valid v7 ids');
   });
 });
