@@ -58,7 +58,7 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   }
 
-  patch(value={}) {
+  patch(value = {}) {
     const msg = 't2k.patch';
     const dbg = T2K.PATCH;
     let {
@@ -73,8 +73,7 @@ export class Task extends Forma {
 
   toString() {
     const dbg = T2K.TO_STRING;
-    let { id, title, progress, duration, started } =
-      this;
+    let { id, title, progress, duration, started } = this;
     let time = '';
     let now = Date.now();
     let symbol = '.';

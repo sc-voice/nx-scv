@@ -109,7 +109,7 @@ export const DBG = {
   T2T: {
     FORMA: 0,
     FRACTION: 0,
-    HADAMARD: 0,
+    HADAMARD: 2,
     KAFKA: 0,
     SCHEMA: 0,
     TASK: 0,
