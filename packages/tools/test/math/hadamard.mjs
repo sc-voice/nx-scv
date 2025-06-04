@@ -18,11 +18,11 @@ describe('hadamard', () => {
     dbg > 1 && cc.tag(msg, h6d);
 
     let output = h6d.decode();
-    let errorSquared = output.reduce((a,v,i)=>{
+    let errorSquared = output.reduce((a, v, i) => {
       let error = v - signal[i];
       return a + error * error;
     }, 0);
-    let rmsd = Math.sqrt(errorSquared/signal.length);
+    let rmsd = Math.sqrt(errorSquared / signal.length);
     should(rmsd).below(1e-14);
     dbg > 1 && cc.tag(msg, rmsd, ...h6d.signal);
 
@@ -30,7 +30,7 @@ describe('hadamard', () => {
   });
   it('encode/decode n=8', () => {
     const msg = 'th6d.encode.decode.8';
-    const signal = '10100110'.split('').map(n=>Number(n));
+    const signal = '10100110'.split('').map((n) => Number(n));
     dbg > 1 && cc.tag(msg, '====================');
 
     let h6d = Hadamard.encode(signal);
@@ -38,11 +38,11 @@ describe('hadamard', () => {
 
     let output = h6d.decode();
     dbg > 1 && cc.tag(msg, ...output);
-    let errorSquared = output.reduce((a,v,i)=>{
+    let errorSquared = output.reduce((a, v, i) => {
       let error = v - signal[i];
       return a + error * error;
     }, 0);
-    let rmsd = Math.sqrt(errorSquared/signal.length);
+    let rmsd = Math.sqrt(errorSquared / signal.length);
     dbg > 1 && cc.tag(msg, 'rmsd:', rmsd);
     should(rmsd).below(1e-14);
 
@@ -52,7 +52,10 @@ describe('hadamard', () => {
     const msg = 'th6d.heavyside.8';
     let N = 8;
     const A = 1; // amplitude
-    const input = '1'.padEnd(N,'0').split('').map(n=>Number(n) * A);
+    const input = '1'
+      .padEnd(N, '0')
+      .split('')
+      .map((n) => Number(n) * A);
     dbg > 1 && cc.tag(msg, '====================');
 
     let output;
@@ -60,19 +63,28 @@ describe('hadamard', () => {
       let h6d = Hadamard.encode(input);
       dbg > 1 && cc.tag(msg, `hadamard[${input.length}]:`, ...h6d.signal);
 
-      for (let i = N-1; i < N; i++) {
+      for (let i = N - 1; i < N; i++) {
         h6d.signal[i] = 0; // low-pass filter
       }
 
       output = h6d.decode();
       dbg > 2 && cc.tag(msg, ...output);
-      let errorSquared = output.reduce((a,v,i)=>{
+      let errorSquared = output.reduce((a, v, i) => {
         let error = v - input[i];
         return a + error * error;
       }, 0);
-      let rmsd = Math.sqrt(errorSquared/input.length);
+      let rmsd = Math.sqrt(errorSquared / input.length);
       dbg > 1 && cc.tag(msg, `input :`, ...input);
-      dbg > 1 && cc.tag(msg, 'output:', ...output, 'phase:', phase, 'rmsd:', rmsd.toString());
+      dbg > 1 &&
+        cc.tag(
+          msg,
+          'output:',
+          ...output,
+          'phase:',
+          phase,
+          'rmsd:',
+          rmsd.toString(),
+        );
       //should(rmsd).below(1e-14);
 
       input.unshift(A);

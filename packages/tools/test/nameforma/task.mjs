@@ -30,8 +30,8 @@ describe('task', () => {
     dbg && cc.tag1(msg, 'START');
 
     let t2k = new Task();
-    let { id } = t2k;
-    should(t2k).properties({ title: 'title?' });
+    let { id, name } = t2k;
+    should(t2k).properties({ id, name: id, title: 'title?' });
     should.deepEqual(t2k.progress, new Fraction(0, 1, 'done'));
     should.deepEqual(t2k.duration, new Fraction(null, 1, 's'));
     should(t2k.toString()).match(/T2K[0-9]+\. title\? \(0\/1done\)/);
@@ -61,45 +61,52 @@ describe('task', () => {
   it('put', () => {
     const msg = 't2k.put';
     dbg > 1 && cc.tag(msg, '===================');
-    let id = 't2k.put.id';
+    let name = 't2k.put.name';
     let title = 't2k.put.title';
     let progress = new Fraction(0, 1, 'done');
     let duration = new Fraction(5, 60, 'hr');
     let units = new Units();
-    let t2k = new Task({ id, title, progress, duration });
-    should(t2k.toString()).equal(`${id}. ${title} (0/1done 5/60hr)`);
+    let t2k = new Task({ name, title, progress, duration });
+    should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
 
     t2k.put({
       duration: units.convert(duration).to('min'),
     });
-    should(t2k.toString()).equal(`${id}. title? (0/1done 5min)`);
+    should(t2k.toString()).equal(`${name}. title? (0/1done 5min)`);
     dbg && cc.tag1(msg + UOK, 'put with defaults');
   });
   it('patch', () => {
     const msg = 't2k.patch';
     dbg > 1 && cc.tag(msg, '===================');
-    let id = 't2k.patch.id';
+    let name = 't2k.patch.name';
     let title = 't2k.patch.title';
     let progress = new Fraction(0, 1, 'done');
     let duration = new Fraction(5, 60, 'hr');
     let units = new Units();
-    let t2k = new Task({ id, title, progress, duration });
-    should(t2k.toString()).equal(`${id}. ${title} (0/1done 5/60hr)`);
+    let t2k = new Task({ name, title, progress, duration });
+    should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
 
     t2k.patch();
-    should(t2k.toString()).equal(`${id}. ${title} (0/1done 5/60hr)`);
+    should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
     dbg > 1 && cc.tag(msg, 'empty patch');
 
-    t2k.patch({ title: 'new title' });
-    should(t2k.toString()).equal(`${id}. new title (0/1done 5/60hr)`);
+    let newName = 'new-name';
+    let { id } = t2k;
+    t2k.patch({ id: 'ignored', name: newName, title: 'new title' });
+    should(t2k.id).equal(id); // immutable
+    should(t2k.toString()).equal(`${newName}. new title (0/1done 5/60hr)`);
     dbg > 1 && cc.tag(msg, 'patched title');
 
     t2k.patch({ progress: new Fraction(1, 1, 'done') });
-    should(t2k.toString()).equal(`${id}${UOK} new title (1done 5/60hr)`);
+    should(t2k.toString()).equal(
+      `${newName}${UOK} new title (1done 5/60hr)`,
+    );
     dbg > 1 && cc.tag(msg, 'patched progress numerator');
 
     t2k.patch({ duration: units.convert(duration).to('min') });
-    should(t2k.toString()).equal(`${id}${UOK} new title (1done 5min)`);
+    should(t2k.toString()).equal(
+      `${newName}${UOK} new title (1done 5min)`,
+    );
     dbg && cc.tag1(msg + UOK, 'patched duration unit conversion');
   });
 });

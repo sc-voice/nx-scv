@@ -8,9 +8,9 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-class Thing extends Forma {
+class TestThing extends Forma {
   constructor(cfg = {}) {
-    const msg = 't3g.ctor';
+    const msg = 't7g.ctor';
     super();
     cc.fyi1(msg, ...cc.props(this));
   }
@@ -23,8 +23,25 @@ describe('forma', () => {
     let f3a = new Forma();
     should(f3a.id).match(/^F3A[0-9]+$/);
 
-    let t3g = new Thing();
-    should(t3g.id).match(/^T3G[0-9]+$/);
+    let t7g = new TestThing();
+    should(t7g.id).match(/^T7G[0-9]+$/);
+  });
+  it('patch', () => {
+    const msg = 'tf3a.patch';
+    dbg > 1 && cc.tag(msg, '===============');
+    let f3a = new Forma();
+    let { id } = f3a;
+    should(f3a.id).equal(id);
+    should(f3a.name).equal(id);
+
+    f3a.patch({ id: 'newId' });
+    should(f3a.id).equal(id);
+    dbg > 1 && cc.tag(msg, 'id is immutable');
+
+    f3a.patch({ name: 'newName' });
+    should(f3a.id).equal(id);
+    should(f3a.name).equal('newName');
+    dbg && cc.tag1(msg + UOK, 'name is mutable');
   });
   it('avro', () => {
     const msg = 'tf3a.avro';

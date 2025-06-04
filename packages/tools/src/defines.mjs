@@ -52,10 +52,12 @@ export const DBG = {
       UPDATE: 0,
     },
     S6E: {
+      CTOR: 0,
       PATCH: 0,
-      UPDATE: 0,
-      REMOVE: 0,
+      UPDATE: 1,
+      REMOVE: 1,
       PROGRESS: 0,
+      RENAME_STEPS: 0,
     },
     C3K: {
       // Clock
@@ -109,7 +111,7 @@ export const DBG = {
   T2T: {
     FORMA: 0,
     FRACTION: 0,
-    HADAMARD: 2,
+    HADAMARD: 0,
     KAFKA: 0,
     SCHEMA: 0,
     TASK: 0,

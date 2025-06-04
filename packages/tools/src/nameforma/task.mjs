@@ -14,7 +14,7 @@ export class Task extends Forma {
   constructor(cfg = {}) {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
-    super({ id: cfg.id });
+    super({ id: cfg.id }); // for deserialized tasks
     this.put(cfg);
 
     dbg && cc.ok1(msg, ...cc.props(this));
@@ -42,6 +42,7 @@ export class Task extends Forma {
   put(value) {
     const msg = 't2k.put';
     const dbg = T2K.PUT;
+    super.patch(value);
     let {
       title = 'title?',
       progress = new Fraction(0, 1, 'done'),
@@ -61,6 +62,7 @@ export class Task extends Forma {
   patch(value = {}) {
     const msg = 't2k.patch';
     const dbg = T2K.PATCH;
+    super.patch(value);
     let {
       title = this.title,
       progress = this.progress,
@@ -73,7 +75,7 @@ export class Task extends Forma {
 
   toString() {
     const dbg = T2K.TO_STRING;
-    let { id, title, progress, duration, started } = this;
+    let { name, title, progress, duration, started } = this;
     let time = '';
     let now = Date.now();
     let symbol = '.';
@@ -89,6 +91,6 @@ export class Task extends Forma {
       time = ' ' + duration.toString();
     }
 
-    return `${id}${symbol} ${title} (${status}${time})`;
+    return `${name}${symbol} ${title} (${status}${time})`;
   } // t2k.toString
 } // class Task

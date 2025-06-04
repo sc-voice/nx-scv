@@ -24,7 +24,10 @@ export class Forma {
     instances++;
     Forma.#instances[prefix] = instances;
 
-    let { id = `${prefix}${('' + instances).padStart(3, '0')}` } = cfg;
+    let { 
+      id = `${prefix}${('' + instances).padStart(3, '0')}`,
+      name = id,
+    } = cfg;
 
     Object.defineProperty(this, 'prefix', {
       value: prefix,
@@ -33,8 +36,9 @@ export class Forma {
       enumerable: true,
       value: id,
     });
+    this.name = name;
 
-    dbg && cc.ok1(msg + UOK, id);
+    dbg && cc.ok1(msg + UOK, {id, name});
   }
 
   static get REGISTRY() {
@@ -77,7 +81,10 @@ export class Forma {
       name: 'Forma',
       namespace: 'scvoice.nameforma',
       type: 'record',
-      fields: [{ name: 'id', type: 'string' }],
+      fields: [
+        { name: 'id', type: 'string' },  // immutable, unique
+        { name: 'name', type: 'string' } // mutable 
+      ],
     };
   }
 
@@ -88,5 +95,10 @@ export class Forma {
 
   toString() {
     return this.id;
+  }
+
+  patch(cfg={}) {
+    let { name = this.name } = cfg;
+    this.name = name;
   }
 } // Forma
