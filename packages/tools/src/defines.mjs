@@ -54,8 +54,8 @@ export const DBG = {
     S6E: {
       CTOR: 0,
       PATCH: 0,
-      UPDATE: 1,
-      REMOVE: 1,
+      UPSERT: 0,
+      REMOVE: 0,
       PROGRESS: 0,
       RENAME_STEPS: 0,
     },
