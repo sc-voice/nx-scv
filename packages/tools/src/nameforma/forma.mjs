@@ -1,3 +1,8 @@
+import { 
+  v7 as uuidV7, 
+  validate as uuidValidate, 
+  version as  uuidVersion 
+} from 'uuid';
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
@@ -39,6 +44,23 @@ export class Forma {
     this.name = name;
 
     dbg && cc.ok1(msg + UOK, {id, name});
+  }
+
+  static uuid(opts) {
+    return uuidV7(opts);
+  }
+
+  static uuidToTime(id) {
+    const msg = 'f3a.uuidToDate';
+    if (!uuidValidate(id)) {
+      throw new Error(`${msg} invalid uuid:${id}`);
+    }
+    if (uuidVersion(id) !== 7) {
+      throw new Error(`${msg} expected v7 uuid:${id}`);
+    }
+
+    let time = parseInt(id.replace(/-/,'').substring(0,12), 16);
+    return time;
   }
 
   static get REGISTRY() {

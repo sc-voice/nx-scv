@@ -87,25 +87,27 @@ describe('forma', () => {
   });
   it('TESTTESTuuidv7', ()=>{
     const msg = 'tf3a.uuidv7';
-    let id0 = uuidv7({msecs:0});
-    let id1 = uuidv7({msecs:1});
-    let idNow = uuidv7();
-    let idBad = idNow.replace(/..../, '0s6d');
+    dbg > 1 && cc.tag(msg, '==============');
+    let uuid0 = Forma.uuid({msecs:0});
+    let uuid1 = Forma.uuid({msecs:1});
+    let now = Date.now();
+    let idNow = Forma.uuid({msecs:now});
 
-    should(uuidValid(idBad)).equal(false); // not hexadecimal
-    dbg > 1 && cc.tag(msg, 'check for invalid v7 id', {idBad});
+    should(Forma.uuidToTime(idNow)).equal(now);
+    dbg > 1 && cc.tag(msg, {idNow}, 'uuidToTime:', new Date(now).toLocaleTimeString());
 
-    dbg > 1 && cc.tag(msg, {id0});
-    dbg > 1 && cc.tag(msg, {id1});
-    dbg > 1 && cc.tag(msg, {idNow});
-    should(id1).above(id0);
-    should(id1).below(idNow);
-    should(uuidVersion(id0)).equal(7);
-    should(uuidVersion(id1)).equal(7);
+    dbg > 1 && cc.tag(msg, {uuid0});
+    dbg > 1 && cc.tag(msg, {uuid1});
+    should(uuid1).above(uuid0);
+    should(uuid1).below(idNow);
+    dbg > 1 && cc.tag(msg, 'uuids can be sorted by milliseconds');
+
+    should(uuidVersion(uuid0)).equal(7);
+    should(uuidVersion(uuid1)).equal(7);
     should(uuidVersion(idNow)).equal(7);
-    should(uuidValid(id0)).equal(true);
-    should(uuidValid(id1)).equal(true);
+    should(uuidValid(uuid0)).equal(true);
+    should(uuidValid(uuid1)).equal(true);
     should(uuidValid(idNow)).equal(true);
-    dbg && cc.tag(msg + UOK, 'valid v7 ids');
+    dbg && cc.tag1(msg + UOK, 'valid v7 uuids');
   });
 });
