@@ -60,11 +60,12 @@ import {
   // non-kafkajs API:
   _Runner,
 } from './src/nameforma/kafka1.mjs';
-import { Timer, Timers } from './src/nameforma/timers.mjs';
 import { Clock } from './src/nameforma/clock.mjs';
 import { Task } from './src/nameforma/task.mjs';
 import { Forma } from './src/nameforma/forma.mjs';
 import { Schema } from './src/nameforma/schema.mjs';
+import { Timer, Timers } from './src/nameforma/timers.mjs';
+import { ValueNode } from './src/nameforma/value-node.mjs';
 export const NameForma = {
   Admin,
   Clock,
@@ -76,5 +77,6 @@ export const NameForma = {
   Task,
   Timer,
   Timers,
+  ValueNode,
   _Runner, 
 }

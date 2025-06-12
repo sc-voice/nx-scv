@@ -1,7 +1,7 @@
-import { 
-  v7 as uuidV7, 
-  validate as uuidValidate, 
-  version as  uuidVersion 
+import {
+  v7 as uuidV7,
+  validate as uuidValidate,
+  version as uuidVersion,
 } from 'uuid';
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
@@ -29,7 +29,7 @@ export class Forma {
     instances++;
     Forma.#instances[prefix] = instances;
 
-    let { 
+    let {
       id = `${prefix}${('' + instances).padStart(3, '0')}`,
       name = id,
     } = cfg;
@@ -43,7 +43,7 @@ export class Forma {
     });
     this.name = name;
 
-    dbg && cc.ok1(msg + UOK, {id, name});
+    dbg && cc.ok1(msg + UOK, { id, name });
   }
 
   static uuid(opts) {
@@ -59,7 +59,7 @@ export class Forma {
       throw new Error(`${msg} expected v7 uuid:${id}`);
     }
 
-    let time = parseInt(id.replace(/-/,'').substring(0,12), 16);
+    let time = Number.parseInt(id.replace(/-/, '').substring(0, 12), 16);
     return time;
   }
 
@@ -104,8 +104,8 @@ export class Forma {
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        { name: 'id', type: 'string' },  // immutable, unique
-        { name: 'name', type: 'string' } // mutable 
+        { name: 'id', type: 'string' }, // immutable, unique
+        { name: 'name', type: 'string' }, // mutable
       ],
     };
   }
@@ -119,7 +119,7 @@ export class Forma {
     return this.id;
   }
 
-  patch(cfg={}) {
+  patch(cfg = {}) {
     let { name = this.name } = cfg;
     this.name = name;
   }

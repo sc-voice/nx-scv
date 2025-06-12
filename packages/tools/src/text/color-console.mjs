@@ -240,11 +240,26 @@ export class ColorConsole {
         }
         if (
           thing.constructor !== Object &&
+          Object.hasOwn(thing, 'toString') &&
           typeof thing.toString === 'function'
         ) {
           return thing.toString();
         }
-        return thing;
+        if (thing instanceof Array) {
+          return (
+            '[' + thing.map((item) => this.valueOf(item)).join(', ') + ']'
+          );
+        }
+
+        // Generic Object
+        let sEntries = Object.entries(thing)
+          .map((kv) => kv[0] + ':' + this.valueOf(kv[1]))
+          .join(', ');
+        let cname = thing.constructor?.name;
+        if (cname === 'Object') {
+          cname = '';
+        }
+        return cname + '{' + sEntries + '}';
       }
       case 'string':
         return thing;
@@ -254,6 +269,9 @@ export class ColorConsole {
           v = v.replace(/\.?0+$/, '');
         }
         return v;
+      }
+      case 'function': {
+        return thing.name;
       }
       default:
         return JSON.stringify(thing);

@@ -1,17 +1,18 @@
 import should from 'should';
-import { 
-  version as uuidVersion,
+import {
   validate as uuidValid,
+  version as uuidVersion,
   v7 as uuidv7,
 } from 'uuid';
 import { NameForma } from '../../index.mjs';
-const { Forma } = NameForma;
+const { Schema, Forma } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
+const dbg = DBG.T2T.FORMA;
 
 class TestThing extends Forma {
   constructor(cfg = {}) {
@@ -20,8 +21,6 @@ class TestThing extends Forma {
     cc.fyi1(msg, ...cc.props(this));
   }
 }
-
-const dbg = DBG.T2T.FORMA;
 
 describe('forma', () => {
   it('ctor', () => {
@@ -85,19 +84,25 @@ describe('forma', () => {
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
   });
-  it('TESTTESTuuidv7', ()=>{
+  it('uuidv7', () => {
     const msg = 'tf3a.uuidv7';
     dbg > 1 && cc.tag(msg, '==============');
-    let uuid0 = Forma.uuid({msecs:0});
-    let uuid1 = Forma.uuid({msecs:1});
+    let uuid0 = Forma.uuid({ msecs: 0 });
+    let uuid1 = Forma.uuid({ msecs: 1 });
     let now = Date.now();
-    let idNow = Forma.uuid({msecs:now});
+    let idNow = Forma.uuid({ msecs: now });
 
     should(Forma.uuidToTime(idNow)).equal(now);
-    dbg > 1 && cc.tag(msg, {idNow}, 'uuidToTime:', new Date(now).toLocaleTimeString());
+    dbg > 1 &&
+      cc.tag(
+        msg,
+        { idNow },
+        'uuidToTime:',
+        new Date(now).toLocaleTimeString(),
+      );
 
-    dbg > 1 && cc.tag(msg, {uuid0});
-    dbg > 1 && cc.tag(msg, {uuid1});
+    dbg > 1 && cc.tag(msg, { uuid0 });
+    dbg > 1 && cc.tag(msg, { uuid1 });
     should(uuid1).above(uuid0);
     should(uuid1).below(idNow);
     dbg > 1 && cc.tag(msg, 'uuids can be sorted by milliseconds');

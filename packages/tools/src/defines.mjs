@@ -109,11 +109,13 @@ export const DBG = {
     },
   },
   T2T: {
-    FORMA: 2,
+    CAR_CDR: 0,
+    FORMA: 0,
     FRACTION: 0,
     HADAMARD: 0,
     KAFKA: 0,
     SCHEMA: 0,
     TASK: 0,
+    VALUE_NODE: 0,
   },
 };
