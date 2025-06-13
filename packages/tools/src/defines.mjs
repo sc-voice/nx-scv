@@ -1,9 +1,17 @@
+const COLOR_CONSOLE = {
+  AS_STRING: 0,
+  INSPECT: 0,
+  SRC: 0,
+  TEST: 0,
+  PROPS_NEXT: 0,
+}
+
 export const DBG = {
+  COLOR_CONSOLE,
+
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,
-  C10E_INSPECT: 0,
   C6R_CTOR: 0,
-  COLOR_CONSOLE: 0,
   DEEPL_ADAPTER: 0,
   DEEPL_MOCK: 0, // use mock-deepl
   DEEPL_MOCK_XLT: 0, // use mock translation
@@ -28,11 +36,6 @@ export const DBG = {
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
   ML_DOC_VECTORS: 0, // 'mn8:3.4'
   MN8_MOHAN: 0,
-  C10E: {
-    P3S: {
-      NEXT: 0,
-    },
-  },
   M2H: {
     F6N: {
       REDUCE: 0,
@@ -109,7 +112,6 @@ export const DBG = {
     },
   },
   T2T: {
-    CAR_CDR: 0,
     FORMA: 0,
     FRACTION: 0,
     HADAMARD: 0,

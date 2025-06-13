@@ -1,7 +1,7 @@
 import util from 'node:util';
 import { DBG } from '../defines.mjs';
 import { Unicode } from './unicode.mjs';
-const { C10E } = DBG;
+const { COLOR_CONSOLE:C10E } = DBG;
 
 const { RED_X: URX, CHECKMARK: UOK } = Unicode;
 
@@ -48,7 +48,7 @@ class Props {
 
   next() {
     const msg = 'p3s.next';
-    const dbg = C10E.P3S.NEXT;
+    const dbg = C10E.PROPS_NEXT;
     let { entries, i, emitKey, done } = this;
     let value;
     let entry = entries[i];
@@ -93,7 +93,7 @@ class Props {
 
     return { done, value };
   }
-}
+} // Props
 
 export class ColorConsole {
   constructor(opts = {}) {
@@ -220,46 +220,53 @@ export class ColorConsole {
       tf = thing;
     }
 
-    let v = this.valueOf(thing);
+    let v = this.asString(thing);
     let color = tf ? this.okColor2 : this.badColor2;
     return color + v;
   }
 
-  valueOf(thing) {
-    const msg = 'c10e.valueOf';
-    let { precision } = this;
+  asString(thing) {
+    const msg = 'c10e.asString';
+    const dbg = C10E.AS_STRING;
+    let { okColor1, okColor2, precision } = this;
+    dbg > 2 && console.log(okColor2, msg, 'thing:', thing);
     switch (typeof thing) {
       case 'undefined':
         return 'undefined';
       case 'object': {
         if (thing == null) {
+          dbg > 1 && console.log(okColor2, msg, 'null');
           return '' + thing;
         }
         if (thing instanceof Date) {
           return this.dateFormat.format(thing);
         }
-        if (
-          thing.constructor !== Object &&
-          Object.hasOwn(thing, 'toString') &&
-          typeof thing.toString === 'function'
-        ) {
+        let ownToString = typeof thing.toString === 'function' && 
+          thing.toString !== Object.prototype.toString;
+        dbg > 1 && this.ok(okColor2, msg, 'ownToString:', ownToString);
+        if (ownToString) {
+          let s = thing.toString();
+          dbg > 1 && this.ok(okColor2, msg, 'ownToString1:', s);
           return thing.toString();
         }
         if (thing instanceof Array) {
-          return (
-            '[' + thing.map((item) => this.valueOf(item)).join(', ') + ']'
-          );
+          let s = '[' + 
+            thing.map((item) => this.asString(item)).join(', ') + ']';
+          dbg > 1 && this.ok(okColor2, msg, 'array:', s);
+          return s;
         }
 
         // Generic Object
         let sEntries = Object.entries(thing)
-          .map((kv) => kv[0] + ':' + this.valueOf(kv[1]))
+          .map((kv) => kv[0] + ':' + this.asString(kv[1]))
           .join(', ');
         let cname = thing.constructor?.name;
         if (cname === 'Object') {
           cname = '';
         }
-        return cname + '{' + sEntries + '}';
+        let s = cname + '{' + sEntries + '}';
+        dbg > 1 && console.log(okColor2, msg, {ownToString}, 'object:', s);
+        return s;
       }
       case 'string':
         return thing;
@@ -276,7 +283,7 @@ export class ColorConsole {
       default:
         return JSON.stringify(thing);
     }
-  } // valueOf
+  } // asString
 
   color(textColor, ...things) {
     let { valueColor } = this;
@@ -286,7 +293,7 @@ export class ColorConsole {
     let eol;
     return things.reduce((a, thing) => {
       let newLabel = '';
-      let v = this.valueOf(thing);
+      let v = this.asString(thing);
       let aLast = a.at(-1);
       if (typeof aLast === 'string' && aLast.endsWith('\n' + endColor)) {
         if (aLast === textColor + '\n' + endColor) {

@@ -2,11 +2,12 @@ import util from 'node:util';
 import should from 'should';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
+const { COLOR_CONSOLE:C10E } = DBG;
 const { Unicode, ColorConsole, Corpus } = Text;
 const { Fraction, Interval } = ScvMath;
 const { cc } = ColorConsole;
 
-const dbg = DBG.COLOR_CONSOLE;
+const dbg = C10E.TEST;
 
 const {
   BLACK,
@@ -27,6 +28,8 @@ const {
   BRIGHT_YELLOW,
   NO_COLOR,
 } = Unicode.LINUX_COLOR;
+let { CHECKMARK:UOK } = Unicode;
+
 const {
   UNDERLINE,
   NO_UNDERLINE,
@@ -37,6 +40,7 @@ const {
 } = Unicode.LINUX_STYLE;
 
 const VALUE_COLOR = CYAN;
+const STARTTEST = '===================';
 
 describe('text/color-console', () => {
   it('default ctor', () => {
@@ -154,16 +158,16 @@ describe('text/color-console', () => {
     dbg && cc.fyi2(msg, 'test-fyi2', value, date);
     dbg && cc.fyi(msg, 'test-fyi', value, date);
   });
-  it('color()', () => {
-    const msg = 'tc10e.color';
+  it('color() text', () => {
+    const msg = 'tc10e.color.text';
     let cc = new ColorConsole();
     let label = 'label:';
+    let nolabel = 'nolabel';
+    let color = cc.okColor1;
     let endColor = NO_COLOR;
 
     let text = 'test-text (unlabelled)';
     let value = 'test-value';
-    let nolabel = 'nolabel';
-    let color = cc.okColor1;
     let cText = cc.color(color, text, nolabel, value, label, value);
     dbg && cc.write(msg, ...cText);
     should.deepEqual(cText, [
@@ -172,6 +176,14 @@ describe('text/color-console', () => {
       color + value + endColor,
       color + label + VALUE_COLOR + value + endColor,
     ]);
+  });
+  it('color() number', () => {
+    const msg = 'tc10e.color.number';
+    let cc = new ColorConsole();
+    let label = 'label:';
+    let nolabel = 'nolabel';
+    let endColor = NO_COLOR;
+    let color = cc.okColor1;
 
     let number = 1.23456789;
     let cNumber = cc.color(color, nolabel, number, label, number);
@@ -182,6 +194,14 @@ describe('text/color-console', () => {
       VALUE_COLOR + sNumber + endColor,
       color + label + VALUE_COLOR + sNumber + endColor,
     ]);
+  });
+  it('color() null', () => {
+    const msg = 'tc10e.color.null';
+    let cc = new ColorConsole();
+    let label = 'label:';
+    let nolabel = 'nolabel';
+    let endColor = NO_COLOR;
+    let color = cc.okColor1;
 
     let cNull = cc.color(color, nolabel, null, label, null);
     dbg && cc.write(msg, ...cNull);
@@ -198,31 +218,14 @@ describe('text/color-console', () => {
       VALUE_COLOR + 'undefined' + endColor,
       color + label + VALUE_COLOR + 'undefined' + endColor,
     ]);
-
-    let object = { a: 1, b: 'text' };
-    let cObject = cc.color(color, nolabel, object, label, object);
-    dbg && cc.write(msg, ...cObject);
-    should.deepEqual(cObject, [
-      color + nolabel + endColor,
-      object,
-      color + label + endColor,
-      object,
-    ]);
-
-    class Obj2Str {
-      toString() {
-        return 'test-Obj2String';
-      }
-    }
-    let obj2Str = new Obj2Str();
-    let sObj2Str = obj2Str.toString();
-    let cObj2Str = cc.color(color, nolabel, obj2Str, label, obj2Str);
-    dbg && cc.write(msg, ...cObj2Str);
-    should.deepEqual(cObj2Str, [
-      color + nolabel + endColor,
-      VALUE_COLOR + sObj2Str + endColor,
-      color + label + VALUE_COLOR + sObj2Str + endColor,
-    ]);
+  });
+  it('color() boolean', () => {
+    const msg = 'tc10e.color.boolean';
+    let cc = new ColorConsole();
+    let label = 'label:';
+    let nolabel = 'nolabel';
+    let endColor = NO_COLOR;
+    let color = cc.okColor1;
 
     let cFalse = cc.color(color, nolabel, false, label, false);
     dbg && cc.write(msg, ...cFalse);
@@ -232,32 +235,78 @@ describe('text/color-console', () => {
       color + label + VALUE_COLOR + 'false' + endColor,
     ]);
   });
-  it('valueOf()', () => {
-    const msg = 'tc10e.valueOf';
+  it('TESTTESTcolor() object', () => {
+    const msg = 'tc10e.color.object';
     let cc = new ColorConsole();
-    should(cc.valueOf(1.0)).equal('1');
-    should(cc.valueOf(1.2)).equal('1.2');
-    should(cc.valueOf(1.02)).equal('1.02');
-    should(cc.valueOf(1.002)).equal('1.002');
-    should(cc.valueOf(1.0002)).equal('1.000');
-    should(cc.valueOf(-1.0)).equal('-1');
-    should(cc.valueOf(-1.2)).equal('-1.2');
-    should(cc.valueOf(-1.02)).equal('-1.02');
-    should(cc.valueOf(-1.002)).equal('-1.002');
-    should(cc.valueOf(-1.0002)).equal('-1.000');
-    should(cc.valueOf(undefined)).equal('undefined');
-    should(cc.valueOf(null)).equal('null');
-    should(cc.valueOf(false)).equal('false');
-    should(cc.valueOf(true)).equal('true');
+    dbg > 1 && cc.tag(msg, STARTTEST);
+    let label = 'label:';
+    let nolabel = 'nolabel';
+    let endColor = NO_COLOR;
+    let color = cc.okColor1;
+
+    let object = { a: 1, b: 'text' };
+    let cObject = cc.color(color, nolabel, object, label, object);
+    dbg > 2 && cc.write(msg, ...cObject);
+    let sObject = cc.asString(object);
+    should.deepEqual(cObject, [
+      color + nolabel + endColor,
+      sObject,
+      color + label + endColor,
+      sObject,
+    ]);
+    dbg > 1 && cc.tag(msg, 'cObject', cObject);
+
+    class Obj2Str {
+      toString() {
+        return 'test-Obj2String';
+      }
+    }
+    let obj2Str = new Obj2Str();
+    let sObj2Str = obj2Str.toString();
+    dbg > 1 && cc.tag(msg, 'sObj2Str:', sObj2Str);
+    let cObj2Str = cc.color(color, nolabel, obj2Str, label, obj2Str);
+    dbg > 1 && cc.tag(msg, 'cObj2Str:', cObj2Str);
+    should.deepEqual(cObj2Str, [
+      color + nolabel + endColor,
+      VALUE_COLOR + sObj2Str + endColor,
+      color + label + VALUE_COLOR + sObj2Str + endColor,
+    ]);
+    dbg && cc.tag1(msg+UOK, 'cObj2Str:', cObj2Str);
+  });
+  it('TESTTESTasString() object', () => {
+    const msg = 'tc10e.asString.object';
+    let cc = new ColorConsole();
+    dbg > 1 && cc.tag(msg, STARTTEST);
     let obj = { a: 1 };
-    should(cc.valueOf(obj)).equal(obj);
+    let s = cc.asString(obj);
+    should(s).equal('{a:1}');
+
+    dbg && cc.tag1(msg+UOK, s);
+  });
+  it('TESTTESTasString()', () => {
+    const msg = 'tc10e.asString';
+    let cc = new ColorConsole();
+    should(cc.asString(1.0)).equal('1');
+    should(cc.asString(1.2)).equal('1.2');
+    should(cc.asString(1.02)).equal('1.02');
+    should(cc.asString(1.002)).equal('1.002');
+    should(cc.asString(1.0002)).equal('1.000');
+    should(cc.asString(-1.0)).equal('-1');
+    should(cc.asString(-1.2)).equal('-1.2');
+    should(cc.asString(-1.02)).equal('-1.02');
+    should(cc.asString(-1.002)).equal('-1.002');
+    should(cc.asString(-1.0002)).equal('-1.000');
+    should(cc.asString(undefined)).equal('undefined');
+    should(cc.asString(null)).equal('null');
+    should(cc.asString(false)).equal('false');
+    should(cc.asString(true)).equal('true');
     let date = new Date(2025, 2, 1);
     dbg && cc.fyi(msg, date);
-    should(cc.valueOf(date)).equal(cc.dateFormat.format(date));
+    should(cc.asString(date)).equal(cc.dateFormat.format(date));
   });
   it('inspect', () => {
     const msg = 'tl2t.inspect';
-    const dbg = DBG.C10E_INSPECT;
+    const dbg = C10E.INSPECT;
     let colors = true;
     let { styleText, inspect } = util;
     let { styles, defaultOptions } = inspect;
@@ -302,7 +351,6 @@ describe('text/color-console', () => {
   });
   it('isOk()', () => {
     const msg = 'tc10e.isOk';
-    const dbg = DBG.COLOR_CONSOLE;
     let { styleText, inspect } = util;
 
     let { okColor2: ok, badColor2: bad } = cc;
