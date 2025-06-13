@@ -235,7 +235,7 @@ describe('text/color-console', () => {
       color + label + VALUE_COLOR + 'false' + endColor,
     ]);
   });
-  it('TESTTESTcolor() object', () => {
+  it('color() object', () => {
     const msg = 'tc10e.color.object';
     let cc = new ColorConsole();
     dbg > 1 && cc.tag(msg, STARTTEST);
@@ -273,7 +273,7 @@ describe('text/color-console', () => {
     ]);
     dbg && cc.tag1(msg+UOK, 'cObj2Str:', cObj2Str);
   });
-  it('TESTTESTasString() object', () => {
+  it('asString() object', () => {
     const msg = 'tc10e.asString.object';
     let cc = new ColorConsole();
     dbg > 1 && cc.tag(msg, STARTTEST);
@@ -283,7 +283,7 @@ describe('text/color-console', () => {
 
     dbg && cc.tag1(msg+UOK, s);
   });
-  it('TESTTESTasString()', () => {
+  it('asString()', () => {
     const msg = 'tc10e.asString';
     let cc = new ColorConsole();
     should(cc.asString(1.0)).equal('1');
