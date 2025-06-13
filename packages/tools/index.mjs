@@ -66,11 +66,13 @@ import { Forma } from './src/nameforma/forma.mjs';
 import { Schema } from './src/nameforma/schema.mjs';
 import { Timer, Timers } from './src/nameforma/timers.mjs';
 import { ValueNode } from './src/nameforma/value-node.mjs';
+import { Identifiable } from './src/nameforma/identifiable.mjs';
 export const NameForma = {
   Admin,
   Clock,
   Consumer,
   Forma,
+  Identifiable,
   Kafka1,
   Producer,
   Schema,

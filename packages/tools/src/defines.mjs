@@ -4,10 +4,15 @@ const COLOR_CONSOLE = {
   SRC: 0,
   TEST: 0,
   PROPS_NEXT: 0,
+};
+
+const IDENTIFIABLE = {
+  TEST: 0,
 }
 
 export const DBG = {
   COLOR_CONSOLE,
+  IDENTIFIABLE,
 
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,

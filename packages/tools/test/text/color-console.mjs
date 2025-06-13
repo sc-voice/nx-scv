@@ -2,7 +2,7 @@ import util from 'node:util';
 import should from 'should';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
-const { COLOR_CONSOLE:C10E } = DBG;
+const { COLOR_CONSOLE: C10E } = DBG;
 const { Unicode, ColorConsole, Corpus } = Text;
 const { Fraction, Interval } = ScvMath;
 const { cc } = ColorConsole;
@@ -28,7 +28,7 @@ const {
   BRIGHT_YELLOW,
   NO_COLOR,
 } = Unicode.LINUX_COLOR;
-let { CHECKMARK:UOK } = Unicode;
+let { CHECKMARK: UOK } = Unicode;
 
 const {
   UNDERLINE,
@@ -271,7 +271,7 @@ describe('text/color-console', () => {
       VALUE_COLOR + sObj2Str + endColor,
       color + label + VALUE_COLOR + sObj2Str + endColor,
     ]);
-    dbg && cc.tag1(msg+UOK, 'cObj2Str:', cObj2Str);
+    dbg && cc.tag1(msg + UOK, 'cObj2Str:', cObj2Str);
   });
   it('asString() object', () => {
     const msg = 'tc10e.asString.object';
@@ -281,7 +281,7 @@ describe('text/color-console', () => {
     let s = cc.asString(obj);
     should(s).equal('{a:1}');
 
-    dbg && cc.tag1(msg+UOK, s);
+    dbg && cc.tag1(msg + UOK, s);
   });
   it('asString()', () => {
     const msg = 'tc10e.asString';

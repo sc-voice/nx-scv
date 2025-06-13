@@ -1,7 +1,7 @@
 import util from 'node:util';
 import { DBG } from '../defines.mjs';
 import { Unicode } from './unicode.mjs';
-const { COLOR_CONSOLE:C10E } = DBG;
+const { COLOR_CONSOLE: C10E } = DBG;
 
 const { RED_X: URX, CHECKMARK: UOK } = Unicode;
 
@@ -241,7 +241,8 @@ export class ColorConsole {
         if (thing instanceof Date) {
           return this.dateFormat.format(thing);
         }
-        let ownToString = typeof thing.toString === 'function' && 
+        let ownToString =
+          typeof thing.toString === 'function' &&
           thing.toString !== Object.prototype.toString;
         dbg > 1 && this.ok(okColor2, msg, 'ownToString:', ownToString);
         if (ownToString) {
@@ -250,8 +251,10 @@ export class ColorConsole {
           return thing.toString();
         }
         if (thing instanceof Array) {
-          let s = '[' + 
-            thing.map((item) => this.asString(item)).join(', ') + ']';
+          let s =
+            '[' +
+            thing.map((item) => this.asString(item)).join(', ') +
+            ']';
           dbg > 1 && this.ok(okColor2, msg, 'array:', s);
           return s;
         }
@@ -265,7 +268,8 @@ export class ColorConsole {
           cname = '';
         }
         let s = cname + '{' + sEntries + '}';
-        dbg > 1 && console.log(okColor2, msg, {ownToString}, 'object:', s);
+        dbg > 1 &&
+          console.log(okColor2, msg, { ownToString }, 'object:', s);
         return s;
       }
       case 'string':

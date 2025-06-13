@@ -13,10 +13,10 @@ export class ValueNode {
     Object.entries(cfg).forEach((entry) => {
       let [k, v] = entry;
       if (v instanceof Array) {
-        this[k] = v.map(item => {
+        this[k] = v.map((item) => {
           if (item instanceof ValueNode) {
             return item;
-          } 
+          }
           return ValueNode.create(item);
         });
       } else {
@@ -29,13 +29,13 @@ export class ValueNode {
     const msg = 'v3e.create';
     if (cfg == null) {
       return new ValueNode({ value_: null, values_: [] });
-    } 
+    }
     if (cfg instanceof ValueNode) {
       return new ValueNode({ value_: null, values_: [cfg] });
-    } 
+    }
     if (cfg instanceof Array) {
       return new ValueNode({ value_: { int: 0 }, values_: cfg });
-    } 
+    }
 
     switch (typeof cfg) {
       case 'number':
@@ -45,7 +45,9 @@ export class ValueNode {
       case 'object': {
         let { value_, values_ } = cfg;
         if (value_ === undefined || values_ === undefined) {
-          throw new Error(`${msg} cfg object ValueNode? ${JSON.stringify(cfg)}`);
+          throw new Error(
+            `${msg} cfg object ValueNode? ${JSON.stringify(cfg)}`,
+          );
         }
         return new ValueNode(cfg);
       }
@@ -62,17 +64,17 @@ export class ValueNode {
         {
           name: 'value_',
           type: [
-            'null', 
-            'string', 
-            'double', 
-            'int', 
-          //  {type: 'array', items: 'ValueNode'}
+            'null',
+            'string',
+            'double',
+            'int',
+            //  {type: 'array', items: 'ValueNode'}
           ],
           default: null,
         },
         {
           name: 'values_',
-          type: {type: 'array', items: 'ValueNode'},
+          type: { type: 'array', items: 'ValueNode' },
         },
       ],
     };
@@ -82,11 +84,12 @@ export class ValueNode {
     const msg = 'n2e.value';
     let { value_, values_ } = this;
     if (value_ instanceof Object) {
-      let [k,v] = Object.entries(value_)[0];
+      let [k, v] = Object.entries(value_)[0];
       switch (k) {
         case 'int':
-          if (v === 0) { // int 0 is a array value
-            return values_.map(item=>item.value);
+          if (v === 0) {
+            // int 0 is a array value
+            return values_.map((item) => item.value);
           }
           throw new Error(`${msg} invalid int:${v}`);
         default:
@@ -100,4 +103,3 @@ export class ValueNode {
     }
   }
 }
-
