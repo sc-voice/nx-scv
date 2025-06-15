@@ -12,12 +12,26 @@ const { CHECKMARK: UOK } = Unicode;
 
 export class Identifiable {
   constructor(cfg = {}) {
-    let { id = Identifiable.uuid() } = cfg;
+    let { 
+      id = Identifiable.uuid(),
+      value = null,
+    } = cfg;
 
     this.id = id;
+    this.value = value;
   }
   static get SCHEMA_FIELDS() {
-    return [{ name: 'id', type: 'string' }];
+    return [
+      { name: 'id', type: 'string' },
+      { name: 'value', type: [
+          'null', 
+          'string',
+          'double',
+          'boolean',
+        ],
+        default: null,
+      },
+    ];
   }
 
   static get SCHEMA() {

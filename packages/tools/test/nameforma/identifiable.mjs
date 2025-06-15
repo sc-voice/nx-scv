@@ -16,7 +16,7 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.IDENTIFIABLE.TEST;
 const STARTTEST = '=============';
 
-describe('Identifiable', () => {
+describe('TESTTESTIdentifiable', () => {
   it('uuidv7', () => {
     const msg = 'ti10e.uuidv7';
     dbg > 1 && cc.tag(msg, '==============');
@@ -54,7 +54,7 @@ describe('Identifiable', () => {
 
     let i10eA = new Identifiable();
     should(i10eA).instanceOf(Identifiable);
-    should.deepEqual(Object.keys(i10eA), ['id']);
+    should.deepEqual(Object.keys(i10eA), ['id', 'value']);
     should(uuidValidate(i10eA.id)).equal(true);
     dbg > 1 && cc.tag(msg, 'i10eA.id:', i10eA.id);
 
@@ -84,19 +84,32 @@ describe('Identifiable', () => {
     const msg = 'ti10e.avro.peek';
     dbg > 1 && cc.tag(msg, STARTTEST);
     let typeIdentifiable = avro.parse(Identifiable.SCHEMA);
-    let typeOther = avro.parse({
-      name: 'OtherIdentifiable',
-      type: 'record',
-      fields: [
-        ...Identifiable.SCHEMA_FIELDS,
-        { name: 'color', type: 'string' },
-      ],
-    });
 
-    let thing1 = { id:'test-id', color: 'red' }
+    // Anti-pattern?
+    // Should Identifiable be extended in this way?
+    class OtherIdentifiable extends Identifiable {
+      constructor(cfg={}) {
+        super(cfg);
+        this.color = cfg.color || 'no-color';
+      }
+
+      get SCHEMA() {
+        return {
+          name: 'OtherIdentifiable',
+          type: 'record',
+          fields: [
+            ...Identifiable.SCHEMA_FIELDS,
+            { name: 'color', type: 'string' },
+          ],
+        }
+      }
+    } // OtherIdentifiable
+
+    let typeOther = avro.parse(OtherIdentifiable.SCHEMA);
+    let thing1 = new Identifiable({ id:'test-id', color: 'red' })
     let serialized = typeOther.toBuffer(thing1);
     let deserialized = typeOther.fromBuffer(serialized);
-    let thing2 = Object.assign({}, deserialized);
+    let thing2 = new Identifiable(deserialized);
     dbg > 1 && cc.tag(msg, 'deserialized:', deserialized);
     should.deepEqual(thing2, thing1);
     dbg > 1 && cc.tag(msg, 'deserialized other', thing2);
