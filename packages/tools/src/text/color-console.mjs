@@ -243,6 +243,7 @@ export class ColorConsole {
         }
         let ownToString =
           typeof thing.toString === 'function' &&
+          thing.toString !== Array.prototype.toString &&
           thing.toString !== Object.prototype.toString;
         dbg > 1 && this.ok(okColor2, msg, 'ownToString:', ownToString);
         if (ownToString) {
@@ -266,6 +267,8 @@ export class ColorConsole {
         let cname = thing.constructor?.name;
         if (cname === 'Object') {
           cname = '';
+        } else if (cname === 'anonymous') {
+          cname = Unicode.INVERSE_BULLET;
         }
         let s = cname + '{' + sEntries + '}';
         dbg > 1 &&

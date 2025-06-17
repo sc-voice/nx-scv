@@ -5,7 +5,7 @@ import {
   version as uuidVersion,
 } from 'uuid';
 import { NameForma } from '../../index.mjs';
-const { Identifiable } = NameForma;
+const { Schema, Forma, Identifiable } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
@@ -16,7 +16,10 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.IDENTIFIABLE.TEST;
 const STARTTEST = '=============';
 
-describe('TESTTESTIdentifiable', () => {
+describe('Identifiable', () => {
+  //let typeI10e = avro.parse(Identifiable.SCHEMA);
+  let typeI10e = Forma.registerSchema(Identifiable.SCHEMA, {avro});
+
   it('uuidv7', () => {
     const msg = 'ti10e.uuidv7';
     dbg > 1 && cc.tag(msg, '==============');
@@ -98,7 +101,7 @@ describe('TESTTESTIdentifiable', () => {
           name: 'OtherIdentifiable',
           type: 'record',
           fields: [
-            ...Identifiable.SCHEMA_FIELDS,
+            ...Identifiable.ID_FIELDS,
             { name: 'color', type: 'string' },
           ],
         }
@@ -119,5 +122,87 @@ describe('TESTTESTIdentifiable', () => {
     let idPeek = new Identifiable(idTest);
     should(idPeek.id).equal(thing1.id);
     dbg && cc.tag1(msg+UOK, 'can peek id of other things', idPeek);
+  });
+  it('value boolean', () => {
+    const msg = 'ti10e.value.boolean';
+    dbg > 1 && cc.tag(msg, STARTTEST);
+
+    let thing1 = new Identifiable({ id:'test-id', value: true })
+    let serialized = typeI10e.toBuffer(thing1.toAvroJson());
+    let deserialized = typeI10e.fromBuffer(serialized);
+    let thing2 = new Identifiable(deserialized);
+    dbg > 1 && cc.tag(msg, 'deserialized:', deserialized);
+    should.deepEqual(thing2, thing1);
+    dbg && cc.tag1(msg, 'deserialized other', thing2);
+  });
+  it('value string', () => {
+    const msg = 'ti10e.value.string';
+    dbg > 1 && cc.tag(msg, STARTTEST);
+
+    let thing1 = new Identifiable({ id:'test-id', value: 'red' })
+    let serialized = typeI10e.toBuffer(thing1.toAvroJson());
+    let deserialized = typeI10e.fromBuffer(serialized);
+    let thing2 = new Identifiable(deserialized);
+    dbg > 1 && cc.tag(msg, 'deserialized:', deserialized);
+    should.deepEqual(thing2, thing1);
+    dbg > 1 && cc.tag(msg, 'deserialized other', thing2);
+  });
+  it('value double', () => {
+    const msg = 'ti10e.value.double';
+    dbg > 1 && cc.tag(msg, STARTTEST);
+
+    let thing1 = new Identifiable({ id:'test-id', value: Math.PI })
+    let serialized = typeI10e.toBuffer(thing1.toAvroJson());
+    let deserialized = typeI10e.fromBuffer(serialized);
+    let thing2 = new Identifiable(deserialized);
+    dbg > 1 && cc.tag(msg, 'deserialized:', deserialized);
+    should.deepEqual(thing2, thing1);
+    dbg > 1 && cc.tag(msg, 'deserialized other', thing2);
+  });
+  it('TESTTESTvalue boolean array', () => {
+    const msg = 'ti10e.value.array';
+    dbg > 1 && cc.tag(msg, STARTTEST);
+    let schemaIdValue = new Schema({
+      type: 'record',
+      name: 'IdValue',
+      fields: [
+        {name: 'id', type:'string'},
+        {name: 'value', type: ['null', 'double'], default: null},
+      ],
+    });
+    let typeIdValue = Forma.registerSchema(schemaIdValue);
+    dbg > 1 && cc.tag(msg, 'typeIdValue:', typeIdValue);
+
+    let schemaIVArray = new Schema({
+      type: 'array',
+      name: 'IVArray',
+      //items: 'IdValue',
+      items: {
+        type: 'record',
+        name: 'IVArrayItem',
+        fields: [
+          {name: 'id', type:'string'},
+          {name: 'value', type: ['null', 'double', 'IVArrayItem'], default: null},
+        ],
+      },
+      default: [],
+    });
+    let typeIVArray = Forma.registerSchema(schemaIVArray);
+    dbg > 1 && cc.tag(msg, 'typeIVArray:', typeIVArray);
+
+    let aPi = {id:'aPiId', value: {double: Math.PI}};
+    let bufPi = typeIdValue.toBuffer(aPi);
+    let aPi2 = typeIdValue.fromBuffer(bufPi);
+    aPi2 = JSON.parse(JSON.stringify(aPi2));
+    should(aPi2).properties(aPi);
+    dbg > 1 && cc.tag(msg, 'aPi2:', aPi2);
+
+    let aIVA = [aPi, {id:'aOther', value: {double: 1}}];
+    let bufIVA = typeIVArray.toBuffer(aIVA);
+    let aIVA2 = typeIVArray.fromBuffer(bufIVA);
+    dbg && cc.tag(msg, 'anonymous aIVA2:', aIVA2);
+    aIVA2 = JSON.parse(JSON.stringify(aIVA2));
+    should.deepEqual(aIVA2, aIVA);
+    dbg && cc.tag1(msg, 'Object aIVA2:', aIVA2);
   });
 });

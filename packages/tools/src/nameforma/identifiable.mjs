@@ -18,19 +18,66 @@ export class Identifiable {
     } = cfg;
 
     this.id = id;
+
+    if (value instanceof Array) {
+      value = value.map(item=>{
+        if (item instanceof Identifiable) {
+          return item;
+        }
+
+        return new Identifiable(item);
+      });
+    } else if (value instanceof Object) {
+      value = Object.values(value)[0];
+    }
     this.value = value;
   }
-  static get SCHEMA_FIELDS() {
+
+  toAvroJson() {
+    let {id, value} = this;
+    let type;
+
+    if (value instanceof Array) {
+      value = value.map(item => item=>item.toAvroJson());
+    } else {
+      if (value != null) {
+        switch (typeof value) {
+          case 'number':
+            value = {double: value};
+            break;
+          case 'string':
+            value = {string: value};
+            break;
+          case 'boolean':
+            value = {boolean: value};
+            break;
+        }
+      }
+    }
+    return { id, value };
+  }
+
+  static get ID_FIELD() {
+    return { name: 'id', type: 'string' };
+  }
+
+  static get VALUE_FIELD() {
+    return {
+      name: 'value', 
+      type: [
+        'null', 
+        'string',
+        'double',
+        'boolean',
+        { type: 'array', items: 'Identifiable', default: [] },
+      ],
+    }
+  }
+
+  static get ID_VALUE_FIELDS() {
     return [
-      { name: 'id', type: 'string' },
-      { name: 'value', type: [
-          'null', 
-          'string',
-          'double',
-          'boolean',
-        ],
-        default: null,
-      },
+      Identifiable.ID_FIELD,
+      Identifiable.VALUE_FIELD,
     ];
   }
 
@@ -38,7 +85,23 @@ export class Identifiable {
     return new Schema({
       type: 'record',
       name: 'Identifiable',
-      fields: [...Identifiable.SCHEMA_FIELDS],
+      fields: [
+        ...Identifiable.ID_VALUE_FIELDS,
+        /*
+        {
+          type: 'array', 
+          name: 'values', 
+          items: {
+            type: 'record',
+            name: 'IdentifiableRecord',
+            fields: [
+              ...Identifiable.ID_VALUE_FIELDS,
+            ],
+          },
+          default: [] 
+        },
+        */
+      ],
     });
   }
 

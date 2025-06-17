@@ -68,7 +68,7 @@ export class ValueNode {
             'string',
             'double',
             'int',
-            //  {type: 'array', items: 'ValueNode'}
+            { type: 'array', items: 'ValueNode' },
           ],
           default: null,
         },

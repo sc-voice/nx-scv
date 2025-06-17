@@ -8,7 +8,7 @@ const COLOR_CONSOLE = {
 
 const IDENTIFIABLE = {
   TEST: 0,
-}
+};
 
 export const DBG = {
   COLOR_CONSOLE,

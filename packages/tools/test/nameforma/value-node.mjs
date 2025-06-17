@@ -11,7 +11,7 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.T2T.VALUE_NODE;
 const STARTTEST = '============';
 
-describe('ValueNode', () => {
+describe('TESTTESTValueNode', () => {
   let type = avro.parse(ValueNode.SCHEMA);
 
   it('ValueNode null', () => {

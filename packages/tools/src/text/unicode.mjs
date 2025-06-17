@@ -235,6 +235,24 @@ export class Unicode {
   static get u_MACRON() {
     return '\u016d'; /* UTF-8 c5ab */
   }
+  static get WHITE_CIRCLE() {
+    return '\u25CB';
+  }
+  static get INVERSE_BULLET() {
+    return '\u25D8';
+  }
+  static get CIRCLED_BULLET() {
+    return '\u29BF';
+  }
+  static get FISHEYE() {
+    return '\u25C9';
+  }
+  static get WHITE_BULLET() {
+    return '\u25E6';
+  }
+  static get BULLET() {
+    return '\u2022';
+  }
   static get LEFT_ARROW() {
     return '\u2190';
   }
