@@ -10,7 +10,7 @@ const { CHECKMARK: UOK } = Unicode;
 
 const dbg = DBG.T2T.SCHEMA;
 
-describe('TESTTESTschema', () => {
+describe('schema', () => {
   it('ctor', () => {
     const msg = 'ts4a.ctor';
     dbg > 1 && cc.tag(msg, '==============');

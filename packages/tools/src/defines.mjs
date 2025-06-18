@@ -12,7 +12,7 @@ const COLOR_CONSOLE = {
 };
 
 const IDENTIFIABLE = {
-  TEST: 0,
+  TEST: 2,
 };
 
 const FORMA = {

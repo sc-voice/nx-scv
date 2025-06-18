@@ -22,7 +22,7 @@ class TestThing extends Forma {
   }
 }
 
-describe('TESTTESTforma', () => {
+describe('forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
     should(f3a.id).match(/^F3A[0-9]+$/);
@@ -113,7 +113,7 @@ describe('TESTTESTforma', () => {
     should(uuidValid(idNow)).equal(true);
     dbg && cc.tag1(msg + UOK, 'valid v7 uuids');
   });
-  it('TESTTESTclasses', () => {
+  it('classes', () => {
     const msg = 'tc5s';
     class ClassA {
       static register() {

@@ -24,7 +24,7 @@ const FRY_EGG = [
 
 let dbg = DBG.T2T.TASK;
 
-describe('TESTTESTtask', () => {
+describe('task', () => {
   it('ctor', () => {
     const msg = 'tctor';
     dbg && cc.tag1(msg, 'START');

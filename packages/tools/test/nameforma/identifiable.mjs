@@ -163,8 +163,8 @@ describe('Identifiable', () => {
     should.deepEqual(thing2, thing1);
     dbg > 1 && cc.tag(msg, 'deserialized other', thing2);
   });
-  it('TESTTESTvalue boolean array', () => {
-    const msg = 'ti10e.value.array';
+  it('TESTTESTIdValue', () => {
+    const msg = 'ti10e.id.value';
     dbg > 1 && cc.tag(msg, STARTTEST);
     let schemaIdValue = new Schema({
       type: 'record',
@@ -188,7 +188,7 @@ describe('Identifiable', () => {
           { name: 'id', type: 'string' },
           {
             name: 'value',
-            type: ['null', 'double', 'IVArrayItem'],
+            type: ['null', 'string', 'double', 'IVArrayItem'],
             default: null,
           },
         ],

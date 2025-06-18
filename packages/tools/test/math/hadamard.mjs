@@ -48,7 +48,7 @@ describe('hadamard', () => {
 
     dbg && cc.tag1(msg + UOK, ...output);
   });
-  it('TESTTESTheavyside n=8', () => {
+  it('heavyside n=8', () => {
     const msg = 'th6d.heavyside.8';
     let N = 8;
     const A = 1; // amplitude
