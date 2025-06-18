@@ -1,3 +1,8 @@
+const SCHEMA = {
+  REGISTER: 0,
+  TEST: 0,
+}
+
 const COLOR_CONSOLE = {
   AS_STRING: 0,
   INSPECT: 0,
@@ -10,9 +15,15 @@ const IDENTIFIABLE = {
   TEST: 0,
 };
 
+const FORMA = {
+  TEST: 0,
+};
+
 export const DBG = {
   COLOR_CONSOLE,
   IDENTIFIABLE,
+  SCHEMA,
+  FORMA,
 
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,
@@ -117,12 +128,9 @@ export const DBG = {
     },
   },
   T2T: {
-    FORMA: 0,
     FRACTION: 0,
     HADAMARD: 0,
     KAFKA: 0,
-    SCHEMA: 0,
     TASK: 0,
-    VALUE_NODE: 0,
   },
 };

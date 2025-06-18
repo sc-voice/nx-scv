@@ -3,7 +3,7 @@ import should from 'should';
 import { NameForma, ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Fraction } = ScvMath;
-const { Forma } = NameForma;
+const { Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
 
@@ -215,7 +215,7 @@ describe('fraction', () => {
   it('avro', () => {
     const msg = 'tf6n.avro';
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
-    let type = Forma.registerSchema(Fraction.SCHEMA, { avro });
+    let type = Schema.register(Fraction.SCHEMA, { avro });
 
     let tsp2 = new Fraction(2, 3, 'tbsp');
     let tsp2Buf = type.toBuffer(tsp2);

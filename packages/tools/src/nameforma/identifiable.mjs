@@ -3,24 +3,21 @@ import {
   validate as uuidValidate,
   version as uuidVersion,
 } from 'uuid';
-import { Schema } from './schema.mjs';
 import { DBG } from '../../src/defines.mjs';
-import { Unicode } from '../text/unicode.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
+import { Unicode } from '../text/unicode.mjs';
+import { Schema } from './schema.mjs';
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
 export class Identifiable {
   constructor(cfg = {}) {
-    let { 
-      id = Identifiable.uuid(),
-      value = null,
-    } = cfg;
+    let { id = Identifiable.uuid(), value = null } = cfg;
 
     this.id = id;
 
     if (value instanceof Array) {
-      value = value.map(item=>{
+      value = value.map((item) => {
         if (item instanceof Identifiable) {
           return item;
         }
@@ -34,22 +31,22 @@ export class Identifiable {
   }
 
   toAvroJson() {
-    let {id, value} = this;
+    let { id, value } = this;
     let type;
 
     if (value instanceof Array) {
-      value = value.map(item => item=>item.toAvroJson());
+      value = value.map((item) => (item) => item.toAvroJson());
     } else {
       if (value != null) {
         switch (typeof value) {
           case 'number':
-            value = {double: value};
+            value = { double: value };
             break;
           case 'string':
-            value = {string: value};
+            value = { string: value };
             break;
           case 'boolean':
-            value = {boolean: value};
+            value = { boolean: value };
             break;
         }
       }
@@ -63,22 +60,19 @@ export class Identifiable {
 
   static get VALUE_FIELD() {
     return {
-      name: 'value', 
+      name: 'value',
       type: [
-        'null', 
+        'null',
         'string',
         'double',
         'boolean',
         { type: 'array', items: 'Identifiable', default: [] },
       ],
-    }
+    };
   }
 
   static get ID_VALUE_FIELDS() {
-    return [
-      Identifiable.ID_FIELD,
-      Identifiable.VALUE_FIELD,
-    ];
+    return [Identifiable.ID_FIELD, Identifiable.VALUE_FIELD];
   }
 
   static get SCHEMA() {
@@ -122,4 +116,3 @@ export class Identifiable {
     return time;
   }
 }
-

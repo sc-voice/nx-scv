@@ -12,7 +12,7 @@ import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
-const dbg = DBG.T2T.FORMA;
+const dbg = DBG.FORMA.TEST;
 
 class TestThing extends Forma {
   constructor(cfg = {}) {
@@ -22,7 +22,7 @@ class TestThing extends Forma {
   }
 }
 
-describe('forma', () => {
+describe('TESTTESTforma', () => {
   it('ctor', () => {
     let f3a = new Forma();
     should(f3a.id).match(/^F3A[0-9]+$/);
@@ -56,9 +56,7 @@ describe('forma', () => {
     const registry = {};
     const s4a = Forma.SCHEMA;
     dbg > 1 && cc.tag(msg, 'registerSchema');
-    let type = Forma.registerSchema(s4a, { avro, registry });
-    let typeAgain = Forma.register();
-    should(typeAgain).equal(type);
+    let type = Forma.registerSchema({ avro, registry });
     let typeExpected = avro.parse(s4a);
     let name = `${s4a.namespace}.${s4a.name}`;
     should.deepEqual(type, typeExpected);
@@ -70,7 +68,7 @@ describe('forma', () => {
     should(registry).properties({
       [name]: typeExpected,
     });
-    should(Forma.REGISTRY).properties({
+    should(Schema.REGISTRY).properties({
       [name]: typeExpected,
     });
     dbg > 1 &&
@@ -114,5 +112,33 @@ describe('forma', () => {
     should(uuidValid(uuid1)).equal(true);
     should(uuidValid(idNow)).equal(true);
     dbg && cc.tag1(msg + UOK, 'valid v7 uuids');
+  });
+  it('TESTTESTclasses', () => {
+    const msg = 'tc5s';
+    class ClassA {
+      static register() {
+        return this.SCHEMA;
+      }
+
+      static get SCHEMA() {
+        return 'schemaA';
+      }
+    }
+
+    class ClassB extends ClassA {
+      static get SCHEMA() {
+        return 'schemaB';
+      }
+
+      static register(){
+        return "CLASSB" + super.register();
+      }
+    }
+
+    should(ClassA.register()).equal(ClassA.SCHEMA);
+    dbg && cc.ok(msg+UOK, 'ClassA:', ClassA.register());
+
+    should(ClassB.register()).equal("CLASSB" + ClassB.SCHEMA);
+    dbg && cc.ok1(msg+UOK, 'ClassB:', ClassB.register());
   });
 });

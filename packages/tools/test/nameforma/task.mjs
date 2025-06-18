@@ -1,6 +1,6 @@
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { Task, Forma } = NameForma;
+const { Schema, Task, Forma } = NameForma;
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { T2K } = DBG.N8A;
@@ -24,7 +24,7 @@ const FRY_EGG = [
 
 let dbg = DBG.T2T.TASK;
 
-describe('task', () => {
+describe('TESTTESTtask', () => {
   it('ctor', () => {
     const msg = 'tctor';
     dbg && cc.tag1(msg, 'START');
@@ -46,9 +46,7 @@ describe('task', () => {
     const progress = new Fraction(3, 4, 'tbsp');
     const duration = new Fraction(3, 4, 's');
 
-    let type = Task.register({ avro });
-    let type2 = Task.register();
-    should.deepEqual(type2, type);
+    let type = Task.registerSchema({ avro });
     dbg > 1 && cc.tag(msg, 'schema registered');
 
     let thing1 = new Task({ title, progress, duration });

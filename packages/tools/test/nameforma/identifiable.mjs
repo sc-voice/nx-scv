@@ -18,7 +18,7 @@ const STARTTEST = '=============';
 
 describe('Identifiable', () => {
   //let typeI10e = avro.parse(Identifiable.SCHEMA);
-  let typeI10e = Forma.registerSchema(Identifiable.SCHEMA, {avro});
+  let typeI10e = Schema.register(Identifiable.SCHEMA, { avro });
 
   it('uuidv7', () => {
     const msg = 'ti10e.uuidv7';
@@ -66,7 +66,7 @@ describe('Identifiable', () => {
     should(i10eB.id).not.equal(i10eA.id);
     dbg > 1 && cc.tag(msg, 'i10eB.id:', i10eB.id);
 
-    should(i10eB.id).above(i10eA.id); 
+    should(i10eB.id).above(i10eA.id);
     dbg && cc.tag1(msg + UOK, 'i10eB.id > i10eA.id');
   });
   it('avro serialize', () => {
@@ -81,7 +81,7 @@ describe('Identifiable', () => {
     dbg > 1 && cc.tag(msg, 'deserialized:', deserialized);
     should.deepEqual(thing2, thing1);
 
-    dbg && cc.tag1(msg+UOK, 'deserialized', thing2);
+    dbg && cc.tag1(msg + UOK, 'deserialized', thing2);
   });
   it('avro peek', () => {
     const msg = 'ti10e.avro.peek';
@@ -91,7 +91,7 @@ describe('Identifiable', () => {
     // Anti-pattern?
     // Should Identifiable be extended in this way?
     class OtherIdentifiable extends Identifiable {
-      constructor(cfg={}) {
+      constructor(cfg = {}) {
         super(cfg);
         this.color = cfg.color || 'no-color';
       }
@@ -104,12 +104,12 @@ describe('Identifiable', () => {
             ...Identifiable.ID_FIELDS,
             { name: 'color', type: 'string' },
           ],
-        }
+        };
       }
     } // OtherIdentifiable
 
     let typeOther = avro.parse(OtherIdentifiable.SCHEMA);
-    let thing1 = new Identifiable({ id:'test-id', color: 'red' })
+    let thing1 = new Identifiable({ id: 'test-id', color: 'red' });
     let serialized = typeOther.toBuffer(thing1);
     let deserialized = typeOther.fromBuffer(serialized);
     let thing2 = new Identifiable(deserialized);
@@ -118,16 +118,20 @@ describe('Identifiable', () => {
     dbg > 1 && cc.tag(msg, 'deserialized other', thing2);
 
     let noCheck = true;
-    let idTest = typeIdentifiable.fromBuffer(serialized, undefined, noCheck);
+    let idTest = typeIdentifiable.fromBuffer(
+      serialized,
+      undefined,
+      noCheck,
+    );
     let idPeek = new Identifiable(idTest);
     should(idPeek.id).equal(thing1.id);
-    dbg && cc.tag1(msg+UOK, 'can peek id of other things', idPeek);
+    dbg && cc.tag1(msg + UOK, 'can peek id of other things', idPeek);
   });
   it('value boolean', () => {
     const msg = 'ti10e.value.boolean';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    let thing1 = new Identifiable({ id:'test-id', value: true })
+    let thing1 = new Identifiable({ id: 'test-id', value: true });
     let serialized = typeI10e.toBuffer(thing1.toAvroJson());
     let deserialized = typeI10e.fromBuffer(serialized);
     let thing2 = new Identifiable(deserialized);
@@ -139,7 +143,7 @@ describe('Identifiable', () => {
     const msg = 'ti10e.value.string';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    let thing1 = new Identifiable({ id:'test-id', value: 'red' })
+    let thing1 = new Identifiable({ id: 'test-id', value: 'red' });
     let serialized = typeI10e.toBuffer(thing1.toAvroJson());
     let deserialized = typeI10e.fromBuffer(serialized);
     let thing2 = new Identifiable(deserialized);
@@ -151,7 +155,7 @@ describe('Identifiable', () => {
     const msg = 'ti10e.value.double';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    let thing1 = new Identifiable({ id:'test-id', value: Math.PI })
+    let thing1 = new Identifiable({ id: 'test-id', value: Math.PI });
     let serialized = typeI10e.toBuffer(thing1.toAvroJson());
     let deserialized = typeI10e.fromBuffer(serialized);
     let thing2 = new Identifiable(deserialized);
@@ -166,11 +170,11 @@ describe('Identifiable', () => {
       type: 'record',
       name: 'IdValue',
       fields: [
-        {name: 'id', type:'string'},
-        {name: 'value', type: ['null', 'double'], default: null},
+        { name: 'id', type: 'string' },
+        { name: 'value', type: ['null', 'double'], default: null },
       ],
     });
-    let typeIdValue = Forma.registerSchema(schemaIdValue);
+    let typeIdValue = Schema.register(schemaIdValue, { avro });
     dbg > 1 && cc.tag(msg, 'typeIdValue:', typeIdValue);
 
     let schemaIVArray = new Schema({
@@ -181,23 +185,27 @@ describe('Identifiable', () => {
         type: 'record',
         name: 'IVArrayItem',
         fields: [
-          {name: 'id', type:'string'},
-          {name: 'value', type: ['null', 'double', 'IVArrayItem'], default: null},
+          { name: 'id', type: 'string' },
+          {
+            name: 'value',
+            type: ['null', 'double', 'IVArrayItem'],
+            default: null,
+          },
         ],
       },
       default: [],
     });
-    let typeIVArray = Forma.registerSchema(schemaIVArray);
+    let typeIVArray = Schema.register(schemaIVArray, { avro });
     dbg > 1 && cc.tag(msg, 'typeIVArray:', typeIVArray);
 
-    let aPi = {id:'aPiId', value: {double: Math.PI}};
+    let aPi = { id: 'aPiId', value: { double: Math.PI } };
     let bufPi = typeIdValue.toBuffer(aPi);
     let aPi2 = typeIdValue.fromBuffer(bufPi);
     aPi2 = JSON.parse(JSON.stringify(aPi2));
     should(aPi2).properties(aPi);
     dbg > 1 && cc.tag(msg, 'aPi2:', aPi2);
 
-    let aIVA = [aPi, {id:'aOther', value: {double: 1}}];
+    let aIVA = [aPi, { id: 'aOther', value: { double: 1 } }];
     let bufIVA = typeIVArray.toBuffer(aIVA);
     let aIVA2 = typeIVArray.fromBuffer(bufIVA);
     dbg && cc.tag(msg, 'anonymous aIVA2:', aIVA2);
