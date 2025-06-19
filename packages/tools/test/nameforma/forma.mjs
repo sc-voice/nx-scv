@@ -130,15 +130,15 @@ describe('forma', () => {
         return 'schemaB';
       }
 
-      static register(){
-        return "CLASSB" + super.register();
+      static register() {
+        return 'CLASSB' + super.register();
       }
     }
 
     should(ClassA.register()).equal(ClassA.SCHEMA);
-    dbg && cc.ok(msg+UOK, 'ClassA:', ClassA.register());
+    dbg && cc.ok(msg + UOK, 'ClassA:', ClassA.register());
 
-    should(ClassB.register()).equal("CLASSB" + ClassB.SCHEMA);
-    dbg && cc.ok1(msg+UOK, 'ClassB:', ClassB.register());
+    should(ClassB.register()).equal('CLASSB' + ClassB.SCHEMA);
+    dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
 });

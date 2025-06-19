@@ -12,8 +12,7 @@ export const ScvMath = {
   Activation,
   Fraction,
   Hadamard,
-  Interval,
-  Units,
+  Interval, Units,
 };
 
 import { BilaraPath } from './src/text/bilara-path.mjs';
@@ -67,11 +66,13 @@ import { Schema } from './src/nameforma/schema.mjs';
 import { Timer, Timers } from './src/nameforma/timers.mjs';
 import { ValueNode } from './src/nameforma/value-node.mjs';
 import { Identifiable } from './src/nameforma/identifiable.mjs';
+import { IdValue } from './src/nameforma/id-value.mjs';
 export const NameForma = {
   Admin,
   Clock,
   Consumer,
   Forma,
+  IdValue,
   Identifiable,
   Kafka1,
   Producer,

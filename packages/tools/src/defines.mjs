@@ -1,7 +1,7 @@
 const SCHEMA = {
   REGISTER: 0,
   TEST: 0,
-}
+};
 
 const COLOR_CONSOLE = {
   AS_STRING: 0,
@@ -15,12 +15,17 @@ const IDENTIFIABLE = {
   TEST: 2,
 };
 
+const ID_VALUE = {
+  TEST: 2,
+}
+
 const FORMA = {
   TEST: 0,
 };
 
 export const DBG = {
   COLOR_CONSOLE,
+  ID_VALUE,
   IDENTIFIABLE,
   SCHEMA,
   FORMA,

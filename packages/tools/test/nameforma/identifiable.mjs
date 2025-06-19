@@ -163,54 +163,56 @@ describe('Identifiable', () => {
     should.deepEqual(thing2, thing1);
     dbg > 1 && cc.tag(msg, 'deserialized other', thing2);
   });
-  it('TESTTESTIdValue', () => {
-    const msg = 'ti10e.id.value';
+  it('IdValue', () => {
+    const msg = 'ti10e.IdValueArray';
     dbg > 1 && cc.tag(msg, STARTTEST);
-    let schemaIdValue = new Schema({
+    let registry = {};
+
+    let s4a = new Schema({
       type: 'record',
       name: 'IdValue',
       fields: [
         { name: 'id', type: 'string' },
-        { name: 'value', type: ['null', 'double'], default: null },
+        {
+          name: 'value',
+          type: [
+            'null', 'string', 'double', 'boolean', 
+            { type: 'array', items: 'IdValue', default: [] },
+          ],
+          default: null,
+        },
       ],
     });
-    let typeIdValue = Schema.register(schemaIdValue, { avro });
-    dbg > 1 && cc.tag(msg, 'typeIdValue:', typeIdValue);
+    let type = Schema.register(s4a, { avro, registry });
+    dbg > 1 && cc.tag(msg, 'type:', type);
 
-    let schemaIVArray = new Schema({
-      type: 'array',
-      name: 'IVArray',
-      //items: 'IdValue',
-      items: {
-        type: 'record',
-        name: 'IVArrayItem',
-        fields: [
-          { name: 'id', type: 'string' },
-          {
-            name: 'value',
-            type: ['null', 'string', 'double', 'IVArrayItem'],
-            default: null,
+    let thing1 = { 
+      id: 'array1', 
+      value: { 
+        array: [
+          { id: 'null2', value: null },
+          { id: 'str2', value: { string: 'red' } },
+          { id: 'double2', value: { double: Math.PI } },
+          { id: 'bool2', value: { boolean: true } },
+          { id: 'array2', 
+            value: { 
+              array: [
+                { id: 'null3', value: null },
+                { id: 'str3', value: { string: 'blue' } },
+                { id: 'double3', value: { double: -1 } },
+                { id: 'bool3', value: { boolean: false } },
+                { id: 'array3', value: { array: [] } },
+              ]
+            } 
           },
-        ],
-      },
-      default: [],
-    });
-    let typeIVArray = Schema.register(schemaIVArray, { avro });
-    dbg > 1 && cc.tag(msg, 'typeIVArray:', typeIVArray);
-
-    let aPi = { id: 'aPiId', value: { double: Math.PI } };
-    let bufPi = typeIdValue.toBuffer(aPi);
-    let aPi2 = typeIdValue.fromBuffer(bufPi);
-    aPi2 = JSON.parse(JSON.stringify(aPi2));
-    should(aPi2).properties(aPi);
-    dbg > 1 && cc.tag(msg, 'aPi2:', aPi2);
-
-    let aIVA = [aPi, { id: 'aOther', value: { double: 1 } }];
-    let bufIVA = typeIVArray.toBuffer(aIVA);
-    let aIVA2 = typeIVArray.fromBuffer(bufIVA);
-    dbg && cc.tag(msg, 'anonymous aIVA2:', aIVA2);
-    aIVA2 = JSON.parse(JSON.stringify(aIVA2));
-    should.deepEqual(aIVA2, aIVA);
-    dbg && cc.tag1(msg, 'Object aIVA2:', aIVA2);
+        ]
+      }, 
+    }
+    let buf1 = type.toBuffer(thing1);
+    let thing2 = type.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    thing2 = JSON.parse(JSON.stringify(thing2));
+    should.deepEqual(thing2, thing1);
+    dbg && cc.tag1(msg, 'Object thing2:', thing2);
   });
 });

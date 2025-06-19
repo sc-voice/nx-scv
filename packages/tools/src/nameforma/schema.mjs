@@ -5,7 +5,8 @@ const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
 const { SCHEMA: S4A } = DBG;
 
-export class Schema { // an Avro schema
+export class Schema {
+  // an Avro schema
   static #registry = {};
   static #avro;
 
