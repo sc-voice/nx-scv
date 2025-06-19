@@ -18,7 +18,25 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.ID_VALUE.TEST;
 const STARTTEST = '=============';
 
+const aString = 'red';
+const aDouble = Math.PI;
+const aBoolean = true;
+const aFraction = new Fraction(1,3, 'inch');
+
+class IdRecord extends Identifiable {
+  constructor({id}) {
+
+    super(id);
+    this.aNull = null;
+    this.aString = aString;
+    this.aDouble = aDouble;
+    this.aBoolean = aBoolean;
+    this.aFraction = aFraction;
+  }
+}
+
 describe('Patch', () => {
+  const dbg = DBG.PATCH.TEST;
   let typeThing = Schema.register(Patch.SCHEMA, { avro });
 
   it('ctor default', () => {
@@ -37,6 +55,15 @@ describe('Patch', () => {
       JSON.parse(JSON.stringify(thing1)),
     );
     dbg && cc.tag1(msg + UOK, thing2);
+  });
+  it('Patch object without class', () => {
+    const msg = 'ti5e.patch.object';
+
+    function Patch() { this.a = 1.23; };
+    let p3h = new Patch();
+    should(p3h.constructor.name).equal('Patch');
+    should(p3h.a).equal(1.23);
+    dbg && cc.tag1(msg+UOK, 'p3h:', p3h);
   });
   it('boolean', () => {
     const msg = 'ti5e.boolean';
@@ -86,7 +113,7 @@ describe('Patch', () => {
     );
     dbg && cc.tag1(msg + UOK, thing2);
   });
-  it('TESTTESTFraction', () => {
+  it('Fraction', () => {
     const msg = 'ti5e.Fraction';
     let id = 'test-Fraction';
     let value = new Fraction(1,3, 'inch');
@@ -102,6 +129,35 @@ describe('Patch', () => {
       JSON.parse(JSON.stringify(thing1)),
     );
     dbg && cc.tag1(msg + UOK, thing2);
+  });
+  it('Object', () => {
+    const msg = 'ti5e.Object';
+    let id = 'test-obj';
+    let aString = 'red';
+    let aBool = false;
+    let aDouble = Math.PI;
+    let aFraction = new Fraction(1,3,'inch');
+    let value = { id, aString, aBool, aDouble, aFraction, };
+    let thing1 = new Patch({ id, value });
+    should(thing1.id).equal(id);
+    should.deepEqual(thing1.value, { 
+      array: [
+        { id:'aString', value:{string: aString} },
+        { id:'aBool', value:{boolean: aBool} },
+        { id:'aDouble', value:{double: Math.PI} },
+        { id:'aFraction', value:{Fraction: aFraction} },
+      ],
+    });
+    dbg && cc.tag1(msg + UOK);
+
+    let buf1 = typeThing.toBuffer(thing1);
+    let thing2 = typeThing.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(thing2)), 
+      JSON.parse(JSON.stringify(thing1)),
+    );
+    dbg && cc.tag1(msg + UOK, 'avro deserialized:', thing2);
   });
 }); // Patch
 
@@ -173,5 +229,53 @@ describe('IdValue', () => {
     thing2 = JSON.parse(JSON.stringify(thing2));
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg, 'Object thing2:', thing2);
+  });
+  it('TESTTESTfromIdentifiable', ()=>{
+    const msg = 'p3h.fromIdentifiable';
+    let id = 'test-id';
+    let thing1 = new IdRecord({id});
+    let patch = Patch.fromIdentifiable(thing1);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(patch)),
+      JSON.parse(JSON.stringify({
+        id,
+        value: {
+          array: [
+            {id:'aNull', value: null},
+            {id:'aString', value: {string: aString}},
+            {id:'aDouble', value: {double: aDouble}},
+            {id:'aBoolean', value: {boolean: aBoolean}},
+            {id:'aFraction', value: {Fraction: aFraction}},
+          ],
+        }
+      }))
+    );
+
+    dbg && cc.tag1(msg+UOK, 'deserialized:', patch);
+  });
+  it('toIdentifiable', ()=>{
+    const msg = 'p3h.toIdentifiable';
+    let id = 'test-id';
+    let thing1 = new IdRecord({id});
+    should(thing1.id).equal(id);
+    should(thing1.aNull).equal(null);
+    should(thing1.aString).equal(aString);
+    let patch = Patch.fromIdentifiable(thing1);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(patch)),
+      JSON.parse(JSON.stringify({
+        id,
+        value: {
+          array: [
+            {id:'aNull', value: null},
+            {id:'aString', value: {string: aString}},
+            {id:'aDouble', value: {double: aDouble}},
+            {id:'aBoolean', value: {boolean: aBoolean}},
+            {id:'aFraction', value: {Fraction: aFraction}},
+          ],
+        }
+      }))
+    )
+    cc.tag1(msg+UOK, patch);
   });
 });

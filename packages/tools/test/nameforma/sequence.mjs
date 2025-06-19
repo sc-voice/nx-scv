@@ -7,7 +7,6 @@ const { Fraction } = ScvMath;
 const { Unicode, ColorConsole } = Text;
 const { UOK, URX, cc } = ColorConsole;
 
-
 const dbg = DBG.SEQUENCE.TEST;
 
 class Sequence extends Forma {

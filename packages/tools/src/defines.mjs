@@ -19,6 +19,11 @@ const FRACTION = {
   TEST: 0,
 }
 
+const PATCH = {
+  PATCH_VALUE: 0,
+  TEST: 2,
+}
+
 const SCHEMA = {
   REGISTER: 0,
   TEST: 0,
@@ -39,6 +44,7 @@ export const DBG = {
   FORMA,
   FRACTION, 
   ID_VALUE,
+  PATCH,
   SCHEMA,
   SEQUENCE,
 

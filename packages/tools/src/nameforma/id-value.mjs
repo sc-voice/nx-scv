@@ -10,7 +10,7 @@ import { Schema } from './schema.mjs';
 import { Fraction } from '../math/fraction.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
-const { SCHEMA: S4A } = DBG;
+const { PATCH:P3H, SCHEMA: S4A } = DBG;
 
 export class Identifiable {
   #id;
@@ -44,30 +44,75 @@ export class Identifiable {
 }
 
 export class Patch extends Identifiable {
-  constructor(cfg = {}) {
-    let { id, value = null } = cfg;
+  constructor(cfg) {
+    const msg = 'Patch.ctor';
+    if (cfg == null) {
+      super();
+      this.value = null;
+      return;
+    }
+
+    let { id, value = cfg } = cfg;
     super(id);
 
-    if (value) {
-      if (value instanceof Array) {
-        value = { array: value };
-      } else if (value instanceof Fraction) {
-        value = { Fraction: value };
-      } else {
-        switch (typeof value) {
-          case 'number':
-            value = {double: value};
-            break;
-          case 'string':
-            value = {string: value};
-            break;
-          case 'boolean':
-            value = {boolean: value};
-            break;
-        }
-      }
+    this.value = Patch.patchValue(value);
+  }
+
+  static fromIdentifiable(obj={}) {
+    let p3h = new Patch({id:obj.id});
+    p3h.value = Patch.patchValue(obj);
+    return p3h;
+  }
+
+  static patchValue(value=null) {
+    const msg = 'patchValue';
+    const dbg = P3H.PATCH_VALUE;
+
+    if (value == null) {
+      return null;
     }
-    this.value = value;
+    if (value instanceof Array) {
+      return { array: value };
+    } 
+    if (value instanceof Fraction) {
+      return { Fraction: value };
+    }
+
+    let tv = typeof value;
+    dbg > 1 && cc.ok(msg, 'typeof:', {tv,value});
+
+    switch (tv) {
+      case 'number':
+        return {double: value};
+      case 'string':
+        return {string: value};
+      case 'boolean':
+        return {boolean: value};
+      case 'object':
+        break;
+      default:
+        throw new Error(`${msg} type? ${value}`);
+    }
+
+    // Object
+    let { id } = value;
+    if (id == null) {
+      throw new Error(`${msg} id? ${value}`);
+    }
+
+    let result = Object.entries(value).reduce((a,entry) =>{
+      let [ k, v ] = entry;
+      if (k !== 'id') {
+        let pv = Patch.patchValue(v);
+        let iv = {id:k, value:pv};
+        dbg > 1 && cc.ok(msg, 'push:', iv);
+        a.array.push(iv)
+      }
+      return a;
+    }, {array: []});
+
+    dbg && cc.ok1(msg, 'result:', result);
+    return result;
   }
 
   static get SCHEMA() {
