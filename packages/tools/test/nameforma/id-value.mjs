@@ -61,49 +61,50 @@ describe('IdValue', () => {
     const msg = 'ti5e.ctor.boolean';
     let id = 'test-boolean';
     let value = true;
-    let i5e = new IdValue({id,value});
-    should(i5e).properties({id,value});
+    let i5e = new IdValue({ id, value });
+    should(i5e).properties({ id, value });
   });
   it('TESTTESTctor double', () => {
     const msg = 'ti5e.ctor.double';
     let id = 'test-double';
     let value = Math.PI;
-    let i5e = new IdValue({id,value});
-    should(i5e).properties({id,value});
+    let i5e = new IdValue({ id, value });
+    should(i5e).properties({ id, value });
   });
   it('TESTTESTctor string', () => {
     const msg = 'ti5e.ctor.string';
     let id = 'test-string';
     let value = 'aString';
-    let i5e = new IdValue({id,value});
-    should(i5e).properties({id,value});
+    let i5e = new IdValue({ id, value });
+    should(i5e).properties({ id, value });
   });
   it('TESTTESTavro', () => {
     const msg = 'ti5e.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    let thing1 = { 
-      id: 'array1', 
-      value: { 
+    let thing1 = {
+      id: 'array1',
+      value: {
         array: [
           { id: 'null2', value: null },
           { id: 'str2', value: { string: 'red' } },
           { id: 'double2', value: { double: Math.PI } },
           { id: 'bool2', value: { boolean: true } },
-          { id: 'array2', 
-            value: { 
+          {
+            id: 'array2',
+            value: {
               array: [
                 { id: 'null3', value: null },
                 { id: 'str3', value: { string: 'blue' } },
                 { id: 'double3', value: { double: -1 } },
                 { id: 'bool3', value: { boolean: false } },
                 { id: 'array3', value: { array: [] } },
-              ]
-            } 
+              ],
+            },
           },
-        ]
-      }, 
-    }
+        ],
+      },
+    };
     let buf1 = typeThing.toBuffer(thing1);
     let thing2 = typeThing.fromBuffer(buf1);
     dbg && cc.tag(msg, 'anonymous thing2:', thing2);

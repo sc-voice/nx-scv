@@ -17,7 +17,7 @@ const IDENTIFIABLE = {
 
 const ID_VALUE = {
   TEST: 2,
-}
+};
 
 const FORMA = {
   TEST: 0,

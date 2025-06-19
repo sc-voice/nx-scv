@@ -52,34 +52,4 @@ export const Graph = {
   Sankey, 
 }
 
-
-import { 
-  // kafkajs API:
-  Kafka1, Producer, Consumer, Admin, 
-  // non-kafkajs API:
-  _Runner,
-} from './src/nameforma/kafka1.mjs';
-import { Clock } from './src/nameforma/clock.mjs';
-import { Task } from './src/nameforma/task.mjs';
-import { Forma } from './src/nameforma/forma.mjs';
-import { Schema } from './src/nameforma/schema.mjs';
-import { Timer, Timers } from './src/nameforma/timers.mjs';
-import { ValueNode } from './src/nameforma/value-node.mjs';
-import { Identifiable } from './src/nameforma/identifiable.mjs';
-import { IdValue } from './src/nameforma/id-value.mjs';
-export const NameForma = {
-  Admin,
-  Clock,
-  Consumer,
-  Forma,
-  IdValue,
-  Identifiable,
-  Kafka1,
-  Producer,
-  Schema,
-  Task,
-  Timer,
-  Timers,
-  ValueNode,
-  _Runner, 
-}
+export { NameForma } from './src/nameforma/index.mjs';
