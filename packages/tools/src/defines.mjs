@@ -1,8 +1,3 @@
-const SCHEMA = {
-  REGISTER: 0,
-  TEST: 0,
-};
-
 const COLOR_CONSOLE = {
   AS_STRING: 0,
   INSPECT: 0,
@@ -12,7 +7,7 @@ const COLOR_CONSOLE = {
 };
 
 const ID_VALUE = {
-  TEST: 2,
+  TEST: 0,
 };
 
 const FORMA = {
@@ -21,8 +16,23 @@ const FORMA = {
 
 const FRACTION = {
   REDUCE: 0,
-  TEST: 2,
+  TEST: 0,
 }
+
+const SCHEMA = {
+  REGISTER: 0,
+  TEST: 0,
+};
+
+const SEQUENCE = {
+  CTOR: 0,
+  PATCH: 0,
+  UPSERT: 0,
+  REMOVE: 0,
+  PROGRESS: 0,
+  RENAME_STEPS: 0,
+  TEST: 0,
+};
 
 export const DBG = {
   COLOR_CONSOLE,
@@ -30,6 +40,7 @@ export const DBG = {
   FRACTION, 
   ID_VALUE,
   SCHEMA,
+  SEQUENCE,
 
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,
@@ -72,14 +83,6 @@ export const DBG = {
     },
     S2P: {
       UPDATE: 0,
-    },
-    S6E: {
-      CTOR: 0,
-      PATCH: 0,
-      UPSERT: 0,
-      REMOVE: 0,
-      PROGRESS: 0,
-      RENAME_STEPS: 0,
     },
     C3K: {
       // Clock

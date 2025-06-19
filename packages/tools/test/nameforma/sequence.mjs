@@ -2,12 +2,13 @@ import { NameForma } from '../../index.mjs';
 const { Forma, Task } = NameForma;
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
-const { S2P, S6E } = DBG.N8A;
+const { SEQUENCE: S6E } = DBG;
 const { Fraction } = ScvMath;
 const { Unicode, ColorConsole } = Text;
 const { UOK, URX, cc } = ColorConsole;
 
-const dbg = 2;
+
+const dbg = DBG.SEQUENCE.TEST;
 
 class Sequence extends Forma {
   #steps;
