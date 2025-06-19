@@ -1,7 +1,6 @@
 import { Clock } from './clock.mjs';
 import { Forma } from './forma.mjs';
 import { IdValue } from './id-value.mjs';
-import { Identifiable } from './identifiable.mjs';
 import {
   Admin,
   Consumer,
@@ -20,7 +19,6 @@ export const NameForma = {
   Consumer,
   Forma,
   IdValue,
-  Identifiable,
   Kafka1,
   Producer,
   Schema,

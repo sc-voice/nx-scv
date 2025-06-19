@@ -11,10 +11,6 @@ const COLOR_CONSOLE = {
   PROPS_NEXT: 0,
 };
 
-const IDENTIFIABLE = {
-  TEST: 2,
-};
-
 const ID_VALUE = {
   TEST: 2,
 };
@@ -26,7 +22,6 @@ const FORMA = {
 export const DBG = {
   COLOR_CONSOLE,
   ID_VALUE,
-  IDENTIFIABLE,
   SCHEMA,
   FORMA,
 
