@@ -3,7 +3,7 @@ import { Schema } from '../nameforma/schema.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: UOK } = Unicode;
-const { F6N } = DBG.M2H;
+const { FRACTION:F6N } = DBG;
 const { cc } = ColorConsole;
 
 export class Fraction {
@@ -24,21 +24,26 @@ export class Fraction {
       units = u;
     } else {
       let [n, d = 1, u = ''] = args;
+      isNull = false;
       numerator = n;
       denominator = d;
       units = u;
     }
 
     this.put({ isNull, numerator, denominator, units });
+
+    Object.defineProperty(this, 'isNull', {
+      enumerable: true,
+      get() { return this.#isNull; },
+    });
   }
 
   static get SCHEMA() {
     return new Schema({
       name: 'Fraction',
-      namespace: 'scvoice.math',
       type: 'record',
       fields: [
-        { name: 'isNull', type: 'boolean' },
+        { name: 'isNull', type: 'boolean', default: false },
         { name: 'numerator', type: 'double' },
         { name: 'denominator', type: 'double' },
         { name: 'units', type: 'string' },
@@ -51,10 +56,6 @@ export class Fraction {
       return a;
     }
     return Fraction.gcd(b, a % b);
-  }
-
-  get isNull() {
-    return this.#isNull;
   }
 
   put(json = {}) {

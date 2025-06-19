@@ -28,7 +28,6 @@ export class Task extends Forma {
   static get SCHEMA() {
     return new Schema({
       name: 'Task',
-      namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
         ...FORMA.fields,

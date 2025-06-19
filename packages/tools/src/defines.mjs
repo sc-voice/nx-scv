@@ -19,11 +19,17 @@ const FORMA = {
   TEST: 0,
 };
 
+const FRACTION = {
+  REDUCE: 0,
+  TEST: 2,
+}
+
 export const DBG = {
   COLOR_CONSOLE,
+  FORMA,
+  FRACTION, 
   ID_VALUE,
   SCHEMA,
-  FORMA,
 
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,
@@ -53,9 +59,6 @@ export const DBG = {
   ML_DOC_VECTORS: 0, // 'mn8:3.4'
   MN8_MOHAN: 0,
   M2H: {
-    F6N: {
-      REDUCE: 0,
-    },
     H6D: {
       FWHT: 0,
       ENCODE: 0,
@@ -128,7 +131,6 @@ export const DBG = {
     },
   },
   T2T: {
-    FRACTION: 0,
     HADAMARD: 0,
     KAFKA: 0,
     TASK: 0,

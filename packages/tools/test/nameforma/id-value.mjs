@@ -5,16 +5,105 @@ import {
   version as uuidVersion,
 } from 'uuid';
 import { NameForma } from '../../index.mjs';
-const { Schema, Forma, IdValue } = NameForma;
+const { Patch, Schema, Identifiable, IdValue } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
+import { ScvMath } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole } = Text;
+const { Fraction } = ScvMath;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
 const dbg = DBG.ID_VALUE.TEST;
 const STARTTEST = '=============';
+
+describe('Patch', () => {
+  let typeThing = Schema.register(Patch.SCHEMA, { avro });
+
+  it('ctor default', () => {
+    const msg = 'ti5e.ctor.default';
+    let thing1 = new Patch();
+    should(uuidValidate(thing1.id)).equal(true);
+    should(uuidVersion(thing1.id)).equal(7);
+    should(thing1.value).equal(null);
+    should(thing1).instanceOf(Identifiable);
+
+    let buf1 = typeThing.toBuffer(thing1);
+    let thing2 = typeThing.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(thing2)), 
+      JSON.parse(JSON.stringify(thing1)),
+    );
+    dbg && cc.tag1(msg + UOK, thing2);
+  });
+  it('boolean', () => {
+    const msg = 'ti5e.boolean';
+    let id = 'test-boolean';
+    let value = true;
+    let thing1 = new Patch({ id, value });
+    should(thing1).properties({ id, value: {boolean: value} });
+    
+    let buf1 = typeThing.toBuffer(thing1);
+    let thing2 = typeThing.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(thing2)), 
+      JSON.parse(JSON.stringify(thing1)),
+    );
+    dbg && cc.tag1(msg + UOK, thing2);
+  });
+  it('double', () => {
+    const msg = 'ti5e.double';
+    let id = 'test-double';
+    let value = Math.PI;
+    let thing1 = new Patch({ id, value });
+    should(thing1).properties({ id, value: {double: value} });
+
+    let buf1 = typeThing.toBuffer(thing1);
+    let thing2 = typeThing.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(thing2)), 
+      JSON.parse(JSON.stringify(thing1)),
+    );
+    dbg && cc.tag1(msg + UOK, thing2);
+  });
+  it('string', () => {
+    const msg = 'ti5e.string';
+    let id = 'test-string';
+    let value = 'aString';
+    let thing1 = new Patch({ id, value });
+    should(thing1).properties({ id, value: {string: value} });
+
+    let buf1 = typeThing.toBuffer(thing1);
+    let thing2 = typeThing.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(thing2)), 
+      JSON.parse(JSON.stringify(thing1)),
+    );
+    dbg && cc.tag1(msg + UOK, thing2);
+  });
+  it('TESTTESTFraction', () => {
+    const msg = 'ti5e.Fraction';
+    let id = 'test-Fraction';
+    let value = new Fraction(1,3, 'inch');
+    let thing1 = new Patch({ id, value });
+    should(thing1).properties({ id, value: { Fraction: value} });
+    dbg && cc.tag1(msg + UOK);
+
+    let buf1 = typeThing.toBuffer(thing1);
+    let thing2 = typeThing.fromBuffer(buf1);
+    dbg && cc.tag(msg, 'anonymous thing2:', thing2);
+    should.deepEqual(
+      JSON.parse(JSON.stringify(thing2)), 
+      JSON.parse(JSON.stringify(thing1)),
+    );
+    dbg && cc.tag1(msg + UOK, thing2);
+  });
+}); // Patch
 
 describe('IdValue', () => {
   let typeThing = Schema.register(IdValue.SCHEMA, { avro });
@@ -22,12 +111,12 @@ describe('IdValue', () => {
   it('uuidv7', () => {
     const msg = 'ti5e.uuidv7';
     dbg > 1 && cc.tag(msg, '==============');
-    let uuid0 = IdValue.uuid({ msecs: 0 });
-    let uuid1 = IdValue.uuid({ msecs: 1 });
+    let uuid0 = Identifiable.uuid({ msecs: 0 });
+    let uuid1 = Identifiable.uuid({ msecs: 1 });
     let now = Date.now();
-    let idNow = IdValue.uuid({ msecs: now });
+    let idNow = Identifiable.uuid({ msecs: now });
 
-    should(IdValue.uuidToTime(idNow)).equal(now);
+    should(Identifiable.uuidToTime(idNow)).equal(now);
     dbg > 1 &&
       cc.tag(
         msg,
@@ -48,37 +137,10 @@ describe('IdValue', () => {
     should(uuidValidate(uuid0)).equal(true);
     should(uuidValidate(uuid1)).equal(true);
     should(uuidValidate(idNow)).equal(true);
+
     dbg && cc.tag1(msg + UOK, 'valid v7 uuids');
   });
-  it('TESTTESTctor default', () => {
-    const msg = 'ti5e.ctor.default';
-    let i5e = new IdValue();
-    should(uuidValidate(i5e.id)).equal(true);
-    should(uuidVersion(i5e.id)).equal(7);
-    should(i5e.value).equal(null);
-  });
-  it('TESTTESTctor boolean', () => {
-    const msg = 'ti5e.ctor.boolean';
-    let id = 'test-boolean';
-    let value = true;
-    let i5e = new IdValue({ id, value });
-    should(i5e).properties({ id, value });
-  });
-  it('TESTTESTctor double', () => {
-    const msg = 'ti5e.ctor.double';
-    let id = 'test-double';
-    let value = Math.PI;
-    let i5e = new IdValue({ id, value });
-    should(i5e).properties({ id, value });
-  });
-  it('TESTTESTctor string', () => {
-    const msg = 'ti5e.ctor.string';
-    let id = 'test-string';
-    let value = 'aString';
-    let i5e = new IdValue({ id, value });
-    should(i5e).properties({ id, value });
-  });
-  it('TESTTESTavro', () => {
+  it('avro', () => {
     const msg = 'ti5e.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 

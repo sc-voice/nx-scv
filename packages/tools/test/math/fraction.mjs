@@ -7,7 +7,7 @@ const { Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
 
-const dbg = DBG.T2T.FRACTION;
+const dbg = DBG.FRACTION.TEST;
 
 describe('fraction', () => {
   it('default ctor', () => {
