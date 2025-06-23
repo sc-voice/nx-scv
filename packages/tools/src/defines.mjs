@@ -6,13 +6,17 @@ const COLOR_CONSOLE = {
   PROPS_NEXT: 0,
 };
 
+const IDENTIFIABLE = {
+  TEST: 0,
+}
+
 const ID_VALUE = {
   TEST: 0,
-};
+}
 
 const FORMA = {
   TEST: 0,
-};
+}
 
 const FRACTION = {
   REDUCE: 0,
@@ -21,13 +25,17 @@ const FRACTION = {
 
 const PATCH = {
   PATCH_VALUE: 0,
+  TO_AVRO_SCHEMA: 2,
+  TO_AVRO_VALUE: 2,
+  FROM_AVRO_SCHEMA: 2,
+  FROM_AVRO_VALUE: 2,
   TEST: 2,
 }
 
 const SCHEMA = {
   REGISTER: 0,
   TEST: 0,
-};
+}
 
 const SEQUENCE = {
   CTOR: 0,
@@ -43,6 +51,7 @@ export const DBG = {
   COLOR_CONSOLE,
   FORMA,
   FRACTION, 
+  IDENTIFIABLE,
   ID_VALUE,
   PATCH,
   SCHEMA,

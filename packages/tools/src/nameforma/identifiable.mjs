@@ -7,10 +7,8 @@ import { DBG } from '../defines.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 import { Schema } from './schema.mjs';
-import { Fraction } from '../math/fraction.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
-const { PATCH:P3H, SCHEMA: S4A } = DBG;
 
 export class Identifiable {
   #id;
@@ -43,37 +41,4 @@ export class Identifiable {
   get id() { return this.#id };
 }
 
-export class IdValue extends Identifiable {
-  constructor(cfg = {}) {
-    let { id , value = null } = cfg;
-    super(id);
 
-    this.value = value;
-  }
-
-  static get SCHEMA() {
-    return new Schema({
-      type: 'record',
-      name: 'IdValue',
-      fields: [
-        { name: 'id', type: 'string' },
-        {
-          name: 'value',
-          default: null,
-          type: [
-            'null',
-            'string',
-            'double',
-            'boolean',
-            {
-              type: 'array',
-              items: 'IdValue',
-              default: [],
-            },
-          ],
-        },
-      ], // fields
-    });
-  }
-
-}

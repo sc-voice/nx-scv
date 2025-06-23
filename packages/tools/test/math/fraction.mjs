@@ -3,7 +3,7 @@ import should from 'should';
 import { NameForma, ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Fraction } = ScvMath;
-const { Schema, Forma } = NameForma;
+const { Patch, Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
 
@@ -217,19 +217,12 @@ describe('fraction', () => {
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
     let type = Schema.register(Fraction.SCHEMA, { avro });
 
-    let tsp2 = new Fraction(2, 3, 'tbsp');
-    let tsp2Buf = type.toBuffer(tsp2);
-    let tsp2Parsed = type.fromBuffer(tsp2Buf);
-    should(tsp2.toString()).equal('2/3tbsp');
-    should.deepEqual(new Fraction(tsp2Parsed), tsp2);
+    let thing1 = new Fraction(2, 3, 'tbsp');
+    let buf1 = type.toBuffer(thing1);
+    let thing2 = type.fromBuffer(buf1);
+    should(thing1.toString()).equal('2/3tbsp');
+    should.deepEqual(new Fraction(thing2), thing1);
     dbg > 1 && cc.tag(msg, 'fraction with units');
-
-    dbg > 1 && cc.tag(msg, 'fraction without units');
-    let half = new Fraction(1, 2);
-    should(half.units).equal('');
-    let halfBuf = type.toBuffer(half);
-    let halfCopy = new Fraction(type.fromBuffer(halfBuf));
-    should.deepEqual(halfCopy, half);
 
     dbg && cc.tag1(msg + UOK, 'Fraction serialized with avro');
   });

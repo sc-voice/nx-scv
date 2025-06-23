@@ -1,6 +1,8 @@
 import { Clock } from './clock.mjs';
 import { Forma } from './forma.mjs';
-import { Patch, Identifiable, IdValue } from './id-value.mjs';
+import { IdValue } from './id-value.mjs';
+import { Patch } from './patch.mjs';
+import { Identifiable } from './identifiable.mjs';
 import {
   Admin,
   Consumer,
@@ -19,7 +21,7 @@ export const NameForma = {
   Consumer,
   Forma,
   Identifiable,
-  IdValue,
+  IdValue, // deprecated
   Kafka1,
   Patch,
   Producer,
