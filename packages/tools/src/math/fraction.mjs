@@ -3,7 +3,7 @@ import { Schema } from '../nameforma/schema.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: UOK } = Unicode;
-const { FRACTION:F6N } = DBG;
+const { FRACTION: F6N } = DBG;
 const { cc } = ColorConsole;
 
 export class Fraction {
@@ -34,7 +34,9 @@ export class Fraction {
 
     Object.defineProperty(this, 'isNull', {
       enumerable: true,
-      get() { return this.#isNull; },
+      get() {
+        return this.#isNull;
+      },
     });
   }
 

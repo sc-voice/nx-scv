@@ -8,34 +8,37 @@ const COLOR_CONSOLE = {
 
 const IDENTIFIABLE = {
   TEST: 0,
-}
+};
 
 const ID_VALUE = {
   TEST: 0,
-}
+};
 
 const FORMA = {
   TEST: 0,
-}
+};
 
 const FRACTION = {
   REDUCE: 0,
   TEST: 0,
-}
+};
 
 const PATCH = {
   PATCH_VALUE: 0,
-  TO_AVRO_SCHEMA: 2,
-  TO_AVRO_VALUE: 2,
-  FROM_AVRO_SCHEMA: 2,
-  FROM_AVRO_VALUE: 2,
-  TEST: 2,
-}
+  TO_AVRO_OBJECT: 0,
+  TO_AVRO_SCHEMA: 0,
+  TO_AVRO_VALUE: 0,
+  FROM_AVRO_SCHEMA: 0,
+  FROM_AVRO_VALUE: 0,
+  TEST: 0,
+};
 
 const SCHEMA = {
   REGISTER: 0,
   TEST: 0,
-}
+  TO_AVRO_RECORD: 0,
+  TO_AVRO_ARRAY: 0,
+};
 
 const SEQUENCE = {
   CTOR: 0,
@@ -50,7 +53,7 @@ const SEQUENCE = {
 export const DBG = {
   COLOR_CONSOLE,
   FORMA,
-  FRACTION, 
+  FRACTION,
   IDENTIFIABLE,
   ID_VALUE,
   PATCH,

@@ -17,7 +17,9 @@ export class Identifiable {
 
     Object.defineProperty(this, 'id', {
       enumerable: true,
-      get() { return this.#id; },
+      get() {
+        return this.#id;
+      },
     });
   }
 
@@ -38,7 +40,7 @@ export class Identifiable {
     return time;
   }
 
-  get id() { return this.#id };
+  get id() {
+    return this.#id;
+  }
 }
-
-

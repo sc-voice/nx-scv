@@ -16,7 +16,6 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.IDENTIFIABLE.TEST;
 const STARTTEST = '=============';
 
-
 describe('IdValue', () => {
   it('uuidv7', () => {
     const msg = 'ti5e.uuidv7';

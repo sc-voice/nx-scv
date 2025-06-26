@@ -1,7 +1,6 @@
 import { Clock } from './clock.mjs';
 import { Forma } from './forma.mjs';
 import { IdValue } from './id-value.mjs';
-import { Patch } from './patch.mjs';
 import { Identifiable } from './identifiable.mjs';
 import {
   Admin,
@@ -12,6 +11,7 @@ import {
   // non-kafkajs API:
   _Runner,
 } from './kafka1.mjs';
+import { Patch } from './patch.mjs';
 import { Schema } from './schema.mjs';
 import { Task } from './task.mjs';
 import { Timer, Timers } from './timers.mjs';

@@ -4,13 +4,13 @@ import {
   version as uuidVersion,
 } from 'uuid';
 import { DBG } from '../defines.mjs';
+import { Fraction } from '../math/fraction.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 import { Schema } from './schema.mjs';
-import { Fraction } from '../math/fraction.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
-const { PATCH:P3H, SCHEMA: S4A } = DBG;
+const { PATCH: P3H, SCHEMA: S4A } = DBG;
 
 export class Identifiable {
   #id;
@@ -19,7 +19,9 @@ export class Identifiable {
 
     Object.defineProperty(this, 'id', {
       enumerable: true,
-      get() { return this.#id; },
+      get() {
+        return this.#id;
+      },
     });
   }
 
@@ -40,12 +42,14 @@ export class Identifiable {
     return time;
   }
 
-  get id() { return this.#id };
+  get id() {
+    return this.#id;
+  }
 }
 
 export class IdValue extends Identifiable {
   constructor(cfg = {}) {
-    let { id , value = null } = cfg;
+    let { id, value = null } = cfg;
     super(id);
 
     this.value = value;
@@ -75,5 +79,4 @@ export class IdValue extends Identifiable {
       ], // fields
     });
   }
-
 }
