@@ -35,7 +35,7 @@ const PATCH = {
 
 const SCHEMA = {
   REGISTER: 0,
-  TEST: 0,
+  TEST: 1,
   TO_AVRO_RECORD: 0,
   TO_AVRO_ARRAY: 0,
 };

@@ -12,7 +12,7 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.SCHEMA.TEST;
 const STARTTEST = '============';
 
-describe('schema', () => {
+describe('TESTTESTschema', () => {
   function arraySchemaOf(s4aItems) {
     return new Schema({
       type: 'array',
@@ -27,7 +27,7 @@ describe('schema', () => {
     dbg > 1 && cc.tag(msg, s4aItems, 'schema:', schema);
     const type = Schema.register(schema, { avro });
     dbg > 1 && cc.tag(msg, s4aItems, 'type:', type);
-    const avro1 = Schema.toAvroArray(thing1, schema);
+    const avro1 = schema.toAvro(thing1);
     should(avro1).not.equal(undefined);
     dbg > 1 && cc.tag(msg, s4aItems, 'avro1:', avro1);
     const buf1 = type.toBuffer(avro1);
@@ -70,7 +70,7 @@ describe('schema', () => {
 
     dbg && cc.tag1(msg + UOK, 'typical ctor');
   });
-  it('avro', () => {
+  it('TESTTESTavro', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
@@ -107,13 +107,14 @@ describe('schema', () => {
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
   });
-  it('toAvroRecord simple', () => {
-    const msg = 'ts4a.toAvroRecord.simple';
+  it('TESTTESTtoAvro simple', () => {
+    const msg = 'ts4a.toAvro.simple';
     dbg && cc.tag1(msg, STARTTEST);
     const id = 'test-id';
     const clr = 'red';
     const qty = 42;
     const ok = true;
+    const registry = {};
 
     class TestRecord {
       constructor(cfg) {
@@ -131,18 +132,24 @@ describe('schema', () => {
         { name: 'ok', type: 'boolean' },
       ],
     });
+    const type = schema.register({ avro, registry });
     should(schema.name).equal('TestRecord');
-    let avro1 = Schema.toAvroRecord(thing1, schema);
-    should.deepEqual(avro1, { id, clr, qty, ok });
+    let avro1 = schema.toAvro(thing1, {registry});
+    let avro2 = type.clone(thing1, { wrapUnion: true });
+    should.deepEqual(
+      JSON.stringify(avro1), 
+      JSON.stringify({ id, clr, qty, ok })
+    );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
-  it('TESTTESTtoAvroRecord union', () => {
-    const msg = 'ts4a.toAvroRecord.union';
+  it('TESTTESTtoAvro union', () => {
+    const msg = 'ts4a.toAvro.union';
     dbg > 1 && cc.tag(msg, STARTTEST);
     const id = 'test-id';
     const clr = 'red';
     const qty = 42;
     const ok = true;
+    const registry = {};
 
     class TestRecord {
       constructor(cfg) {
@@ -154,25 +161,27 @@ describe('schema', () => {
       type: 'record',
       name: thing1.constructor.name,
       fields: [
-        { name: 'id', type: ['null', 'string'], default: null },
+        { name: 'id', type: 'string', default: 'id?' },
         { name: 'clr', type: ['null', 'string'], default: null },
         { name: 'qty', type: ['null', 'double'], default: null },
         { name: 'ok', type: ['null', 'boolean'], default: null },
       ],
     });
     should(schema.name).equal('TestRecord');
-    let avro1 = Schema.toAvroRecord(thing1, schema);
-    let avroType = avro.parse(schema);
-    should.deepEqual(avro1, {
-      id: { string: id },
-      clr: { string: clr },
-      qty: { double: qty },
-      ok: { boolean: ok },
-    });
+    let avro1 = schema.toAvro(thing1, {registry});
+    should.deepEqual(
+      JSON.stringify(avro1), 
+      JSON.stringify({
+        id,
+        clr: { string: clr },
+        qty: { double: qty },
+        ok: { boolean: ok },
+      })
+    );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
-  it('toAvroArray simple', () => {
-    const msg = 'ts4a.toAvroArray.simple';
+  it('TESTTESTtoAvro simple array', () => {
+    const msg = 'ts4a.toAvro.array.simple';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
     testArraySchema('string', ['a', 'b', 'c']);
@@ -184,40 +193,14 @@ describe('schema', () => {
 
     dbg && cc.tag1(msg + UOK);
   });
-  it('toAvroArray Fraction', () => {
-    const msg = 'ts4a.toAvroArray.Fraction';
+  it('toAvro Fraction array', () => {
+    const msg = 'ts4a.toAvro.array.Fraction';
     dbg > 1 && cc.tag(msg, STARTTEST);
-
-    if (1 == 2/2) {
-      cc.bad1(msg, 'TODO...');
-      return;
-    }
 
     let fractionType = Schema.register(Fraction.SCHEMA, { avro });
     let f1 = new Fraction(1, 3, 'inch');
 
-    //function testArraySchema(s4aItems, thing1) {
-    //testArraySchema('Fraction', [{ Fraction: f1 }]);
-    let s4aItems = 'Fraction';
-    let thing1 = [f1];
-    const schema = arraySchemaOf(s4aItems);
-    dbg > 1 && cc.tag(msg, s4aItems, 'schema:', schema);
-    const type = Schema.register(schema, { avro });
-    let clone = type.clone(thing1);
-    console.log(msg, 'clone', JSON.stringify(clone,null,2));
-
-
-    let typeSchema = JSON.parse(type.getSchema());
-    console.log(msg, 'typeSchema', JSON.stringify(typeSchema,null,2));
-    //console.log(msg, 'REGISTRY', Schema.REGISTRY);
-    dbg > 1 && cc.tag(msg, s4aItems, 'type:', type);
-    const avro1 = Schema.toAvroArray(thing1, schema);
-    should(avro1).not.equal(undefined);
-    dbg > 1 && cc.tag(msg, s4aItems, 'avro1:', avro1);
-    const buf1 = type.toBuffer(avro1);
-    const avro2 = type.fromBuffer(buf1);
-    should.deepEqual(avro2, avro1);
-    dbg && cc.tag1(msg, s4aItems, 'avro2:', avro2);
+    testArraySchema('Fraction', [f1]);
 
     dbg && cc.tag1(msg + UOK);
   });

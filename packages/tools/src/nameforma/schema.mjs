@@ -51,62 +51,38 @@ export class Schema {
     return type;
   }
 
-  static toAvroArray(jsArr, schema) {
-    const msg = 's4a.toAvroArray';
-    const dbg = S4A.TO_AVRO_ARRAY;
-    const { items:s4aItems, default:d6t } = schema;
-    let avroArray;
-    switch (s4aItems) {
-      case 'boolean':
-      case 'double':
-      case 'string':
-        avroArray = jsArr.slice();
-        break;
-      default:
-        dbg > 1 && cc.ok(msg, 's4aItems:', s4aItems);
-        avroArray = jsArr.map(item=> Schema.toAvroRecord(item, s4aItems));
-        break;
-    }
-
-    dbg && cc.ok1(msg+UOK, s4aItems, avroArray);
-    return avroArray;
-  }
-
-  static toAvroRecord(jsObj, schema) {
-    const msg = 's4a.toAvroRecord';
-    const dbg = S4A.TO_AVRO_RECORD;
-    const TYPE_KEY = {
-      number: 'double',
-      boolean: 'boolean',
-      string: 'string',
-    };
-
-    let record = schema.fields.reduce((a, f) => {
-      let { name, type } = f;
-      let jsVal = jsObj[name];
-      // union
-      if (type instanceof Array) {
-        if (jsVal == null) {
-          a[name] = null;
-        } else {
-          let key = TYPE_KEY[typeof jsVal];
-          if (key == null && jsVal instanceof Object) {
-            key = jsVal.constructor.name;
-          }
-          a[name] = { [key]: jsVal };
-        }
-      } else {
-        a[name] = jsVal;
-      }
-      return a;
-    }, {});
-
-    dbg && cc.ok1(msg, 'record:', record);
-    return record;
-  }
-
   get fullName() {
     let { namespace, name } = this;
     return namespace == null ? name : `${namespace}.${name}`;
+  }
+
+  register(opts={}) {
+    return Schema.register(this, opts);
+  }
+
+  toAvro(jsObj, opts={}) {
+    const msg = 's4a.toAvro';
+    const dbg = S4A.TO_AVRO;
+    const { 
+      avro = Schema.#avro, 
+      registry = Schema.#registry,
+    } = opts;
+    if (avro == null) {
+      let eMsg = `${msg} avro?`; 
+      cc.bad1(msg, eMsg);
+      throw new Error(eMsg);
+    }
+    const { name, fullName } = this;
+    let type = registry[name] || registry[fullName];
+    if (type == null) {
+      type = this.register({avro, registry});
+    }
+    if (type == null) {
+      let eMsg = `${msg} type?`; 
+      cc.bad1(msg, eMsg);
+      throw new Error(eMsg);
+    }
+
+    return type.clone(jsObj, {wrapUnions: true});
   }
 }
