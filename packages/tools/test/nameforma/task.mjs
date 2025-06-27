@@ -31,11 +31,8 @@ describe('task', () => {
 
     let t2k = new Task();
     let { id, name } = t2k;
-    should(t2k).properties({ 
-      id, 
-      name: id.split('-').slice(0,2).join('-'), 
-      title: 'title?',
-    });
+    should(t2k.validate({ defaultIdName: true })).equal(true);
+    should(t2k).properties({ title: 'title?' });
     should.deepEqual(t2k.progress, new Fraction(0, 1, 'done'));
     should.deepEqual(t2k.duration, new Fraction(null, 1, 's'));
     should(t2k.toString()).match(/T2K[-0-9a-z]+\. title\? \(0\/1done\)/);

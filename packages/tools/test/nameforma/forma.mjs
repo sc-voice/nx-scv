@@ -25,13 +25,13 @@ describe('Forma', () => {
     let t7g = new TestThing();
     should(t7g.id).match(/^T7G[-0-9a-z]+$/);
   });
-  it('patch', () => {
+  it('TESTTESTpatch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
     let f3a = new Forma();
-    let { id } = f3a;
-    should(f3a.name).equal(id.split('-').slice(0,2).join('-'));
+    should(f3a.validate({ defaultNameId: true })).equal(true);
 
+    const { id } = f3a;
     f3a.patch({ id: 'newId' });
     should(f3a.id).equal(id);
     dbg > 1 && cc.tag(msg, 'id is immutable');

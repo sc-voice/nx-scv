@@ -30,8 +30,8 @@ export class Forma {
     Forma.#instances[prefix] = instances;
 
     let {
-      id = `${prefix+'-'+Identifiable.uuid()}`,
-      name = id.split('-').slice(0,2).join('-'),
+      id = `${prefix + '-' + Identifiable.uuid()}`,
+      name = id.split('-').slice(0, 2).join('-'),
     } = cfg;
 
     Object.defineProperty(this, 'prefix', {
@@ -61,6 +61,29 @@ export class Forma {
   static abbreviateName(name) {
     let length = name.length;
     return [name[0], length - 2, name[length - 1]].join('');
+  }
+
+  validate(opts = {}) {
+    const msg = 'f3a.validate';
+    const dbg = DBG.FORMA.VALIDATE;
+    let { defaultIdName = true } = opts;
+
+    if (defaultIdName) {
+      let parts = this.id.split('-');
+      let prefix = parts.shift();
+      let uuid = parts.join('-');
+      if (!uuidValidate(uuid)) {
+        dbg && cc.bad1(msg, 'uuid?', this.id);
+        return false;
+      }
+      if (!/[A-Z0-9]+/.test(prefix)) {
+        dbg && cc.bad1(msg, 'prefix?', this.id);
+        return false;
+      }
+
+      dbg && cc.ok1(msg + UOK, this.id);
+      return true;
+    }
   }
 
   toString() {

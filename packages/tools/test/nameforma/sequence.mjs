@@ -17,14 +17,14 @@ class Sequence extends Forma {
     super(cfg);
     const msg = `${this.prefix}.ctor`;
     const dbg = S6E.CTOR;
-    let { 
-      unit = 'Step', 
-      steps = [], 
-      //name = this.id, 
-      stepIndex = 0 
+    let {
+      unit = 'Step',
+      steps = [],
+      //name = this.id,
+      stepIndex = 0,
     } = cfg;
 
-    Object.assign(this, { unit, });
+    Object.assign(this, { unit });
 
     // phrases are not externally mutable
     this.#steps = steps.reduce((a, cfg) => {
@@ -189,7 +189,7 @@ describe('sequence', () => {
     dbg > 1 && cc.tag1(msg, '=========');
     let s6e = new Sequence();
     should(s6e.id).match(/^S6E[-0-9a-z]+$/);
-    should(s6e.name).equal(s6e.id.split('-').slice(0,2).join('-'));
+    should(s6e.name).equal(s6e.id.split('-').slice(0, 2).join('-'));
     should(s6e.steps.length).equal(0);
     should.deepEqual(s6e.progress, new Fraction(0, 0, 'Step'));
 

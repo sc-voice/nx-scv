@@ -16,6 +16,7 @@ const ID_VALUE = {
 
 const FORMA = {
   TEST: 0,
+  VALIDATE: 0,
 };
 
 const FRACTION = {
@@ -30,7 +31,7 @@ const PATCH = {
   TO_AVRO_VALUE: 0,
   FROM_AVRO_SCHEMA: 0,
   FROM_AVRO_VALUE: 0,
-  TEST: 0,
+  TEST: 2,
 };
 
 const SCHEMA = {

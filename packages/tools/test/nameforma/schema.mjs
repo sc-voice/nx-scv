@@ -70,7 +70,7 @@ describe('schema', () => {
 
     dbg && cc.tag1(msg + UOK, 'typical ctor');
   });
-  it('TESTTESTavro', () => {
+  it('avro', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
@@ -107,7 +107,7 @@ describe('schema', () => {
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
   });
-  it('TESTTESTtoAvro simple', () => {
+  it('toAvro simple', () => {
     const msg = 'ts4a.toAvro.simple';
     dbg && cc.tag1(msg, STARTTEST);
     const id = 'test-id';
@@ -142,7 +142,7 @@ describe('schema', () => {
     );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
-  it('TESTTESTtoAvro union', () => {
+  it('toAvro union', () => {
     const msg = 'ts4a.toAvro.union';
     dbg > 1 && cc.tag(msg, STARTTEST);
     const id = 'test-id';
@@ -180,7 +180,7 @@ describe('schema', () => {
     );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
-  it('TESTTESTtoAvro simple array', () => {
+  it('toAvro simple array', () => {
     const msg = 'ts4a.toAvro.array.simple';
     dbg > 1 && cc.tag(msg, STARTTEST);
 

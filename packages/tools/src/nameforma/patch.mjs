@@ -26,6 +26,8 @@ export class Patch extends Identifiable {
     super(id);
 
     this.value = Patch.toAvroValue(value);
+    /*
+     */
   }
 
   static toAvroRecord(jsObj, schema) {
