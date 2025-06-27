@@ -12,7 +12,7 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.SCHEMA.TEST;
 const STARTTEST = '============';
 
-describe('TESTTESTschema', () => {
+describe('schema', () => {
   function arraySchemaOf(s4aItems) {
     return new Schema({
       type: 'array',
@@ -134,11 +134,11 @@ describe('TESTTESTschema', () => {
     });
     const type = schema.register({ avro, registry });
     should(schema.name).equal('TestRecord');
-    let avro1 = schema.toAvro(thing1, {registry});
+    let avro1 = schema.toAvro(thing1, { registry });
     let avro2 = type.clone(thing1, { wrapUnion: true });
     should.deepEqual(
-      JSON.stringify(avro1), 
-      JSON.stringify({ id, clr, qty, ok })
+      JSON.stringify(avro1),
+      JSON.stringify({ id, clr, qty, ok }),
     );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
@@ -168,15 +168,15 @@ describe('TESTTESTschema', () => {
       ],
     });
     should(schema.name).equal('TestRecord');
-    let avro1 = schema.toAvro(thing1, {registry});
+    let avro1 = schema.toAvro(thing1, { registry });
     should.deepEqual(
-      JSON.stringify(avro1), 
+      JSON.stringify(avro1),
       JSON.stringify({
         id,
         clr: { string: clr },
         qty: { double: qty },
         ok: { boolean: ok },
-      })
+      }),
     );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });

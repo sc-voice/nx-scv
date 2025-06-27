@@ -14,7 +14,7 @@ describe('clock', () => {
 
     const clock = new Clock();
     should(clock).properties({ running: false });
-    should(clock.id).match(/C3K[0-9]+/);
+    should(clock.id).match(/C3K[-0-9a-z]+/);
 
     // Clocks are distinguishable
     const clock2 = new Clock();

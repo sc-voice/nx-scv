@@ -1,9 +1,4 @@
 import should from 'should';
-import {
-  validate as uuidValid,
-  version as uuidVersion,
-  v7 as uuidv7,
-} from 'uuid';
 import { NameForma } from '../../index.mjs';
 const { Schema, Forma } = NameForma;
 import avro from 'avro-js';
@@ -17,26 +12,25 @@ const dbg = DBG.FORMA.TEST;
 class TestThing extends Forma {
   constructor(cfg = {}) {
     const msg = 't7g.ctor';
-    super();
+    super(cfg);
     cc.fyi1(msg, ...cc.props(this));
   }
 }
 
-describe('forma', () => {
+describe('Forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
-    should(f3a.id).match(/^F3A[0-9]+$/);
+    should(f3a.id).match(/^F3A[-0-9a-z]+$/);
 
     let t7g = new TestThing();
-    should(t7g.id).match(/^T7G[0-9]+$/);
+    should(t7g.id).match(/^T7G[-0-9a-z]+$/);
   });
   it('patch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
     let f3a = new Forma();
     let { id } = f3a;
-    should(f3a.id).equal(id);
-    should(f3a.name).equal(id);
+    should(f3a.name).equal(id.split('-').slice(0,2).join('-'));
 
     f3a.patch({ id: 'newId' });
     should(f3a.id).equal(id);
@@ -52,13 +46,11 @@ describe('forma', () => {
     dbg > 1 && cc.tag(msg, '===========');
 
     const id = 'tavro-id';
-
     const registry = {};
-    const s4a = Forma.SCHEMA;
-    dbg > 1 && cc.tag(msg, 'registerSchema');
-    let type = Forma.registerSchema({ avro, registry });
-    let typeExpected = avro.parse(s4a);
-    let name = `${s4a.namespace}.${s4a.name}`;
+    const schema = Forma.SCHEMA;
+    let type = Schema.register(schema, { avro, registry });
+    let typeExpected = avro.parse(schema);
+    let name = `${schema.namespace}.${schema.name}`;
     should.deepEqual(type, typeExpected);
     should.deepEqual(`"${name}"`, typeExpected.toString());
     should.deepEqual(
@@ -81,37 +73,6 @@ describe('forma', () => {
     let thing2 = new Forma(parsed);
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
-  });
-  it('uuidv7', () => {
-    const msg = 'tf3a.uuidv7';
-    dbg > 1 && cc.tag(msg, '==============');
-    let uuid0 = Forma.uuid({ msecs: 0 });
-    let uuid1 = Forma.uuid({ msecs: 1 });
-    let now = Date.now();
-    let idNow = Forma.uuid({ msecs: now });
-
-    should(Forma.uuidToTime(idNow)).equal(now);
-    dbg > 1 &&
-      cc.tag(
-        msg,
-        { idNow },
-        'uuidToTime:',
-        new Date(now).toLocaleTimeString(),
-      );
-
-    dbg > 1 && cc.tag(msg, { uuid0 });
-    dbg > 1 && cc.tag(msg, { uuid1 });
-    should(uuid1).above(uuid0);
-    should(uuid1).below(idNow);
-    dbg > 1 && cc.tag(msg, 'uuids can be sorted by milliseconds');
-
-    should(uuidVersion(uuid0)).equal(7);
-    should(uuidVersion(uuid1)).equal(7);
-    should(uuidVersion(idNow)).equal(7);
-    should(uuidValid(uuid0)).equal(true);
-    should(uuidValid(uuid1)).equal(true);
-    should(uuidValid(idNow)).equal(true);
-    dbg && cc.tag1(msg + UOK, 'valid v7 uuids');
   });
   it('classes', () => {
     const msg = 'tc5s';

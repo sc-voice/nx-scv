@@ -6,6 +6,7 @@ import {
 import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
+import { Identifiable } from './identifiable.mjs';
 const { CHECKMARK: UOK } = Unicode;
 import { DBG } from '../defines.mjs';
 const { F3A } = DBG.N8A;
@@ -29,8 +30,8 @@ export class Forma {
     Forma.#instances[prefix] = instances;
 
     let {
-      id = `${prefix}${('' + instances).padStart(3, '0')}`,
-      name = id,
+      id = `${prefix+'-'+Identifiable.uuid()}`,
+      name = id.split('-').slice(0,2).join('-'),
     } = cfg;
 
     Object.defineProperty(this, 'prefix', {
@@ -43,27 +44,6 @@ export class Forma {
     this.name = name;
 
     dbg && cc.ok1(msg + UOK, { id, name });
-  }
-
-  static uuid(opts) {
-    return uuidV7(opts);
-  }
-
-  static uuidToTime(id) {
-    const msg = 'f3a.uuidToDate';
-    if (!uuidValidate(id)) {
-      throw new Error(`${msg} invalid uuid:${id}`);
-    }
-    if (uuidVersion(id) !== 7) {
-      throw new Error(`${msg} expected v7 uuid:${id}`);
-    }
-
-    let time = Number.parseInt(id.replace(/-/, '').substring(0, 12), 16);
-    return time;
-  }
-
-  static registerSchema(opts = {}) {
-    return Schema.register(this.SCHEMA, opts);
   }
 
   static get SCHEMA() {

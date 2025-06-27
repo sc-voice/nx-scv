@@ -56,33 +56,30 @@ export class Schema {
     return namespace == null ? name : `${namespace}.${name}`;
   }
 
-  register(opts={}) {
+  register(opts = {}) {
     return Schema.register(this, opts);
   }
 
-  toAvro(jsObj, opts={}) {
+  toAvro(jsObj, opts = {}) {
     const msg = 's4a.toAvro';
     const dbg = S4A.TO_AVRO;
-    const { 
-      avro = Schema.#avro, 
-      registry = Schema.#registry,
-    } = opts;
+    const { avro = Schema.#avro, registry = Schema.#registry } = opts;
     if (avro == null) {
-      let eMsg = `${msg} avro?`; 
+      let eMsg = `${msg} avro?`;
       cc.bad1(msg, eMsg);
       throw new Error(eMsg);
     }
     const { name, fullName } = this;
     let type = registry[name] || registry[fullName];
     if (type == null) {
-      type = this.register({avro, registry});
+      type = this.register({ avro, registry });
     }
     if (type == null) {
-      let eMsg = `${msg} type?`; 
+      let eMsg = `${msg} type?`;
       cc.bad1(msg, eMsg);
       throw new Error(eMsg);
     }
 
-    return type.clone(jsObj, {wrapUnions: true});
+    return type.clone(jsObj, { wrapUnions: true });
   }
 }

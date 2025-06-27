@@ -20,9 +20,9 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   } // t2k.ctor
 
-  static registerSchema(opts = {}) {
-    Schema.register(FRACTION, opts);
-    return super.registerSchema(opts);
+  static registerSchema(opts={}) {
+    Schema.register(Fraction.SCHEMA, opts);
+    return Schema.register(this.SCHEMA, opts);
   }
 
   static get SCHEMA() {

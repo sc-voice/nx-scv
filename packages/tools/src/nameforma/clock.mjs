@@ -18,10 +18,9 @@ export class Clock extends Forma {
 
   constructor(cfg = {}) {
     const msg = 'c3k.ctor';
-    super();
+    super(cfg);
     const dbg = C3K.CTOR;
     let {
-      //id = 'C3K' + String(Clock.#instances).padStart(3, '0'),
       referenceTime = () => Date.now(),
       idle = () => new Promise((r) => setTimeout(() => r(), 500)),
     } = cfg;
