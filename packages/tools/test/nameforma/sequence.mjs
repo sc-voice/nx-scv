@@ -188,8 +188,8 @@ describe('sequence', () => {
     const msg = 's6e.ctor';
     dbg > 1 && cc.tag1(msg, '=========');
     let s6e = new Sequence();
-    should(s6e.id).match(/^S6E[-0-9a-z]+$/);
-    should(s6e.name).equal(s6e.id.split('-').slice(0, 2).join('-'));
+    should(s6e.id).match(/^[-0-9a-z]+$/);
+    should(s6e.name).equal('S6E-'+s6e.id.split('-')[0]);
     should(s6e.steps.length).equal(0);
     should.deepEqual(s6e.progress, new Fraction(0, 0, 'Step'));
 

@@ -13,34 +13,25 @@ const { F3A } = DBG.N8A;
 import { Admin, Consumer, Producer } from './kafka1.mjs';
 import { Schema } from './schema.mjs';
 
-export class Forma {
+export class Forma extends Identifiable {
   static #instances = {};
   #prefix;
 
   constructor(cfg = {}) {
     const msg = 'f3a.ctor';
     const dbg = F3A.CTOR;
+    const { id } = cfg;
+    super(id);
 
-    let {
-      prefix = Forma.abbreviateName(this.constructor.name).toUpperCase(),
-    } = cfg;
-
+    const prefix = this.#defaultPrefix();
     let instances = Forma.#instances[prefix] || 0;
     instances++;
     Forma.#instances[prefix] = instances;
 
     let {
-      id = `${prefix + '-' + Identifiable.uuid()}`,
-      name = id.split('-').slice(0, 2).join('-'),
+      name = prefix + '-' + super.id.split('-')[0],
     } = cfg;
 
-    Object.defineProperty(this, 'prefix', {
-      value: prefix,
-    });
-    Object.defineProperty(this, 'id', {
-      enumerable: true,
-      value: id,
-    });
     this.name = name;
 
     dbg && cc.ok1(msg + UOK, { id, name });
@@ -63,31 +54,45 @@ export class Forma {
     return [name[0], length - 2, name[length - 1]].join('');
   }
 
+  #defaultPrefix() {
+    return Forma.abbreviateName(this.constructor.name).toUpperCase();
+  }
+
   validate(opts = {}) {
     const msg = 'f3a.validate';
     const dbg = DBG.FORMA.VALIDATE;
-    let { defaultIdName = true } = opts;
+    const { 
+      defaultId = true, // id is uuid version 7
+      defaultName = false, // name is derived from id
+    } = opts;
+    const { id, name } = this;
+    let err;
 
-    if (defaultIdName) {
-      let parts = this.id.split('-');
-      let prefix = parts.shift();
-      let uuid = parts.join('-');
-      if (!uuidValidate(uuid)) {
-        dbg && cc.bad1(msg, 'uuid?', this.id);
-        return false;
+    if (!err && defaultId) {
+      if (!uuidValidate(id)) {
+        err = new Error(`${msg} uuid? ${id}`);
+      } else if (uuidVersion(id) !== 7) {
+        err = new Error(`${msg} uuidv7? ${id}`);
       }
-      if (!/[A-Z0-9]+/.test(prefix)) {
-        dbg && cc.bad1(msg, 'prefix?', this.id);
-        return false;
-      }
-
-      dbg && cc.ok1(msg + UOK, this.id);
-      return true;
     }
+    if (!err && defaultName) {
+      const prefix = this.#defaultPrefix();
+      if (!name.startsWith(prefix)) {
+        err = new Error(`${msg} defaultName? ${name}`);
+      }
+    }
+
+    if (err) {
+      dbg && cc.bad1(err.message);
+      return err;
+    }
+
+    dbg && cc.ok1(msg+UOK, {id, name});
+    return true;
   }
 
   toString() {
-    return this.id;
+    return this.name;
   }
 
   patch(cfg = {}) {

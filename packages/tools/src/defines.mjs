@@ -31,12 +31,16 @@ const PATCH = {
   TO_AVRO_VALUE: 0,
   FROM_AVRO_SCHEMA: 0,
   FROM_AVRO_VALUE: 0,
-  TEST: 2,
+  TEST: 0,
+};
+
+const PATCHABLE = {
+  TEST: 1,
 };
 
 const SCHEMA = {
   REGISTER: 0,
-  TEST: 1,
+  TEST: 0,
   TO_AVRO_RECORD: 0,
   TO_AVRO_ARRAY: 0,
 };
@@ -58,6 +62,7 @@ export const DBG = {
   IDENTIFIABLE,
   ID_VALUE,
   PATCH,
+  PATCHABLE,
   SCHEMA,
   SEQUENCE,
 

@@ -1,3 +1,8 @@
+import {
+  v7 as uuidV7,
+  validate as uuidValidate,
+  version as uuidVersion,
+} from 'uuid';
 import should from 'should';
 import { NameForma } from '../../index.mjs';
 const { Schema, Forma } = NameForma;
@@ -17,13 +22,14 @@ class TestThing extends Forma {
   }
 }
 
-describe('Forma', () => {
+describe('TESTTESTForma', () => {
   it('ctor', () => {
     let f3a = new Forma();
-    should(f3a.id).match(/^F3A[-0-9a-z]+$/);
+    should(uuidValidate(f3a.id)).equal(true, `${f3a.id}?`);
+    should(f3a.name).match(/^F3A[-0-9a-z]+$/);
 
     let t7g = new TestThing();
-    should(t7g.id).match(/^T7G[-0-9a-z]+$/);
+    should(t7g.name).match(/^T7G[-0-9a-z]+$/);
   });
   it('TESTTESTpatch', () => {
     const msg = 'tf3a.patch';

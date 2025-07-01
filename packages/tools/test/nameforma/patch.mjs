@@ -329,15 +329,11 @@ class Patchable extends Forma {
   #patch = {};
   #unpatch = {};
 
-  constructor(cfg={}) {
+  constructor(cfg = {}) {
     const msg = 'p7e.ctor';
     super(cfg);
-    let {
-      color = 'color?',
-      size = 0,
-      ok = true,
-    } = cfg;
-    Object.assign(this, {color, size, ok});
+    let { color = 'color?', size = 0, ok = true } = cfg;
+    Object.assign(this, { color, size, ok });
   }
 
   get patch() {
@@ -362,7 +358,7 @@ class Patchable extends Forma {
 
 describe('TESTTESTPatchable', () => {
   class TestPatchable extends Patchable {
-    constructor(cfg={}) {
+    constructor(cfg = {}) {
       super(cfg);
     }
   }
@@ -372,11 +368,11 @@ describe('TESTTESTPatchable', () => {
     const size = 0;
     const ok = true;
     let thing1 = new TestPatchable();
-    should(thing1).properties({color, size, ok});
+    should(thing1).properties({ color, size, ok });
     dbg && cc.tag(msg, 'thing1:', thing1);
-    should(thing1.validate({defaultIdName:true})).equal(true);
+    should(thing1.validate({ defaultIdName: true })).equal(true);
     should(JSON.stringify(thing1.patch)).equal('{}');
-    dbg && cc.tag1(msg+UOK, thing1);
+    dbg && cc.tag1(msg + UOK, thing1);
   });
   it('TESTTESTset()', () => {
     const msg = 'tp7e.set';
@@ -384,30 +380,30 @@ describe('TESTTESTPatchable', () => {
     const size = 42;
     const ok = false;
     let thing1 = new TestPatchable();
-    let {
-      color:oldColor,
-      size:oldSize,
-      ok:oldOk,
-    } = thing1;
+    let { color: oldColor, size: oldSize, ok: oldOk } = thing1;
     dbg && cc.tag(msg, 'thing1:', thing1);
     should.deepEqual(thing1.patch, {});
     should.deepEqual(thing1.unpatch, {});
 
     thing1.set('color', color);
-    should(thing1).properties({color});
-    should.deepEqual(thing1.patch, {color});
-    should.deepEqual(thing1.unpatch, {color:oldColor});
+    should(thing1).properties({ color });
+    should.deepEqual(thing1.patch, { color });
+    should.deepEqual(thing1.unpatch, { color: oldColor });
 
     thing1.set('size', size);
-    should(thing1).properties({color, size});
-    should.deepEqual(thing1.patch, {color, size});
-    should.deepEqual(thing1.unpatch, {color:oldColor, size:oldSize});
+    should(thing1).properties({ color, size });
+    should.deepEqual(thing1.patch, { color, size });
+    should.deepEqual(thing1.unpatch, { color: oldColor, size: oldSize });
 
     thing1.set('ok', ok);
-    should(thing1).properties({color, size, ok});
-    should.deepEqual(thing1.patch, {color, size, ok});
-    should.deepEqual(thing1.unpatch, {color:oldColor, size:oldSize, ok:oldOk});
+    should(thing1).properties({ color, size, ok });
+    should.deepEqual(thing1.patch, { color, size, ok });
+    should.deepEqual(thing1.unpatch, {
+      color: oldColor,
+      size: oldSize,
+      ok: oldOk,
+    });
 
-    dbg && cc.tag1(msg+UOK, thing1);
+    dbg && cc.tag1(msg + UOK, thing1);
   });
 }); // Patch
