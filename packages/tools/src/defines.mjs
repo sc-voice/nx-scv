@@ -25,6 +25,10 @@ const FRACTION = {
 };
 
 const PATCH = {
+  APPLY: 2,
+};
+
+const PATCH_DEPRECATED = {
   PATCH_VALUE: 0,
   TO_AVRO_OBJECT: 0,
   TO_AVRO_SCHEMA: 0,
@@ -62,6 +66,7 @@ export const DBG = {
   IDENTIFIABLE,
   ID_VALUE,
   PATCH,
+  PATCH_DEPRECATED,
   PATCHABLE,
   SCHEMA,
   SEQUENCE,

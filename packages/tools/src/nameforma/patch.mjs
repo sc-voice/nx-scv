@@ -11,7 +11,7 @@ import { Identifiable } from './identifiable.mjs';
 import { Schema } from './schema.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
-const { PATCH: P3H, SCHEMA: S4A } = DBG;
+const { PATCH_DEPRECATED: P3H, SCHEMA: S4A } = DBG;
 
 export class Patch extends Identifiable {
   constructor(cfg) {

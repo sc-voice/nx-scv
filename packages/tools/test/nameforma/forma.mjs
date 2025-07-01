@@ -1,9 +1,9 @@
+import should from 'should';
 import {
   v7 as uuidV7,
   validate as uuidValidate,
   version as uuidVersion,
 } from 'uuid';
-import should from 'should';
 import { NameForma } from '../../index.mjs';
 const { Schema, Forma } = NameForma;
 import avro from 'avro-js';
@@ -22,7 +22,7 @@ class TestThing extends Forma {
   }
 }
 
-describe('TESTTESTForma', () => {
+describe('Forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
     should(uuidValidate(f3a.id)).equal(true, `${f3a.id}?`);
@@ -31,7 +31,7 @@ describe('TESTTESTForma', () => {
     let t7g = new TestThing();
     should(t7g.name).match(/^T7G[-0-9a-z]+$/);
   });
-  it('TESTTESTpatch', () => {
+  it('patch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
     let f3a = new Forma();

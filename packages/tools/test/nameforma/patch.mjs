@@ -356,7 +356,7 @@ class Patchable extends Forma {
   }
 }
 
-describe('TESTTESTPatchable', () => {
+describe('Patchable', () => {
   class TestPatchable extends Patchable {
     constructor(cfg = {}) {
       super(cfg);
@@ -374,7 +374,7 @@ describe('TESTTESTPatchable', () => {
     should(JSON.stringify(thing1.patch)).equal('{}');
     dbg && cc.tag1(msg + UOK, thing1);
   });
-  it('TESTTESTset()', () => {
+  it('set()', () => {
     const msg = 'tp7e.set';
     const color = 'red';
     const size = 42;
