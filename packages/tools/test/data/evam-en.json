@@ -1,0 +1,195 @@
+[
+  {
+    "word": "evaṁ",
+    "lemma_1": "evaṁ 1",
+    "stem": "-",
+    "pos": "ind",
+    "pattern": "",
+    "construction": "eva+aṁ",
+    "key": "4iU",
+    "meaning_1": "thus; this; like this; similarly; in the same manner; just as; such"
+  },
+  {
+    "word": "evaṁ",
+    "lemma_1": "evaṁ 2",
+    "stem": "-",
+    "pos": "ind",
+    "pattern": "",
+    "construction": "eva+aṁ",
+    "key": "4iV",
+    "meaning_1": "yes!; that is right!; correct!"
+  },
+  {
+    "word": "me",
+    "lemma_1": "ahaṁ",
+    "stem": "*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "2pI",
+    "meaning_1": "I"
+  },
+  {
+    "word": "me",
+    "lemma_1": "ma 1.1",
+    "stem": "m",
+    "pos": "letter",
+    "pattern": "a masc",
+    "construction": "",
+    "key": "D7N",
+    "meaning_1": "(gram) letter m; 31st letter of the alphabet; nasal consonant"
+  },
+  {
+    "word": "me",
+    "lemma_1": "mā 2.1",
+    "stem": "m",
+    "pos": "fem",
+    "pattern": "ā fem",
+    "construction": "",
+    "key": "DYr",
+    "meaning_1": "moon"
+  },
+  {
+    "word": "me",
+    "lemma_1": "ma 3.1",
+    "stem": "m",
+    "pos": "ve",
+    "pattern": "a masc",
+    "construction": "",
+    "key": "D7K",
+    "meaning_1": "(gram) ma; verbal ending of the present tense 1st person plural"
+  },
+  {
+    "word": "me",
+    "lemma_1": "mā 3.1",
+    "stem": "m",
+    "pos": "root",
+    "pattern": "ā root",
+    "construction": "√mā+ā",
+    "key": "DYs",
+    "meaning_1": "(gram) √mā (measure)"
+  },
+  {
+    "word": "me",
+    "lemma_1": "me 1",
+    "stem": "!*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "DpT",
+    "meaning_1": "myself; me (object)"
+  },
+  {
+    "word": "me",
+    "lemma_1": "me 2",
+    "stem": "!*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "DpU",
+    "meaning_1": "by me"
+  },
+  {
+    "word": "me",
+    "lemma_1": "me 3",
+    "stem": "!*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "DpV",
+    "meaning_1": "to me; for me"
+  },
+  {
+    "word": "me",
+    "lemma_1": "me 4",
+    "stem": "!*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "DpW",
+    "meaning_1": "from me"
+  },
+  {
+    "word": "me",
+    "lemma_1": "me 5",
+    "stem": "!*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "DpX",
+    "meaning_1": "my; mine"
+  },
+  {
+    "word": "me",
+    "lemma_1": "me 6",
+    "stem": "!*",
+    "pos": "pron",
+    "pattern": "ahaṁ pron",
+    "construction": "",
+    "key": "DpY",
+    "meaning_1": "when I; since I"
+  },
+  {
+    "word": "sutaṁ",
+    "lemma_1": "sutā",
+    "stem": "sut",
+    "pos": "fem",
+    "pattern": "ā fem",
+    "construction": "√su+ta+ā\nsuta+ā",
+    "key": "Gb7",
+    "meaning_1": "daughter"
+  },
+  {
+    "word": "sutaṁ",
+    "lemma_1": "suta 1.1",
+    "stem": "sut",
+    "pos": "pp",
+    "pattern": "a pp",
+    "construction": "√su+ta",
+    "key": "GaX",
+    "meaning_1": "heard"
+  },
+  {
+    "word": "sutaṁ",
+    "lemma_1": "suta 1.2",
+    "stem": "sut",
+    "pos": "pp",
+    "pattern": "a pp",
+    "construction": "√su+ta",
+    "key": "GaY",
+    "meaning_1": "learned",
+    "meaning_lit": "heard"
+  },
+  {
+    "word": "sutaṁ",
+    "lemma_1": "suta 1.3",
+    "stem": "sut",
+    "pos": "nt",
+    "pattern": "a nt",
+    "construction": "√su+ta",
+    "key": "GaZ",
+    "meaning_1": "what is heard; something heard",
+    "meaning_lit": "heard"
+  },
+  {
+    "word": "sutaṁ",
+    "lemma_1": "suta 1.4",
+    "stem": "sut",
+    "pos": "nt",
+    "pattern": "a nt",
+    "construction": "√su+ta",
+    "key": "Gaa",
+    "meaning_1": "learning; knowledge",
+    "meaning_lit": "heard"
+  },
+  {
+    "word": "sutaṁ",
+    "lemma_1": "suta 2.1",
+    "stem": "sut",
+    "pos": "masc",
+    "pattern": "a masc",
+    "construction": "√su+ta",
+    "key": "Gab",
+    "meaning_raw": "son"
+  }
+]
