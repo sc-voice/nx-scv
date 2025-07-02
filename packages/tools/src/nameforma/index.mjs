@@ -12,6 +12,7 @@ import {
   _Runner,
 } from './kafka1.mjs';
 import { Patch } from './patch.mjs';
+import { Rational } from './rational.mjs';
 import { Schema } from './schema.mjs';
 import { Task } from './task.mjs';
 import { Timer, Timers } from './timers.mjs';
@@ -25,6 +26,7 @@ export const NameForma = {
   Kafka1,
   Patch,
   Producer,
+  Rational,
   Schema,
   Task,
   Timer,

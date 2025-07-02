@@ -3,7 +3,7 @@ import {
   validate as uuidValidate,
   version as uuidVersion,
 } from 'uuid';
-import { DBG } from '../defines.mjs';
+import { DBG } from './defines.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 import { Schema } from './schema.mjs';

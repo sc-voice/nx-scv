@@ -8,10 +8,11 @@ import { NameForma } from '../../index.mjs';
 const { Schema, Forma } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
+
 const dbg = DBG.FORMA.TEST;
 
 class TestThing extends Forma {
@@ -22,7 +23,7 @@ class TestThing extends Forma {
   }
 }
 
-describe('Forma', () => {
+describe('TESTTESTForma', () => {
   it('ctor', () => {
     let f3a = new Forma();
     should(uuidValidate(f3a.id)).equal(true, `${f3a.id}?`);

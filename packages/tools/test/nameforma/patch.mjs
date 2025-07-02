@@ -5,13 +5,12 @@ import {
   version as uuidVersion,
 } from 'uuid';
 import { NameForma } from '../../index.mjs';
-const { Forma, Patch, Schema, Identifiable, IdValue } = NameForma;
+const { Rational, Forma, Patch, Schema, Identifiable, IdValue } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
 import { ScvMath } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole } = Text;
-const { Fraction } = ScvMath;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
@@ -21,7 +20,7 @@ const STARTTEST = '=============';
 const aString = 'red';
 const aDouble = Math.PI;
 const aBoolean = true;
-const aFraction = new Fraction(1, 3, 'inch');
+const aRational = new Rational(1, 3, 'inch');
 
 class IdRecord extends Identifiable {
   constructor({ id }) {
@@ -30,7 +29,7 @@ class IdRecord extends Identifiable {
     this.aString = aString;
     this.aDouble = aDouble;
     this.aBoolean = aBoolean;
-    this.aFraction = aFraction;
+    this.aRational = aRational;
   }
 }
 
@@ -127,20 +126,20 @@ describe('Patch', () => {
     should.deepEqual(thing2, thing1);
     dbg && cc.tag1(msg + UOK, thing2);
   });
-  it('Fraction', () => {
-    const msg = 'ti5e.Fraction';
-    let id = 'test-Fraction';
-    let value = new Fraction(1, 3, 'inch');
+  it('Rational', () => {
+    const msg = 'ti5e.Rational';
+    let id = 'test-Rational';
+    let value = new Rational(1, 3, 'inch');
     let thing1 = { id, value };
     let avro1 = Patch.toAvroSchema(thing1);
-    should(avro1).properties({ id, value: { Fraction: value } });
+    should(avro1).properties({ id, value: { Rational: value } });
     dbg > 1 && cc.tag(msg, 'avro1:', avro1);
 
     let buf1 = patchType.toBuffer(avro1);
     let avro2 = patchType.fromBuffer(buf1);
-    let avroFraction = avro2.value.Fraction; // {Fraction: FractionRecord}
-    should(avroFraction.$isValid()).equal(true);
-    should(avroFraction.$getType()).equal(registry.Fraction);
+    let avroRational = avro2.value.Rational; // {Rational: Rational}
+    should(avroRational.$isValid()).equal(true);
+    should(avroRational.$getType()).equal(registry.Rational);
     dbg > 1 && cc.tag(msg, 'avro2:', avro2);
 
     let thing2 = Patch.fromAvroSchema(avro2);
@@ -234,8 +233,8 @@ describe('Patch', () => {
     let aString = 'red';
     let aBool = false;
     let aDouble = Math.PI;
-    let aFraction = new Fraction(1, 3, 'inch');
-    let thing1 = { id, aString, aBool, aDouble, aFraction };
+    let aRational = new Rational(1, 3, 'inch');
+    let thing1 = { id, aString, aBool, aDouble, aRational };
     let avro1 = Patch.toAvroSchema(thing1);
     should(avro1.id).equal(id);
     should.deepEqual(avro1.value, {
@@ -243,7 +242,7 @@ describe('Patch', () => {
         { id: 'aString', value: { string: aString } },
         { id: 'aBool', value: { boolean: aBool } },
         { id: 'aDouble', value: { double: Math.PI } },
-        { id: 'aFraction', value: { Fraction: aFraction } },
+        { id: 'aRational', value: { Rational: aRational } },
       ],
     });
 
@@ -280,7 +279,7 @@ describe('Patch', () => {
               { id: 'aString', value: { string: aString } },
               { id: 'aDouble', value: { double: aDouble } },
               { id: 'aBoolean', value: { boolean: aBoolean } },
-              { id: 'aFraction', value: { Fraction: aFraction } },
+              { id: 'aRational', value: { Rational: aRational } },
             ],
           },
         }),

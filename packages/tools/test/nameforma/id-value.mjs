@@ -5,20 +5,19 @@ import {
   version as uuidVersion,
 } from 'uuid';
 import { NameForma } from '../../index.mjs';
-const { Schema, Identifiable, IdValue } = NameForma;
+const { Schema, Rational, Identifiable, IdValue } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
 import { ScvMath } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole } = Text;
-const { Fraction } = ScvMath;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
 const dbg = DBG.ID_VALUE.TEST;
 const STARTTEST = '=============';
 
-describe('IdValue', () => {
+describe('TESTTESTIdValue', () => {
   let registry = {};
   let typeThing = Schema.register(IdValue.SCHEMA, { avro, registry });
 

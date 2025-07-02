@@ -8,7 +8,7 @@ import { NameForma } from '../../index.mjs';
 const { Identifiable } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;

@@ -2,8 +2,8 @@ import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: UOK, RIGHT_ARROW: URA } = Unicode;
-import { DBG } from '../defines.mjs';
-const { C6R, R4R } = DBG.N8A;
+import { DBG } from './defines.mjs';
+const { KAFKA: K3A, CONSUMER: C6R, PRODUCER: P6R, RUNNER: R4R } = DBG;
 import { Clock } from './clock.mjs';
 
 /*
@@ -60,7 +60,7 @@ class Role {
   async connect() {
     const { tla } = this;
     const msg = `${tla}.connect`;
-    const dbg = DBG.K3A_CONNECT;
+    const dbg = K3A.CONNECT;
     this.connections++;
 
     dbg && cc.ok1(msg + 9.1, 'connections:', this.connections);
@@ -70,7 +70,7 @@ class Role {
   async disconnect() {
     const { tla } = this;
     const msg = `${tla}.disconnect`;
-    const dbg = DBG.K3A_DISCONNECT;
+    const dbg = K3A.DISCONNECT;
     if (this.connections > 0) {
       this.connections--;
       dbg && cc.ok1(msg + 9.1, 'connections:', this.connections);
@@ -458,7 +458,7 @@ export class Consumer extends Role {
 export class Producer extends Role {
   constructor(cfg = {}) {
     const msg = 'p6r.ctor';
-    const dbg = DBG.K3A_CTOR || DBG.K3A_P6R_CTOR;
+    const dbg = K3A.CTOR || P6R.CTOR;
     let { kafka } = cfg;
     super({ tla: 'p6r', kafka });
 
@@ -471,7 +471,7 @@ export class Producer extends Role {
 
   async send(request = {}) {
     const msg = 'p6r.send';
-    const dbg = DBG.K3A_SEND;
+    const dbg = K3A.SEND;
     let { kafka } = this;
     let {
       topic: topicName = NO_TOPIC,
@@ -527,13 +527,13 @@ export class Admin extends Role {
     let { kafka } = cfg;
     super({ tla: 'a3n', kafka });
     const msg = 'p6r.ctor';
-    const dbg = DBG.P6R_CTOR;
+    const dbg = P6R.CTOR;
     dbg && cc.ok1(msg);
   }
 
   async listGroups() {
     const msg = 'k3a.listGroups';
-    const dbg = DBG.K3A_LIST_GROUPS;
+    const dbg = K3A.LIST_GROUPS;
     let { kafka } = this;
     let { _groupMap } = kafka;
     return Object.keys(_groupMap).map((groupId) => {
@@ -555,7 +555,7 @@ export class Admin extends Role {
 
   async describeGroups(groupIds) {
     const msg = 'k3a.describeGroups';
-    const dbg = DBG.K3A_DESCRIBE_GROUPS;
+    const dbg = K3A.DESCRIBE_GROUPS;
     let { kafka } = this;
     let { _groupMap } = kafka;
 
@@ -579,7 +579,7 @@ export class Admin extends Role {
 
   async fetchOffsets(args = {}) {
     const msg = 'a3n.fetchOffsets';
-    const dbg = DBG.K3A_FETCH_OFFSETS;
+    const dbg = K3A.FETCH_OFFSETS;
     const { kafka } = this;
     let { groupId, topics } = args;
 
@@ -618,7 +618,7 @@ export class KRaftNode {
 
   _topicOfName(topicName) {
     const msg = 'k7e._topicOfName';
-    const dbg = DBG.K3A_TOPIC_OF_NAME;
+    const dbg = K3A.TOPIC_OF_NAME;
     let { _topicMap } = this;
     let topic = _topicMap[topicName];
     if (topic == null) {
@@ -633,7 +633,7 @@ export class KRaftNode {
 
   _groupOfId(groupId, opts = {}) {
     const msg = 'k7e._groupOfId';
-    const dbg = DBG.K3A_GROUP_OF_ID;
+    const dbg = K3A.GROUP_OF_ID;
     let { _groupMap } = this;
     let { protocolType = 'consumer' } = opts;
     let group = _groupMap[groupId];
@@ -653,7 +653,7 @@ export class Kafka1 extends KRaftNode {
   constructor(cfg = {}) {
     super();
     const msg = 'k3a.ctor';
-    const dbg = DBG.K3A_CTOR;
+    const dbg = K3A.CTOR;
     let { clientId = 'no-client-id' } = cfg;
 
     Object.assign(this, { clientId });

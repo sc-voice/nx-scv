@@ -5,13 +5,12 @@ import {
   version as uuidVersion,
 } from 'uuid';
 import { NameForma } from '../../index.mjs';
-const { Forma, Schema, Identifiable, IdValue } = NameForma;
+const { Rational, Forma, Schema, Identifiable, IdValue } = NameForma;
 import avro from 'avro-js';
 import { Text } from '../../index.mjs';
 import { ScvMath } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole } = Text;
-const { Fraction } = ScvMath;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
@@ -22,7 +21,7 @@ const STARTTEST = '=============';
 const aString = 'red';
 const aDouble = Math.PI;
 const aBoolean = true;
-const aFraction = new Fraction(1, 3, 'inch');
+const aRational = new Rational(1, 3, 'inch');
 
 class Patch extends Identifiable {
   constructor(cfg = {}) {
@@ -35,15 +34,13 @@ class Patch extends Identifiable {
     });
   }
 
-  apply(dst, opts={}) {
+  apply(dst, opts = {}) {
     const msg = 'P3h.apply';
     const dbg = P3H.APPLY;
-    const {
-      schema = dst?.SCHEMA,
-    } = opts;
+    const { schema = dst?.SCHEMA } = opts;
 
     Object.entries(this).forEach((entry) => {
-      const [ k, vSrc ] = entry;
+      const [k, vSrc] = entry;
       const vDst = dst[k];
       if (vDst !== undefined) {
         if (vSrc === vDst) {
@@ -58,7 +55,6 @@ class Patch extends Identifiable {
       }
     });
   }
-
 }
 
 class Patchable extends Forma {
@@ -92,7 +88,7 @@ describe('Patch', () => {
     const msg = 'tp3h.ctor.default';
     const p3h1 = new Patch();
     should(uuidValidate(p3h1.id)).equal(true);
-    dbg && cc.tag1(msg+UOK, 'p3h1:', p3h1);
+    dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
   it('ctor simple', () => {
     const msg = 'tp3h.ctor.simple';
@@ -100,9 +96,9 @@ describe('Patch', () => {
     const color = 'red';
     const size = 42;
     const sale = false;
-    const p3h1 = new Patch({id, color, size, sale});
-    should(p3h1).properties({id, color, size, sale});
-    dbg && cc.tag1(msg+UOK, 'p3h1:', p3h1);
+    const p3h1 = new Patch({ id, color, size, sale });
+    should(p3h1).properties({ id, color, size, sale });
+    dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
   it('TESTTESTpatch simple', () => {
     const msg = 'tp3h.patch.simple';
@@ -110,24 +106,24 @@ describe('Patch', () => {
     const color = 'red';
     const size = 42;
     const sale = false;
-    const thing1 = {id, color:'blue', size: 34, sale: true};
-    const thing2 = {id, color:'blue', size: 34, sale: true};
-    const p3h1 = new Patch({id});
+    const thing1 = { id, color: 'blue', size: 34, sale: true };
+    const thing2 = { id, color: 'blue', size: 34, sale: true };
+    const p3h1 = new Patch({ id });
     p3h1.apply(thing2);
     should.deepEqual(thing2, thing1);
     dbg && cc.tag(msg, 'empty', p3h1);
 
-    const p3h2 = new Patch({id, color});
+    const p3h2 = new Patch({ id, color });
     p3h2.apply(thing2);
-    should.deepEqual(thing2, { id, color, size:34, sale: true});
+    should.deepEqual(thing2, { id, color, size: 34, sale: true });
     dbg && cc.tag(msg, 'color', p3h2);
 
-    const p3h3 = new Patch({id, color, size, sale});
+    const p3h3 = new Patch({ id, color, size, sale });
     p3h3.apply(thing2);
-    should.deepEqual(thing2, { id, color, size, sale});
+    should.deepEqual(thing2, { id, color, size, sale });
     dbg && cc.tag(msg, 'size,sale', p3h3);
 
-    dbg && cc.tag1(msg+UOK, 'p3h1:', p3h1);
+    dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
 });
 
@@ -146,9 +142,9 @@ describe('Patchable', () => {
     let thing1 = new TestPatchable();
     should(thing1).properties({ color, size, ok });
     should(thing1.validate()).equal(true);
-    dbg > 1&& cc.tag(msg, 'thing1.id:', thing1.id);
+    dbg > 1 && cc.tag(msg, 'thing1.id:', thing1.id);
 
-    should(thing1.validate({defaultName:true})).equal(true);
+    should(thing1.validate({ defaultName: true })).equal(true);
     dbg && cc.tag1(msg + UOK, thing1);
   });
   it('ctor() custom', () => {
@@ -165,10 +161,12 @@ describe('Patchable', () => {
     should(thing1.validate({ defaultId: false })).equal(true);
     dbg > 1 && cc.tag(msg, 'thing1.id:', thing1.id);
 
-    should(thing1.validate({ 
-      defaultId: false, 
-      defaultName: true,
-    })).equal(true);
+    should(
+      thing1.validate({
+        defaultId: false,
+        defaultName: true,
+      }),
+    ).equal(true);
     dbg && cc.tag1(msg + UOK, 'thing1.name:', thing1.name);
   });
   it('TESTTESTset()', () => {
@@ -189,17 +187,16 @@ describe('Patchable', () => {
 
     thing1.set('size', size);
     should(thing1).properties({ color, size });
-    should.deepEqual(
-      Object.assign({}, thing1.patch), 
-      { id, color, size }
-    );
+    should.deepEqual(Object.assign({}, thing1.patch), { id, color, size });
 
     thing1.set('ok', ok);
     should(thing1).properties({ color, size, ok });
-    should.deepEqual(
-      Object.assign({}, thing1.patch), 
-      { id, color, size, ok }
-    );
+    should.deepEqual(Object.assign({}, thing1.patch), {
+      id,
+      color,
+      size,
+      ok,
+    });
 
     dbg && cc.tag1(msg + UOK, thing1);
   });

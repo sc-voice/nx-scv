@@ -2,8 +2,8 @@ import { ColorConsole } from '../text/color-console.mjs';
 const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: OK } = Unicode;
-import { DBG } from '../defines.mjs';
-const { T3R, T4S } = DBG.N8A;
+import { DBG } from './defines.mjs';
+const { TIMER: T3R, TIMERS: T4S } = DBG;
 import { Admin, Consumer, Producer } from './kafka1.mjs';
 
 let timerInstances = 0;

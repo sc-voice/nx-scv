@@ -1,15 +1,18 @@
 import should from 'should';
+import { DBG } from '../../src/nameforma/defines.mjs';
+const { CLOCK: C3K } = DBG;
 import { NameForma } from '../../index.mjs';
 const { Clock } = NameForma;
 import { Text } from '../../index.mjs';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-describe('clock', () => {
+const dbg = C3K.TEST;
+
+describe('TESTTESTclock', () => {
   const msg = 'tclock';
   it('ctor', async () => {
     const msg = 'tc3k.ctor';
-    const dbg = 0;
     dbg && cc.tag(msg, 'START');
 
     const clock = new Clock();
@@ -30,7 +33,6 @@ describe('clock', () => {
   });
   it('referenceTime default', async () => {
     const msg = 'tc3k.referenceTime-default';
-    const dbg = 0;
     dbg && cc.tag1(msg, 'START');
     const clock = new Clock({});
     const msTolerance = 5;
@@ -63,7 +65,6 @@ describe('clock', () => {
   });
   it('referenceTime-custom', async () => {
     const msg = 'tc3k.referenceTime-custom';
-    const dbg = 0;
 
     dbg && cc.tag(msg, 'START');
     let refNow = 0;
@@ -100,7 +101,6 @@ describe('clock', () => {
   });
   it('idle', async () => {
     let msg = 'tc3k.idle';
-    let dbg = 0;
     let msIdle = 50;
     let nIdle = 0;
     let idle = async () => {

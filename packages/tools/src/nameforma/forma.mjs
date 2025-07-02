@@ -8,8 +8,8 @@ const { cc } = ColorConsole;
 import { Unicode } from '../text/unicode.mjs';
 import { Identifiable } from './identifiable.mjs';
 const { CHECKMARK: UOK } = Unicode;
-import { DBG } from '../defines.mjs';
-const { F3A } = DBG.N8A;
+import { DBG } from './defines.mjs';
+const { FORMA: F3A } = DBG;
 import { Admin, Consumer, Producer } from './kafka1.mjs';
 import { Schema } from './schema.mjs';
 
@@ -28,9 +28,7 @@ export class Forma extends Identifiable {
     instances++;
     Forma.#instances[prefix] = instances;
 
-    let {
-      name = prefix + '-' + super.id.split('-')[0],
-    } = cfg;
+    let { name = prefix + '-' + super.id.split('-')[0] } = cfg;
 
     this.name = name;
 
@@ -61,7 +59,7 @@ export class Forma extends Identifiable {
   validate(opts = {}) {
     const msg = 'f3a.validate';
     const dbg = DBG.FORMA.VALIDATE;
-    const { 
+    const {
       defaultId = true, // id is uuid version 7
       defaultName = false, // name is derived from id
     } = opts;
@@ -87,7 +85,7 @@ export class Forma extends Identifiable {
       return err;
     }
 
-    dbg && cc.ok1(msg+UOK, {id, name});
+    dbg && cc.ok1(msg + UOK, { id, name });
     return true;
   }
 

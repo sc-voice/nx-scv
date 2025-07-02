@@ -3,7 +3,7 @@ import should from 'should';
 import { NameForma } from '../../index.mjs';
 const { _Runner, Kafka1, Producer, Consumer, Admin } = NameForma;
 import { Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
 const { cc } = ColorConsole;
 const { GREEN, BLUE, MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
@@ -18,9 +18,9 @@ const {
 
 const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
-const TEST_DBG = DBG.T2T.KAFKA;
+const dbg = DBG.KAFKA.TEST;
 
-describe('kafka', function () {
+describe('TESTTESTkafka', function () {
   this.timeout(4 * heartbeatInterval);
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
@@ -106,7 +106,6 @@ describe('kafka', function () {
   });
   it('k3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
-    const dbg = TEST_DBG;
     let ka = new Kafka1();
     let admin = ka.admin();
     await admin.connect();
@@ -170,7 +169,6 @@ describe('kafka', function () {
   it('k3a.send() _readTopics', async () => {
     const msg = 'tk3a.send.1';
     const ka = new Kafka1();
-    const dbg = TEST_DBG; // enable implementation internal tests
     dbg && cc.tag1(msg + 0.1, 'BEGIN');
     const producer = ka.producer();
     const groupId1 = 'tS2D.G1';
@@ -297,7 +295,6 @@ describe('kafka', function () {
   });
   it('_Runner', async () => {
     const msg = 'tk3a.r4r';
-    const dbg = TEST_DBG;
     dbg && cc.tag1(msg, 'START');
     const ka = new Kafka1();
     const groupId = 'tR4R.G1';
@@ -344,7 +341,6 @@ describe('kafka', function () {
   }); // tk3a.rfr
   it('run', async () => {
     const msg = 'tc6r_run';
-    const dbg = TEST_DBG;
     const ka = new Kafka1();
     const groupId = `${msg}.G1`;
     const topic = `${msg}.TA`;

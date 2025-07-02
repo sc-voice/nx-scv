@@ -3,7 +3,7 @@ import should from 'should';
 import { NameForma } from '../../index.mjs';
 const { Timer, Timers, Kafka1, Admin, Producer, Consumer } = NameForma;
 import { Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { GREEN, BLUE, MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
@@ -24,7 +24,9 @@ const kafka = new Kafka1({
   clientId: 'test-timers',
 });
 
-describe('timers', () => {
+const dbg = DBG.TIMER.TEST;
+
+describe('TESTTESTtimers', () => {
   it('t3r.ctor', () => {
     let created = Date.now();
     let t1 = new Timer();

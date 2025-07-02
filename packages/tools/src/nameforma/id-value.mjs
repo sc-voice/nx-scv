@@ -3,10 +3,10 @@ import {
   validate as uuidValidate,
   version as uuidVersion,
 } from 'uuid';
-import { DBG } from '../defines.mjs';
-import { Fraction } from '../math/fraction.mjs';
+import { Rational } from './rational.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
+import { DBG } from './defines.mjs';
 import { Schema } from './schema.mjs';
 const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;

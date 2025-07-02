@@ -2,9 +2,8 @@ import avro from 'avro-js';
 import should from 'should';
 import { NameForma, ScvMath } from '../../index.mjs';
 import { Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
-const { Fraction } = ScvMath;
-const { Forma, Schema } = NameForma;
+import { DBG } from '../../src/nameforma/defines.mjs';
+const { Rational, Forma, Schema } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -12,7 +11,7 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.SCHEMA.TEST;
 const STARTTEST = '============';
 
-describe('schema', () => {
+describe('TESTTESTschema', () => {
   function arraySchemaOf(s4aItems) {
     return new Schema({
       type: 'array',
@@ -193,14 +192,14 @@ describe('schema', () => {
 
     dbg && cc.tag1(msg + UOK);
   });
-  it('toAvro Fraction array', () => {
-    const msg = 'ts4a.toAvro.array.Fraction';
+  it('toAvro Rational array', () => {
+    const msg = 'ts4a.toAvro.array.Rational';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    let fractionType = Schema.register(Fraction.SCHEMA, { avro });
-    let f1 = new Fraction(1, 3, 'inch');
+    let rationalType = Schema.register(Rational.SCHEMA, { avro });
+    let f1 = new Rational(1, 3, 'inch');
 
-    testArraySchema('Fraction', [f1]);
+    testArraySchema('Rational', [f1]);
 
     dbg && cc.tag1(msg + UOK);
   });

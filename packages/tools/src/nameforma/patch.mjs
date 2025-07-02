@@ -3,8 +3,8 @@ import {
   validate as uuidValidate,
   version as uuidVersion,
 } from 'uuid';
-import { DBG } from '../defines.mjs';
-import { Fraction } from '../math/fraction.mjs';
+import { DBG } from './defines.mjs';
+import { Rational } from './rational.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 import { Identifiable } from './identifiable.mjs';
@@ -91,8 +91,8 @@ export class Patch extends Identifiable {
     if (value instanceof Array) {
       return { array: value };
     }
-    if (value instanceof Fraction) {
-      return { Fraction: value };
+    if (value instanceof Rational) {
+      return { Rational: value };
     }
 
     let tv = typeof value;
@@ -173,8 +173,8 @@ export class Patch extends Identifiable {
       case 'double':
       case 'boolean':
         return avroVal;
-      case 'Fraction':
-        return new Fraction(avroVal);
+      case 'Rational':
+        return new Rational(avroVal);
       case 'array': {
         // array as record
         let jsObj = context || {};
@@ -209,7 +209,7 @@ export class Patch extends Identifiable {
             'string',
             'double',
             'boolean',
-            Fraction.SCHEMA,
+            Rational.SCHEMA,
             {
               type: 'array',
               items: 'Patch',

@@ -1,13 +1,13 @@
-import { DBG } from '../../src/defines.mjs';
-import { Fraction } from '../../src/math/fraction.mjs';
 import { ColorConsole } from '../../src/text/color-console.mjs';
 import { Unicode } from '../../src/text/unicode.mjs';
+import { DBG } from './defines.mjs';
 import { Forma } from './forma.mjs';
+import { Rational } from './rational.mjs';
 import { Schema } from './schema.mjs';
-const { T2K } = DBG.N8A;
+const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
 const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
-const FRACTION = Fraction.SCHEMA;
+const RATIONAL = Rational.SCHEMA;
 const FORMA = Forma.SCHEMA;
 
 export class Task extends Forma {
@@ -21,7 +21,7 @@ export class Task extends Forma {
   } // t2k.ctor
 
   static registerSchema(opts = {}) {
-    Schema.register(Fraction.SCHEMA, opts);
+    Schema.register(Rational.SCHEMA, opts);
     return Schema.register(this.SCHEMA, opts);
   }
 
@@ -32,8 +32,8 @@ export class Task extends Forma {
       fields: [
         ...FORMA.fields,
         { name: 'title', type: 'string' },
-        { name: 'progress', type: FRACTION.fullName },
-        { name: 'duration', type: FRACTION.fullName },
+        { name: 'progress', type: RATIONAL.fullName },
+        { name: 'duration', type: RATIONAL.fullName },
       ],
     });
   }
@@ -44,14 +44,14 @@ export class Task extends Forma {
     super.patch(value);
     let {
       title = 'title?',
-      progress = new Fraction(0, 1, 'done'),
-      duration = new Fraction(null, 1, 's'),
+      progress = new Rational(0, 1, 'done'),
+      duration = new Rational(null, 1, 's'),
     } = value;
-    if (!(duration instanceof Fraction)) {
-      duration = new Fraction(duration);
+    if (!(duration instanceof Rational)) {
+      duration = new Rational(duration);
     }
-    if (!(progress instanceof Fraction)) {
-      progress = new Fraction(progress);
+    if (!(progress instanceof Rational)) {
+      progress = new Rational(progress);
     }
     Object.assign(this, { title, progress, duration });
 

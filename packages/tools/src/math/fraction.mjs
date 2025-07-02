@@ -184,6 +184,6 @@ export class Fraction {
       throw new Error(`${msg} units? "${u1}" vs. "${u2}"`);
     }
 
-    return new Fraction(n1 * d2 + n2 * d1, d1 * d2).reduce();
+    return new this.constructor(n1 * d2 + n2 * d1, d1 * d2).reduce();
   }
 }

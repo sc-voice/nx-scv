@@ -1,5 +1,5 @@
-import { DBG } from '../../src/defines.mjs';
-const { C3K } = DBG.N8A;
+import { DBG } from './defines.mjs';
+const { CLOCK: C3K } = DBG;
 import { ColorConsole } from '../../src/text/color-console.mjs';
 import { Unicode } from '../../src/text/unicode.mjs';
 import { Forma } from './forma.mjs';

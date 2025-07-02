@@ -1,30 +1,30 @@
 import should from 'should';
 import { NameForma } from '../../index.mjs';
-const { Schema, Task, Forma } = NameForma;
+const { Schema, Rational, Task, Forma } = NameForma;
 import { ScvMath, Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
-const { T2K } = DBG.N8A;
-const { Units, Fraction } = ScvMath;
+import { DBG } from '../../src/nameforma/defines.mjs';
+const { TASK: T2K } = DBG;
+const { Units, } = ScvMath;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
 import avro from 'avro-js';
 
 const FRY_EGG = [
-  { name: 'heat pan medium heat', progress: new Fraction(0, 300, 'F') },
-  { name: 'add oil', progress: new Fraction(0, 1, 'Tbs') },
-  { name: 'break egg into pan', progress: new Fraction(0, 2, 'Egg') },
-  { name: 'cover pan', progress: new Fraction(0, 1, 'lid') },
-  { name: 'cook', progress: new Fraction(0, 5, 'minutes') },
+  { name: 'heat pan medium heat', progress: new Rational(0, 300, 'F') },
+  { name: 'add oil', progress: new Rational(0, 1, 'Tbs') },
+  { name: 'break egg into pan', progress: new Rational(0, 2, 'Egg') },
+  { name: 'cover pan', progress: new Rational(0, 1, 'lid') },
+  { name: 'cook', progress: new Rational(0, 5, 'minutes') },
   {
     name: 'turn off heat and serve',
-    progress: new Fraction(0, 1, 'serving'),
+    progress: new Rational(0, 1, 'serving'),
   },
 ];
 
-let dbg = DBG.T2T.TASK;
+let dbg = T2K.TEST;
 
-describe('task', () => {
+describe('TESTTESTtask', () => {
   it('ctor', () => {
     const msg = 'tctor';
     dbg && cc.tag1(msg, 'START');
@@ -33,8 +33,8 @@ describe('task', () => {
     let { id, name } = t2k;
     should(t2k.validate({ defaultIdName: true })).equal(true);
     should(t2k).properties({ title: 'title?' });
-    should.deepEqual(t2k.progress, new Fraction(0, 1, 'done'));
-    should.deepEqual(t2k.duration, new Fraction(null, 1, 's'));
+    should.deepEqual(t2k.progress, new Rational(0, 1, 'done'));
+    should.deepEqual(t2k.duration, new Rational(null, 1, 's'));
     should(t2k.toString()).match(/T2K[-0-9a-z]+\. title\? \(0\/1done\)/);
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
@@ -44,8 +44,8 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '==============');
 
     const title = 'avro-title';
-    const progress = new Fraction(3, 4, 'tbsp');
-    const duration = new Fraction(3, 4, 's');
+    const progress = new Rational(3, 4, 'tbsp');
+    const duration = new Rational(3, 4, 's');
 
     let type = Task.registerSchema({ avro });
     dbg > 1 && cc.tag(msg, 'schema registered');
@@ -62,8 +62,8 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '===================');
     let name = 't2k.put.name';
     let title = 't2k.put.title';
-    let progress = new Fraction(0, 1, 'done');
-    let duration = new Fraction(5, 60, 'hr');
+    let progress = new Rational(0, 1, 'done');
+    let duration = new Rational(5, 60, 'hr');
     let units = new Units();
     let t2k = new Task({ name, title, progress, duration });
     should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
@@ -79,8 +79,8 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '===================');
     let name = 't2k.patch.name';
     let title = 't2k.patch.title';
-    let progress = new Fraction(0, 1, 'done');
-    let duration = new Fraction(5, 60, 'hr');
+    let progress = new Rational(0, 1, 'done');
+    let duration = new Rational(5, 60, 'hr');
     let units = new Units();
     let t2k = new Task({ name, title, progress, duration });
     should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
@@ -96,7 +96,7 @@ describe('task', () => {
     should(t2k.toString()).equal(`${newName}. new title (0/1done 5/60hr)`);
     dbg > 1 && cc.tag(msg, 'patched title');
 
-    t2k.patch({ progress: new Fraction(1, 1, 'done') });
+    t2k.patch({ progress: new Rational(1, 1, 'done') });
     should(t2k.toString()).equal(
       `${newName}${UOK} new title (1done 5/60hr)`,
     );

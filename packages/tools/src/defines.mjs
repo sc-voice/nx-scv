@@ -6,74 +6,17 @@ const COLOR_CONSOLE = {
   PROPS_NEXT: 0,
 };
 
-const IDENTIFIABLE = {
-  TEST: 0,
-};
-
-const ID_VALUE = {
-  TEST: 0,
-};
-
-const FORMA = {
-  TEST: 0,
-  VALIDATE: 0,
-};
-
 const FRACTION = {
   REDUCE: 0,
   TEST: 0,
 };
 
-const PATCH = {
-  APPLY: 2,
-};
-
-const PATCH_DEPRECATED = {
-  PATCH_VALUE: 0,
-  TO_AVRO_OBJECT: 0,
-  TO_AVRO_SCHEMA: 0,
-  TO_AVRO_VALUE: 0,
-  FROM_AVRO_SCHEMA: 0,
-  FROM_AVRO_VALUE: 0,
-  TEST: 0,
-};
-
-const PATCHABLE = {
-  TEST: 1,
-};
-
-const SCHEMA = {
-  REGISTER: 0,
-  TEST: 0,
-  TO_AVRO_RECORD: 0,
-  TO_AVRO_ARRAY: 0,
-};
-
-const SEQUENCE = {
-  CTOR: 0,
-  PATCH: 0,
-  UPSERT: 0,
-  REMOVE: 0,
-  PROGRESS: 0,
-  RENAME_STEPS: 0,
-  TEST: 0,
-};
-
 export const DBG = {
   COLOR_CONSOLE,
-  FORMA,
   FRACTION,
-  IDENTIFIABLE,
-  ID_VALUE,
-  PATCH,
-  PATCH_DEPRECATED,
-  PATCHABLE,
-  SCHEMA,
-  SEQUENCE,
 
   ALIGN_ALL: 0,
   ALIGN_LINE: 0,
-  C6R_CTOR: 0,
   DEEPL_ADAPTER: 0,
   DEEPL_MOCK: 0, // use mock-deepl
   DEEPL_MOCK_XLT: 0, // use mock translation
@@ -81,18 +24,6 @@ export const DBG = {
   DEEPL_XLT: 0, // test live translation
   I6L_CONTAINS: 0,
   I6L_OVERLAPS: 0,
-  K31_PEEK_MESSAGE: 0,
-  K3A_CONNECT: 0,
-  K3A_CREATE_TOPICS: 0,
-  K3A_CTOR: 0,
-  K3A_P6R_CTOR: 0,
-  K3A_DESCRIBE_GROUPS: 0,
-  K3A_DISCONNECT: 0,
-  K3A_FETCH_OFFSETS: 0,
-  K3A_GROUP_OF_ID: 0,
-  K3A_MESSAGE_CLOCK: 0,
-  K3A_SEND: 0,
-  K3A_TOPIC_OF_NAME: 0,
   L2T_TO_STRING: 0,
   L7C_FETCH_LEGACY: 0,
   L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
@@ -105,56 +36,6 @@ export const DBG = {
       DECODE: 0,
     },
   },
-  N8A: {
-    F3A: {
-      CTOR: 0,
-      REGISTER: 0,
-    },
-    S2P: {
-      UPDATE: 0,
-    },
-    C3K: {
-      // Clock
-      START: 0,
-      CTOR: 0,
-      NEXT: 0,
-      CREATE_GENERATOR: 0,
-      UPDATE: 0,
-    },
-    C6R: {
-      // Consumer
-      CTOR: 0,
-      RUN: 0,
-      SUBSCRIBE: 0,
-      READ_TOPICS: 0,
-    },
-    R4R: {
-      // _Runner
-      CTOR: 0,
-      PROCESS: 0,
-      START: 0,
-      STOP: 0,
-    },
-    T2K: {
-      CTOR: 0,
-      TO_STRING: 0,
-      PUT: 0,
-      PATCH: 0,
-    },
-    T4S: {
-      // Timers
-      CTOR: 0,
-      EACH_MESSAGE: 0,
-      ON_LIST: 0,
-      START: 0,
-      STOP: 0,
-    },
-    T3R: {
-      // Timer
-      CTOR: 0,
-      UPDATE: 0,
-    },
-  },
   W7E_BOW_OF_TEXT: 0,
   WORD_MAP_TRANFORMER: 0,
   S5H: {
@@ -164,7 +45,5 @@ export const DBG = {
   },
   T2T: {
     HADAMARD: 0,
-    KAFKA: 0,
-    TASK: 0,
   },
 };

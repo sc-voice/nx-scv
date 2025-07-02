@@ -1,9 +1,8 @@
 import { NameForma } from '../../index.mjs';
-const { Forma, Task } = NameForma;
+const { Forma, Rational, Task } = NameForma;
 import { ScvMath, Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../src/nameforma/defines.mjs';
 const { SEQUENCE: S6E } = DBG;
-const { Fraction } = ScvMath;
 const { Unicode, ColorConsole } = Text;
 const { UOK, URX, cc } = ColorConsole;
 
@@ -53,7 +52,7 @@ class Sequence extends Forma {
     }, 0);
     let denominator = steps.length;
 
-    let p6s = new Fraction(numerator, denominator, unit);
+    let p6s = new Rational(numerator, denominator, unit);
 
     dbg && cc.ok1(msg + UOK, p6s);
     return p6s;
@@ -171,15 +170,15 @@ import should from 'should';
 const FRY_EGG = [
   {
     title: '#0 heat pan medium heat',
-    progress: new Fraction(0, 300, 'F'),
+    progress: new Rational(0, 300, 'F'),
   },
-  { title: '#1 add oil', progress: new Fraction(0, 1, 'Tbs') },
-  { title: '#2 break egg into pan', progress: new Fraction(0, 2, 'Egg') },
-  { title: '#3 cover pan', progress: new Fraction(0, 1, 'lid') },
-  { title: '#4 cook', progress: new Fraction(0, 5, 'minutes') },
+  { title: '#1 add oil', progress: new Rational(0, 1, 'Tbs') },
+  { title: '#2 break egg into pan', progress: new Rational(0, 2, 'Egg') },
+  { title: '#3 cover pan', progress: new Rational(0, 1, 'lid') },
+  { title: '#4 cook', progress: new Rational(0, 5, 'minutes') },
   {
     title: '#5 turn off heat and serve',
-    progress: new Fraction(0, 1, 'serving'),
+    progress: new Rational(0, 1, 'serving'),
   },
 ];
 
@@ -191,7 +190,7 @@ describe('sequence', () => {
     should(s6e.id).match(/^[-0-9a-z]+$/);
     should(s6e.name).equal('S6E-' + s6e.id.split('-')[0]);
     should(s6e.steps.length).equal(0);
-    should.deepEqual(s6e.progress, new Fraction(0, 0, 'Step'));
+    should.deepEqual(s6e.progress, new Rational(0, 0, 'Step'));
 
     dbg && cc.tag1(msg, 'default ctor');
   });
@@ -235,7 +234,7 @@ describe('sequence', () => {
 
     let step1Patch = {
       name: 'Step1',
-      progress: new Fraction(75, 300, 'F'),
+      progress: new Rational(75, 300, 'F'),
     };
     let newStep1 = { title: '#7 new-step-title-a' };
     let newStep2 = { title: '#8 new-step-title-b' };

@@ -1,4 +1,4 @@
-import { DBG } from '../defines.mjs';
+import { DBG } from './defines.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: UOK } = Unicode;
