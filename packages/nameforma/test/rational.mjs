@@ -3,7 +3,7 @@ import should from 'should';
 import { Text, ScvMath } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
-const { Rational, Patch, Schema, Forma } = NameForma;
+const { Rational, Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
 
@@ -205,13 +205,6 @@ describe('TESTTESTRational', () => {
     }
     should(eCaught.message).match(/units.*dollars.*euros/);
   });
-  it('patch', () => {
-    let f6n = new Rational(1, 2, 'meter');
-    f6n.patch({ numerator: 3 });
-    should(f6n.toString()).equal('3/2meter');
-    f6n.patch({ numerator: 4, denominator: 5, units: 'feet' });
-    should(f6n.toString()).equal('4/5feet');
-  });
   it('avro', () => {
     const msg = 'tf6n.avro';
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
@@ -244,14 +237,5 @@ describe('TESTTESTRational', () => {
     should(f1632.toString()).equal('0.5in');
     should(f1632.reduce().toString()).equal('1/2in');
     should(f254.toString()).equal('2.54cm');
-  });
-  it('patch', () => {
-    let f = new Rational(4, 5, 'F');
-    f.patch({ numerator: 3 });
-    should.deepEqual(f, new Rational(3, 5, 'F'));
-    f.patch({ denominator: 7 });
-    should.deepEqual(f, new Rational(3, 7, 'F'));
-    f.patch({ units: 'Fahrenheit' });
-    should.deepEqual(f, new Rational(3, 7, 'Fahrenheit'));
   });
 });

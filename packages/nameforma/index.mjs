@@ -11,7 +11,7 @@ import {
   // non-kafkajs API:
   _Runner,
 } from './src/kafka1.mjs';
-//import { Patch } from './src/patch.mjs';
+import { Patch } from './src/patch.mjs';
 import { Rational } from './src/rational.mjs';
 import { Schema } from './src/schema.mjs';
 import { Task } from './src/task.mjs';
@@ -24,7 +24,7 @@ export const NameForma = {
   Identifiable,
   //IdValue, // deprecated
   Kafka1,
-  //Patch,
+  Patch,
   Producer,
   Rational,
   Schema,
