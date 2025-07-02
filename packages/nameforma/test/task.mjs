@@ -1,14 +1,15 @@
 import should from 'should';
-import { NameForma } from '../../index.mjs';
+import avro from 'avro-js';
+import { NameForma } from '../index.mjs';
+import { ScvMath, Text } from '@sc-voice/tools';
+import { DBG } from '../src/defines.mjs';
+
 const { Schema, Rational, Task, Forma } = NameForma;
-import { ScvMath, Text } from '../../index.mjs';
-import { DBG } from '../../src/nameforma/defines.mjs';
 const { TASK: T2K } = DBG;
 const { Units } = ScvMath;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
-import avro from 'avro-js';
 
 const FRY_EGG = [
   { name: 'heat pan medium heat', progress: new Rational(0, 300, 'F') },

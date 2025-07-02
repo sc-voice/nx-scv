@@ -1,12 +1,12 @@
 import should from 'should';
-import { DBG } from '../../src/nameforma/defines.mjs';
+import { Text } from '@sc-voice/tools';
+import { NameForma } from '../index.mjs';
+import { DBG } from '../src/defines.mjs';
+
 const { CLOCK: C3K } = DBG;
-import { NameForma } from '../../index.mjs';
 const { Clock } = NameForma;
-import { Text } from '../../index.mjs';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
-
 const dbg = C3K.TEST;
 
 describe('clock', () => {

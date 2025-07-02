@@ -1,9 +1,10 @@
 import util from 'node:util';
 import should from 'should';
-import { NameForma } from '../../index.mjs';
+import { Text } from '@sc-voice/tools';
+import { NameForma } from '../index.mjs';
+import { DBG } from '../src/defines.mjs';
+
 const { _Runner, Kafka1, Producer, Consumer, Admin } = NameForma;
-import { Text } from '../../index.mjs';
-import { DBG } from '../../src/nameforma/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
 const { cc } = ColorConsole;
 const { GREEN, BLUE, MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
