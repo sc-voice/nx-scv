@@ -1,5 +1,5 @@
 {
-  "name": "@sc-voice/tools",
+  "name": "@sc-voice/nameforma",
   "version": "3.33.0",
   "description": "Utilities for SC-Voice",
   "main": "index.mjs",
@@ -22,7 +22,7 @@
   "keywords": [
     "SC-Voice",
     "nx-scv",
-    "Tools",
+    "NameForma",
     "Javascript"
   ],
   "author": "Karl Lew",
@@ -30,16 +30,15 @@
   "bugs": {
     "url": "https://github.com/sc-voice/nx-scv/issues"
   },
-  "homepage": "https://github.com/sc-voice/nx-scv/packages/tools/#readme",
+  "homepage": "https://github.com/sc-voice/nx-scv/packages/nameforma/#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "avro-js": "^1.12.0",
-    "deepl-node": "^1.15.0",
     "eslint": "^9.17.0",
     "mocha": "^11.0.1",
     "should": "^13.2.3"
   },
   "dependencies": {
+    "avro-js": "^1.12.0",
     "uuid": "^11.1.0"
   }
 }
