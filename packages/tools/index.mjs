@@ -52,4 +52,3 @@ export const Graph = {
   Sankey, 
 }
 
-export { NameForma } from './src/nameforma/index.mjs';

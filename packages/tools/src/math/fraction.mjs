@@ -1,5 +1,4 @@
 import { DBG } from '../defines.mjs';
-import { Schema } from '../nameforma/schema.mjs';
 import { ColorConsole } from '../text/color-console.mjs';
 import { Unicode } from '../text/unicode.mjs';
 const { CHECKMARK: UOK } = Unicode;
@@ -37,19 +36,6 @@ export class Fraction {
       get() {
         return this.#isNull;
       },
-    });
-  }
-
-  static get SCHEMA() {
-    return new Schema({
-      name: 'Fraction',
-      type: 'record',
-      fields: [
-        { name: 'isNull', type: 'boolean', default: false },
-        { name: 'numerator', type: 'double' },
-        { name: 'denominator', type: 'double' },
-        { name: 'units', type: 'string' },
-      ],
     });
   }
 

@@ -1,5 +1,5 @@
 import should from 'should';
-import { NameForma, ScvMath, Text } from '../../index.mjs';
+import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Fraction } = ScvMath;
 const { cc } = Text.ColorConsole;
