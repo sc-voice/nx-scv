@@ -1,55 +1,35 @@
-import { Assert } from './src/js/assert.mjs';
-export const JS = { Assert,
-}
-
-import { Activation } from './src/math/activation.mjs';
-import { Fraction } from './src/math/fraction.mjs';
-import { Units } from './src/math/units.mjs';
-import { Interval } from './src/math/interval.mjs';
-import { Hadamard } from './src/math/hadamard.mjs';
-
-export const ScvMath = {
-  Activation,
-  Fraction,
-  Hadamard,
-  Interval, Units,
+//import { Clock } from './src/clock.mjs';
+import { Forma } from './src/forma.mjs';
+//import { IdValue } from './src/id-value.mjs';
+import { Identifiable } from './src/identifiable.mjs';
+//import {
+  //Admin,
+  //Consumer,
+  //// kafkajs API:
+  //Kafka1,
+  //Producer,
+  // non-kafkajs API:
+  //_Runner,
+//} from './src/kafka1.mjs';
+//import { Patch } from './src/patch.mjs';
+import { Rational } from './src/rational.mjs';
+import { Schema } from './src/schema.mjs';
+//import { Task } from './src/task.mjs';
+//import { Timer, Timers } from './src/timers.mjs';
+export const NameForma = {
+  //Admin,
+  //Clock,
+  //Consumer,
+  Forma,
+  Identifiable,
+  //IdValue, // deprecated
+  //Kafka1,
+  //Patch,
+  //Producer,
+  Rational,
+  Schema,
+  //Task,
+  //Timer,
+  //Timers,
+  //_Runner,
 };
-
-import { BilaraPath } from './src/text/bilara-path.mjs';
-import { List, ListFactory } from './src/text/list.mjs';
-import { Corpus } from './src/text/corpus.mjs';
-import { EbtDoc } from './src/text/ebt-doc.mjs';
-import { LegacyDoc } from './src/text/legacy-doc.mjs';
-import { MerkleJson } from './src/text/merkle-json.mjs';
-import { SuttaCentralId } from './src/text/sutta-central-id.mjs';
-import { Unicode } from './src/text/unicode.mjs';
-import { WordSpace } from './src/text/word-space.mjs';
-import { WordVector } from './src/text/word-vector.mjs';
-import { TfidfSpace } from './src/text/tfidf-space.mjs';
-import { LogEntry, Logger } from './src/text/logger.mjs';
-import { ColorConsole} from './src/text/color-console.mjs';
-
-export const Text = {
-  BilaraPath,
-  ColorConsole,
-  List,
-  ListFactory,
-  Corpus,
-  EbtDoc,
-  LegacyDoc,
-  LogEntry,
-  Logger,
-  MerkleJson,
-  SuttaCentralId,
-  Unicode,
-  WordSpace,
-  WordVector,
-  TfidfSpace,
-};
-
-import { default as Sankey } from './src/graph/sankey.mjs';
-export const Graph = {
-  Sankey, 
-}
-
-export { NameForma } from './src/nameforma/index.mjs';

@@ -1,49 +1,133 @@
-const COLOR_CONSOLE = {
-  AS_STRING: 0,
-  INSPECT: 0,
-  SRC: 0,
-  TEST: 0,
-  PROPS_NEXT: 0,
+const CLOCK = {
+  START: 0,
+  CTOR: 0,
+  NEXT: 0,
+  CREATE_GENERATOR: 0,
+  UPDATE: 0,
 };
 
-const FRACTION = {
+const CONSUMER = {
+  CTOR: 0,
+  READ_TOPICS: 0,
+  RUN: 0,
+  SUBSCRIBE: 0,
+  TEST: 0,
+};
+
+const FORMA = {
+  TEST: 0,
+  VALIDATE: 0,
+};
+
+const IDENTIFIABLE = {
+  TEST: 0,
+};
+
+const ID_VALUE = {
+  TEST: 0,
+};
+
+const KAFKA = {
+  CONNECT: 0,
+  CREATE_TOPICS: 0,
+  CTOR: 0,
+  DESCRIBE_GROUPS: 0,
+  DISCONNECT: 0,
+  FETCH_OFFSETS: 0,
+  GROUP_OF_ID: 0,
+  MESSAGE_CLOCK: 0,
+  P6R_CTOR: 0,
+  PEEK_MESSAGE: 0,
+  SEND: 0,
+  TEST: 0,
+  TOPIC_OF_NAME: 0,
+};
+
+const PATCH = {
+  APPLY: 0,
+};
+
+const PATCH_DEPRECATED = {
+  PATCH_VALUE: 0,
+  TO_AVRO_OBJECT: 0,
+  TO_AVRO_SCHEMA: 0,
+  TO_AVRO_VALUE: 0,
+  FROM_AVRO_SCHEMA: 0,
+  FROM_AVRO_VALUE: 0,
+  TEST: 0,
+};
+
+const PATCHABLE = {
+  TEST: 0,
+};
+
+const PRODUCER = {
+  TEST: 0,
+};
+
+const RATIONAL = {
   REDUCE: 0,
   TEST: 0,
 };
 
-export const DBG = {
-  COLOR_CONSOLE,
-  FRACTION,
+const RUNNER = {
+  CTOR: 0,
+  PROCESS: 0,
+  START: 0,
+  STOP: 0,
+  TEST: 0,
+};
 
-  ALIGN_ALL: 0,
-  ALIGN_LINE: 0,
-  DEEPL_ADAPTER: 0,
-  DEEPL_MOCK: 0, // use mock-deepl
-  DEEPL_MOCK_XLT: 0, // use mock translation
-  DEEPL_TEST_API: 0, // test with live DeepL API ($$$)
-  DEEPL_XLT: 0, // test live translation
-  I6L_CONTAINS: 0,
-  I6L_OVERLAPS: 0,
-  L2T_TO_STRING: 0,
-  L7C_FETCH_LEGACY: 0,
-  L7C_FETCH_LEGACY_SC: 0, // ignore test cache and use SC
-  ML_DOC_VECTORS: 0, // 'mn8:3.4'
-  MN8_MOHAN: 0,
-  M2H: {
-    H6D: {
-      FWHT: 0,
-      ENCODE: 0,
-      DECODE: 0,
-    },
-  },
-  W7E_BOW_OF_TEXT: 0,
-  WORD_MAP_TRANFORMER: 0,
-  S5H: {
-    U3S: {
-      CONVERT_FRACTION: 0,
-    },
-  },
-  T2T: {
-    HADAMARD: 0,
-  },
+const SCHEMA = {
+  REGISTER: 0,
+  TEST: 0,
+  TO_AVRO_RECORD: 0,
+  TO_AVRO_ARRAY: 0,
+};
+
+const SEQUENCE = {
+  CTOR: 0,
+  PATCH: 0,
+  UPSERT: 0,
+  REMOVE: 0,
+  PROGRESS: 0,
+  RENAME_STEPS: 0,
+  TEST: 0,
+};
+
+const TASK = {
+  TEST: 0,
+};
+
+const TIMER = {
+  CTOR: 0,
+  EACH_MESSAGE: 0,
+  ON_LIST: 0,
+  START: 0,
+  STOP: 0,
+  UPDATE: 0,
+};
+
+const TIMERS = {
+  CTOR: 0,
+};
+
+export const DBG = {
+  CLOCK,
+  CONSUMER,
+  PRODUCER,
+  FORMA,
+  IDENTIFIABLE,
+  ID_VALUE,
+  KAFKA,
+  PATCH,
+  PATCH_DEPRECATED,
+  PATCHABLE,
+  RATIONAL,
+  RUNNER,
+  SCHEMA,
+  SEQUENCE,
+  TASK,
+  TIMER,
+  TIMERS,
 };

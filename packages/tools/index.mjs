@@ -12,7 +12,8 @@ export const ScvMath = {
   Activation,
   Fraction,
   Hadamard,
-  Interval, Units,
+  Interval, 
+  Units,
 };
 
 import { BilaraPath } from './src/text/bilara-path.mjs';
