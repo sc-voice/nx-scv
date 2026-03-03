@@ -2,7 +2,9 @@
   "name": "@sc-voice/nx-scv",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "test": "npm run test -ws"
+  },
   "private": true,
   "dependencies": {},
   "devDependencies": {
@@ -14,9 +16,7 @@
     "tslib": "^2.3.0",
     "typescript": "~5.8.2"
   },
-  "scripts": [
-  ],
   "workspaces": [
-    "packages/*"
+    "pkg/*"
   ]
 }
