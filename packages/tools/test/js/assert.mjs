@@ -1,17 +1,17 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { JS } from '../../index.mjs';
 const { Assert } = JS;
 
 describe('assert', () => {
   it('ok', () => {
-    should(Assert.ok('hello')).equal('hello');
-    should(Assert.ok(true)).equal(true);
-    should(Assert.ok(1 + 2)).equal(3);
-    should.deepEqual(Assert.ok({ a: 1 }), { a: 1 });
+    expect(Assert.ok('hello')).toBe('hello');
+    expect(Assert.ok(true)).toBe(true);
+    expect(Assert.ok(1 + 2)).toBe(3);
+    expect(Assert.ok({ a: 1 })).toEqual({ a: 1 });
     let f = () => 'f';
-    should(Assert.ok(f)).equal(f);
+    expect(Assert.ok(f)).toBe(f);
     let list = [];
-    should(Assert.ok(list)).equal(list);
+    expect(Assert.ok(list)).toBe(list);
 
     let eCaught;
     try {
@@ -19,30 +19,30 @@ describe('assert', () => {
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).equal('undefined?');
+    expect(eCaught.message).toBe('undefined?');
     try {
       Assert.ok(null, 'null?');
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).equal('null?');
+    expect(eCaught.message).toBe('null?');
     try {
       Assert.ok(false, 'false?');
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).equal('false?');
+    expect(eCaught.message).toBe('false?');
     try {
       Assert.ok(0, '0?');
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).equal('0?');
+    expect(eCaught.message).toBe('0?');
     try {
       Assert.ok(Number('NaN'), 'NaN?');
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).equal('NaN?');
+    expect(eCaught.message).toBe('NaN?');
   });
 });

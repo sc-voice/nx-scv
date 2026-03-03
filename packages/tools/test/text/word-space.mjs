@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import { Text } from '../../index.mjs';
@@ -26,10 +26,10 @@ const wsTest = new WordSpace(WSTEST_CONFIG);
 describe('text/word-space', () => {
   it('default ctor', () => {
     let ws = new WordSpace();
-    should(ws.minWord).equal(4);
-    should(ws.corpusSize).equal(0);
-    should(ws.idfWeight).equal(1.618033988749895);
-    should.deepEqual(ws.corpusBow, new Vector());
+    expect(ws.minWord).toBe(4);
+    expect(ws.corpusSize).toBe(0);
+    expect(ws.idfWeight).toBe(1.618033988749895);
+    expect(ws.corpusBow).toEqual(new Vector());
   });
   it('custom ctor', () => {
     let wordMap = { a: 'x' };
@@ -42,18 +42,16 @@ describe('text/word-space', () => {
       corpusSize,
       wordMap,
     });
-    should(ws.minWord).equal(minWord);
-    should(ws.transformText('a fox')).equal('x fox');
-    should(ws.corpusBow).equal(corpusBow);
-    should(ws.corpusSize).equal(corpusSize);
+    expect(ws.minWord).toBe(minWord);
+    expect(ws.transformText('a fox')).toBe('x fox');
+    expect(ws.corpusBow).toBe(corpusBow);
+    expect(ws.corpusSize).toBe(corpusSize);
   });
   it('string2Vector() FOX', () => {
     let ws = new WordSpace({ normalizeVector: null });
     let v = ws.string2Vector(FOX);
-    should(v).instanceOf(Vector);
-    should.deepEqual(
-      v,
-      new Vector({
+    expect(v).toBeInstanceOf(Vector);
+    expect(v).toEqual(new Vector({
         // a: 1, // minWord
         brown: 1,
         fence: 1,
@@ -62,15 +60,12 @@ describe('text/word-space', () => {
         over: 1,
         quick: 1,
         //the: 1, // minWord
-      }),
-    );
-    should(v.length).equal(5);
+      }),);
+    expect(v.length).toBe(5);
 
     let scale = 0.8;
     let v8 = ws.string2Vector(FOX, scale);
-    should.deepEqual(
-      v8,
-      new Vector({
+    expect(v8).toEqual(new Vector({
         // a: 1*scale, // minWord
         brown: 1 * scale,
         fence: 1 * scale,
@@ -79,71 +74,71 @@ describe('text/word-space', () => {
         over: 1 * scale,
         quick: 1 * scale,
         //the: 1 * scale,
-      }),
-    );
-    should(v8.length).equal(5);
+      }),);
+    expect(v8.length).toBe(5);
   });
   it('string2Vector() Bienheureux', () => {
     let v = wsTest.string2Vector('le Bienheureux dit');
-    should(v).instanceOf(Vector);
-    should.deepEqual(Object.keys(v), ['bouddha']);
-    should(v.bouddha).above(0.8).below(0.802);
+    expect(v).toBeInstanceOf(Vector);
+    expect(Object.keys(v)).toEqual(['bouddha']);
+    expect(v.bouddha).toBeGreaterThan(0.8);
+    expect(v.bouddha).toBeLessThan(0.802);
   });
   it('add()', () => {
     let v1 = new Vector({ a: 1, b: 2 });
     let v2 = new Vector({ b: 10, c: 10 });
     let v3 = v1.add(v2);
-    should.deepEqual(v3, new Vector({ a: 1, b: 12, c: 10 }));
+    expect(v3).toEqual(new Vector({ a: 1, b: 12, c: 10 }));
   });
   it('increment()', () => {
     let v1 = new Vector({ a: 1, b: 2 });
     let v2 = new Vector({ b: 10, c: 10 });
     let v3 = v1.increment(v2);
-    should(v3).equal(v1);
-    should.deepEqual(v3, new Vector({ a: 1, b: 12, c: 10 }));
+    expect(v3).toBe(v1);
+    expect(v3).toEqual(new Vector({ a: 1, b: 12, c: 10 }));
   });
   it('norm()', () => {
     let a = new Vector({ a: 2 });
-    should(a.norm()).equal(2);
+    expect(a.norm()).toBe(2);
     let ab = new Vector({ a: 1, b: 1 });
-    should(ab.norm()).equal(Math.sqrt(2));
+    expect(ab.norm()).toBe(Math.sqrt(2));
     let abc = new Vector({ a: 1, b: 2, c: 3 });
-    should(abc.norm()).equal(Math.sqrt(1 + 4 + 9));
+    expect(abc.norm()).toBe(Math.sqrt(1 + 4 + 9));
     let cba = new Vector({ c: 1, b: 2, a: 3 });
-    should(cba.norm()).equal(abc.norm());
+    expect(cba.norm()).toBe(abc.norm());
     let xy = new Vector({ x: 10, y: 20 });
-    should(xy.norm()).equal(Math.sqrt(100 + 400));
+    expect(xy.norm()).toBe(Math.sqrt(100 + 400));
   });
   it('dot()', () => {
     let abc = new Vector({ a: 1, b: 2, c: 3 });
-    should(abc.dot(abc)).equal(14);
+    expect(abc.dot(abc)).toBe(14);
     let ab = new Vector({ a: 10, b: 20 });
-    should(ab.dot(abc)).equal(50);
-    should(abc.dot(ab)).equal(50);
+    expect(ab.dot(abc)).toBe(50);
+    expect(abc.dot(ab)).toBe(50);
     let cba = new Vector({ a: 3, b: 2, c: 1 });
-    should(cba.dot(cba)).equal(14);
-    should(abc.dot(cba)).equal(10);
+    expect(cba.dot(cba)).toBe(14);
+    expect(abc.dot(cba)).toBe(10);
     let xyz = new Vector({ x: 10, y: 11, z: 12 });
-    should(xyz.dot(abc)).equal(0);
+    expect(xyz.dot(abc)).toBe(0);
   });
   it('similar()', () => {
     let abc = new Vector({ a: 1, b: 2, c: 3 });
     let ab = new Vector({ a: 1, b: 2 });
-    should(abc.similar(abc)).equal(1);
-    should(ab.similar(abc)).equal(0.5976143046671968);
-    should(abc.similar(ab)).equal(0.5976143046671968);
-    should(abc.similar(ab)).equal(0.5976143046671968);
+    expect(abc.similar(abc)).toBe(1);
+    expect(ab.similar(abc)).toBe(0.5976143046671968);
+    expect(abc.similar(ab)).toBe(0.5976143046671968);
+    expect(abc.similar(ab)).toBe(0.5976143046671968);
 
     let AB = new Vector({ a: 10, b: 20 });
-    should(abc.similar(AB)).equal(0.5976143046671968);
+    expect(abc.similar(AB)).toBe(0.5976143046671968);
 
     let ab_c = new Vector({ a: 1, b: 2, c: 1 });
-    should(abc.similar(ab_c)).equal(0.8728715609439696);
+    expect(abc.similar(ab_c)).toBe(0.8728715609439696);
 
     let xyz = new Vector({ x: 1, y: 1, z: 1 });
     let wxyz = new Vector({ w: 1, x: 1, y: 1, z: 1 });
-    should(xyz.similar(wxyz)).equal(0.8660254037844387);
-    should(wxyz.similar(xyz)).equal(0.8660254037844387);
+    expect(xyz.similar(wxyz)).toBe(0.8660254037844387);
+    expect(wxyz.similar(xyz)).toBe(0.8660254037844387);
   });
   it('similar-mn8:3.4', () => {
     const msg = 'TW7e.similar-mn8:3.4:';
@@ -173,17 +168,17 @@ describe('text/word-space', () => {
       { similar: {} },
     );
     dbg > 1 && console.log(msg, scan);
-    should(scan.match).equal('mn8:3.4');
+    expect(scan.match).toBe('mn8:3.4');
   });
   it('WordMapTransformer.normalizeFR()', () => {
     let { normalizeFR } = WordSpace.WordMapTransformer;
-    should(normalizeFR("d'entendu")).equal('de entendu');
-    should(normalizeFR('L’effacement de')).equal('le effacement de');
-    should(normalizeFR('de L’effacement')).equal('de le effacement');
-    should(normalizeFR('s’étant abc')).equal('se étant abc');
-    should(normalizeFR('abc s’étant')).equal('abc se étant');
-    should(normalizeFR('abc ?')).equal('abc $QUESTION');
-    should(normalizeFR('mal’')).equal('mal’');
+    expect(normalizeFR("d'entendu")).toBe('de entendu');
+    expect(normalizeFR('L’effacement de')).toBe('le effacement de');
+    expect(normalizeFR('de L’effacement')).toBe('de le effacement');
+    expect(normalizeFR('s’étant abc')).toBe('se étant abc');
+    expect(normalizeFR('abc s’étant')).toBe('abc se étant');
+    expect(normalizeFR('abc ?')).toBe('abc $QUESTION');
+    expect(normalizeFR('mal’')).toBe('mal’');
   });
   it('transformText() FR phrase', () => {
     let text1 =
@@ -193,13 +188,13 @@ describe('text/word-space', () => {
       'voleron[^ ]*': 'adinnādāyī',
     };
     let ws = new WordSpace({ wordMap });
-    should(ws.transformText(text1)).equal(
+    expect(ws.transformText(text1)).toBe(
       'en se disant  dautres adinnādāyī mais ici nous nous nous abstiendrions de adinnādāyī le déracinement doit être pratiqué',
     );
 
     let text2 =
       '‹ Certains voleront, cependant nous, ici, ne volerons pas. › ';
-    should(ws.transformText(text2)).equal(
+    expect(ws.transformText(text2)).toBe(
       '‹ certains adinnādāyī cependant nous ici ne adinnādāyī pas ›',
     );
   });
@@ -209,14 +204,17 @@ describe('text/word-space', () => {
       normalizeVector: WordSpace.normalizeVector,
     });
     let vNorm = ws.normalizeVector(v);
-    should(v.a).equal(0);
-    should(v.b).equal(1);
-    should(v.c).equal(2);
-    should(v.d).equal(10);
-    should(vNorm.a).equal(0);
-    should(vNorm.b).above(0.8).below(0.802);
-    should(vNorm.c).above(0.96).below(1);
-    should(vNorm.d).above(0.9999999).below(1);
+    expect(v.a).toBe(0);
+    expect(v.b).toBe(1);
+    expect(v.c).toBe(2);
+    expect(v.d).toBe(10);
+    expect(vNorm.a).toBe(0);
+    expect(vNorm.b).toBeGreaterThan(0.8);
+    expect(vNorm.b).toBeLessThan(0.802);
+    expect(vNorm.c).toBeGreaterThan(0.96);
+    expect(vNorm.c).toBeLessThan(1);
+    expect(vNorm.d).toBeGreaterThan(0.9999999);
+    expect(vNorm.d).toBeLessThan(1);
   });
   it('intersect', () => {
     const msg = 'TW8e.intersect:';
@@ -224,8 +222,8 @@ describe('text/word-space', () => {
     let v1 = ws.string2Vector('a b');
     let v2 = ws.string2Vector('b c');
     let i12 = v1.intersect(v2);
-    should.deepEqual(i12, new WordSpace.Vector({ b: 1 }));
-    should.deepEqual(v1.intersect(), new WordSpace.Vector({}));
+    expect(i12).toEqual(new WordSpace.Vector({ b: 1 }));
+    expect(v1.intersect()).toEqual(new WordSpace.Vector({}));
   });
   it('inverseDocumentFrequency', () => {
     const msg = 'tw7e.inverseDocumentFrequency:';
@@ -235,43 +233,35 @@ describe('text/word-space', () => {
       'a wolf is another canine',
       'the cat is a feline',
     ];
-    should(ws.idf('human')).equal(1); // not in corpus
+    expect(ws.idf('human')).toBe(1); // not in corpus
 
     ws.addDocument(docs[0]);
-    should.deepEqual(
-      ws.corpusBow,
-      new Vector({
+    expect(ws.corpusBow).toEqual(new Vector({
         a: 1, // 1-hot
         dog: 1,
         is: 1,
         canine: 1,
-      }),
-    );
-    should(ws.corpusSize).equal(1);
-    should(ws.idf('a')).equal(0); // in all docs
-    should(ws.idf('dog')).equal(0); // in all docs
-    should(ws.idf('human')).equal(1); // not in corpus
+      }),);
+    expect(ws.corpusSize).toBe(1);
+    expect(ws.idf('a')).toBe(0); // in all docs
+    expect(ws.idf('dog')).toBe(0); // in all docs
+    expect(ws.idf('human')).toBe(1); // not in corpus
 
     ws.addDocument(docs[1]);
-    should.deepEqual(
-      ws.corpusBow,
-      new Vector({
+    expect(ws.corpusBow).toEqual(new Vector({
         a: 2,
         another: 1,
         is: 2,
         canine: 2,
         wolf: 1,
         dog: 1,
-      }),
-    );
-    should(ws.idf('a')).equal(0); // in all docs
-    should(ws.idf('dog')).equal(0.8017118471377938); // 1/2 of docs
-    should(ws.idf('human')).equal(1); // not in corpus
+      }),);
+    expect(ws.idf('a')).toBe(0); // in all docs
+    expect(ws.idf('dog')).toBe(0.8017118471377938); // 1/2 of docs
+    expect(ws.idf('human')).toBe(1); // not in corpus
 
     ws.addDocument(docs[2]);
-    should.deepEqual(
-      ws.corpusBow,
-      new Vector({
+    expect(ws.corpusBow).toEqual(new Vector({
         the: 1,
         a: 3,
         cat: 1,
@@ -281,19 +271,18 @@ describe('text/word-space', () => {
         canine: 2,
         wolf: 1,
         dog: 1,
-      }),
-    );
-    should(ws.corpusSize).equal(3);
-    should(ws.idf('a')).equal(0); // in all docs
-    should(ws.idf('the')).equal(0.9606818084344944); // 1/3 of docs
-    should(ws.idf('human')).equal(1); // not in corpus
+      }),);
+    expect(ws.corpusSize).toBe(3);
+    expect(ws.idf('a')).toBe(0); // in all docs
+    expect(ws.idf('the')).toBe(0.9606818084344944); // 1/3 of docs
+    expect(ws.idf('human')).toBe(1); // not in corpus
 
     // Different weights for 1/3 of docs
-    should(ws.idf('another', 1.4)).equal(0.9391899373747821);
-    should(ws.idf('dog', 1.3)).equal(0.9257264217856661);
-    should(ws.idf('wolf', 1.2)).equal(0.9092820467105875);
-    should(ws.idf('cat', 1.1)).equal(0.8891968416376661);
-    should(ws.idf('canine', 1.0)).equal(0.3934693402873666);
+    expect(ws.idf('another', 1.4)).toBe(0.9391899373747821);
+    expect(ws.idf('dog', 1.3)).toBe(0.9257264217856661);
+    expect(ws.idf('wolf', 1.2)).toBe(0.9092820467105875);
+    expect(ws.idf('cat', 1.1)).toBe(0.8891968416376661);
+    expect(ws.idf('canine', 1.0)).toBe(0.3934693402873666);
   });
   it('ermFrequency', () => {
     const msg = 'tw7e.tf:';
@@ -307,9 +296,9 @@ describe('text/word-space', () => {
     ws.addDocument(docs[0]);
     ws.addDocument(docs[1]);
     ws.addDocument(docs[2]);
-    should(ws.termFrequency('dog', docs[0])).equal(0.2);
-    should(ws.termFrequency('a', docs[0])).equal(0.4);
-    should(ws.termFrequency('human', docs[0])).equal(0);
+    expect(ws.termFrequency('dog', docs[0])).toBe(0.2);
+    expect(ws.termFrequency('a', docs[0])).toBe(0.4);
+    expect(ws.termFrequency('human', docs[0])).toBe(0);
   });
   it('tfidf()', () => {
     const msg = 'tw7e.tfidf:';
@@ -325,37 +314,28 @@ describe('text/word-space', () => {
 
     // compute document tfidf vectors
     let vDocs = docs.map((doc) => ws.tfidf(doc));
-    should.deepEqual(
-      vDocs[0],
-      new Vector({
+    expect(vDocs[0]).toEqual(new Vector({
         dog: 0.19213636168689888,
         canine: 0.11094088415839597,
-      }),
-    );
-    should.deepEqual(
-      vDocs[1],
-      new Vector({
+      }),);
+    expect(vDocs[1]).toEqual(new Vector({
         wolf: 0.19213636168689888,
         another: 0.19213636168689888,
         canine: 0.11094088415839597,
-      }),
-    );
-    should.deepEqual(
-      vDocs[2],
-      new Vector({
+      }),);
+    expect(vDocs[2]).toEqual(new Vector({
         cat: 0.19213636168689888,
         the: 0.19213636168689888,
         feline: 0.19213636168689888,
-      }),
-    );
+      }),);
 
     // Compute similarity between TF_IDF vectors of query/docs
 
     // TF_IDF finds unique match
     let vDog = ws.tfidf('dog');
-    should.deepEqual(vDog, new Vector({ dog: 0.9606818084344944 }));
+    expect(vDog).toEqual(new Vector({ dog: 0.9606818084344944 }));
     let vDogMatch = vDocs.map((vDoc) => vDog.similar(vDoc));
-    should.deepEqual(vDogMatch, [
+    expect(vDogMatch).toEqual([
       0.8660041217288018, // a dog is a canine
       0, // a wolf is another canine
       0, // the cat is a feline
@@ -363,9 +343,9 @@ describe('text/word-space', () => {
 
     // TF_IDF favors shorter document (more focus)
     let vCanine = ws.tfidf('canine');
-    should.deepEqual(vCanine, new Vector({ canine: 0.5547044207919798 }));
+    expect(vCanine).toEqual(new Vector({ canine: 0.5547044207919798 }));
     let vCanineMatch = vDocs.map((vDoc) => vCanine.similar(vDoc));
-    should.deepEqual(vCanineMatch, [
+    expect(vCanineMatch).toEqual([
       0.5000368597900825, // a dog is a canine (shorter)
       0.3779963173777363, // a wolf is another canine (longer)
       0, // the cat is a feline
@@ -375,15 +355,12 @@ describe('text/word-space', () => {
     // query still matches shorter documents with partial match
     // since "cat" is rarer than "canine", the match there is stronger
     let vCatCanine = ws.tfidf('cat canine');
-    should.deepEqual(
-      vCatCanine,
-      new Vector({
+    expect(vCatCanine).toEqual(new Vector({
         cat: 0.4803409042172472,
         canine: 0.2773522103959899,
-      }),
-    );
+      }),);
     let vCatCanineMatch = vDocs.map((vDoc) => vCatCanine.similar(vDoc));
-    should.deepEqual(vCatCanineMatch, [
+    expect(vCatCanineMatch).toEqual([
       0.2500368611487267, // a dog is a canine
       0.18901209155377868, // a wolf is another canine
       0.4999877127994492, // the cat is a feline

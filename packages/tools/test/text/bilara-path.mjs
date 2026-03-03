@@ -1,14 +1,13 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '../../index.mjs';
 const { BilaraPath } = Text;
 
 describe('text/bilara-path', function () {
   let { translationPath, rootPath } = BilaraPath;
-  this.timeout(1 * 1000);
 
   it('pathParts(f) returns parts of bilara filename', () => {
     let f = translationPath('sn/sn22/sn22.2', 'en', 'sujato');
-    should.deepEqual(BilaraPath.pathParts(f), {
+    expect(BilaraPath.pathParts(f)).toEqual({
       suid: 'sn22.2',
       suttaRef: 'sn22.2/en/sujato',
       type: 'translation',
@@ -19,7 +18,7 @@ describe('text/bilara-path', function () {
       bilaraPath: f,
     });
     f = translationPath('sn/sn22/sn22.10', 'en', 'sujato');
-    should.deepEqual(BilaraPath.pathParts(f), {
+    expect(BilaraPath.pathParts(f)).toEqual({
       suid: 'sn22.10',
       suttaRef: 'sn22.10/en/sujato',
       type: 'translation',
@@ -32,7 +31,7 @@ describe('text/bilara-path', function () {
   });
   it('pathParts(f) returns parts of bilara filename THIG', () => {
     let f = rootPath('kn/thig/thig1.2', 'pli', 'ms');
-    should.deepEqual(BilaraPath.pathParts(f), {
+    expect(BilaraPath.pathParts(f)).toEqual({
       author_uid: 'ms',
       bilaraPath: 'root/pli/ms/sutta/kn/thig/thig1.2_root-pli-ms.json',
       collection: 'kn',
@@ -45,7 +44,7 @@ describe('text/bilara-path', function () {
   });
   it('pathParts(f) returns parts of bilara filename MIL', () => {
     let f = rootPath('kn/mil/mil3.1.2', 'pli', 'ms');
-    should.deepEqual(BilaraPath.pathParts(f), {
+    expect(BilaraPath.pathParts(f)).toEqual({
       author_uid: 'ms',
       bilaraPath: 'root/pli/ms/sutta/kn/mil/mil3.1.2_root-pli-ms.json',
       collection: 'kn',

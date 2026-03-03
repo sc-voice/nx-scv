@@ -11,9 +11,8 @@
     "src"
   ],
   "scripts": {
-    "test": "mocha --inline-diffs --recursive",
-    "test:test": "mocha --config test/mocha-config.json --recursive --watch",
-    "test:one": "mocha --config test/mocha-config.json --recursive"
+    "test": "vitest run --config test/vitest.config.mjs",
+    "test:test": "vitest --config test/vitest.config.mjs"
   },
   "repository": {
     "type": "git",
@@ -36,8 +35,7 @@
     "avro-js": "^1.12.0",
     "deepl-node": "^1.15.0",
     "eslint": "^9.17.0",
-    "mocha": "^11.0.1",
-    "should": "^13.2.3"
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "uuid": "^11.1.0"

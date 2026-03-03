@@ -5,7 +5,7 @@ const { Unicode, ColorConsole } = Text;
 const { RIGHT_ARROW: URA } = Unicode;
 const { cc } = ColorConsole;
 
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 
 const dbg = 0;
 const units = new Units();
@@ -16,8 +16,8 @@ function testConvert(msg, srcN, srcD, srcU, dstN, dstD, dstU) {
   let dst = new Fraction(dstN, dstD, dstU).reduce();
   dbg && cc.fyi(msg, src, URA, dst);
 
-  should.deepEqual(units.convert(src).to(dstU), dst);
-  should.deepEqual(units.convert(src).to(srcU), src);
+  expect(units.convert(src).to(dstU)).toEqual(dst);
+  expect(units.convert(src).to(srcU)).toEqual(src);
 }
 
 describe('units', () => {
@@ -46,8 +46,8 @@ describe('units', () => {
     let F32 = new Fraction(32, 1, 'F');
 
     dbg && cc.tag(msg, 'illegal conversions are ignored');
-    should(units.convert(C0).to('nonsense'), C0);
-    should(units.convert(F32).to('nonsense'), F32);
+    expect(units.convert(C0).to('nonsense')).toBe(C0);
+    expect(units.convert(F32).to('nonsense')).toBe(F32);
 
     dbg && cc.tag1(msg, 'END');
   });

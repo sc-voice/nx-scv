@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { LegacyDoc } = Text;
@@ -64,11 +64,11 @@ describe('text/legacy-doc', () => {
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).match(/use LegacyDoc.create()/);
+    expect(eCaught.message).toMatch(/use LegacyDoc.create()/);
   });
   it('create()', () => {
     let ldoc = LegacyDoc.create(TEST_DOC);
-    should(ldoc).properties({
+    expect(ldoc).toMatchObject({
       uid: 'mn8',
       lang: 'fr',
       author: 'Môhan Wijayaratna',
@@ -77,26 +77,26 @@ describe('text/legacy-doc', () => {
       footer: 'test-footer',
     });
     let [l0, l1, l2, l3] = ldoc.lines;
-    should(l0).match(/^8. Le déracinement$/);
-    should(l1).match(/^<span.*entendu.*séjournait.*Sāvatthi\.$/);
-    should(l2).match(/^En.*solitaire.*trouvait.*assis.*Bienheureux.:$/);
-    should(l3).equal(undefined);
+    expect(l0).toMatch(/^8. Le déracinement$/);
+    expect(l1).toMatch(/^<span.*entendu.*séjournait.*Sāvatthi\.$/);
+    expect(l2).toMatch(/^En.*solitaire.*trouvait.*assis.*Bienheureux.:$/);
+    expect(l3).toBe(undefined);
   });
   it('filterHtml()', () => {
-    should(LegacyDoc.filterHtml('text')).equal(true);
-    should(LegacyDoc.filterHtml('<p>text')).equal(true);
-    should(LegacyDoc.filterHtml('text</b>')).equal(true);
+    expect(LegacyDoc.filterHtml('text')).toBe(true);
+    expect(LegacyDoc.filterHtml('<p>text')).toBe(true);
+    expect(LegacyDoc.filterHtml('text</b>')).toBe(true);
 
-    should(LegacyDoc.filterHtml('<!DOCTYPE asdf>')).equal(false);
-    should(LegacyDoc.filterHtml('<meta asdf>')).equal(false);
-    should(LegacyDoc.filterHtml('<title>asdf</title>')).equal(false);
-    should(LegacyDoc.filterHtml('<article asdf>')).equal(false);
-    should(LegacyDoc.filterHtml('<html>')).equal(false);
-    should(LegacyDoc.filterHtml('</html>')).equal(false);
-    should(LegacyDoc.filterHtml('<head asdf>')).equal(false);
-    should(LegacyDoc.filterHtml('<body asdf>')).equal(false);
-    should(LegacyDoc.filterHtml('</body>')).equal(false);
-    should(LegacyDoc.filterHtml('</head>')).equal(false);
+    expect(LegacyDoc.filterHtml('<!DOCTYPE asdf>')).toBe(false);
+    expect(LegacyDoc.filterHtml('<meta asdf>')).toBe(false);
+    expect(LegacyDoc.filterHtml('<title>asdf</title>')).toBe(false);
+    expect(LegacyDoc.filterHtml('<article asdf>')).toBe(false);
+    expect(LegacyDoc.filterHtml('<html>')).toBe(false);
+    expect(LegacyDoc.filterHtml('</html>')).toBe(false);
+    expect(LegacyDoc.filterHtml('<head asdf>')).toBe(false);
+    expect(LegacyDoc.filterHtml('<body asdf>')).toBe(false);
+    expect(LegacyDoc.filterHtml('</body>')).toBe(false);
+    expect(LegacyDoc.filterHtml('</head>')).toBe(false);
   });
   it('mn8_legacy-fr', async () => {
     const msg = 'LEGACYDOC.mn8_legacy-fr';
@@ -123,11 +123,11 @@ describe('text/legacy-doc', () => {
     const msg = 'TL7c.fetchLegacy-mn8-fr:';
     let res = mn8MohanApiCache('http://ignored');
     let cache = DBG.L7C_FETCH_LEGACY_SC ? undefined : mn8MohanApiCache;
-    should(res.ok).equal(true);
+    expect(res.ok).toBe(true);
     let json = await res.json();
-    should(json.root_text.uid).equal('mn8');
-    should(json.root_text.lang).equal('fr');
-    should(json.root_text.author_uid).equal('wijayaratna');
+    expect(json.root_text.uid).toBe('mn8');
+    expect(json.root_text.lang).toBe('fr');
+    expect(json.root_text.author_uid).toBe('wijayaratna');
     let sutta_uid = 'mn8';
     let lang = 'fr';
     let author = 'wijayaratna';
@@ -137,13 +137,13 @@ describe('text/legacy-doc', () => {
       author,
       cache,
     });
-    should(legacyDoc.uid).equal(sutta_uid);
-    should(legacyDoc.lang).equal(lang);
-    should(legacyDoc.author_uid).equal(author);
-    should(legacyDoc.author).equal('Môhan Wijayaratna');
-    should(legacyDoc.footer).match(/Môhan.*Ismet/);
-    should(legacyDoc.lines.at(0)).match(/8. Le déracinement/);
-    should(legacyDoc.lines.at(-1)).match(/Ainsi parla le Bienheureux./);
-    should(legacyDoc.lines.length).equal(67);
+    expect(legacyDoc.uid).toBe(sutta_uid);
+    expect(legacyDoc.lang).toBe(lang);
+    expect(legacyDoc.author_uid).toBe(author);
+    expect(legacyDoc.author).toBe('Môhan Wijayaratna');
+    expect(legacyDoc.footer).toMatch(/Môhan.*Ismet/);
+    expect(legacyDoc.lines.at(0)).toMatch(/8. Le déracinement/);
+    expect(legacyDoc.lines.at(-1)).toMatch(/Ainsi parla le Bienheureux./);
+    expect(legacyDoc.lines.length).toBe(67);
   });
 });

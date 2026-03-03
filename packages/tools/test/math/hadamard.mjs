@@ -1,5 +1,5 @@
 import avro from 'avro-js';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Hadamard } = ScvMath;
@@ -23,7 +23,7 @@ describe('hadamard', () => {
       return a + error * error;
     }, 0);
     let rmsd = Math.sqrt(errorSquared / signal.length);
-    should(rmsd).below(1e-14);
+    expect(rmsd).toBeLessThan(1e-14);
     dbg > 1 && cc.tag(msg, rmsd, ...h6d.signal);
 
     dbg && cc.tag1(msg + UOK, ...output);
@@ -44,7 +44,7 @@ describe('hadamard', () => {
     }, 0);
     let rmsd = Math.sqrt(errorSquared / signal.length);
     dbg > 1 && cc.tag(msg, 'rmsd:', rmsd);
-    should(rmsd).below(1e-14);
+    expect(rmsd).toBeLessThan(1e-14);
 
     dbg && cc.tag1(msg + UOK, ...output);
   });
@@ -85,7 +85,7 @@ describe('hadamard', () => {
           'rmsd:',
           rmsd.toString(),
         );
-      //should(rmsd).below(1e-14);
+      //expect(rmsd).toBeLessThan(1e-14);
 
       input.unshift(A);
       input.pop();

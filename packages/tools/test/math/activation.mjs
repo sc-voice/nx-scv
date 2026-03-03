@@ -1,4 +1,4 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 
 import { ScvMath, Text } from '../../index.mjs';
 const { ColorConsole } = Text;
@@ -15,11 +15,11 @@ describe('scv-math/activation', () => {
     let fEval = (x, a, b, c, d) => [x, a, b, c, d].join(',');
     let dEval = (x, a, b, c, d) => [x, a, b, c, d].join(';');
     let act = new Activation({ a, b, c, d, fEval, dEval });
-    should(act).properties({ a, b, c, d, fEval, dEval });
+    expect(act).toMatchObject({ a, b, c, d, fEval, dEval });
 
     // Apply activation function
-    should(act.f(x)).equal([x, a, b, c, d].join(','));
-    should(act.df(x)).equal([x, a, b, c, d].join(';'));
+    expect(act.f(x)).toBe([x, a, b, c, d].join(','));
+    expect(act.df(x)).toBe([x, a, b, c, d].join(';'));
 
     // Change activation parameter to modify activation
     let A = 'TEST-A';
@@ -30,8 +30,8 @@ describe('scv-math/activation', () => {
     act.b = B;
     act.c = C;
     act.d = D;
-    should(act.f(x)).equal([x, A, B, C, D].join(','));
-    should(act.df(x)).equal([x, A, B, C, D].join(';'));
+    expect(act.f(x)).toBe([x, A, B, C, D].join(','));
+    expect(act.df(x)).toBe([x, A, B, C, D].join(';'));
   });
   it('createSoboleva()', () => {
     const msg = 'a8n.createSoboleva';
@@ -44,10 +44,13 @@ describe('scv-math/activation', () => {
     for (let i = -10; i <= 10; i++) {
       let x = i / 10;
       dbg && cc.fyi(msg, 'tanh', x, tanh.f(x));
-      should(Math.abs(tanh.f(x) - Math.tanh(x))).below(0.000000000000001);
+      expect(Math.abs(tanh.f(x) - Math.tanh(x))).toBeLessThan(0.000000000000001);
     }
     let act1111 = Activation.createSoboleva(a, b, c, d);
-    should.deepEqual(act1111, tanh);
+    expect(act1111.a).toBe(tanh.a);
+    expect(act1111.b).toBe(tanh.b);
+    expect(act1111.c).toBe(tanh.c);
+    expect(act1111.d).toBe(tanh.d);
   });
   it('createRareN()', () => {
     const msg = 'a8n.createRareN';
@@ -58,42 +61,42 @@ describe('scv-math/activation', () => {
     // default weight
     let wDefault = 1;
     let act1 = Activation.createRareN(n, wDefault);
-    should(act1.f(n)).equal(0); // ignore ubiquitous things
-    should(act1.f((3 * n) / 4)).equal(0.28346868942621073);
-    should(act1.f((2 * n) / 4)).equal(0.6321205588285577);
-    should(act1.f((1 * n) / 4)).equal(0.950212931632136);
-    should(act1.f(5)).equal(0.9999999943972036);
-    should(act1.f(1)).equal(1); // singletons are always rare
-    should(act1.f(0)).equal(1);
-    should(act1.df(-1)).equal(0);
-    should(act1.df(0)).equal(0);
-    should(act1.df(1)).equal(-100);
-    should(act1.df(2)).equal(-25);
-    should(act1.df(3)).equal(-11.11111111111101);
-    should(act1.df(50)).equal(-0.025284822353142306);
-    should(act1.df(100)).equal(-0);
+    expect(act1.f(n)).toBe(0); // ignore ubiquitous things
+    expect(act1.f((3 * n) / 4)).toBe(0.28346868942621073);
+    expect(act1.f((2 * n) / 4)).toBe(0.6321205588285577);
+    expect(act1.f((1 * n) / 4)).toBe(0.950212931632136);
+    expect(act1.f(5)).toBe(0.9999999943972036);
+    expect(act1.f(1)).toBe(1); // singletons are always rare
+    expect(act1.f(0)).toBe(1);
+    expect(act1.df(-1)).toBe(0);
+    expect(act1.df(0)).toBe(0);
+    expect(act1.df(1)).toBe(-100);
+    expect(act1.df(2)).toBe(-25);
+    expect(act1.df(3)).toBe(-11.11111111111101);
+    expect(act1.df(50)).toBe(-0.025284822353142306);
+    expect(act1.df(100)).toBe(-0);
 
     // increasing weight includes less rare things
     let w2 = 2;
     let act2 = Activation.createRareN(n, w2);
-    should(act2.f(n)).equal(0); // ignore ubiquitous things
-    should(act2.f((3 * n) / 4)).equal(0.486582880967408);
-    should(act2.f((2 * n) / 4)).equal(0.8646647167633873);
-    should(act2.f((1 * n) / 4)).equal(0.9975212478233336);
-    should(act2.f(5)).equal(1);
-    should(act2.f(1)).equal(1); // singletons are always rare
-    should(act2.f(0)).equal(1);
+    expect(act2.f(n)).toBe(0); // ignore ubiquitous things
+    expect(act2.f((3 * n) / 4)).toBe(0.486582880967408);
+    expect(act2.f((2 * n) / 4)).toBe(0.8646647167633873);
+    expect(act2.f((1 * n) / 4)).toBe(0.9975212478233336);
+    expect(act2.f(5)).toBe(1);
+    expect(act2.f(1)).toBe(1); // singletons are always rare
+    expect(act2.f(0)).toBe(1);
 
     // decreasing weight finds very rare things
     let w_5 = 0.5;
     let act_5 = Activation.createRareN(n, w_5);
-    should(act_5.f(n)).equal(0); // ignore everyday things
-    should(act_5.f((3 * n) / 4)).equal(0.15351827510938598);
-    should(act_5.f((2 * n) / 4)).equal(0.3934693402873666);
-    should(act_5.f((1 * n) / 4)).equal(0.7768698398515702);
-    should(act_5.f(5)).equal(0.9999251481701124);
-    should(act_5.f(1)).equal(1); // singletons are always rare
-    should(act_5.f(0)).equal(1);
+    expect(act_5.f(n)).toBe(0); // ignore everyday things
+    expect(act_5.f((3 * n) / 4)).toBe(0.15351827510938598);
+    expect(act_5.f((2 * n) / 4)).toBe(0.3934693402873666);
+    expect(act_5.f((1 * n) / 4)).toBe(0.7768698398515702);
+    expect(act_5.f(5)).toBe(0.9999251481701124);
+    expect(act_5.f(1)).toBe(1); // singletons are always rare
+    expect(act_5.f(0)).toBe(1);
   });
   it('createElu()', () => {
     let a = 0.1;
@@ -101,16 +104,19 @@ describe('scv-math/activation', () => {
 
     // ReLU
     let act1 = Activation.createElu();
-    should(act1.f(x)).equal(x);
-    should(act1.f(0)).equal(0 * -0);
-    should(act1.f(-x)).equal(0 * -x);
+    expect(act1.f(x)).toBe(x);
+    expect(act1.f(0)).toBe(0);
+    expect(act1.f(-x)).toBe(-0);
     let act2 = Activation.createElu(0);
-    should.deepEqual(act2, act1);
+    expect(act2.a).toBe(act1.a);
+    expect(act2.b).toBe(act1.b);
+    expect(act2.c).toBe(act1.c);
+    expect(act2.d).toBe(act1.d);
 
     // ELU
     let act3 = Activation.createElu(a);
-    should(act3.f(x)).equal(x);
-    should(act3.f(0)).equal(0);
-    should(act3.f(-x)).equal(a * (Math.exp(-x) - 1));
+    expect(act3.f(x)).toBe(x);
+    expect(act3.f(0)).toBe(0);
+    expect(act3.f(-x)).toBe(a * (Math.exp(-x) - 1));
   });
 });

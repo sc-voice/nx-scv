@@ -1,7 +1,8 @@
 import util from 'node:util';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
+
 const { COLOR_CONSOLE: C10E } = DBG;
 const { Unicode, ColorConsole, Corpus } = Text;
 const { Fraction, Interval } = ScvMath;
@@ -41,14 +42,17 @@ const {
 
 const VALUE_COLOR = CYAN;
 const STARTTEST = '===================';
+const FORCE_COLOR = { validateStream: false };
 
 describe('text/color-console', () => {
   it('default ctor', () => {
     const msg = 'tc10e.ctor';
     let cc = new ColorConsole();
-    should(cc.precision).equal(3);
-    should(cc.valueColor).equal(CYAN);
-    should.deepEqual(ColorConsole.cc, cc);
+    expect(cc.precision).toBe(3);
+    expect(cc.valueColor).toBe(CYAN);
+    // should.deepEqual(ColorConsole.cc, cc)
+    // Custom equality tester added above compares functions by source code
+    expect(ColorConsole.cc).toEqual(cc);
     let value = 1.23456789;
     let testObj = { a: true, b: 'two', c: 3, d: null, e: undefined };
     dbg && cc.ok1(msg, 'test-ok', value, testObj);
@@ -81,7 +85,7 @@ describe('text/color-console', () => {
       '\n',
       'c',
     );
-    should.deepEqual(c1, [
+    expect(c1).toEqual([
       CYAN + 'a' + NO_COLOR,
       CYAN + '\nb' + NO_COLOR,
       CYAN + '\n3' + NO_COLOR,
@@ -89,14 +93,14 @@ describe('text/color-console', () => {
       CYAN + '\nc' + NO_COLOR,
     ]);
     let c2 = cc.color(CYAN, 'a\nb\n', 3, '\n', true, '\nc');
-    should.deepEqual(c2, [
+    expect(c2).toEqual([
       CYAN + 'a\nb' + NO_COLOR,
       CYAN + '\n3' + NO_COLOR,
       CYAN + '\ntrue' + NO_COLOR,
       CYAN + '\nc' + NO_COLOR,
     ]);
     let c3 = cc.color(CYAN, 'a\nb\n', 'c', 'd');
-    should.deepEqual(c3, [
+    expect(c3).toEqual([
       CYAN + 'a\nb' + NO_COLOR,
       CYAN + '\nc' + NO_COLOR,
       CYAN + 'd' + NO_COLOR,
@@ -132,17 +136,17 @@ describe('text/color-console', () => {
       fyiColor1,
       fyiColor2,
     });
-    should(cc.precision).equal(precision);
-    should(cc.valueColor).equal(valueColor);
-    should(cc.okColor1).equal(okColor1);
-    should(cc.okColor2).equal(okColor2);
-    should(cc.badColor1).equal(badColor1);
-    should(cc.badColor2).equal(badColor2);
-    should(cc.tagColor1).equal(tagColor1);
-    should(cc.tagColor2).equal(tagColor2);
-    should(cc.fyiColor1).equal(fyiColor1);
-    should(cc.fyiColor2).equal(fyiColor2);
-    should(cc.dateFormat).equal(dateFormat);
+    expect(cc.precision).toBe(precision);
+    expect(cc.valueColor).toBe(valueColor);
+    expect(cc.okColor1).toBe(okColor1);
+    expect(cc.okColor2).toBe(okColor2);
+    expect(cc.badColor1).toBe(badColor1);
+    expect(cc.badColor2).toBe(badColor2);
+    expect(cc.tagColor1).toBe(tagColor1);
+    expect(cc.tagColor2).toBe(tagColor2);
+    expect(cc.fyiColor1).toBe(fyiColor1);
+    expect(cc.fyiColor2).toBe(fyiColor2);
+    expect(cc.dateFormat).toBe(dateFormat);
     let value = 1.23456789;
     let date = new Date(2025, 3, 1);
     dbg && cc.ok1(msg, 'test-ok', value, date);
@@ -170,7 +174,7 @@ describe('text/color-console', () => {
     let value = 'test-value';
     let cText = cc.color(color, text, nolabel, value, label, value);
     dbg && cc.write(msg, ...cText);
-    should.deepEqual(cText, [
+    expect(cText).toEqual([
       color + text + endColor,
       color + nolabel + endColor,
       color + value + endColor,
@@ -189,7 +193,7 @@ describe('text/color-console', () => {
     let cNumber = cc.color(color, nolabel, number, label, number);
     let sNumber = number.toFixed(3);
     dbg && cc.write(msg, ...cNumber);
-    should.deepEqual(cNumber, [
+    expect(cNumber).toEqual([
       color + nolabel + endColor,
       VALUE_COLOR + sNumber + endColor,
       color + label + VALUE_COLOR + sNumber + endColor,
@@ -205,7 +209,7 @@ describe('text/color-console', () => {
 
     let cNull = cc.color(color, nolabel, null, label, null);
     dbg && cc.write(msg, ...cNull);
-    should.deepEqual(cNull, [
+    expect(cNull).toEqual([
       color + nolabel + endColor,
       VALUE_COLOR + 'null' + endColor,
       color + label + VALUE_COLOR + 'null' + endColor,
@@ -213,7 +217,7 @@ describe('text/color-console', () => {
 
     let cUndefined = cc.color(color, nolabel, undefined, label, undefined);
     dbg && cc.write(msg, ...cUndefined);
-    should.deepEqual(cUndefined, [
+    expect(cUndefined).toEqual([
       color + nolabel + endColor,
       VALUE_COLOR + 'undefined' + endColor,
       color + label + VALUE_COLOR + 'undefined' + endColor,
@@ -229,7 +233,7 @@ describe('text/color-console', () => {
 
     let cFalse = cc.color(color, nolabel, false, label, false);
     dbg && cc.write(msg, ...cFalse);
-    should.deepEqual(cFalse, [
+    expect(cFalse).toEqual([
       color + nolabel + endColor,
       VALUE_COLOR + 'false' + endColor,
       color + label + VALUE_COLOR + 'false' + endColor,
@@ -248,7 +252,7 @@ describe('text/color-console', () => {
     let cObject = cc.color(color, nolabel, object, label, object);
     dbg > 2 && cc.write(msg, ...cObject);
     let sObject = cc.asString(object);
-    should.deepEqual(cObject, [
+    expect(cObject).toEqual([
       color + nolabel + endColor,
       sObject,
       color + label + endColor,
@@ -266,7 +270,7 @@ describe('text/color-console', () => {
     dbg > 1 && cc.tag(msg, 'sObj2Str:', sObj2Str);
     let cObj2Str = cc.color(color, nolabel, obj2Str, label, obj2Str);
     dbg > 1 && cc.tag(msg, 'cObj2Str:', cObj2Str);
-    should.deepEqual(cObj2Str, [
+    expect(cObj2Str).toEqual([
       color + nolabel + endColor,
       VALUE_COLOR + sObj2Str + endColor,
       color + label + VALUE_COLOR + sObj2Str + endColor,
@@ -279,30 +283,30 @@ describe('text/color-console', () => {
     dbg > 1 && cc.tag(msg, STARTTEST);
     let obj = { a: 1 };
     let s = cc.asString(obj);
-    should(s).equal('{a:1}');
+    expect(s).toBe('{a:1}');
 
     dbg && cc.tag1(msg + UOK, s);
   });
   it('asString()', () => {
     const msg = 'tc10e.asString';
     let cc = new ColorConsole();
-    should(cc.asString(1.0)).equal('1');
-    should(cc.asString(1.2)).equal('1.2');
-    should(cc.asString(1.02)).equal('1.02');
-    should(cc.asString(1.002)).equal('1.002');
-    should(cc.asString(1.0002)).equal('1.000');
-    should(cc.asString(-1.0)).equal('-1');
-    should(cc.asString(-1.2)).equal('-1.2');
-    should(cc.asString(-1.02)).equal('-1.02');
-    should(cc.asString(-1.002)).equal('-1.002');
-    should(cc.asString(-1.0002)).equal('-1.000');
-    should(cc.asString(undefined)).equal('undefined');
-    should(cc.asString(null)).equal('null');
-    should(cc.asString(false)).equal('false');
-    should(cc.asString(true)).equal('true');
+    expect(cc.asString(1.0)).toBe('1');
+    expect(cc.asString(1.2)).toBe('1.2');
+    expect(cc.asString(1.02)).toBe('1.02');
+    expect(cc.asString(1.002)).toBe('1.002');
+    expect(cc.asString(1.0002)).toBe('1.000');
+    expect(cc.asString(-1.0)).toBe('-1');
+    expect(cc.asString(-1.2)).toBe('-1.2');
+    expect(cc.asString(-1.02)).toBe('-1.02');
+    expect(cc.asString(-1.002)).toBe('-1.002');
+    expect(cc.asString(-1.0002)).toBe('-1.000');
+    expect(cc.asString(undefined)).toBe('undefined');
+    expect(cc.asString(null)).toBe('null');
+    expect(cc.asString(false)).toBe('false');
+    expect(cc.asString(true)).toBe('true');
     let date = new Date(2025, 2, 1);
     dbg && cc.fyi(msg, date);
-    should(cc.asString(date)).equal(cc.dateFormat.format(date));
+    expect(cc.asString(date)).toBe(cc.dateFormat.format(date));
   });
   it('inspect', () => {
     const msg = 'tl2t.inspect';
@@ -322,22 +326,22 @@ describe('text/color-console', () => {
     styles.name = 'magenta';
     dbg && console.table(msg + util.inspect(tbl));
     dbg && console.table(tbl);
-    should(util.inspect(tbl)).equal(util.inspect(tbl, { colors }));
+    expect(util.inspect(tbl)).toBe(util.inspect(tbl, { colors }));
 
     let strikethrough = 'strikethrough';
-    dbg && console.log(msg, styleText(strikethrough, strikethrough));
+    dbg && console.log(msg, styleText(strikethrough, strikethrough, FORCE_COLOR));
     let underline = 'underline';
-    dbg && console.log(msg, styleText(underline, underline));
+    dbg && console.log(msg, styleText(underline, underline, FORCE_COLOR));
     let green = 'green';
-    dbg && console.log(msg, styleText(green, green));
+    dbg && console.log(msg, styleText(green, green, FORCE_COLOR));
     let bold = 'bold';
-    dbg && console.log(msg, styleText(bold, bold));
+    dbg && console.log(msg, styleText(bold, bold, FORCE_COLOR));
 
     let format = [bold, green, underline, strikethrough];
     let text = format.join('-');
-    let style = styleText(format, text);
+    let style = styleText(format, text, FORCE_COLOR);
     dbg && console.log(msg, style);
-    should(style).equal(
+    expect(style).toBe(
       BOLD +
         GREEN +
         UNDERLINE +
@@ -368,22 +372,22 @@ describe('text/color-console', () => {
 
     // NOTE: the default value for the tf value is the first argument!
     // truthy
-    should(cc.isOk(Math.PI))
+    expect(cc.isOk(Math.PI))
       .equal(cc.isOk(Math.PI, undefined))
       .equal(cc.isOk(Math.PI, Math.PI))
       .equal(`${ok}3.142`);
-    should(cc.isOk(Math.PI, true)).equal(`${ok}3.142`);
-    should(cc.isOk(Math.PI)).equal(`${ok}3.142`);
-    should(cc.isOk(Math.PI, undefined)).equal(`${ok}3.142`);
+    expect(cc.isOk(Math.PI, true)).toBe(`${ok}3.142`);
+    expect(cc.isOk(Math.PI)).toBe(`${ok}3.142`);
+    expect(cc.isOk(Math.PI, undefined)).toBe(`${ok}3.142`);
 
     // falsy
     let uninitialized;
-    should(cc.isOk()).equal(`${bad}undefined`);
-    should(cc.isOk(uninitialized)).equal(`${bad}undefined`);
-    should(cc.isOk(uninitialized, undefined)).equal(`${bad}undefined`);
-    should(cc.isOk(Math.PI, false)).equal(`${bad}3.142`);
-    should(cc.isOk(Math.PI, null)).equal(`${bad}3.142`);
-    should(cc.isOk(null)).equal(`${bad}null`);
+    expect(cc.isOk()).toBe(`${bad}undefined`);
+    expect(cc.isOk(uninitialized)).toBe(`${bad}undefined`);
+    expect(cc.isOk(uninitialized, undefined)).toBe(`${bad}undefined`);
+    expect(cc.isOk(Math.PI, false)).toBe(`${bad}3.142`);
+    expect(cc.isOk(Math.PI, null)).toBe(`${bad}3.142`);
+    expect(cc.isOk(null)).toBe(`${bad}null`);
   });
   it('props()', () => {
     let obj = {
@@ -395,9 +399,7 @@ describe('text/color-console', () => {
       vnull: null,
     };
     let props = cc.props(obj);
-    should.deepEqual(
-      [...props],
-      [
+    expect([...props]).toEqual([
         'vstring:',
         'test-text',
         'vnumber:',
@@ -410,15 +412,14 @@ describe('text/color-console', () => {
         undefined,
         'vnull:',
         null,
-      ],
-    );
+      ],);
   });
   it('props() function', () => {
     let obj = {
       vfun: () => Date.now(),
     };
     let props = cc.props(obj);
-    should.deepEqual([...props], ['vfun:', '[Function vfun]']);
+    expect([...props]).toEqual(['vfun:', '[Function vfun]']);
   });
   it('props() Fraction', () => {
     let obj = {
@@ -426,18 +427,15 @@ describe('text/color-console', () => {
       vzero: new Fraction(0, 1),
     };
     let props = cc.props(obj);
-    should.deepEqual([...props], ['vfrac:', '0.3', 'vzero:', '0']);
+    expect([...props]).toEqual(['vfrac:', '0.3', 'vzero:', '0']);
   });
   it('props() Array', () => {
     let obj = {
       varr: [1, 2, 3],
       vobj: [{ a: 1 }, { b: 2 }],
     };
-    should(obj.vobj.toString).not.equal({}.toString);
+    expect(obj.vobj.toString).not.toBe({}.toString);
     let props = cc.props(obj);
-    should.deepEqual(
-      [...props],
-      ['varr:', '[1,2,3]', 'vobj:', JSON.stringify(obj.vobj)],
-    );
+    expect([...props]).toEqual(['varr:', '[1,2,3]', 'vobj:', JSON.stringify(obj.vobj)],);
   });
 });

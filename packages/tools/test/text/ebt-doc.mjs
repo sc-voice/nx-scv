@@ -1,16 +1,15 @@
 import fs from 'node:fs';
 const { promises: fsp } = fs;
 import path from 'node:path';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '../../index.mjs';
 const { EbtDoc } = Text;
 
 describe('text/ebt-doc', function () {
-  this.timeout(5 * 1000);
 
   it('default ctor', () => {
     let sd = EbtDoc.create();
-    should(sd).properties({
+    expect(sd).toMatchObject({
       author: undefined,
       lang: undefined,
       segMap: {},
@@ -41,7 +40,7 @@ describe('text/ebt-doc', function () {
       suid,
       wordSpace,
     });
-    should(ed).properties({
+    expect(ed).toMatchObject({
       author,
       author_uid,
       lang,
@@ -49,18 +48,18 @@ describe('text/ebt-doc', function () {
       suid,
       bilaraPath,
     });
-    should.deepEqual(ed.wordSpace, wordSpace);
-    should(ed.customKey).equal(undefined);
+    expect(ed.wordSpace).toEqual(wordSpace);
+    expect(ed.customKey).toBe(undefined);
   });
   it('custom ctor parse DN33', async () => {
     let bilaraPath = '../data/dn33.json';
     let fnSegMap = path.join(import.meta.dirname, bilaraPath);
     let segMap = await fsp.readFile(fnSegMap);
     let dn33 = EbtDoc.create({ segMap });
-    should(dn33.segMap['dn33:1.10.31']).equal(
+    expect(dn33.segMap['dn33:1.10.31']).toBe(
       'form, formlessness, and cessation. ',
     );
-    should.deepEqual(dn33.scids().slice(0, 10), [
+    expect(dn33.scids().slice(0, 10)).toEqual([
       'dn33:0.1',
       'dn33:0.2',
       'dn33:1.1.1',
@@ -81,19 +80,19 @@ describe('text/ebt-doc', function () {
     let segMap = JSON.parse(await fsp.readFile(fnSegMap));
     let sutta = EbtDoc.create({ suid, lang, bilaraPath, segMap });
     let segments = sutta.segments();
-    should.deepEqual(segments[0], {
+    expect(segments[0]).toEqual({
       scid: 'sn1.1:0.1',
       en: 'Linked Discourses 1 ',
     });
-    should.deepEqual(segments[1], {
+    expect(segments[1]).toEqual({
       scid: 'sn1.1:0.2',
       en: '1. A Reed ',
     });
-    should.deepEqual(segments[11], {
+    expect(segments[11]).toEqual({
       scid: 'sn1.1:1.9',
       en: 'That’s how I crossed the flood neither standing nor swimming.” ',
     });
-    should.deepEqual(segments[12], {
+    expect(segments[12]).toEqual({
       scid: 'sn1.1:2.1',
       en: '“After a long time I see ',
     });
@@ -106,7 +105,7 @@ describe('text/ebt-doc', function () {
     let segMap = JSON.parse(await fsp.readFile(fnSegMap));
     let sutta = EbtDoc.create({ suid, lang, bilaraPath, segMap });
     let scids = sutta.scids();
-    should.deepEqual(scids.slice(0, 15), [
+    expect(scids.slice(0, 15)).toEqual([
       'an1.1:0.1',
       'an1.1:0.2',
       'an1.1:0.3',
@@ -124,19 +123,19 @@ describe('text/ebt-doc', function () {
       'an1.2:1.2',
     ]);
     let segments = sutta.segments();
-    should.deepEqual(segments[0], {
+    expect(segments[0]).toEqual({
       scid: 'an1.1:0.1',
       en: 'Numbered Discourses 1 ',
     });
-    should.deepEqual(segments[1], {
+    expect(segments[1]).toEqual({
       scid: 'an1.1:0.2',
       en: '1. Sights, Etc. ',
     });
-    should.deepEqual(segments[11], {
+    expect(segments[11]).toEqual({
       scid: 'an1.1:2.3',
       en: ' ',
     });
-    should.deepEqual(segments[12], {
+    expect(segments[12]).toEqual({
       scid: 'an1.2:0.1',
       en: '2 ',
     });
@@ -167,7 +166,7 @@ describe('text/ebt-doc', function () {
     let bls = ebtDoc.toBilaraString();
     let json = JSON.parse(bls);
     let { __header__ } = json;
-    should(__header__).properties({
+    expect(__header__).toMatchObject({
       author,
       author_uid,
       bilaraPath,
@@ -175,7 +174,7 @@ describe('text/ebt-doc', function () {
       lang,
       suid,
     });
-    should(json).properties(segMap);
+    expect(json).toMatchObject(segMap);
   });
   it('toBilaraString() 2:parent', () => {
     const msg = 'TE4c.toBilaraString.2:';
@@ -202,7 +201,7 @@ describe('text/ebt-doc', function () {
     let blsParent = parent.toBilaraString();
     let jsonParent = JSON.parse(blsParent);
     let { __header__: hdrParent } = jsonParent;
-    should.deepEqual(hdrParent, {
+    expect(hdrParent).toEqual({
       author,
       author_uid,
       bilaraPath: 'parent.json', // saved
@@ -230,7 +229,7 @@ describe('text/ebt-doc', function () {
     //   * inherited keys if different than parent (lang, author)
     //   * non-inherited keys (suid, bilaraPath)
     // e.g., lang, author
-    should.deepEqual(__header__, {
+    expect(__header__).toEqual({
       // author_uid, // inherited
       // author, // inherited
       bilaraPath,
@@ -239,8 +238,8 @@ describe('text/ebt-doc', function () {
     });
 
     // fromBilaraString() implements parent inheritance
-    should(json).properties(segMap);
+    expect(json).toMatchObject(segMap);
     let ebtDoc2 = EbtDoc.fromBilaraString(bls, parent);
-    should.deepEqual(ebtDoc2, ebtDoc);
+    expect(ebtDoc2).toEqual(ebtDoc);
   });
 });

@@ -1,33 +1,33 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '../../index.mjs';
 const { Corpus } = Text;
 
 export function testCorpus(corp) {
-  should(corp.size).equal(0);
+  expect(corp.size).toBe(0);
 
   let doc1 = { id: 'd1', text: 'the red fox' };
   corp.addDocument('d1', doc1);
-  should(corp.size).equal(1);
+  expect(corp.size).toBe(1);
   let doc2 = { id: 'd2', text: 'a blue butterfly' };
   corp.addDocument('d2', doc2);
-  should(corp.size).equal(2);
+  expect(corp.size).toBe(2);
 
-  should.deepEqual(corp.getDocument('d1'), doc1);
-  should.deepEqual(corp.getDocument('d2'), doc2);
-  should(corp.getDocument('nonsense')).equal(undefined);
+  expect(corp.getDocument('d1')).toEqual(doc1);
+  expect(corp.getDocument('d2')).toEqual(doc2);
+  expect(corp.getDocument('nonsense')).toBe(undefined);
 
-  should(corp.deleteDocument('nonsense')).equal(undefined);
-  should(corp.size).equal(2);
+  expect(corp.deleteDocument('nonsense')).toBe(undefined);
+  expect(corp.size).toBe(2);
 
-  should.deepEqual(corp.deleteDocument('d2'), doc2);
-  should(corp.getDocument('d2')).equal(undefined);
-  should(corp.size).equal(1);
-  should.deepEqual(corp.getDocument('d1'), doc1);
+  expect(corp.deleteDocument('d2')).toEqual(doc2);
+  expect(corp.getDocument('d2')).toBe(undefined);
+  expect(corp.size).toBe(1);
+  expect(corp.getDocument('d1')).toEqual(doc1);
 
-  should.deepEqual(corp.deleteDocument('d1'), doc1);
-  should(corp.getDocument('d1')).equal(undefined);
-  should(corp.size).equal(0);
-  should(corp.getDocument('d1')).equal(undefined);
+  expect(corp.deleteDocument('d1')).toEqual(doc1);
+  expect(corp.getDocument('d1')).toBe(undefined);
+  expect(corp.size).toBe(0);
+  expect(corp.getDocument('d1')).toBe(undefined);
 }
 
 describe('text/corpus', () => {

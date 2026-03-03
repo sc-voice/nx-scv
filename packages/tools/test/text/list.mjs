@@ -1,5 +1,5 @@
 import util from 'node:util';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
@@ -27,7 +27,7 @@ class TestClass {
 
 describe('list', () => {
   it('l9y.SINGLETON', () => {
-    should(ListFactory.SINGLETON).properties({
+    expect(ListFactory.SINGLETON).toMatchObject({
       order: 'column-major',
       rowSeparator: '\n',
       colSeparator: ' ',
@@ -35,7 +35,7 @@ describe('list', () => {
   });
   it('l9y.default-ctor', () => {
     let lfDefault = new ListFactory();
-    should(lfDefault).properties({
+    expect(lfDefault).toMatchObject({
       order: 'column-major',
       rowSeparator: '\n',
       colSeparator: ' ',
@@ -53,10 +53,10 @@ describe('list', () => {
       precision,
     };
     let lfCustom = new ListFactory(opts);
-    should(lfCustom).properties(opts);
+    expect(lfCustom).toMatchObject(opts);
     let list = [1, 1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 6, 1 / 7, 1 / 8, 1 / 9];
     let cols3 = lfCustom.wrapList(list, { maxValues: 3 });
-    should(cols3.toString()).equal(
+    expect(cols3.toString()).toBe(
       [
         '1      |0.5  |0.33333|R',
         '0.25   |0.2  |0.16667|R',
@@ -66,8 +66,8 @@ describe('list', () => {
   });
   it('createColumn default', () => {
     let col = List.createColumn();
-    should(col.name).match(/column[1-9][0-9]*/);
-    should(col.separator).equal('\n');
+    expect(col.name).toMatch(/column[1-9][0-9]*/);
+    expect(col.separator).toBe('\n');
   });
   it('createColumn custom', () => {
     let name = 'test-name';
@@ -76,13 +76,13 @@ describe('list', () => {
       name,
       separator,
     });
-    should(col.name).equal(name);
-    should(col.separator).equal(separator);
+    expect(col.name).toBe(name);
+    expect(col.separator).toBe(separator);
   });
   it('createRow default', () => {
     let row = List.createRow();
-    should(row.name).match(/row[1-9][0-9]*/);
-    should(row.separator).equal('\t');
+    expect(row.name).toMatch(/row[1-9][0-9]*/);
+    expect(row.separator).toBe('\t');
   });
   it('createRow custom', () => {
     let name = 'test-name';
@@ -95,19 +95,19 @@ describe('list', () => {
       widths,
       precision,
     });
-    should(row.name).equal(name);
-    should(row.separator).equal(separator);
-    should(row.precision).equal(precision);
-    should.deepEqual(row.widths, widths);
+    expect(row.name).toBe(name);
+    expect(row.separator).toBe(separator);
+    expect(row.precision).toBe(precision);
+    expect(row.widths).toEqual(widths);
     row.push('abcdefghijklmnopqrstuvwxyz');
     row.push(1);
     row.push(1 / 2);
     row.push(1 / 3);
     row.push(2 / 3);
     row.push(false);
-    should(row.toString()).equal('abcd|1   |0.5 |0.33|0.67|fals');
+    expect(row.toString()).toBe('abcd|1   |0.5 |0.33|0.67|fals');
     row.widths.fill(5);
-    should(row.toString()).equal('abcde|1    |0.5  |0.33 |0.67 |false');
+    expect(row.toString()).toBe('abcde|1    |0.5  |0.33 |0.67 |false');
   });
   it('push()', () => {
     let c1 = List.createColumn();
@@ -118,17 +118,17 @@ describe('list', () => {
     c1.push(values[0]);
     c1.push(values[1]);
     c1.push(values[2]);
-    should.deepEqual(c1, values);
+    expect(c1).toEqual(values);
 
     // all at once
     c2.push(...values);
-    should.deepEqual(c2, values);
+    expect(c2).toEqual(values);
   });
   it('toStrings()', () => {
     let name = 'test-toString';
     let values = [1, 'two', { a: 3 }, null, undefined, true];
     let col = List.createColumn({ name, values });
-    should.deepEqual(col.toStrings(), [
+    expect(col.toStrings()).toEqual([
       '1',
       'two',
       '{"a":3}',
@@ -151,19 +151,19 @@ describe('list', () => {
       maxValues,
       colSeparator,
     });
-    should.deepEqual(list, [
+    expect(list).toEqual([
       [1, 'one', test1],
       [2, 'two', test2],
     ]);
-    should(list[0].separator).equal('|');
-    should(list.toString()).equal('1|one|test1\n2|two|test2');
+    expect(list[0].separator).toBe('|');
+    expect(list.toString()).toBe('1|one|test1\n2|two|test2');
     dbg && cc.ok1(msg + 1, '\n', list);
   });
   it('wrapList() row-major', () => {
     let list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     let order = 'row-major';
     let cols2 = List.wrapList(list, { order });
-    should.deepEqual(cols2, [
+    expect(cols2).toEqual([
       [1, 2],
       [3, 4],
       [5, 6],
@@ -171,8 +171,8 @@ describe('list', () => {
       [9, 10],
     ]);
     let colsRowMajor = List.wrapList(list, { order });
-    should.deepEqual(colsRowMajor, cols2);
-    should.deepEqual(colsRowMajor[0].widths, [1, 2]);
+    expect(colsRowMajor).toEqual(cols2);
+    expect(colsRowMajor[0].widths).toEqual([1, 2]);
 
     let maxValues = 3;
     let colSeparator = '|';
@@ -181,9 +181,9 @@ describe('list', () => {
       maxValues,
       colSeparator,
     });
-    should.deepEqual(cols3, [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]);
-    should.deepEqual(cols3[0].widths, [2, 1, 1]);
-    should(cols3.toString()).equal(
+    expect(cols3).toEqual([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10]]);
+    expect(cols3[0].widths).toEqual([2, 1, 1]);
+    expect(cols3.toString()).toBe(
       ['1 |2|3', '4 |5|6', '7 |8|9', '10'].join('\n'),
     );
   });
@@ -197,14 +197,14 @@ describe('list', () => {
       maxValues: 2,
       colSeparator,
     });
-    should.deepEqual(cols2, [[1, 6], [2, 7], [3, 8], [4, 9], [5]]);
+    expect(cols2).toEqual([[1, 6], [2, 7], [3, 8], [4, 9], [5]]);
 
     let cols3 = List.wrapList(list, {
       order,
       maxValues: 3,
       colSeparator,
     });
-    should.deepEqual(cols3, [
+    expect(cols3).toEqual([
       [1, 4, 7],
       [2, 5, 8],
       [3, 6, 9],
@@ -214,12 +214,12 @@ describe('list', () => {
       maxValues: 4,
       colSeparator,
     });
-    should.deepEqual(cols4, [
+    expect(cols4).toEqual([
       [1, 4, 7],
       [2, 5, 8],
       [3, 6, 9],
     ]);
-    should(cols4.toString()).equal(
+    expect(cols4.toString()).toBe(
       [[1, 4, 7].join('|'), [2, 5, 8].join('|'), [3, 6, 9].join('|')].join(
         '\n',
       ),
@@ -231,13 +231,13 @@ describe('list', () => {
         maxValues: i,
         colSeparator,
       });
-      should.deepEqual(cols, [
+      expect(cols).toEqual([
         [1, 3, 5, 7, 9],
         [2, 4, 6, 8],
       ]);
     }
 
     let cols9 = List.wrapList(list, { order, maxValues: 9 });
-    should.deepEqual(cols9, [list]);
+    expect(cols9).toEqual([list]);
   });
 });
