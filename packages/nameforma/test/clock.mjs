@@ -1,4 +1,4 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
@@ -16,18 +16,18 @@ describe('clock', () => {
     dbg && cc.tag(msg, 'START');
 
     const clock = new Clock();
-    should(clock).properties({ running: false });
-    should(clock.id).match(/[-0-9a-z]+/);
+    expect(clock).toMatchObject({ running: false });
+    expect(clock.id).toMatch(/[-0-9a-z]+/);
 
     // Clocks are distinguishable
     const clock2 = new Clock();
-    should(clock2.id).not.equal(clock.id);
+    expect(clock2.id).not.toBe(clock.id);
 
     // A stopped clock does not change
     let res1 = await clock.next();
-    should.deepEqual(res1, { done: false, value: 0 });
+    expect(res1).toEqual({ done: false, value: 0 });
     let res2 = await clock.next();
-    should.deepEqual(res2, res1);
+    expect(res2).toEqual(res1);
 
     dbg && cc.tag(msg, 'END');
   });
@@ -38,27 +38,27 @@ describe('clock', () => {
     const msTolerance = 5;
 
     let now = Date.now();
-    should(clock).properties({ running: false });
+    expect(clock).toMatchObject({ running: false });
 
     dbg && cc.tag(msg, 'started clocks know the current time');
     let resStart = await clock.start();
-    should(Math.abs(now - clock.now())).below(msTolerance);
-    should(clock).properties({ running: true });
-    should(resStart).equal(clock);
+    expect(Math.abs(now - clock.now())).toBeLessThan(msTolerance);
+    expect(clock).toMatchObject({ running: true });
+    expect(resStart).toBe(clock);
 
     dbg && cc.tag(msg, 'started clocks return the start reference time');
     await new Promise((res) => setTimeout(() => res(), 10));
     dbg > 1 && cc.tag(msg, 'next...');
     let { value: value1 } = await clock.next();
     dbg && cc.tag(msg, '...next', { value1 });
-    should(Math.abs(now - value1)).below(msTolerance);
+    expect(Math.abs(now - value1)).toBeLessThan(msTolerance);
 
     dbg && cc.tag(msg, 'clocks with consumers sync up with referenceTime');
     await new Promise((res) => setTimeout(() => res(), 10));
     let { value: value2 } = await clock.next();
     dbg && cc.tag(msg, '...next', { value2 });
-    should(value2).above(value1);
-    should(Math.abs(Date.now() - value2)).below(msTolerance);
+    expect(value2).toBeGreaterThan(value1);
+    expect(Math.abs(Date.now() - value2)).toBeLessThan(msTolerance);
 
     await clock.stop();
     dbg && cc.tag1(msg, 'END');
@@ -70,33 +70,33 @@ describe('clock', () => {
     let refNow = 0;
     let referenceTime = () => refNow;
     const clock = new Clock({ referenceTime });
-    should(refNow).equal(0);
+    expect(refNow).toBe(0);
 
     await clock.start();
-    should(clock.timeIn).equal(0);
-    should(clock.timeOut).equal(0);
+    expect(clock.timeIn).toBe(0);
+    expect(clock.timeOut).toBe(0);
 
     // manually update timestamp (single value)
     clock.update(1);
-    should(clock.timeIn).equal(1);
+    expect(clock.timeIn).toBe(1);
     let res1 = await clock.next();
-    should(res1).properties({ done: false, value: 1 });
+    expect(res1).toMatchObject({ done: false, value: 1 });
 
     // manually update timestamp (multiple values)
     let res2 = clock.next();
     clock.update(2);
     clock.update(3);
     res2 = await res2;
-    should(clock.timeIn).equal(3);
-    should(res2).properties({ done: false, value: 3 });
+    expect(clock.timeIn).toBe(3);
+    expect(res2).toMatchObject({ done: false, value: 3 });
 
     // ignore stale updates
     clock.update(2);
-    should(clock.timeIn).equal(3);
-    should(res2).properties({ done: false, value: 3 });
+    expect(clock.timeIn).toBe(3);
+    expect(res2).toMatchObject({ done: false, value: 3 });
 
     await clock.stop();
-    should.deepEqual(await clock.next(), { done: true, value: 3 });
+    expect(await clock.next()).toEqual({ done: true, value: 3 });
     dbg && cc.tag(msg, 'END');
   });
   it('idle', async () => {
@@ -114,22 +114,22 @@ describe('clock', () => {
 
     // started clocks are not idle and offer the start time
     await c3k.start({ idle });
-    should(c3k.timeIn).not.equal(c3k.timeOut);
+    expect(c3k.timeIn).not.toBe(c3k.timeOut);
     let { value: value1 } = await c3k.next();
-    should(value1).equal(c3k.timeIn);
-    should(Math.abs(msStart - value1)).below(tolerance);
+    expect(value1).toBe(c3k.timeIn);
+    expect(Math.abs(msStart - value1)).toBeLessThan(tolerance);
     dbg &&
       cc.tag(msg, 'Clocks are idle after the external update is consumed');
-    should(c3k.timeIn).equal(c3k.timeOut);
-    should(nIdle).equal(0);
+    expect(c3k.timeIn).toBe(c3k.timeOut);
+    expect(nIdle).toBe(0);
 
     dbg && cc.tag(msg, 'idle clocks with listeners are updated', value1);
     let { value: value2 } = await c3k.next();
-    should(c3k.timeIn).equal(c3k.timeOut);
-    should(nIdle).equal(1);
-    should(Date.now() - msStart).above(msIdle);
-    should(value2 - value1).above(msIdle);
-    should(Math.abs(value2 - msStart - msIdle)).below(tolerance);
+    expect(c3k.timeIn).toBe(c3k.timeOut);
+    expect(nIdle).toBe(1);
+    expect(Date.now() - msStart).toBeGreaterThan(msIdle);
+    expect(value2 - value1).toBeGreaterThan(msIdle);
+    expect(Math.abs(value2 - msStart - msIdle)).toBeLessThan(tolerance);
 
     dbg && cc.tag(msg, 'clocks without consumers are NOT updated', value2);
     // IMPORTANT:
@@ -137,25 +137,26 @@ describe('clock', () => {
     // Even that the yielded value becomes stale, future consumers will catch up.
     let msLongIdle = 2 * msIdle;
     await new Promise((r) => setTimeout(() => r(), msLongIdle));
-    should(c3k.timeIn).equal(value2); // stale value
-    should(nIdle).equal(1);
+    expect(c3k.timeIn).toBe(value2); // stale value
+    expect(nIdle).toBe(1);
     let { value: value3 } = await c3k.next();
-    should(c3k.timeIn).equal(c3k.timeOut);
-    should(value2 - value1)
-      .above(msIdle)
-      .below(msLongIdle); // stale value
+    expect(c3k.timeIn).toBe(c3k.timeOut);
+    expect(value2 - value1)
+      .toBeGreaterThan(msIdle);
+    expect(value2 - value1)
+      .toBeLessThan(msLongIdle); // stale value
 
     dbg && cc.tag(msg, 'clocks offer external updates immediately');
     await new Promise((r) => setTimeout(() => r(), 10));
     let msExternal = Date.now();
-    should(msExternal).above(value3);
+    expect(msExternal).toBeGreaterThan(value3);
     c3k.update(msExternal);
-    should(c3k.timeIn).equal(msExternal);
-    should(nIdle).equal(2);
+    expect(c3k.timeIn).toBe(msExternal);
+    expect(nIdle).toBe(2);
     let { value: value4 } = await c3k.next();
-    should(c3k.timeOut).equal(msExternal);
-    should(nIdle).equal(2);
-    should(value4).equal(msExternal);
+    expect(c3k.timeOut).toBe(msExternal);
+    expect(nIdle).toBe(2);
+    expect(value4).toBe(msExternal);
 
     await c3k.stop();
     let elapsed = Date.now() - msStart;

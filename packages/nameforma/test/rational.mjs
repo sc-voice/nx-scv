@@ -1,5 +1,5 @@
 import avro from 'avro-js';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text, ScvMath } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
@@ -13,53 +13,53 @@ describe('TESTTESTRational', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Rational();
-    should(f.isNull).equal(true);
-    should(f.numerator).equal(0);
-    should(f.denominator).equal(1);
-    should(f.toString()).equal('?');
-    should(f.value == null).equal(true);
+    expect(f.isNull).toBe(true);
+    expect(f.numerator).toBe(0);
+    expect(f.denominator).toBe(1);
+    expect(f.toString()).toBe('?');
+    expect(f.value == null).toBe(true);
     let proto = Object.getPrototypeOf(f);
     let obj1 = { a: 1 };
-    should({}.toString).equal(obj1?.toString);
-    should(f?.toString).not.equal({}.toString);
-    should(typeof f?.toString).equal('function');
+    expect({}.toString).toBe(obj1?.toString);
+    expect(f?.toString).not.toBe({}.toString);
+    expect(typeof f?.toString).toBe('function');
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('custom ctor PI', () => {
     // Is this useful?
     let n = Math.PI;
     let d = 1;
     let f = new Rational(n, d);
-    should(f.numerator).equal(n);
-    should(f.denominator).equal(d);
-    should(f.toString()).equal('3.14');
-    should(Math.abs(Math.PI - f.value)).below(1e-15);
+    expect(f.numerator).toBe(n);
+    expect(f.denominator).toBe(d);
+    expect(f.toString()).toBe('3.14');
+    expect(Math.abs(Math.PI - f.value)).toBeLessThan(1e-15);
 
     f.reduce();
-    should(Math.abs(Math.PI - f.value)).below(1e-15);
-    should(f.numerator).equal(1570796326794897);
-    should(f.denominator).equal(5e14);
+    expect(Math.abs(Math.PI - f.value)).toBeLessThan(1e-15);
+    expect(f.numerator).toBe(1570796326794897);
+    expect(f.denominator).toBe(5e14);
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('custom ctor 0', () => {
     let f = new Rational(0, 1);
-    should(f.numerator).equal(0);
-    should(f.denominator).equal(1);
-    should(f.toString()).equal('0');
-    should(f.value).equal(0);
+    expect(f.numerator).toBe(0);
+    expect(f.denominator).toBe(1);
+    expect(f.toString()).toBe('0');
+    expect(f.value).toBe(0);
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('null', () => {
     let f = new Rational();
@@ -75,118 +75,118 @@ describe('TESTTESTRational', () => {
     let fUnits = new Rational({ isNull: true, units });
 
     // Null values can have units but numerator and denominator are 0/1
-    should.deepEqual(fNull, fUnits);
-    should(fNull).not.equal(fUnits);
-    should(fNull.numerator).equal(0);
-    should(fNull.denominator).equal(1);
-    should(fNull.toString()).equal(`?${units}`);
+    expect(fNull).toEqual(fUnits);
+    expect(fNull).not.toBe(fUnits);
+    expect(fNull.numerator).toBe(0);
+    expect(fNull.denominator).toBe(1);
+    expect(fNull.toString()).toBe(`?${units}`);
   });
   it('custom ctor 1', () => {
     let f = new Rational(1, 1, 'inch');
-    should(f.numerator).equal(1);
-    should(f.denominator).equal(1);
-    should(f.toString()).equal('1inch');
-    should(f.value).equal(1);
+    expect(f.numerator).toBe(1);
+    expect(f.denominator).toBe(1);
+    expect(f.toString()).toBe('1inch');
+    expect(f.value).toBe(1);
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('custom ctor -123', () => {
     let f = new Rational(-123);
-    should(f.numerator).equal(-123);
-    should(f.denominator).equal(1);
-    should(f.toString()).equal('-123');
-    should(f.value).equal(-123);
+    expect(f.numerator).toBe(-123);
+    expect(f.denominator).toBe(1);
+    expect(f.toString()).toBe('-123');
+    expect(f.value).toBe(-123);
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('custom ctor 2/3', () => {
     let f = new Rational(2, 3);
-    should(f.numerator).equal(2);
-    should(f.denominator).equal(3);
-    should(f.toString()).equal('2/3');
-    should(f.value).equal(2 / 3);
+    expect(f.numerator).toBe(2);
+    expect(f.denominator).toBe(3);
+    expect(f.toString()).toBe('2/3');
+    expect(f.value).toBe(2 / 3);
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('custom ctor 240/9', () => {
     let f = new Rational(240, 9);
-    should(f.value).equal(240 / 9);
-    should(f.numerator).equal(240);
-    should(f.denominator).equal(9);
-    should(f.toString()).equal('240/9');
+    expect(f.value).toBe(240 / 9);
+    expect(f.numerator).toBe(240);
+    expect(f.denominator).toBe(9);
+    expect(f.toString()).toBe('240/9');
   });
   it('units', () => {
     let f = new Rational(2, 3, 'cm');
-    should(f.numerator).equal(2);
-    should(f.denominator).equal(3);
-    should(f.toString()).equal('2/3cm');
-    should(f.value).equal(2 / 3);
+    expect(f.numerator).toBe(2);
+    expect(f.denominator).toBe(3);
+    expect(f.toString()).toBe('2/3cm');
+    expect(f.value).toBe(2 / 3);
 
     // Rational can be copied
     let fCopy = new Rational(f);
-    should.deepEqual(fCopy, f);
-    should(fCopy).not.equal(f);
+    expect(fCopy).toEqual(f);
+    expect(fCopy).not.toBe(f);
   });
   it('reduce() 3/64', () => {
     let f = new Rational(9, 64 * 3, 'in');
     let fr = f.reduce(); // mutative
-    should(fr.numerator).equal(3);
-    should(fr.denominator).equal(64);
-    should(fr.toString()).equal('3/64in');
-    should(fr.value).equal(3 / 64);
-    should(fr).equal(f);
+    expect(fr.numerator).toBe(3);
+    expect(fr.denominator).toBe(64);
+    expect(fr.toString()).toBe('3/64in');
+    expect(fr.value).toBe(3 / 64);
+    expect(fr).toBe(f);
   });
   it('remainder', () => {
     let big = 240;
     let small = 9;
 
     let f1 = new Rational(small, big);
-    should(f1.remainder).equal(small % big);
+    expect(f1.remainder).toBe(small % big);
 
     let f2 = new Rational(big, small);
-    should(f2.remainder).equal(big % small);
+    expect(f2.remainder).toBe(big % small);
   });
   it('n d', () => {
     let f = new Rational(1, 2);
     f.n++;
     f.d++;
-    should(f.n).equal(2);
-    should(f.d).equal(3);
+    expect(f.n).toBe(2);
+    expect(f.d).toBe(3);
     // biome-ignore lint/suspicious:
     let ff = (f.n = 5);
-    should(ff).equal(5);
+    expect(ff).toBe(5);
   });
   it('difference', () => {
     for (let i = 0; i < 10; i++) {
       let n = Math.round(Math.random() * 1000);
       let d = Math.round(Math.random() * 1000);
       let f = new Rational(n, d);
-      should(f.difference).equal(n - d);
+      expect(f.difference).toBe(n - d);
     }
   });
   it('increment()', () => {
     const msg = 'Rational.increment:';
     let f = new Rational(1, 10);
-    should(f.increment()).equal(f);
-    should(f.numerator).equal(2);
+    expect(f.increment()).toBe(f);
+    expect(f.numerator).toBe(2);
     f.increment(-7);
-    should(f.numerator).equal(-5);
-    should(f.denominator).equal(10);
+    expect(f.numerator).toBe(-5);
+    expect(f.denominator).toBe(10);
   });
   it('add', () => {
     let f1 = new Rational(30, 3);
     let f2 = new Rational(9, 5);
     let f12 = f1.add(f2);
-    should.deepEqual(f12, new Rational(59, 5));
+    expect(f12).toEqual(new Rational(59, 5));
 
     let f3 = new Rational(9, 5, 'dollars');
     let eCaught;
@@ -195,7 +195,7 @@ describe('TESTTESTRational', () => {
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).match(/units.*"dollars".*""/);
+    expect(eCaught.message).toMatch(/units.*"dollars".*""/);
     let f4 = new Rational(30, 3, 'euros');
     eCaught = undefined;
     try {
@@ -203,7 +203,7 @@ describe('TESTTESTRational', () => {
     } catch (e) {
       eCaught = e;
     }
-    should(eCaught.message).match(/units.*dollars.*euros/);
+    expect(eCaught.message).toMatch(/units.*dollars.*euros/);
   });
   it('avro', () => {
     const msg = 'tf6n.avro';
@@ -213,8 +213,8 @@ describe('TESTTESTRational', () => {
     let thing1 = new Rational(2, 3, 'tbsp');
     let buf1 = type.toBuffer(thing1);
     let thing2 = type.fromBuffer(buf1);
-    should(thing1.toString()).equal('2/3tbsp');
-    should.deepEqual(new Rational(thing2), thing1);
+    expect(thing1.toString()).toBe('2/3tbsp');
+    expect(new Rational(thing2)).toEqual(thing1);
     dbg > 1 && cc.tag(msg, 'Rational with units');
 
     dbg && cc.tag1(msg + UOK, 'Rational serialized with avro');
@@ -227,15 +227,15 @@ describe('TESTTESTRational', () => {
     let f232 = new Rational(2, 32, 'in');
     let f1632 = new Rational(16, 32, 'in');
     let f254 = new Rational(254, 100, 'cm');
-    should(f12.toString()).equal('1/2in');
-    should(f13.toString()).equal('1/3in');
-    should(f34.toString()).equal('3/4in');
-    should(f18.toString()).equal('1/8in');
-    should(f232.toString()).equal('2/32in');
-    should(f232.toString({ fixed: 1 })).equal('0.1in');
-    should(f232.reduce().toString()).equal('1/16in');
-    should(f1632.toString()).equal('0.5in');
-    should(f1632.reduce().toString()).equal('1/2in');
-    should(f254.toString()).equal('2.54cm');
+    expect(f12.toString()).toBe('1/2in');
+    expect(f13.toString()).toBe('1/3in');
+    expect(f34.toString()).toBe('3/4in');
+    expect(f18.toString()).toBe('1/8in');
+    expect(f232.toString()).toBe('2/32in');
+    expect(f232.toString({ fixed: 1 })).toBe('0.1in');
+    expect(f232.reduce().toString()).toBe('1/16in');
+    expect(f1632.toString()).toBe('0.5in');
+    expect(f1632.reduce().toString()).toBe('1/2in');
+    expect(f254.toString()).toBe('2.54cm');
   });
 });

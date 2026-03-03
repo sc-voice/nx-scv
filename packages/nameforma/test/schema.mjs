@@ -1,5 +1,5 @@
 import avro from 'avro-js';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text, ScvMath, } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
@@ -28,11 +28,11 @@ describe('TESTTESTschema', () => {
     const type = Schema.register(schema, { avro });
     dbg > 1 && cc.tag(msg, s4aItems, 'type:', type);
     const avro1 = schema.toAvro(thing1);
-    should(avro1).not.equal(undefined);
+    expect(avro1).not.toBe(undefined);
     dbg > 1 && cc.tag(msg, s4aItems, 'avro1:', avro1);
     const buf1 = type.toBuffer(avro1);
     const avro2 = type.fromBuffer(buf1);
-    should.deepEqual(avro2, avro1);
+    expect(avro2).toEqual(avro1);
     dbg && cc.tag1(msg, s4aItems, 'avro2:', avro2);
   }
   it('ctor', () => {
@@ -43,18 +43,18 @@ describe('TESTTESTschema', () => {
 
     let s4aEmpty = new Schema();
     const noName = 'UnnamedSchema';
-    should(s4aEmpty).properties({
+    expect(s4aEmpty).toMatchObject({
       name: noName,
       fullName: noName,
     });
-    should(s4aEmpty.namespace).equal(undefined);
+    expect(s4aEmpty.namespace).toBe(undefined);
     dbg > 1 && cc.tag(msg, 'default ctor');
 
     const fEvil = () => {
       throw new Error(msg, 'EVIL');
     };
     let s4aFun = new Schema({ name, namespace, fullName: fEvil });
-    should(s4aFun).properties({
+    expect(s4aFun).toMatchObject({
       name,
       namespace,
       fullName: `${namespace}.${name}`,
@@ -62,7 +62,7 @@ describe('TESTTESTschema', () => {
     dbg > 1 && cc.tag(msg, 'evil ctor');
 
     let s4a = new Schema({ name, namespace });
-    should(s4a).properties({
+    expect(s4a).toMatchObject({
       name,
       namespace,
       fullName: `${namespace}.${name}`,
@@ -81,19 +81,18 @@ describe('TESTTESTschema', () => {
     dbg > 1 && cc.tag(msg, 'registerSchema');
     let type = Schema.register(Forma.SCHEMA, { avro, registry });
     let typeAgain = Schema.register(Forma.SCHEMA);
-    should(typeAgain).equal(type);
+    expect(typeAgain).toBe(type);
     let typeExpected = avro.parse(f3a);
     let name = `${f3a.namespace}.${f3a.name}`;
-    should.deepEqual(type, typeExpected);
-    should.deepEqual(`"${name}"`, typeExpected.toString());
-    should.deepEqual(
-      Object.keys(registry).sort(),
-      [name, 'string'].sort(),
-    );
-    should(registry).properties({
+    expect(type).toEqual(typeExpected);
+    expect(`"${name}"`).toEqual(typeExpected.toString());
+    expect(
+      Object.keys(registry).sort()
+    ).toEqual([name, 'string'].sort());
+    expect(registry).toMatchObject({
       [name]: typeExpected,
     });
-    should(Schema.REGISTRY).properties({
+    expect(Schema.REGISTRY).toMatchObject({
       [name]: typeExpected,
     });
     dbg > 1 &&
@@ -104,7 +103,7 @@ describe('TESTTESTschema', () => {
     let buf = type.toBuffer(thing1);
     let parsed = type.fromBuffer(buf);
     let thing2 = new Forma(parsed);
-    should.deepEqual(thing2, thing1);
+    expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
   });
   it('toAvro simple', () => {
@@ -133,13 +132,12 @@ describe('TESTTESTschema', () => {
       ],
     });
     const type = schema.register({ avro, registry });
-    should(schema.name).equal('TestRecord');
+    expect(schema.name).toBe('TestRecord');
     let avro1 = schema.toAvro(thing1, { registry });
     let avro2 = type.clone(thing1, { wrapUnion: true });
-    should.deepEqual(
-      JSON.stringify(avro1),
-      JSON.stringify({ id, clr, qty, ok }),
-    );
+    expect(
+      JSON.stringify(avro1)
+    ).toEqual(JSON.stringify({ id, clr, qty, ok }));
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
   it('toAvro union', () => {
@@ -167,17 +165,16 @@ describe('TESTTESTschema', () => {
         { name: 'ok', type: ['null', 'boolean'], default: null },
       ],
     });
-    should(schema.name).equal('TestRecord');
+    expect(schema.name).toBe('TestRecord');
     let avro1 = schema.toAvro(thing1, { registry });
-    should.deepEqual(
-      JSON.stringify(avro1),
-      JSON.stringify({
+    expect(
+      JSON.stringify(avro1)
+    ).toEqual(JSON.stringify({
         id,
         clr: { string: clr },
         qty: { double: qty },
         ok: { boolean: ok },
-      }),
-    );
+      }));
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
   it('toAvro simple array', () => {

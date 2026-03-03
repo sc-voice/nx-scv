@@ -1,5 +1,5 @@
 import util from 'node:util';
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
@@ -21,17 +21,16 @@ const PRODUCTION = false;
 const heartbeatInterval = PRODUCTION ? 3000 : 1000;
 const dbg = DBG.KAFKA.TEST;
 
-describe('kafka', function () {
-  this.timeout(4 * heartbeatInterval);
+describe('kafka', () => {
   it('k3a.ctor', async () => {
     let ka = new Kafka1();
-    should(ka).properties({
+    expect(ka).toMatchObject({
       clientId: 'no-client-id',
     });
 
     let clientId = 'test-client-id';
     let kaTest = new Kafka1({ clientId });
-    should(kaTest).properties({
+    expect(kaTest).toMatchObject({
       clientId,
       nodeId: '123',
     });
@@ -39,14 +38,14 @@ describe('kafka', function () {
   it('k3a.admin()', async () => {
     let ka = new Kafka1();
     let admin = ka.admin();
-    should(admin).instanceOf(Admin);
-    should.deepEqual(await admin.listTopics(), []);
+    expect(admin).toBeInstanceOf(Admin);
+    expect(await admin.listTopics()).toEqual([]);
 
     await admin.connect();
-    should(admin.connections).equal(1);
+    expect(admin.connections).toBe(1);
 
     await admin.disconnect();
-    should(admin.connections).equal(0);
+    expect(admin.connections).toBe(0);
   });
   it('k3a.listGroups()', async () => {
     const msg = 'tk3a.listGroups';
@@ -55,12 +54,12 @@ describe('kafka', function () {
     await admin.connect();
     let groupG1 = 'tL8S.G1';
     let groups1 = await admin.listGroups();
-    should.deepEqual(groups1, []);
+    expect(groups1).toEqual([]);
     let topicA = 'topicA';
     let consumerG1 = ka.consumer({ groupId: groupG1 });
     await await consumerG1.connect();
     let groups2 = await admin.listGroups();
-    should.deepEqual(groups2, [
+    expect(groups2).toEqual([
       {
         groupId: groupG1,
         protocolType: 'consumer',
@@ -77,12 +76,12 @@ describe('kafka', function () {
     await admin.connect();
     let groupG1 = 'tD12S.G1';
     let groups1 = await admin.describeGroups();
-    should.deepEqual(groups1, []);
+    expect(groups1).toEqual([]);
     let topicA = 'topicA';
     let consumerG1 = ka.consumer({ groupId: groupG1 });
     await await consumerG1.connect();
     let groups2 = await admin.describeGroups();
-    should.deepEqual(groups2, [
+    expect(groups2).toEqual([
       {
         errorCode: 0,
         groupId: groupG1,
@@ -97,13 +96,13 @@ describe('kafka', function () {
   it('k3a.producer()', async () => {
     let ka = new Kafka1();
     let producer = ka.producer();
-    should(producer).instanceOf(Producer);
+    expect(producer).toBeInstanceOf(Producer);
 
     await producer.connect();
-    should(producer.connections).equal(1);
+    expect(producer.connections).toBe(1);
 
     await producer.disconnect();
-    should(producer.connections).equal(0);
+    expect(producer.connections).toBe(0);
   });
   it('k3a.consumer()', async () => {
     const msg = 'tk3a.consumer';
@@ -115,22 +114,22 @@ describe('kafka', function () {
     let topicA = 'tC6R.TA';
 
     let offsets1 = await admin.fetchOffsets({ groupId });
-    should(offsets1.length).equal(0);
+    expect(offsets1.length).toBe(0);
     dbg > 1 &&
       cc.fyi1(msg + 1, groupId, 'offsets1:', JSON.stringify(offsets1));
 
     let consumer = ka.consumer({ groupId });
-    should(consumer).instanceOf(Consumer);
-    should(consumer).properties({
+    expect(consumer).toBeInstanceOf(Consumer);
+    expect(consumer).toMatchObject({
       groupId,
       heartbeatInterval: 3000,
       sessionTimeout: 30000,
     });
     let offsets2 = await admin.fetchOffsets({ groupId });
-    should(offsets2.length).equal(0);
+    expect(offsets2.length).toBe(0);
 
     await consumer.connect();
-    should(consumer.connections).equal(1);
+    expect(consumer.connections).toBe(1);
 
     dbg > 1 &&
       cc.fyi1(msg + 2, groupId, 'offsets2:', JSON.stringify(offsets2));
@@ -138,32 +137,31 @@ describe('kafka', function () {
 
     // _consumeMap is used to update consumer Clocks
     let consumerOther = ka.consumer({ groupId: groupOther });
-    should(t4A._consumerMap.get(consumer)).equal(undefined);
-    should.deepEqual([...t4A._consumerMap.keys()], []);
+    expect(t4A._consumerMap.get(consumer)).toBe(undefined);
+    expect([...t4A._consumerMap.keys()]).toEqual([]);
     await consumerOther.subscribe({ topics: [topicA] });
-    should.deepEqual([...t4A._consumerMap.keys()], [consumerOther]);
-    should(t4A._consumerMap.get(consumerOther)).equal(true);
+    expect([...t4A._consumerMap.keys()]).toEqual([consumerOther]);
+    expect(t4A._consumerMap.get(consumerOther)).toBe(true);
     await consumer.subscribe({ topics: [topicA] });
-    should.deepEqual(
-      [...t4A._consumerMap.keys()],
-      [consumerOther, consumer],
-    );
-    should(t4A._consumerMap.get(consumer)).equal(true);
-    should(t4A._consumerMap.get(consumerOther)).equal(true);
+    expect(
+      [...t4A._consumerMap.keys()]
+    ).toEqual([consumerOther, consumer]);
+    expect(t4A._consumerMap.get(consumer)).toBe(true);
+    expect(t4A._consumerMap.get(consumerOther)).toBe(true);
 
     // consumer group offsets
     let group3 = JSON.stringify(consumer.group);
     let offsets3 = await admin.fetchOffsets({ groupId });
     dbg &&
       cc.fyi1(msg + 3, groupId, 'offsets3:', JSON.stringify(offsets3));
-    should(offsets3.length).equal(1);
-    should(offsets3[0]).properties({
+    expect(offsets3.length).toBe(1);
+    expect(offsets3[0]).toMatchObject({
       topic: topicA,
       partitions: [{ partition: 0, offset: 0 }],
     });
 
     await consumer.disconnect();
-    should(consumer.connections).equal(0);
+    expect(consumer.connections).toBe(0);
 
     await admin.disconnect();
   });
@@ -190,33 +188,32 @@ describe('kafka', function () {
 
     // Step1: consumerA subscribes before message is sent
     await consumerA.subscribe({ topics: [topicT], fromBeginning: true });
-    dbg && should(t4a._consumerMap.get(consumerA)).equal(true);
+    dbg && expect(t4a._consumerMap.get(consumerA)).toBe(true);
 
     // Step2: send msgA1
     if (dbg) {
       let { _inboxClock: i8kA } = consumerA;
-      should(i8kA.timeOut).equal(i8kA.timeIn);
+      expect(i8kA.timeOut).toBe(i8kA.timeIn);
     }
     let send1 = producer.send({ topic: topicT, messages: [msgA1] });
     await send1;
     let i8kA = dbg ? consumerA._inboxClock : undefined;
     if (dbg) {
       !i8kA.running && (await i8kA.start()); // simulate run()
-      should(i8kA.timeIn).above(i8kA.timeOut);
-      should(Date.now() - i8kA.timeIn)
-        .above(-1)
-        .below(10);
+      expect(i8kA.timeIn).toBeGreaterThan(i8kA.timeOut);
+      expect(Date.now() - i8kA.timeIn).toBeGreaterThan(-1);
+      expect(Date.now() - i8kA.timeIn).toBeLessThan(10);
       cc.fyi(msg + 0.11, 'before next()');
       await i8kA.next();
       cc.fyi(msg + 0.12, 'after next()');
-      should(i8kA.timeOut).equal(i8kA.timeIn);
+      expect(i8kA.timeOut).toBe(i8kA.timeIn);
     }
-    should.deepEqual(await admin.listTopics(), [topicT]);
+    expect(await admin.listTopics()).toEqual([topicT]);
     let send2 = producer.send();
     await send2;
-    should.deepEqual(await admin.listTopics(), [topicT, 'no-topic']);
+    expect(await admin.listTopics()).toEqual([topicT, 'no-topic']);
 
-    dbg && should(t4a.partitions[0]._messages[0]).properties(msgA1);
+    dbg && expect(t4a.partitions[0]._messages[0]).toMatchObject(msgA1);
 
     let onEachMessage =
       (rProp) =>
@@ -244,10 +241,10 @@ describe('kafka', function () {
     let { committed: committedA1 } = await consumerA._readTopics({
       eachMessage: onEachMessage('TA'),
     });
-    should(received?.TA?.length).equal(1);
-    should(received.TA[0]).properties(msgA1);
-    should(committedA1).equal(1);
-    dbg && should(i8kB.timeOut).equal(0); // consumerB is not running
+    expect(received?.TA?.length).toBe(1);
+    expect(received.TA[0]).toMatchObject(msgA1);
+    expect(committedA1).toBe(1);
+    dbg && expect(i8kB.timeOut).toBe(0); // consumerB is not running
 
     // STEP4: send msgA2 and consumerB is "aware" of it but not running.
     let res4 = producer.send({ topic: topicT, messages: [msgA2] });
@@ -255,22 +252,22 @@ describe('kafka', function () {
     let { committed: committedA2 } = await consumerA._readTopics({
       eachMessage: onEachMessage('TA'),
     });
-    should(received.TA[0]).properties(msgA1);
-    should(received.TA.length).equal(2);
-    should(received.TA[1]).properties(msgA2);
-    should(committedA2).equal(1);
-    dbg && should(i8kB.timeIn).above(i8kB.timeOut); // aware but not running
-    should(received.TB).equal(undefined);
+    expect(received.TA[0]).toMatchObject(msgA1);
+    expect(received.TA.length).toBe(2);
+    expect(received.TA[1]).toMatchObject(msgA2);
+    expect(committedA2).toBe(1);
+    dbg && expect(i8kB.timeIn).toBeGreaterThan(i8kB.timeOut); // aware but not running
+    expect(received.TB).toBe(undefined);
 
     // STEP5: consumerB wakes up and processes both messages
     let { committed: committedB1 } = await consumerB._readTopics({
       eachMessage: onEachMessage('TB'),
     });
-    should(received.TB[0]).properties(msgA1);
-    should(received.TB[1]).properties(msgA2);
-    should(committedB1).equal(2);
+    expect(received.TB[0]).toMatchObject(msgA1);
+    expect(received.TB[1]).toMatchObject(msgA2);
+    expect(committedB1).toBe(2);
     // i8kB clock didn't change because there were no new messages
-    dbg && should(i8kB.timeIn).above(i8kB.timeOut);
+    dbg && expect(i8kB.timeIn).toBeGreaterThan(i8kB.timeOut);
 
     // STEP6: third message is sent to both conumsers
     let res6 = producer.send({ topic: topicT, messages: [msgA3] });
@@ -278,13 +275,13 @@ describe('kafka', function () {
     let { committed: committedA3 } = await consumerA._readTopics({
       eachMessage: onEachMessage('TA'),
     });
-    should(received.TA.length).equal(3);
-    should(received.TA[2]).properties(msgA3);
+    expect(received.TA.length).toBe(3);
+    expect(received.TA[2]).toMatchObject(msgA3);
     let { committed: committedB2 } = await consumerB._readTopics({
       eachMessage: onEachMessage('TB'),
     });
-    should(received.TB.length).equal(3);
-    should(received.TB[2]).properties(msgA3);
+    expect(received.TB.length).toBe(3);
+    expect(received.TB[2]).toMatchObject(msgA3);
 
     await consumerA.stop(); // release resources
     await consumerA.disconnect();
@@ -323,19 +320,19 @@ describe('kafka', function () {
       dbg && cc.tag(msg, 'eachMessage', message);
     };
     let r4r = new _Runner({ eachMessage, consumer });
-    should(r4r).properties({ running: false, eachMessage });
+    expect(r4r).toMatchObject({ running: false, eachMessage });
     dbg > 1 && cc.tag(msg, 'r4r.start');
     /* await */ r4r.start(); // do not await!
     dbg > 1 && cc.tag(msg, 'sleep...');
     await new Promise((res) => setTimeout(() => res(), 30));
     dbg > 1 && cc.tag(msg, '...sleep');
-    should(r4r).properties({ running: true, eachMessage });
+    expect(r4r).toMatchObject({ running: true, eachMessage });
 
     dbg > 1 && cc.tag(msg, 'release resources');
     await r4r.stop();
-    should(r4r).properties({ running: false, eachMessage });
-    should(consumed.length).equal(2);
-    should.deepEqual(consumed, [msgA1, msgA2]);
+    expect(r4r).toMatchObject({ running: false, eachMessage });
+    expect(consumed.length).toBe(2);
+    expect(consumed).toEqual([msgA1, msgA2]);
     consumer.disconnect();
     producer.disconnect();
     dbg && cc.tag1(msg, 'END');
@@ -369,20 +366,20 @@ describe('kafka', function () {
     await consumer.subscribe({ topics: [topic], fromBeginning: true });
     let _msSleep = 1;
     await consumer.run({ eachMessage });
-    should(consumer).properties({ running: true });
+    expect(consumer).toMatchObject({ running: true });
     await new Promise((res) => setTimeout(() => res(), _msSleep * 3));
-    should(consumed.length).equal(2);
-    should.deepEqual(consumed, [msgA1, msgA2]);
+    expect(consumed.length).toBe(2);
+    expect(consumed).toEqual([msgA1, msgA2]);
 
     // STEP3: send more messages
     await producer.send({ topic, messages: [msgA3] });
     await new Promise((res) => setTimeout(() => res(), _msSleep * 3));
-    should(consumed.length).equal(3);
-    should.deepEqual(consumed, [msgA1, msgA2, msgA3]);
+    expect(consumed.length).toBe(3);
+    expect(consumed).toEqual([msgA1, msgA2, msgA3]);
 
     // STEP4: shutdown kafka
     await consumer.stop(); // release resources
-    should(consumer).properties({ running: false });
+    expect(consumer).toMatchObject({ running: false });
     consumer.disconnect();
     producer.disconnect();
     dbg && cc.tag1(msg, 'END');

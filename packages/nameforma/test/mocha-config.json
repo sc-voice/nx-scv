@@ -1,8 +1,0 @@
-{
-  "reporter": "min",
-  "inline-diffs": true,
-  "grep": ["TESTTEST"],
-  "parallel": true,
-  "node-option": ["no-warnings=ExperimentalWarning"],
-  "watch-ignore": ["node_modules", ".git", "local"]
-}

@@ -1,4 +1,4 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import {
   v7 as uuidV7,
   validate as uuidValidate,
@@ -26,7 +26,7 @@ describe('Patch', () => {
   it('ctor default', () => {
     const msg = 'tp3h.ctor.default';
     const p3h1 = new Patch();
-    should(uuidValidate(p3h1.id)).equal(true);
+    expect(uuidValidate(p3h1.id)).toBe(true);
     dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
   it('ctor simple', () => {
@@ -36,7 +36,7 @@ describe('Patch', () => {
     const size = 42;
     const sale = false;
     const p3h1 = new Patch({ id, color, size, sale });
-    should(p3h1).properties({ id, color, size, sale });
+    expect(p3h1).toMatchObject({ id, color, size, sale });
     dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
   it('patch simple', () => {
@@ -49,17 +49,17 @@ describe('Patch', () => {
     const thing2 = { id, color: 'blue', size: 34, sale: true };
     const p3h1 = new Patch({ id });
     p3h1.apply(thing2);
-    should.deepEqual(thing2, thing1);
+    expect(thing2).toEqual(thing1);
     dbg && cc.tag(msg, 'empty', p3h1);
 
     const p3h2 = new Patch({ id, color });
     p3h2.apply(thing2);
-    should.deepEqual(thing2, { id, color, size: 34, sale: true });
+    expect(thing2).toEqual({ id, color, size: 34, sale: true });
     dbg && cc.tag(msg, 'color', p3h2);
 
     const p3h3 = new Patch({ id, color, size, sale });
     p3h3.apply(thing2);
-    should.deepEqual(thing2, { id, color, size, sale });
+    expect(thing2).toEqual({ id, color, size, sale });
     dbg && cc.tag(msg, 'size,sale', p3h3);
 
     dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);

@@ -1,4 +1,4 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import avro from 'avro-js';
 import { NameForma } from '../index.mjs';
 import { ScvMath, Text } from '@sc-voice/tools';
@@ -32,11 +32,11 @@ describe('task', () => {
 
     let t2k = new Task();
     let { id, name } = t2k;
-    should(t2k.validate({ defaultIdName: true })).equal(true);
-    should(t2k).properties({ title: 'title?' });
-    should.deepEqual(t2k.progress, new Rational(0, 1, 'done'));
-    should.deepEqual(t2k.duration, new Rational(null, 1, 's'));
-    should(t2k.toString()).match(/T2K[-0-9a-z]+\. title\? \(0\/1done\)/);
+    expect(t2k.validate({ defaultIdName: true })).toBe(true);
+    expect(t2k).toMatchObject({ title: 'title?' });
+    expect(t2k.progress).toEqual(new Rational(0, 1, 'done'));
+    expect(t2k.duration).toEqual(new Rational(null, 1, 's'));
+    expect(t2k.toString()).toMatch(/T2K[-0-9a-z]+\. title\? \(0\/1done\)/);
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
   });
@@ -55,7 +55,7 @@ describe('task', () => {
     let buf = type.toBuffer(thing1);
     let parsed = type.fromBuffer(buf);
     let thing2 = new Task(parsed);
-    should.deepEqual(thing2, thing1);
+    expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Task serialized with avro');
   });
   it('put', () => {
@@ -67,12 +67,12 @@ describe('task', () => {
     let duration = new Rational(5, 60, 'hr');
     let units = new Units();
     let t2k = new Task({ name, title, progress, duration });
-    should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
+    expect(t2k.toString()).toBe(`${name}. ${title} (0/1done 5/60hr)`);
 
     t2k.put({
       duration: units.convert(duration).to('min'),
     });
-    should(t2k.toString()).equal(`${name}. title? (0/1done 5min)`);
+    expect(t2k.toString()).toBe(`${name}. title? (0/1done 5min)`);
     dbg && cc.tag1(msg + UOK, 'put with defaults');
   });
   it('patch', () => {
@@ -84,28 +84,28 @@ describe('task', () => {
     let duration = new Rational(5, 60, 'hr');
     let units = new Units();
     let t2k = new Task({ name, title, progress, duration });
-    should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
+    expect(t2k.toString()).toBe(`${name}. ${title} (0/1done 5/60hr)`);
 
     t2k.patch();
-    should(t2k.toString()).equal(`${name}. ${title} (0/1done 5/60hr)`);
+    expect(t2k.toString()).toBe(`${name}. ${title} (0/1done 5/60hr)`);
     dbg > 1 && cc.tag(msg, 'empty patch');
 
     let newName = 'new-name';
     let { id } = t2k;
     t2k.patch({ id: 'ignored', name: newName, title: 'new title' });
-    should(t2k.id).equal(id); // immutable
-    should(t2k.toString()).equal(`${newName}. new title (0/1done 5/60hr)`);
+    expect(t2k.id).toBe(id); // immutable
+    expect(t2k.toString()).toBe(`${newName}. new title (0/1done 5/60hr)`);
     dbg > 1 && cc.tag(msg, 'patched title');
 
     t2k.patch({ progress: new Rational(1, 1, 'done') });
-    should(t2k.toString()).equal(
-      `${newName}${UOK} new title (1done 5/60hr)`,
+    expect(t2k.toString()).toBe(
+      `${newName}${UOK} new title (1done 5/60hr)`
     );
     dbg > 1 && cc.tag(msg, 'patched progress numerator');
 
     t2k.patch({ duration: units.convert(duration).to('min') });
-    should(t2k.toString()).equal(
-      `${newName}${UOK} new title (1done 5min)`,
+    expect(t2k.toString()).toBe(
+      `${newName}${UOK} new title (1done 5min)`
     );
     dbg && cc.tag1(msg + UOK, 'patched duration unit conversion');
   });

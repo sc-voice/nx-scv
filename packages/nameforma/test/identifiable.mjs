@@ -1,4 +1,4 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import {
   v7 as uuidV7,
   validate as uuidValidate,
@@ -25,7 +25,7 @@ describe('Identifiable', () => {
     let now = Date.now();
     let idNow = Identifiable.uuid({ msecs: now });
 
-    should(Identifiable.uuidToTime(idNow)).equal(now);
+    expect(Identifiable.uuidToTime(idNow)).toBe(now);
     dbg > 1 &&
       cc.tag(
         msg,
@@ -36,16 +36,16 @@ describe('Identifiable', () => {
 
     dbg > 1 && cc.tag(msg, { uuid0 });
     dbg > 1 && cc.tag(msg, { uuid1 });
-    should(uuid1).above(uuid0);
-    should(uuid1).below(idNow);
+    expect(uuid1 > uuid0).toBe(true);
+    expect(uuid1 < idNow).toBe(true);
     dbg > 1 && cc.tag(msg, 'uuids can be sorted by milliseconds');
 
-    should(uuidVersion(uuid0)).equal(7);
-    should(uuidVersion(uuid1)).equal(7);
-    should(uuidVersion(idNow)).equal(7);
-    should(uuidValidate(uuid0)).equal(true);
-    should(uuidValidate(uuid1)).equal(true);
-    should(uuidValidate(idNow)).equal(true);
+    expect(uuidVersion(uuid0)).toBe(7);
+    expect(uuidVersion(uuid1)).toBe(7);
+    expect(uuidVersion(idNow)).toBe(7);
+    expect(uuidValidate(uuid0)).toBe(true);
+    expect(uuidValidate(uuid1)).toBe(true);
+    expect(uuidValidate(idNow)).toBe(true);
 
     dbg && cc.tag1(msg + UOK, 'valid v7 uuids');
   });

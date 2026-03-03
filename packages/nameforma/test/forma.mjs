@@ -1,4 +1,4 @@
-import should from 'should';
+import { describe, it, expect } from 'vitest';
 import {
   v7 as uuidV7,
   validate as uuidValidate,
@@ -27,26 +27,26 @@ class TestThing extends Forma {
 describe('Forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
-    should(uuidValidate(f3a.id)).equal(true, `${f3a.id}?`);
-    should(f3a.name).match(/^F3A[-0-9a-z]+$/);
+    expect(uuidValidate(f3a.id)).toBe(true);
+    expect(f3a.name).toMatch(/^F3A[-0-9a-z]+$/);
 
     let t7g = new TestThing();
-    should(t7g.name).match(/^T7G[-0-9a-z]+$/);
+    expect(t7g.name).toMatch(/^T7G[-0-9a-z]+$/);
   });
   it('patch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
     let f3a = new Forma();
-    should(f3a.validate({ defaultNameId: true })).equal(true);
+    expect(f3a.validate({ defaultNameId: true })).toBe(true);
 
     const { id } = f3a;
     f3a.patch({ id: 'newId' });
-    should(f3a.id).equal(id);
+    expect(f3a.id).toBe(id);
     dbg > 1 && cc.tag(msg, 'id is immutable');
 
     f3a.patch({ name: 'newName' });
-    should(f3a.id).equal(id);
-    should(f3a.name).equal('newName');
+    expect(f3a.id).toBe(id);
+    expect(f3a.name).toBe('newName');
     dbg && cc.tag1(msg + UOK, 'name is mutable');
   });
   it('avro', () => {
@@ -59,16 +59,15 @@ describe('Forma', () => {
     let type = Schema.register(schema, { avro, registry });
     let typeExpected = avro.parse(schema);
     let name = `${schema.namespace}.${schema.name}`;
-    should.deepEqual(type, typeExpected);
-    should.deepEqual(`"${name}"`, typeExpected.toString());
-    should.deepEqual(
+    expect(type).toEqual(typeExpected);
+    expect(`"${name}"`).toEqual(typeExpected.toString());
+    expect(
       Object.keys(registry).sort(),
-      [name, 'string'].sort(),
-    );
-    should(registry).properties({
+    ).toEqual([name, 'string'].sort());
+    expect(registry).toMatchObject({
       [name]: typeExpected,
     });
-    should(Schema.REGISTRY).properties({
+    expect(Schema.REGISTRY).toMatchObject({
       [name]: typeExpected,
     });
     dbg > 1 &&
@@ -79,7 +78,7 @@ describe('Forma', () => {
     let buf = type.toBuffer(thing1);
     let parsed = type.fromBuffer(buf);
     let thing2 = new Forma(parsed);
-    should.deepEqual(thing2, thing1);
+    expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
   });
   it('classes', () => {
@@ -104,10 +103,10 @@ describe('Forma', () => {
       }
     }
 
-    should(ClassA.register()).equal(ClassA.SCHEMA);
+    expect(ClassA.register()).toBe(ClassA.SCHEMA);
     dbg && cc.ok(msg + UOK, 'ClassA:', ClassA.register());
 
-    should(ClassB.register()).equal('CLASSB' + ClassB.SCHEMA);
+    expect(ClassB.register()).toBe('CLASSB' + ClassB.SCHEMA);
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
 });
