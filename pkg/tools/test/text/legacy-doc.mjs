@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import { Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { LegacyDoc } = Text;

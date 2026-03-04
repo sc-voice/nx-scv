@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import {
   v7 as uuidV7,
   validate as uuidValidate,

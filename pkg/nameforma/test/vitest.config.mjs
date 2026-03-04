@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from '@sc-voice/vitest/config';
 
 export default defineConfig({
   test: {

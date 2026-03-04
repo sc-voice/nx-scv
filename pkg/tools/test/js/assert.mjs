@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import { JS } from '../../index.mjs';
 const { Assert } = JS;
 

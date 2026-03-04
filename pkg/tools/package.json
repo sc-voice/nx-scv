@@ -29,13 +29,13 @@
   "bugs": {
     "url": "https://github.com/sc-voice/nx-scv/issues"
   },
-  "homepage": "https://github.com/sc-voice/nx-scv/packages/tools/#readme",
+  "homepage": "https://github.com/sc-voice/nx-scv/pkg/tools/#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "avro-js": "^1.12.0",
     "deepl-node": "^1.15.0",
     "eslint": "^9.17.0",
-    "vitest": "^4.0.18"
+    "@sc-voice/vitest": "^4.0.0"
   },
   "dependencies": {
     "uuid": "^11.1.0"

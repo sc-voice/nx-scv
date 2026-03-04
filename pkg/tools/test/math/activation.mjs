@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 
 import { ScvMath, Text } from '../../index.mjs';
 const { ColorConsole } = Text;

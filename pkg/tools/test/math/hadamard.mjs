@@ -1,5 +1,5 @@
 import avro from 'avro-js';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import { ScvMath, Text } from '../../index.mjs';
 import { DBG } from '../../src/defines.mjs';
 const { Hadamard } = ScvMath;

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import avro from 'avro-js';
 import { NameForma } from '../index.mjs';
 import { ScvMath, Text } from '@sc-voice/tools';

@@ -1,5 +1,5 @@
 import avro from 'avro-js';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import { Text, ScvMath, } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';

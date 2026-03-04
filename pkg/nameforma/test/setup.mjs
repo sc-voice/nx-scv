@@ -1,4 +1,4 @@
-import { expect } from 'vitest';
+import { expect } from '@sc-voice/vitest';
 
 // Custom equality tester for functions: compare by source code instead of reference
 function functionEqualityTester(a, b) {

@@ -1,27 +1,34 @@
 {
-  "name": "@sc-voice/nameforma",
-  "version": "3.33.0",
-  "description": "Utilities for SC-Voice",
+  "name": "@sc-voice/vitest",
+  "version": "4.0.0",
+  "description": "Vitest utilities for SC-Voice, including should.js compatibility wrapper",
   "main": "index.mjs",
   "files": [
     "LICENSE",
     "index.mjs",
+    "config.mjs",
     "package.json",
     "README.md",
     "src"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "vitest run --config test/vitest.config.mjs",
     "test:test": "vitest --config test/vitest.config.mjs"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sc-voice/nx-scv.git"
+    "url": "https://github.com/sc-voice/nx-scv",
+    "directory": "pkg/vitest"
   },
   "keywords": [
     "SC-Voice",
     "nx-scv",
-    "NameForma",
+    "vitest",
+    "should",
+    "testing",
     "Javascript"
   ],
   "author": "Karl Lew",
@@ -29,14 +36,13 @@
   "bugs": {
     "url": "https://github.com/sc-voice/nx-scv/issues"
   },
-  "homepage": "https://github.com/sc-voice/nx-scv/packages/nameforma/#readme",
+  "homepage": "https://github.com/sc-voice/nx-scv/tree/main/pkg/vitest#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "eslint": "^9.17.0",
-    "@sc-voice/vitest": "^4.0.0"
+    "should": "^13.2.3"
   },
   "dependencies": {
-    "avro-js": "^1.12.0",
-    "uuid": "^11.1.0"
+    "vitest": "^4.0.18"
   }
 }

@@ -1,5 +1,5 @@
 import util from 'node:util';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@sc-voice/vitest';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
