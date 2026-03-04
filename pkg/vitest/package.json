@@ -1,6 +1,6 @@
 {
   "name": "@sc-voice/vitest",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Vitest utilities for SC-Voice, including should.js compatibility wrapper",
   "main": "index.mjs",
   "files": [
