@@ -1,5 +1,6 @@
 import { Assert } from './src/js/assert.mjs';
-export const JS = { Assert,
+import UUIDV7 from './src/js/uuidv7.mjs';
+export const JS = { Assert, UUIDV7,
 }
 
 import { Activation } from './src/math/activation.mjs';

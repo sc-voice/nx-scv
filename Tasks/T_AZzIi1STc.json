@@ -1,0 +1,19 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-07T13:45:00Z",
+  "id" : "019CC88B-5493-7000-943D-A1DCA47852E7",
+  "name" : "Convert Swift CLI to TypeScript with modernization",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Port task_cli.swift (1748 lines) to TypeScript using modern CLI framework. Replace global state with class-based design, implement resource\/command pattern. Preserve command compatibility. Requires completed pkg\/tasks core library.",
+  "updatedAt" : "2026-03-07T13:45:00Z"
+}

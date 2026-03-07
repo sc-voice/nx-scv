@@ -1,7 +1,7 @@
 {
-  "name": "@sc-voice/tools",
-  "version": "3.35.0",
-  "description": "Utilities for SC-Voice",
+  "name": "@sc-voice/tasks",
+  "version": "1.0.0",
+  "description": "Task management system for SC-Voice",
   "main": "index.mjs",
   "files": [
     "LICENSE",
@@ -21,7 +21,7 @@
   "keywords": [
     "SC-Voice",
     "nx-scv",
-    "Tools",
+    "tasks",
     "Javascript"
   ],
   "author": "Karl Lew",
@@ -29,15 +29,13 @@
   "bugs": {
     "url": "https://github.com/sc-voice/nx-scv/issues"
   },
-  "homepage": "https://github.com/sc-voice/nx-scv/pkg/tools/#readme",
+  "homepage": "https://github.com/sc-voice/nx-scv/packages/tasks/#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "avro-js": "^1.12.0",
-    "deepl-node": "^1.15.0",
     "eslint": "^9.17.0",
     "@sc-voice/vitest": "^4.0.0"
   },
   "dependencies": {
-    "uuid": "^11.1.0"
+    "uuidv7": "^1.0.2"
   }
 }
