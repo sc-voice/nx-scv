@@ -142,4 +142,42 @@ it('fromString round-trip maintains consistency', () => {
   expect(u1.base64 === u3.base64, 'base64 should match after round-trip');
 });
 
+// Test: isRelated identifies related UUIDs correctly
+it('isRelated identifies related UUIDs correctly', () => {
+  const uuid1 = new UUID64();
+  const uuid2 = UUID64.createRelation(uuid1);
+  const uuid3 = UUID64.createRelation(uuid2);
+  const unrelated = new UUID64();
+
+  // All related UUIDs should identify as related (commutative)
+  expect(uuid1.isRelated(uuid1), 'uuid1 should be related to itself');
+  expect(uuid1.isRelated(uuid2), 'uuid1 should be related to uuid2');
+  expect(uuid2.isRelated(uuid1), 'uuid2 should be related to uuid1');
+  expect(uuid1.isRelated(uuid3), 'uuid1 should be related to uuid3');
+  expect(uuid3.isRelated(uuid1), 'uuid3 should be related to uuid1');
+  expect(uuid2.isRelated(uuid3), 'uuid2 should be related to uuid3');
+  expect(uuid3.isRelated(uuid2), 'uuid3 should be related to uuid2');
+
+  // Unrelated UUID should not be related
+  expect(!uuid1.isRelated(unrelated), 'uuid1 should not be related to unrelated');
+  expect(!unrelated.isRelated(uuid1), 'unrelated should not be related to uuid1');
+
+  // Temporal ordering via compare
+  expect(uuid1.compare(uuid2) < 0, 'uuid1 should be < uuid2');
+  expect(uuid2.compare(uuid3) < 0, 'uuid2 should be < uuid3');
+});
+
+// Test: toDate extracts timestamp correctly
+it('toDate extracts timestamp correctly', () => {
+  const before = Date.now();
+  const uuid = new UUID64();
+  const after = Date.now();
+
+  const date = uuid.toDate();
+  const timestamp = date.getTime();
+
+  expect(timestamp >= before && timestamp <= after,
+    `UUID timestamp ${timestamp} should be between ${before} and ${after}`);
+});
+
 });

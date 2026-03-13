@@ -63,6 +63,20 @@ class UUID64 {
   }
 
   /**
+   * Create a UUID64 instance related to another UUID64.
+   * Regenerates the first 8 bytes (timestamp + sequence) while copying bytes 8-15 from the relation.
+   *
+   * @param relation UUID64 instance to create a relation with
+   * @returns UUID64 instance with new timestamp/sequence and relation's random bits
+   */
+  static createRelation(relation: UUID64): UUID64 {
+    const instance = Object.create(UUID64.prototype);
+    instance.uuidv7 = UUID64.createBuffer(Date.now(), relation.uuidv7);
+    instance.base64 = UUID64.toBase64Url(instance.uuidv7);
+    return instance;
+  }
+
+  /**
    * Create a UUID64 instance from a UUID string or base64 string.
    *
    * @param input UUID string (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx) or base64 string
@@ -87,46 +101,66 @@ class UUID64 {
   }
 
   /**
-   * Generate a monotonically increasing UUIDv7 as Buffer.
+   * Create a UUID64 buffer with timestamp, sequence, and optional random bytes.
    *
+   * @param date Timestamp in milliseconds (defaults to current time)
+   * @param randomBytes64 Optional 16-byte buffer with random bits for bytes 8-15. If not provided, generates new random bytes.
    * @returns Buffer 16-byte UUID buffer
    */
-  private generate(): Buffer {
-    const now = Date.now(); // milliseconds since epoch
-    const { millis, sequence } = monotonicityState.nextMillisWithSequence(now);
-
-    // Generate random bytes for the UUID
-    const randomBuf = randomBytes(16); // Get 16 random bytes
-
-    // Build UUID bytes (16 bytes total)
+  private static createBuffer(date: number = Date.now(), randomBytes64: Buffer | null = null): Buffer {
+    const { millis, sequence } = monotonicityState.nextMillisWithSequence(date);
     const uuid = Buffer.alloc(16);
 
-    // Bytes 0-5: timestamp in milliseconds (48 bits)
-    // Convert BigInt to bytes in big-endian
-    const millisBigInt = millis;
-    uuid[0] = Number((millisBigInt >> 40n) & 0xffn);
-    uuid[1] = Number((millisBigInt >> 32n) & 0xffn);
-    uuid[2] = Number((millisBigInt >> 24n) & 0xffn);
-    uuid[3] = Number((millisBigInt >> 16n) & 0xffn);
-    uuid[4] = Number((millisBigInt >> 8n) & 0xffn);
-    uuid[5] = Number(millisBigInt & 0xffn);
+    // Bytes 0-7: timestamp and sequence
+    UUID64.buildTimestampAndSequence(uuid, millis, sequence);
 
-    // Bytes 6-8: 12-bit sequence counter + version + variant
-    // Place 12-bit sequence as UInt16 big-endian in bytes 6-7, then apply version/variant masks
+    if (randomBytes64) {
+      // Copy bytes 8-15 from provided random bytes (for createRelation)
+      randomBytes64.copy(uuid, 8, 8, 16);
+    } else {
+      // Generate new random bytes (for generate)
+      const random = randomBytes(16);
+      // Bytes 9-15: random data
+      random.copy(uuid, 9, 0, 7); // Copy 7 bytes from random[0:7] to uuid[9:16]
+      // Byte 8: variant (2 bits) + remaining random bits
+      uuid[8] = (random[7] & 0x3f) | 0x80; // Keep lower 6 bits of random + variant 0b10
+    }
+
+    return uuid;
+  }
+
+  /**
+   * Build timestamp and sequence bytes (0-7) in a UUID buffer.
+   *
+   * @param uuid Buffer to write to
+   * @param millis Timestamp in milliseconds (BigInt)
+   * @param sequence 12-bit sequence counter
+   */
+  private static buildTimestampAndSequence(uuid: Buffer, millis: bigint, sequence: number): void {
+    // Bytes 0-5: timestamp in milliseconds (48 bits)
+    uuid[0] = Number((millis >> 40n) & 0xffn);
+    uuid[1] = Number((millis >> 32n) & 0xffn);
+    uuid[2] = Number((millis >> 24n) & 0xffn);
+    uuid[3] = Number((millis >> 16n) & 0xffn);
+    uuid[4] = Number((millis >> 8n) & 0xffn);
+    uuid[5] = Number(millis & 0xffn);
+
+    // Bytes 6-7: 12-bit sequence counter + version
     // Sequence is 12 bits: bit11-bit0, represented as 0x0000-0x0FFF
     // When converted to big-endian bytes:
     //   bytes[6] = (sequence >> 8) & 0xFF  (contains bits 11-8 in lower nibble, upper bits are 0)
     //   bytes[7] = sequence & 0xFF         (contains bits 7-0)
     uuid[6] = ((sequence >> 8) & 0x0f) | 0x70; // Upper 4 bits of sequence + version 0x7
     uuid[7] = sequence & 0xff; // Lower 8 bits of sequence
+  }
 
-    // Bytes 9-15: random data
-    randomBuf.copy(uuid, 9, 0, 7); // Copy 7 bytes from randomBuf[0:7] to uuid[9:16]
-
-    // Byte 8: variant (2 bits) + remaining random bits
-    uuid[8] = (randomBuf[7] & 0x3f) | 0x80; // Keep lower 6 bits of random + variant 0b10
-
-    return uuid;
+  /**
+   * Generate a monotonically increasing UUIDv7 as Buffer.
+   *
+   * @returns Buffer 16-byte UUID buffer
+   */
+  private generate(): Buffer {
+    return UUID64.createBuffer();
   }
 
   /**
@@ -136,6 +170,20 @@ class UUID64 {
    */
   asV7(): string {
     return UUID64.bytesToUuidString(this.uuidv7);
+  }
+
+  /**
+   * Extract the timestamp from the UUID as a Date.
+   *
+   * @returns Date object representing the UUID's timestamp
+   */
+  toDate(): Date {
+    // Bytes 0-5 contain the 48-bit timestamp in milliseconds
+    let millis = 0n;
+    for (let i = 0; i < 6; i++) {
+      millis = (millis << 8n) | BigInt(this.uuidv7[i]);
+    }
+    return new Date(Number(millis));
   }
 
   /**
@@ -178,6 +226,22 @@ class UUID64 {
    */
   equals(other: Buffer | UUID64): boolean {
     return this.compare(other) === 0;
+  }
+
+  /**
+   * Check if this UUID is related to another UUID64.
+   * Returns true if bytes 8-15 (random bits) match.
+   *
+   * @param uuid UUID64 instance to check
+   * @returns true if this is related to uuid
+   */
+  isRelated(uuid: UUID64): boolean {
+    for (let i = 8; i < 16; i++) {
+      if (this.uuidv7[i] !== uuid.uuidv7[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
