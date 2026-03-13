@@ -1,0 +1,319 @@
+# Nameforma Architecture
+
+## Component Diagram
+
+```mermaid
+graph TD
+    Identifiable["Identifiable<br/>- id: UUID v7<br/>+ uuid()<br/>+ uuidToTime()"]
+    Forma["Forma<br/>- id: string<br/>- name: string<br/>+ patch()<br/>+ validate()"]
+    Task["Task<br/>- title: string<br/>- progress: Rational<br/>- duration: Rational<br/>+ put()<br/>+ patch()"]
+    Clock["Clock<br/>+ start()<br/>+ stop()<br/>+ next()"]
+    Patch["Patch<br/>+ apply()"]
+    Rational["Rational<br/>- numerator: double<br/>- denominator: double<br/>- units: string<br/>- isNull: boolean"]
+    Schema["Schema<br/>+ register()<br/>+ toAvro()"]
+
+    Identifiable --> Forma
+    Identifiable --> Patch
+    Forma --> Task
+    Forma --> Clock
+    Task -.references.-> Rational
+    Schema -.manages.-> Forma
+```
+
+## Kafka1 (Mock Kafka) Architecture
+
+```mermaid
+graph TD
+    K1["Kafka1<br/>Single cluster, node, partition<br/>kafkajs API compatible"]
+    KRaft["KRaftNode<br/>+ _topicOfName()<br/>+ _groupOfId()"]
+    Topic["Topic<br/>- name: string<br/>- partitions: Partition[]"]
+    Partition["Partition<br/>- partitionId: number<br/>- _messages: Message[]"]
+    Message["Message<br/>- key: string<br/>- value: Buffer/string<br/>- timestamp: number<br/>- headers: object"]
+
+    Role["Role<br/>- tla: string<br/>- kafka: Kafka1<br/>+ connect()<br/>+ disconnect()"]
+    Consumer["Consumer<br/>- groupId: string<br/>- _inboxClock: Clock<br/>- _runner: _Runner<br/>+ subscribe()<br/>+ run()"]
+    Producer["Producer<br/>+ send()"]
+    Admin["Admin<br/>+ listTopics()<br/>+ listGroups()<br/>+ describeGroups()"]
+    Runner["_Runner<br/>+ process()<br/>+ start()<br/>+ stop()"]
+
+    ConsumerGroup["ConsumerGroup<br/>- groupId: string<br/>- _groupOffsetsetsMap"]
+    GroupOffsets["GroupOffsets<br/>- topic: string<br/>- partitions: offset[]"]
+
+    K1 --> KRaft
+    KRaft --> Topic
+    KRaft --> ConsumerGroup
+    Topic --> Partition
+    Partition --> Message
+
+    K1 --> Role
+    Role --> Consumer
+    Role --> Producer
+    Role --> Admin
+    Consumer --> Runner
+    ConsumerGroup --> GroupOffsets
+    Consumer -.uses.-> Clock
+```
+
+## Class Hierarchy
+
+```mermaid
+classDiagram
+    class Identifiable {
+        #id: string
+        +uuid() string
+        +uuidToTime(id) number
+    }
+
+    class Forma {
+        -id: string
+        -name: string
+        +patch(cfg)
+        +validate(opts) boolean|Error
+        +toString() string
+    }
+
+    class Task {
+        -title: string
+        -progress: Rational
+        -duration: Rational
+        +put(value)
+        +patch(value)
+        +toString() string
+    }
+
+    class Clock {
+        #referenceTime: function
+        #idle: function
+        #running: boolean
+        +start(cfg) Clock
+        +stop()
+        +next() Promise
+        +update(timestamp)
+        +now() number
+    }
+
+    class Patch {
+        -id: string
+        +apply(dst, opts)
+    }
+
+    class Rational {
+        -numerator: double
+        -denominator: double
+        -units: string
+        -isNull: boolean
+    }
+
+    class Schema {
+        -name: string
+        -namespace: string
+        +register(opts) type
+        +toAvro(jsObj, opts) Avro
+        +fullName() string
+    }
+
+    Identifiable <|-- Forma
+    Identifiable <|-- Patch
+    Forma <|-- Task
+    Forma <|-- Clock
+    Task o-- Rational : has
+```
+
+## Data Flow Diagrams
+
+### Task Creation & Serialization Flow
+
+```mermaid
+sequenceDiagram
+    participant Code
+    participant Task
+    participant Forma
+    participant Rational
+    participant Schema
+    participant Avro
+
+    Code->>Task: new Task({title, progress, duration})
+    Task->>Forma: super({id})
+    Forma->>Identifiable: constructor(id)
+    Identifiable->>Identifiable: UUID v7 generation
+
+    Note over Task: put(cfg) assigns properties
+    Task->>Rational: new Rational(progress)
+    Task->>Rational: new Rational(duration)
+
+    Code->>Schema: Task.registerSchema()
+    Schema->>Avro: avro.parse(Task.SCHEMA)
+    Avro-->>Schema: Type instance
+
+    Code->>Schema: schema.toAvro(task)
+    Schema->>Avro: type.clone(task)
+    Avro-->>Schema: Avro encoded bytes
+```
+
+### Kafka1 Message Flow
+
+```mermaid
+sequenceDiagram
+    participant Producer
+    participant Kafka1
+    participant Topic
+    participant Consumer
+    participant Clock
+    participant Handler
+
+    Producer->>Kafka1: producer.send({topic, messages})
+    Kafka1->>Topic: _topicOfName(topic)
+    Topic->>Topic: partition._messages.push(message)
+    Kafka1->>Consumer: update all subscribed consumers
+    Consumer->>Clock: _inboxClock.update(timestamp)
+
+    Note over Consumer: Later - consumer polling
+    Consumer->>Consumer: _runner.process()
+    Consumer->>Consumer: _readTopics({eachMessage})
+    Consumer->>Topic: read partition._messages
+    Consumer->>Handler: eachMessage callback
+    Handler-->>Consumer: async return
+    Consumer->>Clock: await _inboxClock.next()
+    Clock-->>Consumer: yield next timestamp
+```
+
+## Data Models
+
+### Task (Avro Record)
+```
+{
+  name: 'Task',
+  type: 'record',
+  fields: [
+    { name: 'id', type: 'string' },              // from Forma
+    { name: 'name', type: 'string' },            // from Forma
+    { name: 'title', type: 'string' },
+    { name: 'progress', type: 'Rational' },
+    { name: 'duration', type: 'Rational' },
+  ]
+}
+```
+
+### Rational (Avro Record)
+```
+{
+  name: 'Rational',
+  type: 'record',
+  fields: [
+    { name: 'isNull', type: 'boolean', default: false },
+    { name: 'numerator', type: 'double' },
+    { name: 'denominator', type: 'double' },
+    { name: 'units', type: 'string' },
+  ]
+}
+```
+
+### Forma (Base Record)
+```
+{
+  name: 'Forma',
+  namespace: 'scvoice.nameforma',
+  type: 'record',
+  fields: [
+    { name: 'id', type: 'string' },              // immutable, unique UUID v7
+    { name: 'name', type: 'string' },            // mutable
+  ]
+}
+```
+
+## Key Components
+
+### Identifiable
+- Provides UUID v7 generation and validation
+- Immutable `id` property with getter
+- Static methods: `uuid()`, `uuidToTime()`
+
+### Forma
+- Base class for identifiable named objects
+- Tracks instance counts by prefix
+- Supports patching (merging) properties
+- Validation of UUID v7 and name prefixes
+
+### Task
+- Extends Forma with task-specific fields
+- Manages task progress and duration as Rational numbers
+- `toString()` formats task status with symbols (`.`, `>`, `✓`)
+- `put()` and `patch()` methods for property updates
+
+### Rational
+- Extends Fraction from @sc-voice/tools
+- Represents fractional values with units (e.g., "1/2 done", "10 s")
+- Schema: numerator, denominator, units, isNull flag
+
+### Clock
+- Async generator-based timing control
+- Tracks time-in and time-out for scheduling
+- Supports start/stop and async iteration
+- Used by Kafka1 Consumer for message polling
+
+### Schema
+- Avro schema registry and management
+- Schema parsing via avro-js
+- Converts JavaScript objects to Avro format
+- Registers schemas with namespace tracking
+
+### Kafka1 (Mock Kafka)
+- Single-cluster, single-node, single-partition in-memory Kafka
+- Compatible with kafkajs API subset
+- **Consumer**: Subscribes to topics, reads messages via eachMessage callback
+- **Producer**: Sends messages to topics/partitions
+- **Admin**: Lists topics/groups, describes groups
+- **Clock-based polling**: Uses Clock for async message consumption
+
+## Clock State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: new Clock()
+
+    Idle --> Running: start()
+    Running --> Polling: next() called
+    Polling --> Idle_Wait: timeIn == timeOut
+    Idle_Wait --> Polling: idle() completes,<br/>update(timestamp)
+    Polling --> Running: timeIn > timeOut
+
+    Running --> Stopped: stop()
+    Stopped --> [*]
+
+    note right of Idle
+        Initial state
+        referenceTime set
+        idle function ready
+    end note
+
+    note right of Running
+        _running = true
+        _generator created
+        _referenceBase set
+    end note
+
+    note right of Polling
+        Async generator loop
+        timeOut = timeIn
+        yields timestamp
+    end note
+
+    note right of Idle_Wait
+        timeIn == timeOut
+        Waits in idle()
+        ~500ms default
+    end note
+```
+
+## Dependencies
+
+```
+External:
+├── uuid (UUID v7 generation)
+├── avro-js (Avro schema parsing/encoding)
+└── @sc-voice/tools (Fraction, Text utilities)
+
+Internal:
+├── defines.mjs (Debug flags)
+└── index.mjs (Public exports)
+```
