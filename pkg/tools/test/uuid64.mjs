@@ -1,0 +1,145 @@
+import { describe, it, expect } from 'vitest';
+import { UUID64 } from '../index.mjs';
+
+describe('UUID64', () => {
+
+// Test: Constructor creates valid instance
+it('constructor creates valid instance', () => {
+  const u = new UUID64();
+  expect(u.uuidv7, 'uuidv7 should be a Buffer').toBeInstanceOf(Buffer);
+  expect(u.uuidv7.length === 16, 'uuidv7 should be 16 bytes');
+  expect(typeof u.base64 === 'string', 'base64 should be a string');
+});
+
+// Test: 2 Random Instances are Not Equal
+it('2 random instances are not equal (10,000 iterations)', () => {
+  for (let i = 0; i < 10000; i++) {
+    const u1 = new UUID64();
+    const u2 = new UUID64();
+    expect(u1.compare(u2) !== 0, `UUID ${i} should not equal next`);
+  }
+});
+
+// Test: Comparable
+it('comparable - UUID comparison operators', () => {
+  const u1 = new UUID64();
+  const u2 = new UUID64();
+  expect(u1.isLessThan(u2), `${u1.asV7()} should be < ${u2.asV7()}`);
+  expect(u2.isGreaterThan(u1), `${u2.asV7()} should be > ${u1.asV7()}`);
+  expect(u1.compare(u2) < 0, `compare should return < 0`);
+  expect(u2.compare(u1) > 0, `compare should return > 0`);
+});
+
+// Test: Monotonically Increases when Generated Randomly
+it('monotonically increases when generated randomly (10 iterations)', () => {
+  let u1 = new UUID64();
+  for (let i = 0; i < 10; i++) {
+    const u2 = new UUID64();
+    expect(u2.isGreaterThan(u1), `${u2.asV7()} should be > ${u1.asV7()}`);
+    expect(u1.isLessThan(u2), `${u1.asV7()} should be < ${u2.asV7()}`);
+    u1 = u2;
+  }
+});
+
+// Test: Monotonically Increases in Rapid Burst
+it('monotonically increases in rapid burst (100 iterations)', () => {
+  let u1 = new UUID64();
+  for (let i = 0; i < 100; i++) {
+    const u2 = new UUID64();
+    expect(u2.isGreaterThan(u1), `UUID ${i} should be > previous`);
+    u1 = u2;
+  }
+});
+
+// Test: Version field is correct (0x7)
+it('version field is 7', () => {
+  const u = new UUID64();
+  const versionByte = u.asV7().split('-')[2][0];
+  expect(versionByte === '7', `Version field should be 7, got ${versionByte}`);
+});
+
+// Test: Variant field is correct (RFC 9562, starts with 8-B)
+it('variant field is RFC 9562 (8-B)', () => {
+  const u = new UUID64();
+  const variantByte = u.asV7().split('-')[3][0];
+  expect(['8', '9', 'a', 'A', 'b', 'B'].includes(variantByte),
+    `Variant field should be 8-B, got ${variantByte}`);
+});
+
+// Test: UUID string format
+it('UUID string format is valid', () => {
+  const u = new UUID64();
+  const uuid = u.asV7();
+  const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  expect(pattern.test(uuid), `UUID ${uuid} does not match UUIDv7 format`);
+});
+
+// Test: Successive UUIDs are strictly increasing
+it('successive UUIDs are strictly increasing', () => {
+  const u1 = new UUID64();
+  const u2 = new UUID64();
+  const u3 = new UUID64();
+  expect(u1.isLessThan(u2), `${u1.asV7()} should be < ${u2.asV7()}`);
+  expect(u2.isLessThan(u3), `${u2.asV7()} should be < ${u3.asV7()}`);
+});
+
+// Test: Large batch of consecutive UUIDs
+it('large batch (1000) are strictly increasing', () => {
+  const uuids = [];
+  for (let i = 0; i < 1000; i++) {
+    uuids.push(new UUID64());
+  }
+  for (let i = 1; i < uuids.length; i++) {
+    expect(uuids[i-1].isLessThan(uuids[i]),
+      `UUID ${i-1} should be < UUID ${i}`);
+  }
+});
+
+// Test: All UUIDs in burst are unique
+it('all UUIDs in burst are unique (5000 calls)', () => {
+  const uuids = [];
+  for (let i = 0; i < 5000; i++) {
+    uuids.push(new UUID64().asV7());
+  }
+  const unique = new Set(uuids);
+  expect(unique.size === 5000, `Expected 5000 unique UUIDs, got ${unique.size}`);
+});
+
+// Test: base64 string is URL-safe
+it('base64 string is URL-safe (no +, /, =)', () => {
+  const u = new UUID64();
+  expect(!u.base64.includes('+'), 'base64 should not contain +');
+  expect(!u.base64.includes('/'), 'base64 should not contain /');
+  expect(!u.base64.includes('='), 'base64 should not contain padding');
+});
+
+// Test: fromString with UUID string
+it('fromString can parse UUID string', () => {
+  const u1 = new UUID64();
+  const uuidStr = u1.asV7();
+  const u2 = UUID64.fromString(uuidStr);
+  expect(u1.equals(u2), `fromString should recreate UUID from string`);
+});
+
+// Test: fromString with base64 string
+it('fromString can parse base64 string', () => {
+  const u1 = new UUID64();
+  const base64Str = u1.base64;
+  const u2 = UUID64.fromString(base64Str);
+  expect(u1.equals(u2), `fromString should recreate UUID from base64`);
+});
+
+// Test: fromString round-trip consistency
+it('fromString round-trip maintains consistency', () => {
+  const u1 = new UUID64();
+
+  // Round-trip via UUID string
+  const u2 = UUID64.fromString(u1.asV7());
+  expect(u1.asV7() === u2.asV7(), 'UUID string should match after round-trip');
+
+  // Round-trip via base64
+  const u3 = UUID64.fromString(u1.base64);
+  expect(u1.base64 === u3.base64, 'base64 should match after round-trip');
+});
+
+});

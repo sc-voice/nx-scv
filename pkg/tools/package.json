@@ -8,9 +8,11 @@
     "index.mjs",
     "package.json",
     "README.md",
-    "src"
+    "src",
+    "dist"
   ],
   "scripts": {
+    "build": "npx tsc",
     "test": "vitest run --config test/vitest.config.mjs",
     "test:test": "vitest --config test/vitest.config.mjs"
   },
@@ -35,7 +37,8 @@
     "avro-js": "^1.12.0",
     "deepl-node": "^1.15.0",
     "eslint": "^9.17.0",
-    "@sc-voice/vitest": "^4.0.0"
+    "@sc-voice/vitest": "^4.0.0",
+    "typescript": "~5.8.2"
   },
   "dependencies": {
     "uuid": "^11.1.0"

@@ -1,3 +1,6 @@
+import UUID64 from './dist/uuid64.js';
+export { UUID64 }
+
 import { Assert } from './src/js/assert.mjs';
 import UUIDV7 from './src/js/uuidv7.mjs';
 export const JS = { Assert, UUIDV7,
