@@ -2,7 +2,7 @@
 
 ## Overview
 
-- Provides UUID v7 generation and validation
+- Provides UUID64 generation and validation
 - Immutable `id` property with getter
 - Static methods: `uuid()`, `uuidToTime()`
 

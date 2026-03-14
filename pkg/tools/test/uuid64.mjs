@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { UUID64 } from '../index.mjs';
+import { v7 as uuidV7, validate as uuidValidate } from 'uuid';
 
 describe('UUID64', () => {
 
@@ -178,6 +179,49 @@ it('toDate extracts timestamp correctly', () => {
 
   expect(timestamp >= before && timestamp <= after,
     `UUID timestamp ${timestamp} should be between ${before} and ${after}`);
+});
+
+// Test: validate accepts valid UUID64 base64 string
+it('validate accepts valid UUID64 base64 string', () => {
+  const u = new UUID64();
+  expect(UUID64.validate(u.base64), `${u.base64} should be valid UUID64`);
+});
+
+// Test: validate accepts valid UUID64 buffer
+it('validate accepts valid UUID64 buffer', () => {
+  const u = new UUID64();
+  expect(UUID64.validate(u.uuidv7), `UUID buffer should be valid`);
+});
+
+// Test: validate rejects valid v7 UUID string (not base64)
+it('validate rejects valid v7 UUID string (not base64)', () => {
+  const v7string = uuidV7();
+  expect(uuidValidate(v7string), 'External uuid should validate v7 string');
+  expect(!UUID64.validate(v7string), 'UUIDv7 string format should be rejected');
+});
+
+// Test: validate rejects wrong length buffer
+it('validate rejects wrong length buffer', () => {
+  const wrongLength = Buffer.alloc(15);
+  expect(!UUID64.validate(wrongLength), 'Buffer with 15 bytes should be rejected');
+});
+
+// Test: validate rejects wrong version
+it('validate rejects wrong UUID version', () => {
+  const u = new UUID64();
+  const buffer = Buffer.from(u.uuidv7);
+  // Change version from 7 to 4
+  buffer[6] = (buffer[6] & 0x0f) | 0x40;
+  expect(!UUID64.validate(buffer), 'UUID with version 4 should be rejected');
+});
+
+// Test: validate rejects wrong variant
+it('validate rejects wrong variant bits', () => {
+  const u = new UUID64();
+  const buffer = Buffer.from(u.uuidv7);
+  // Change variant from 0b10 to 0b11
+  buffer[8] = (buffer[8] & 0x3f) | 0xc0;
+  expect(!UUID64.validate(buffer), 'UUID with wrong variant should be rejected');
 });
 
 });

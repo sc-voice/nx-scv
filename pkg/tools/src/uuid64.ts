@@ -245,6 +245,50 @@ class UUID64 {
   }
 
   /**
+   * Validate a UUID64 base64 string or buffer as valid UUIDv7.
+   *
+   * @param input UUID64 base64 string or Buffer (16 bytes)
+   * @returns true if valid UUID64 (UUIDv7) format, false otherwise
+   */
+  static validate(input: string | Buffer): boolean {
+    let buffer: Buffer;
+
+    if (typeof input === 'string') {
+      // Decode base64 URL-safe string
+      try {
+        const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+        buffer = Buffer.from(padded, 'base64');
+      } catch {
+        return false;
+      }
+    } else if (Buffer.isBuffer(input)) {
+      buffer = input;
+    } else {
+      return false;
+    }
+
+    // Must be exactly 16 bytes
+    if (buffer.length !== 16) {
+      return false;
+    }
+
+    // Check version field (byte 6, upper nibble should be 0x7)
+    const versionField = (buffer[6] >> 4) & 0x0f;
+    if (versionField !== 7) {
+      return false;
+    }
+
+    // Check variant field (byte 8, upper 2 bits should be 0b10)
+    const variantField = (buffer[8] >> 6) & 0x03;
+    if (variantField !== 0b10) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Convert UUID bytes to standard string format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    */
   private static bytesToUuidString(bytes: Buffer): string {
