@@ -143,6 +143,22 @@ it('fromString round-trip maintains consistency', () => {
   expect(u1.base64 === u3.base64, 'base64 should match after round-trip');
 });
 
+// Test: fromString throws on invalid UUID
+it('fromString throws on invalid UUID input', () => {
+  const invalidInputs = [
+    'not-a-uuid',
+    '00000000-0000-0000-0000-000000000000', // nil UUID (wrong version)
+    'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // invalid hex
+    'invalidbase64!!!', // invalid base64
+    '', // empty string
+  ];
+
+  invalidInputs.forEach(input => {
+    expect(() => UUID64.fromString(input),
+      `fromString('${input}') should throw`).toThrow();
+  });
+});
+
 // Test: isRelated identifies related UUIDs correctly
 it('isRelated identifies related UUIDs correctly', () => {
   const uuid1 = new UUID64();

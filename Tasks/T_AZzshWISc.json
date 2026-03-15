@@ -1,0 +1,119 @@
+{
+  "completedActions" : [
+    {
+      "description" : "Documented how JS Buffer can be encoded in Avro: (1) bytes type = [varint-length][raw-bytes] ~17-18 bytes for 16-byte UUID, (2) string type = [varint-length][utf-8-bytes] ~37-38 bytes for UUID string. No other encoding methods. Bytes is wire-efficient and optimal for binary UUIDs.",
+      "name" : "Analyze Avro binary encoding nuances",
+      "test" : "update unit tests"
+    },
+    {
+      "description" : "All 4 references reviewed: identifiable.mjs stores UUID v7 string, forma.mjs SCHEMA has id:string, uuid64.ts TypeScript Buffer class exists but unused, tools\/index.mjs and nameforma\/index.mjs exports checked. UUID64 exists but not integrated.",
+      "name" : "Review all task references and current codebase state",
+      "test" : "update unit tests"
+    },
+    {
+      "description" : "Identified 7 components requiring changes: Forma.SCHEMA (1 line), Identifiable class (major refactor), conversion methods (3 methods), Schema.toAvro() (Buffer handling), package exports (2 files), test files (4 files with string ID assertions)",
+      "name" : "Map scope implications across codebase",
+      "test" : "update unit tests"
+    },
+    {
+      "description" : "UUID64.fromString() handles UUIDv7 strings perfectly (uuid64.ts:85-101). Recommend transparent conversion: Identifiable accepts string param, converts via UUID64.fromString(), stores as Buffer internally. This keeps API backward-compatible while changing internal representation.",
+      "name" : "Clarify UUID64 integration approach",
+      "test" : "update unit tests"
+    },
+    {
+      "description" : "No inherent need for UUID64 validation in Identifiable constructor. Validation is optional, currently done at Forma level via validate() method. Skip constructor validation unless defensive checks required. UUID64 validation would need wrapper to handle string format.",
+      "name" : "Determine UUID64 validation requirement",
+      "test" : "update unit tests"
+    },
+    {
+      "description" : "Current: ^1.12.0, Latest: 1.12.1 (patch, 4 months old). Update to ^1.12.1 in pkg\/nameforma\/package.json:39. No breaking API changes—type.toBuffer()\/fromBuffer() remain stable.",
+      "name" : "Update avro-js dependency",
+      "test" : "update unit tests"
+    },
+    {
+      "description" : "UUID64.validate(input: string | Buffer) at uuid64.ts:253-289 validates both string and Buffer formats. Replace uuidValidate(f3a.id) calls with UUID64.validate(f3a.id) in forma.mjs:30 test. Update Avro schema assertions from 'string' to 'bytes' type in forma.mjs:66 and schema.mjs:91. Serialization round-trip tests unchanged.",
+      "name" : "Clarify test validation approach using UUID64.validate()",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-03-14T13:24:50Z",
+  "id" : "019CEC85-6212-7000-A535-53DCD056EB9B",
+  "name" : "Integrate UUID64 with Identifiable",
+  "plannedActions" : [
+    {
+      "name" : "Update UUID64.fromString() to validate input and throw on invalid",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Rename current Identifiable to IdentifiableOld",
+      "test" : "IdentifiableOld.mjs exists with original string-based implementation"
+    },
+    {
+      "name" : "Create new Identifiable with Buffer-based UUID64 storage",
+      "test" : "New Identifiable stores id as 16-byte Buffer; constructor accepts string"
+    },
+    {
+      "name" : "Update Forma.SCHEMA to use 'bytes' type for id field",
+      "test" : "Forma.SCHEMA.id.type === 'bytes'; existing Forma tests pass"
+    },
+    {
+      "name" : "Update Schema.toAvro() to handle Buffer serialization",
+      "test" : "Binary serialization round-trips through Avro"
+    },
+    {
+      "name" : "Add UUID64 conversion methods to new Identifiable",
+      "test" : "asV7(), toDate(), compare() work with Buffer IDs"
+    },
+    {
+      "name" : "Export UUID64 from nameforma package index",
+      "test" : "UUID64 is importable from @sc-voice\/nameforma"
+    },
+    {
+      "name" : "Migrate tests from IdentifiableOld to new Identifiable incrementally",
+      "test" : "All tests pass after migration; one test file at a time"
+    },
+    {
+      "name" : "Delete IdentifiableOld when all tests migrated",
+      "test" : "IdentifiableOld.mjs removed; all tests still pass"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 0.95,
+      "text" : "Identifiable at pkg\/nameforma\/src\/identifiable.mjs:13-46 - refactor constructor: accept string\/Buffer, use UUID64.fromString() for transparent conversion, store as #id Buffer. Expose asV7()\/toDate()\/compare() methods."
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Forma.SCHEMA at pkg\/nameforma\/src\/forma.mjs:38-48 - defines id field as 'string' type, change to 'bytes' for wire efficiency"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "UUID64 at pkg\/tools\/src\/uuid64.ts:52-343 - fromString(input) factory (line 85-101) handles both UUID strings and base64. Methods: asV7() (string), toDate(), compare(), validate(). Ready for integration, no changes needed."
+    },
+    {
+      "relevance" : 0.85,
+      "text" : "Schema.toAvro() at pkg\/nameforma\/src\/schema.mjs:68-89 - uses type.clone() for serialization, may need Buffer handling"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "Test files: forma.mjs (77-82 avro test), identifiable.mjs, schema.mjs, uuid64.mjs - all expect string IDs, require updates"
+    },
+    {
+      "relevance" : 0.75,
+      "text" : "Package exports: nameforma\/index.mjs:1-35 (missing UUID64), tools\/index.mjs:1-2 (UUID64 already exported)"
+    },
+    {
+      "relevance" : 0.7,
+      "text" : "Avro bytes encoding: varint-prefixed binary (17-18 bytes for 16-byte UUID) vs string encoding (37-38 bytes for UUID string)"
+    },
+    {
+      "relevance" : 0.65,
+      "text" : "avro-js dependency at pkg\/nameforma\/package.json:39 - update from ^1.12.0 to ^1.12.1 (latest patch, no breaking changes)"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Integrate UUID64 binary storage with Avro serialization - use bytes type instead of string for optimal binary transmission",
+  "updatedAt" : "2026-03-14T14:41:35Z"
+}

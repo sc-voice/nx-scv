@@ -83,19 +83,24 @@ class UUID64 {
    * @returns UUID64 instance
    */
   static fromString(input: string): UUID64 {
-    const instance = Object.create(UUID64.prototype);
+    let buf;
 
-    if (input.includes('-')) {
+    // Check if it's a UUID string format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidPattern.test(input)) {
       // UUID string format
-      instance.uuidv7 = UUID64.uuidStringToBytes(input);
+      buf = UUID64.uuidStringToBytes(input);
     } else {
-      // Base64 string format (may have padding or be URL-safe)
-      const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
-      // Add padding if needed
-      const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-      instance.uuidv7 = Buffer.from(padded, 'base64');
+      // URL-safe base64 string format (RFC 4648 Section 5)
+      buf = Buffer.from(input, 'base64url');
     }
 
+    if (!UUID64.validate(buf)) {
+      throw new Error(`Invalid UUID64 string: ${input}`);
+    }
+
+    const instance = Object.create(UUID64.prototype);
+    instance.uuidv7 = buf;
     instance.base64 = UUID64.toBase64Url(instance.uuidv7);
     return instance;
   }
@@ -245,10 +250,10 @@ class UUID64 {
   }
 
   /**
-   * Validate a UUID64 base64 string or buffer as valid UUIDv7.
+   * Validate a UUID64 base64 string or UUID64 buffer.
    *
    * @param input UUID64 base64 string or Buffer (16 bytes)
-   * @returns true if valid UUID64 (UUIDv7) format, false otherwise
+   * @returns true if valid UUID64 format, false otherwise
    */
   static validate(input: string | Buffer): boolean {
     let buffer: Buffer;
