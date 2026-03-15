@@ -31,7 +31,9 @@ describe('text/word-vector', () => {
   it('multiply()', () => {
     const msg = 'tw8r.multiply:';
     let abc = new WordVector({ a: 1, b: 2, c: 3 });
-    expect(abc.multiply(abc)).toEqual(new WordVector({ a: 1, b: 4, c: 9 }),);
+    expect(abc.multiply(abc)).toEqual(
+      new WordVector({ a: 1, b: 4, c: 9 }),
+    );
     let mask = new WordVector({ a: 1, d: 1 });
     expect(abc.multiply(mask)).toEqual(new WordVector({ a: 1 }));
   });
@@ -81,17 +83,21 @@ describe('text/word-vector', () => {
 
     let i13 = v1.hadamardL1(v3);
     expect(v1.similar(v3)).toBe(0.9449111825230679);
-    expect(i13).toEqual(new WordVector({
+    expect(i13).toEqual(
+      new WordVector({
         a: 0.6299407883487119,
         b: 0.31497039417435596,
-      }),);
+      }),
+    );
 
     expect(v2.similar(v3)).toBe(0.37796447300922714);
     let i23 = v2.hadamardL1(v3);
-    expect(i23).toEqual(new WordVector({
+    expect(i23).toEqual(
+      new WordVector({
         b: 0.31497039417435596,
         c: 0.0629940788348712,
-      }),);
+      }),
+    );
   });
   it('oneHot()', () => {
     let v = new WordVector({ a: 0.5, b: 2.5, c: 3, ignored: -0.1 });
@@ -136,9 +142,7 @@ describe('text/word-vector', () => {
 
     // show all
     let vs5 = v.toString({ minValue: 0.0001 });
-    expect(vs5).toBe(
-      'a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,a8:0',
-    );
+    expect(vs5).toBe('a@1:1,a2:.99,a3:.50,a4:.49,a5:.05,a6:.05,a7:0,a8:0');
   });
   it('andOneHot()', () => {
     let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
@@ -148,6 +152,8 @@ describe('text/word-vector', () => {
   it('orOneHot()', () => {
     let v1 = new WordVector({ a: 1, b: 0.5, c: 2 });
     let v2 = new WordVector({ b: 1, c: 3, d: 4 });
-    expect(v1.orOneHot(v2)).toEqual(new WordVector({ a: 1, b: 1, c: 1, d: 1 }),);
+    expect(v1.orOneHot(v2)).toEqual(
+      new WordVector({ a: 1, b: 1, c: 1, d: 1 }),
+    );
   });
 });

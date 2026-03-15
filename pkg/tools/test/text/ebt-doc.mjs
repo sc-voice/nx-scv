@@ -6,7 +6,6 @@ import { Text } from '../../index.mjs';
 const { EbtDoc } = Text;
 
 describe('text/ebt-doc', function () {
-
   it('default ctor', () => {
     let sd = EbtDoc.create();
     expect(sd).toMatchObject({

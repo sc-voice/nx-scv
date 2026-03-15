@@ -44,7 +44,9 @@ describe('scv-math/activation', () => {
     for (let i = -10; i <= 10; i++) {
       let x = i / 10;
       dbg && cc.fyi(msg, 'tanh', x, tanh.f(x));
-      expect(Math.abs(tanh.f(x) - Math.tanh(x))).toBeLessThan(0.000000000000001);
+      expect(Math.abs(tanh.f(x) - Math.tanh(x))).toBeLessThan(
+        0.000000000000001,
+      );
     }
     let act1111 = Activation.createSoboleva(a, b, c, d);
     expect(act1111.a).toBe(tanh.a);

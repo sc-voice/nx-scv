@@ -39,19 +39,62 @@ typeof describe === 'function' &&
       let scids = [scid11, scid12, scid21, scid22];
       let match = SuttaCentralId.match;
 
-      expect(scids.map((scid) => match(scid, 'thig 1.1-2'))).toEqual([true, true, true, true],);
-      expect(scids.map((scid) => match(scid, 'thig1.1-2'))).toEqual([true, true, true, true],);
-      expect(scids.map((scid) =>
+      expect(scids.map((scid) => match(scid, 'thig 1.1-2'))).toEqual([
+        true,
+        true,
+        true,
+        true,
+      ]);
+      expect(scids.map((scid) => match(scid, 'thig1.1-2'))).toEqual([
+        true,
+        true,
+        true,
+        true,
+      ]);
+      expect(
+        scids.map((scid) =>
           match(scid, 'thig1.1:1.2/en/soma,thig1.2:1.1/en/soma'),
-        )).toEqual([false, true, true, false],);
-      expect(scids.map((scid) => match(scid, 'thig1.1:1.2/en/soma'))).toEqual([false, true, false, false],);
-      expect(scids.map((scid) => match(scid, 'thig1.1/en/soma'))).toEqual([true, true, false, false],);
-      expect(scids.map((scid) => match(scid, 'thig1.3, thig1.2'))).toEqual([false, false, true, true],);
-      expect(scids.map((scid) => match(scid, 'thig1.1, thig1.2'))).toEqual([true, true, true, true],);
-      expect(scids.map((scid) => match(scid, 'thig1.1'))).toEqual([true, true, false, false],);
-      expect(scids.map((scid) => match(scid, 'thig1.2'))).toEqual([false, false, true, true],);
-      expect(scids.map((scid) => match(scid, 'thig1.1:1.2'))).toEqual([false, true, false, false],);
-      expect(scids.map((scid) => match(scid, 'thig1.2:1.1'))).toEqual([false, false, true, false],);
+        ),
+      ).toEqual([false, true, true, false]);
+      expect(
+        scids.map((scid) => match(scid, 'thig1.1:1.2/en/soma')),
+      ).toEqual([false, true, false, false]);
+      expect(scids.map((scid) => match(scid, 'thig1.1/en/soma'))).toEqual([
+        true,
+        true,
+        false,
+        false,
+      ]);
+      expect(scids.map((scid) => match(scid, 'thig1.3, thig1.2'))).toEqual(
+        [false, false, true, true],
+      );
+      expect(scids.map((scid) => match(scid, 'thig1.1, thig1.2'))).toEqual(
+        [true, true, true, true],
+      );
+      expect(scids.map((scid) => match(scid, 'thig1.1'))).toEqual([
+        true,
+        true,
+        false,
+        false,
+      ]);
+      expect(scids.map((scid) => match(scid, 'thig1.2'))).toEqual([
+        false,
+        false,
+        true,
+        true,
+      ]);
+      expect(scids.map((scid) => match(scid, 'thig1.1:1.2'))).toEqual([
+        false,
+        true,
+        false,
+        false,
+      ]);
+      expect(scids.map((scid) => match(scid, 'thig1.2:1.1'))).toEqual([
+        false,
+        false,
+        true,
+        false,
+      ]);
     });
     it('match(scid, pat) MIL', () => {
       let scid312 = 'mil3.1.2';
@@ -408,9 +451,11 @@ typeof describe === 'function' &&
       expect(SuttaCentralId.scidRegExp('mn1:2.3')).toEqual(/mn1:2\.3/);
       expect(SuttaCentralId.scidRegExp('mn1:2.*')).toEqual(/mn1:2\..*/);
       expect(SuttaCentralId.scidRegExp('mn1:2.?')).toEqual(/mn1:2\../);
-      expect(SuttaCentralId.scidRegExp('mn1:[2-3].*')).toEqual(/mn1:[2-3]\..*/,);
-      expect(SuttaCentralId.scidRegExp('^mn1:2.3')).toEqual(/\^mn1:2\.3/,);
-      expect(SuttaCentralId.scidRegExp('mn1:2.3$')).toEqual(/mn1:2\.3\$/,);
+      expect(SuttaCentralId.scidRegExp('mn1:[2-3].*')).toEqual(
+        /mn1:[2-3]\..*/,
+      );
+      expect(SuttaCentralId.scidRegExp('^mn1:2.3')).toEqual(/\^mn1:2\.3/);
+      expect(SuttaCentralId.scidRegExp('mn1:2.3$')).toEqual(/mn1:2\.3\$/);
     });
     it('groups returns array of groups', () => {
       let scid = new SuttaCentralId('mn1:2.3.4');
@@ -433,9 +478,7 @@ typeof describe === 'function' &&
 
       // fully specified sutta
       expect(SuttaCentralId.test('mn1/en/sujato')).toBe(true);
-      expect(SuttaCentralId.test('mn1/en/sujato,mn1/en/bodhi')).toBe(
-        true,
-      );
+      expect(SuttaCentralId.test('mn1/en/sujato,mn1/en/bodhi')).toBe(true);
       expect(
         SuttaCentralId.test('dn7/de/kusalagnana-maitrimurti-traetow'),
       ).toBe(true);
@@ -516,8 +559,12 @@ typeof describe === 'function' &&
       expect(segid.standardForm()).toBe('Thag1.1:2.3');
     });
     it('partNumber()', () => {
-      expect(SuttaCentralId.partNumber('Mn1', 'Mn1:50.2')).toEqual([1, 13],);
-      expect(SuttaCentralId.partNumber('mn1', 'mn1:50.2')).toEqual([1, 13],);
+      expect(SuttaCentralId.partNumber('Mn1', 'Mn1:50.2')).toEqual([
+        1, 13,
+      ]);
+      expect(SuttaCentralId.partNumber('mn1', 'mn1:50.2')).toEqual([
+        1, 13,
+      ]);
     });
     it('compare vinaya ids', () => {
       let suid = 'pli-tv-pvr5'; // Valid vinaya document

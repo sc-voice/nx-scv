@@ -31,13 +31,13 @@ class MonotonicityState {
     }
 
     // If sequence overflows 12 bits, increment time and reset sequence
-    if (this.sequence > 0xFFF) {
+    if (this.sequence > 0xfff) {
       this.sequence = 0;
       currentMillis += 1n;
     }
 
     // Now apply 12-bit mask for the returned value
-    const maskedSequence = this.sequence & 0xFFF;
+    const maskedSequence = this.sequence & 0xfff;
 
     this.previousTimestamp = currentMillis;
     return { millis: currentMillis, sequence: maskedSequence };
@@ -60,7 +60,8 @@ class UUIDV7 {
    */
   static create() {
     const now = Date.now(); // milliseconds since epoch
-    const { millis, sequence } = monotonicityState.nextMillisWithSequence(now);
+    const { millis, sequence } =
+      monotonicityState.nextMillisWithSequence(now);
 
     // Generate random bytes for the UUID
     const randomBuf = randomBytes(16); // Get 16 random bytes
@@ -71,12 +72,12 @@ class UUIDV7 {
     // Bytes 0-5: timestamp in milliseconds (48 bits)
     // Convert BigInt to bytes in big-endian
     const millisBigInt = millis;
-    uuid[0] = Number((millisBigInt >> 40n) & 0xFFn);
-    uuid[1] = Number((millisBigInt >> 32n) & 0xFFn);
-    uuid[2] = Number((millisBigInt >> 24n) & 0xFFn);
-    uuid[3] = Number((millisBigInt >> 16n) & 0xFFn);
-    uuid[4] = Number((millisBigInt >> 8n) & 0xFFn);
-    uuid[5] = Number(millisBigInt & 0xFFn);
+    uuid[0] = Number((millisBigInt >> 40n) & 0xffn);
+    uuid[1] = Number((millisBigInt >> 32n) & 0xffn);
+    uuid[2] = Number((millisBigInt >> 24n) & 0xffn);
+    uuid[3] = Number((millisBigInt >> 16n) & 0xffn);
+    uuid[4] = Number((millisBigInt >> 8n) & 0xffn);
+    uuid[5] = Number(millisBigInt & 0xffn);
 
     // Bytes 6-8: 12-bit sequence counter + version + variant
     // Place 12-bit sequence as UInt16 big-endian in bytes 6-7, then apply version/variant masks
@@ -84,14 +85,14 @@ class UUIDV7 {
     // When converted to big-endian bytes:
     //   bytes[6] = (sequence >> 8) & 0xFF  (contains bits 11-8 in lower nibble, upper bits are 0)
     //   bytes[7] = sequence & 0xFF         (contains bits 7-0)
-    uuid[6] = ((sequence >> 8) & 0x0F) | 0x70; // Upper 4 bits of sequence + version 0x7
-    uuid[7] = sequence & 0xFF; // Lower 8 bits of sequence
+    uuid[6] = ((sequence >> 8) & 0x0f) | 0x70; // Upper 4 bits of sequence + version 0x7
+    uuid[7] = sequence & 0xff; // Lower 8 bits of sequence
 
     // Bytes 9-15: random data
     randomBuf.copy(uuid, 9, 0, 7); // Copy 7 bytes from randomBuf[0:7] to uuid[9:16]
 
     // Byte 8: variant (2 bits) + remaining random bits
-    uuid[8] = (randomBuf[7] & 0x3F) | 0x80; // Keep lower 6 bits of random + variant 0b10
+    uuid[8] = (randomBuf[7] & 0x3f) | 0x80; // Keep lower 6 bits of random + variant 0b10
 
     return bytesToUuidString(uuid);
   }
@@ -168,4 +169,3 @@ function uuidStringToBytes(uuidString) {
   const hex = uuidString.replace(/-/g, '');
   return Buffer.from(hex, 'hex');
 }
-

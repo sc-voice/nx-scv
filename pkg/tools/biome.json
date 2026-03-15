@@ -8,12 +8,16 @@
   "files": {
     "include": [
       "src/**/*js",
+      "src/**/*ts",
       "test/**/*js",
+      "test/**/*ts",
       "src/**/*json",
       "test/**/*json"
     ],
     "ignoreUnknown": true,
-    "ignore": []
+    "ignore": [
+      "test/data/*json"
+    ]
   },
   "formatter": {
     "enabled": true,

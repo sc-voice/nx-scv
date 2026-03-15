@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "npx tsc",
+    "format": "npx biome format --write src test",
     "test": "npm run build && vitest run --config test/vitest.config.mjs",
     "test:test": "npm run build && vitest --config test/vitest.config.mjs"
   },
@@ -41,6 +42,5 @@
     "typescript": "~5.8.2"
   },
   "dependencies": {
-    "uuid": "^11.1.0"
   }
 }

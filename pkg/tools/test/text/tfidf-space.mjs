@@ -54,7 +54,8 @@ describe('text/tfidf-space', () => {
     let ws = new TfidfSpace();
     let v = ws.bowOfText(FOX);
     expect(v).toBeInstanceOf(WordVector);
-    expect(v).toEqual(new WordVector({
+    expect(v).toEqual(
+      new WordVector({
         a: 1,
         brown: 1,
         fence: 1,
@@ -63,7 +64,8 @@ describe('text/tfidf-space', () => {
         over: 1,
         quick: 1,
         the: 1,
-      }),);
+      }),
+    );
     expect(v.length).toBe(8);
   });
   it('wordWeightFromPrefix', () => {
@@ -177,32 +179,37 @@ describe('text/tfidf-space', () => {
     expect(ws.idf('human')).toBe(1); // not in corpus
 
     ws.addDocument('d0', docs[0]);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         a: 1, // 1-hot in single document
         dog: 1,
         is: 1,
         canine: 1,
-      }),);
+      }),
+    );
     expect(ws.corpus.size).toBe(1);
     expect(ws.idf('a')).toBe(0); // in all docs
     expect(ws.idf('dog')).toBe(0); // in all docs
     expect(ws.idf('human')).toBe(1); // not in corpus
 
     ws.addDocument('d1', docs[1]);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         a: 2, // multiple documents
         another: 1,
         is: 2,
         canine: 2,
         wolf: 1,
         dog: 1,
-      }),);
+      }),
+    );
     expect(ws.idf('a')).toBe(0); // in all docs
     expect(ws.idf('dog')).toBe(0.8017118471377938); // 1/2 of docs
     expect(ws.idf('human')).toBe(1); // not in corpus
 
     ws.addDocument('d2', docs[2]);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         the: 1,
         a: 3,
         cat: 1,
@@ -212,7 +219,8 @@ describe('text/tfidf-space', () => {
         canine: 2,
         wolf: 1,
         dog: 1,
-      }),);
+      }),
+    );
     expect(ws.corpus.size).toBe(3);
     expect(ws.idf('a')).toBe(0); // in all docs
     expect(ws.idf('the')).toBe(0.9606818084344944); // 1/3 of docs
@@ -237,45 +245,45 @@ describe('text/tfidf-space', () => {
     // Standard IDF doesn't map to [0..1] and is not tunable
     let ignored = Math.NaN; // don't care
     expect(wdc.map((c) => idfStandard(nDocs, c, ignored))).toEqual([
-        1.791759469228055, // Outside [0..1]
-        1.0986122886681096, // Outside [0..1]
-        0.6931471805599453,
-        0.4054651081081644,
-        0.1823215567939546,
-        0,
-      ],);
+      1.791759469228055, // Outside [0..1]
+      1.0986122886681096, // Outside [0..1]
+      0.6931471805599453,
+      0.4054651081081644,
+      0.1823215567939546,
+      0,
+    ]);
 
     // Tunable IDF maps to [0..1] and is tunable for
     // sensitivity to rarity
     let weight1 = 1.618033988749895; // default weight
     expect(wdc.map((c) => idfTunable(nDocs, c, weight1))).toEqual([
-        1, // not in corpus
-        0.9984540798120182, // in 1 document of corpus
-        0.9117031621211354,
-        0.6599590834550455,
-        0.33269528758743183, // in all but 1 document of corpus
-        0,
-      ],);
+      1, // not in corpus
+      0.9984540798120182, // in 1 document of corpus
+      0.9117031621211354,
+      0.6599590834550455,
+      0.33269528758743183, // in all but 1 document of corpus
+      0,
+    ]);
 
     let weight2 = 1; // less sensitive to rarity
     expect(wdc.map((c) => idfTunable(nDocs, c, weight2))).toEqual([
-        1, // not in corpus
-        0.9816843611112658, // in 1 document of corpus
-        0.7768698398515702,
-        0.486582880967408,
-        0.22119921692859512, // in all but 1 document of corpus
-        0,
-      ],);
+      1, // not in corpus
+      0.9816843611112658, // in 1 document of corpus
+      0.7768698398515702,
+      0.486582880967408,
+      0.22119921692859512, // in all but 1 document of corpus
+      0,
+    ]);
 
     let weightLow = 0.1; // very sensitive to rarity
     expect(wdc.map((c) => idfTunable(nDocs, c, weightLow))).toEqual([
-        1, // not in corpus
-        0.3296799539643607, // in 1 document
-        0.1392920235749422,
-        0.06449301496838222,
-        0.024690087971667385, // in all but 1 document
-        0,
-      ],);
+      1, // not in corpus
+      0.3296799539643607, // in 1 document
+      0.1392920235749422,
+      0.06449301496838222,
+      0.024690087971667385, // in all but 1 document
+      0,
+    ]);
   });
   it('idfStandard', () => {
     const msg = 'tt8e.idfStandard2:';
@@ -290,32 +298,37 @@ describe('text/tfidf-space', () => {
     expect(ws.idf('human')).toBe(0); // not in corpus
 
     ws.addDocument('d1', docs[0]);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         a: 1, // 1-hot in single document
         dog: 1,
         is: 1,
         canine: 1,
-      }),);
+      }),
+    );
     expect(ws.corpus.size).toBe(1);
     expect(ws.idf('a')).toBe(0); // in all docs
     expect(ws.idf('dog')).toBe(0); // in all docs
     expect(ws.idf('human')).toBe(0.6931471805599453); // not in corpus
 
     ws.addDocument('d2', docs[1]);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         a: 2, // multiple documents
         another: 1,
         is: 2,
         canine: 2,
         wolf: 1,
         dog: 1,
-      }),);
+      }),
+    );
     expect(ws.idf('a')).toBe(0); // in all docs
     expect(ws.idf('dog')).toBe(0.4054651081081644); // 1/2 of docs
     expect(ws.idf('human')).toBe(1.0986122886681096); // not in corpus
 
     ws.addDocument('d3', docs[2]);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         the: 1,
         a: 3,
         cat: 1,
@@ -325,7 +338,8 @@ describe('text/tfidf-space', () => {
         canine: 2,
         wolf: 1,
         dog: 1,
-      }),);
+      }),
+    );
     expect(ws.corpus.size).toBe(3);
     expect(ws.idf('a')).toBe(0); // in all docs
     expect(ws.idf('the')).toBe(0.6931471805599453); // 1/3 of docs
@@ -356,33 +370,41 @@ describe('text/tfidf-space', () => {
       'the cat is a feline',
     ];
     let res = docs.map((doc, i) => ws.addDocument(`d${i + 1}`, doc));
-    expect(res[0].bow).toEqual(new WordVector({
+    expect(res[0].bow).toEqual(
+      new WordVector({
         a: 2,
         dog: 1,
         is: 1,
         canine: 1,
-      }),);
+      }),
+    );
 
     // compute document tfidf mectors
     let vDocs = docs.map((doc) => ws.tfidf(doc));
-    expect(vDocs[0]).toEqual(new WordVector({
+    expect(vDocs[0]).toEqual(
+      new WordVector({
         // a: ignored because omnipresent
         // is: ignored because omnipresent
         dog: 0.19213636168689888,
         canine: 0.11094088415839597,
-      }),);
-    expect(vDocs[1]).toEqual(new WordVector({
+      }),
+    );
+    expect(vDocs[1]).toEqual(
+      new WordVector({
         wolf: 0.1200852260543118,
         of: 0.1200852260543118,
         wildest: 0.1200852260543118,
         canine: 0.06933805259899747,
         the: 0.13867610519799495,
-      }),);
-    expect(vDocs[2]).toEqual(new WordVector({
+      }),
+    );
+    expect(vDocs[2]).toEqual(
+      new WordVector({
         cat: 0.19213636168689888,
         the: 0.11094088415839597,
         feline: 0.19213636168689888,
-      }),);
+      }),
+    );
 
     // Compute similarity between TF_IDF vectors of query/docs
 
@@ -398,7 +420,9 @@ describe('text/tfidf-space', () => {
 
     // TF_IDF favors shorter document (more focus)
     let vCanine = ws.tfidf('canine');
-    expect(vCanine).toEqual(new WordVector({ canine: 0.5547044207919798 }),);
+    expect(vCanine).toEqual(
+      new WordVector({ canine: 0.5547044207919798 }),
+    );
     let vCanineMatch = vDocs.map((vDoc) => vCanine.similar(vDoc));
     expect(vCanineMatch).toEqual([
       0.5000368597900825, // a dog is a canine (shorter)
@@ -410,10 +434,12 @@ describe('text/tfidf-space', () => {
     // query still matches shorter documents with partial match
     // since "cat" is rarer than "canine", the match there is stronger
     let vCatCanine = ws.tfidf('cat canine');
-    expect(vCatCanine).toEqual(new WordVector({
+    expect(vCatCanine).toEqual(
+      new WordVector({
         cat: 0.4803409042172472,
         canine: 0.2773522103959899,
-      }),);
+      }),
+    );
     let vCatCanineMatch = vDocs.map((vDoc) => vCatCanine.similar(vDoc));
     expect(vCatCanineMatch).toEqual([
       0.2500368611487267, // a dog is a canine
@@ -429,9 +455,11 @@ describe('text/tfidf-space', () => {
     let docInfo = ws.addCorpusDocument(id, bow);
     expect(docInfo).toEqual({ id, bow, nWords });
     expect(ws.corpus.getDocument(id)).toBe(docInfo);
-    expect(ws.corpus.wordDocCount).toEqual(new WordVector({
+    expect(ws.corpus.wordDocCount).toEqual(
+      new WordVector({
         a: 1, // 1-hot
         b: 1, // 1-hot
-      }),);
+      }),
+    );
   });
 });

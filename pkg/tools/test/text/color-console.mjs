@@ -329,7 +329,11 @@ describe('text/color-console', () => {
     expect(util.inspect(tbl)).toBe(util.inspect(tbl, { colors }));
 
     let strikethrough = 'strikethrough';
-    dbg && console.log(msg, styleText(strikethrough, strikethrough, FORCE_COLOR));
+    dbg &&
+      console.log(
+        msg,
+        styleText(strikethrough, strikethrough, FORCE_COLOR),
+      );
     let underline = 'underline';
     dbg && console.log(msg, styleText(underline, underline, FORCE_COLOR));
     let green = 'green';
@@ -400,19 +404,19 @@ describe('text/color-console', () => {
     };
     let props = cc.props(obj);
     expect([...props]).toEqual([
-        'vstring:',
-        'test-text',
-        'vnumber:',
-        1.23,
-        'vboolean:',
-        true,
-        'vobj:',
-        '{"a":1,"b":"one","c":false}',
-        'vundefined:',
-        undefined,
-        'vnull:',
-        null,
-      ],);
+      'vstring:',
+      'test-text',
+      'vnumber:',
+      1.23,
+      'vboolean:',
+      true,
+      'vobj:',
+      '{"a":1,"b":"one","c":false}',
+      'vundefined:',
+      undefined,
+      'vnull:',
+      null,
+    ]);
   });
   it('props() function', () => {
     let obj = {
@@ -436,6 +440,11 @@ describe('text/color-console', () => {
     };
     expect(obj.vobj.toString).not.toBe({}.toString);
     let props = cc.props(obj);
-    expect([...props]).toEqual(['varr:', '[1,2,3]', 'vobj:', JSON.stringify(obj.vobj)],);
+    expect([...props]).toEqual([
+      'varr:',
+      '[1,2,3]',
+      'vobj:',
+      JSON.stringify(obj.vobj),
+    ]);
   });
 });

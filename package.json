@@ -17,5 +17,8 @@
   },
   "workspaces": [
     "pkg/*"
-  ]
+  ],
+  "dependencies": {
+    "avsc": "^5.7.9"
+  }
 }

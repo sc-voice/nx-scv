@@ -53,10 +53,7 @@ describe('text/merkle-json', () => {
   it('hash(Array) calculates hash code', () => {
     let mj = new MerkleJson();
     expect(mj.hash(['HTML']), mj.hash(mj.hash('HTML')));
-    expect(
-      mj.hash(['HT', 'ML']),
-      mj.hash(mj.hash('HT') + mj.hash('ML')),
-    );
+    expect(mj.hash(['HT', 'ML']), mj.hash(mj.hash('HT') + mj.hash('ML')));
     expect(mj.hash([1, 2]), mj.hash(mj.hash('1') + mj.hash('2')));
   });
   it('hash(number) calculates hash code', () => {
@@ -128,10 +125,7 @@ describe('text/merkle-json', () => {
     let mj = new MerkleJson();
     let hfoo = mj.hash('foo');
     expect(mj.hash({ merkleHash: hfoo }), hfoo);
-    expect(
-      mj.hash({ merkleHash: hfoo, anything: 'do-not-care' }),
-      hfoo,
-    );
+    expect(mj.hash({ merkleHash: hfoo, anything: 'do-not-care' }), hfoo);
     expect(
       mj.hash([{ merkleHash: hfoo, anything: 'do-not-care' }]),
       mj.hash(hfoo),
