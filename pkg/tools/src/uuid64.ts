@@ -106,6 +106,28 @@ class UUID64 {
   }
 
   /**
+   * Create a UUID64 instance from a 16-byte buffer.
+   *
+   * @param buffer 16-byte buffer containing a valid UUID64
+   * @returns UUID64 instance
+   * @throws Error if buffer is invalid or not 16 bytes
+   */
+  static fromBuffer(buffer: Buffer): UUID64 {
+    if (!Buffer.isBuffer(buffer)) {
+      throw new Error('fromBuffer requires a Buffer');
+    }
+
+    if (!UUID64.validate(buffer)) {
+      throw new Error(`Invalid UUID64 buffer: length=${buffer.length}, must be 16 bytes with valid UUIDv7 format`);
+    }
+
+    const instance = Object.create(UUID64.prototype);
+    instance.uuidv7 = buffer;
+    instance.base64 = UUID64.toBase64Url(instance.uuidv7);
+    return instance;
+  }
+
+  /**
    * Create a UUID64 buffer with timestamp, sequence, and optional random bytes.
    *
    * @param date Timestamp in milliseconds (defaults to current time)

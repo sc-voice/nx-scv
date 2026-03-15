@@ -34,24 +34,16 @@
       "description" : "UUID64.validate(input: string | Buffer) at uuid64.ts:253-289 validates both string and Buffer formats. Replace uuidValidate(f3a.id) calls with UUID64.validate(f3a.id) in forma.mjs:30 test. Update Avro schema assertions from 'string' to 'bytes' type in forma.mjs:66 and schema.mjs:91. Serialization round-trip tests unchanged.",
       "name" : "Clarify test validation approach using UUID64.validate()",
       "test" : "update unit tests"
+    },
+    {
+      "name" : "Update UUID64.fromString() to validate input and throw on invalid",
+      "test" : "update unit tests"
     }
   ],
   "createdAt" : "2026-03-14T13:24:50Z",
   "id" : "019CEC85-6212-7000-A535-53DCD056EB9B",
   "name" : "Integrate UUID64 with Identifiable",
   "plannedActions" : [
-    {
-      "name" : "Update UUID64.fromString() to validate input and throw on invalid",
-      "test" : "update unit tests"
-    },
-    {
-      "name" : "Rename current Identifiable to IdentifiableOld",
-      "test" : "IdentifiableOld.mjs exists with original string-based implementation"
-    },
-    {
-      "name" : "Create new Identifiable with Buffer-based UUID64 storage",
-      "test" : "New Identifiable stores id as 16-byte Buffer; constructor accepts string"
-    },
     {
       "name" : "Update Forma.SCHEMA to use 'bytes' type for id field",
       "test" : "Forma.SCHEMA.id.type === 'bytes'; existing Forma tests pass"
@@ -115,5 +107,5 @@
 
   ],
   "summary" : "Integrate UUID64 binary storage with Avro serialization - use bytes type instead of string for optimal binary transmission",
-  "updatedAt" : "2026-03-14T14:41:35Z"
+  "updatedAt" : "2026-03-15T09:40:26Z"
 }

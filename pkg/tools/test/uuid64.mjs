@@ -240,4 +240,76 @@ it('validate rejects wrong variant bits', () => {
   expect(!UUID64.validate(buffer), 'UUID with wrong variant should be rejected');
 });
 
+// Test: fromBuffer creates instance from valid buffer
+it('fromBuffer creates instance from valid buffer', () => {
+  const u1 = new UUID64();
+  const u2 = UUID64.fromBuffer(u1.uuidv7);
+  expect(u2.equals(u1), 'fromBuffer should recreate UUID from buffer');
+});
+
+// Test: fromBuffer throws on non-Buffer input
+it('fromBuffer throws on non-Buffer input', () => {
+  const invalidInputs = [
+    'not-a-buffer',
+    null,
+    undefined,
+    123,
+    { length: 16 },
+    [],
+  ];
+
+  invalidInputs.forEach(input => {
+    expect(() => UUID64.fromBuffer(input),
+      `fromBuffer(${JSON.stringify(input)}) should throw`).toThrow();
+  });
+});
+
+// Test: fromBuffer throws on wrong length buffer
+it('fromBuffer throws on wrong length buffer', () => {
+  const wrongLengths = [
+    Buffer.alloc(0),
+    Buffer.alloc(15),
+    Buffer.alloc(17),
+    Buffer.alloc(32),
+  ];
+
+  wrongLengths.forEach(buffer => {
+    expect(() => UUID64.fromBuffer(buffer),
+      `fromBuffer with ${buffer.length} bytes should throw`).toThrow();
+  });
+});
+
+// Test: fromBuffer throws on invalid version
+it('fromBuffer throws on invalid version', () => {
+  const u = new UUID64();
+  const buffer = Buffer.from(u.uuidv7);
+  // Change version from 7 to 4
+  buffer[6] = (buffer[6] & 0x0f) | 0x40;
+  expect(() => UUID64.fromBuffer(buffer),
+    'fromBuffer should reject wrong version').toThrow();
+});
+
+// Test: fromBuffer throws on invalid variant
+it('fromBuffer throws on invalid variant', () => {
+  const u = new UUID64();
+  const buffer = Buffer.from(u.uuidv7);
+  // Change variant from 0b10 to 0b11
+  buffer[8] = (buffer[8] & 0x3f) | 0xc0;
+  expect(() => UUID64.fromBuffer(buffer),
+    'fromBuffer should reject wrong variant').toThrow();
+});
+
+// Test: fromBuffer and fromString create equivalent instances
+it('fromBuffer and fromString create equivalent instances', () => {
+  const u1 = new UUID64();
+  const u2 = UUID64.fromBuffer(u1.uuidv7);
+  const u3 = UUID64.fromString(u1.asV7());
+  const u4 = UUID64.fromString(u1.base64);
+  expect(u1.equals(u2), 'fromBuffer should match original');
+  expect(u1.equals(u3), 'fromString(uuid) should match original');
+  expect(u1.equals(u4), 'fromString(base64) should match original');
+  expect(u2.equals(u3), 'fromBuffer should match fromString(uuid)');
+  expect(u2.equals(u4), 'fromBuffer should match fromString(base64)');
+});
+
 });
