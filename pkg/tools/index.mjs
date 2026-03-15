@@ -25,6 +25,7 @@ import { List, ListFactory } from './src/text/list.mjs';
 import { Corpus } from './src/text/corpus.mjs';
 import { EbtDoc } from './src/text/ebt-doc.mjs';
 import { LegacyDoc } from './src/text/legacy-doc.mjs';
+import { Levenshtein } from './dist/text/levenshtein.js';
 import { MerkleJson } from './src/text/merkle-json.mjs';
 import { SuttaCentralId } from './src/text/sutta-central-id.mjs';
 import { Unicode } from './src/text/unicode.mjs';
@@ -42,6 +43,7 @@ export const Text = {
   Corpus,
   EbtDoc,
   LegacyDoc,
+  Levenshtein,
   LogEntry,
   Logger,
   MerkleJson,
