@@ -1,9 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import {
-  v7 as uuidV7,
-  validate as uuidValidate,
-  version as uuidVersion,
-} from 'uuid';
+import { UUID64 } from '@sc-voice/tools';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
@@ -26,7 +22,7 @@ describe('Patch', () => {
   it('ctor default', () => {
     const msg = 'tp3h.ctor.default';
     const p3h1 = new Patch();
-    expect(uuidValidate(p3h1.id)).toBe(true);
+    expect(UUID64.validate(p3h1.id)).toBe(true);
     dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
   it('ctor simple', () => {

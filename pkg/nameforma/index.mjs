@@ -2,6 +2,7 @@ import { Clock } from './src/clock.mjs';
 import { Forma } from './src/forma.mjs';
 //import { IdValue } from './src/id-value.mjs';
 import { Identifiable } from './src/identifiable.mjs';
+import UUID64 from './dist/uuid64.js';
 import {
   Admin,
   Consumer,
@@ -29,6 +30,7 @@ export const NameForma = {
   Rational,
   Schema,
   Task,
+  UUID64,
   //Timer,
   //Timers,
   _Runner,

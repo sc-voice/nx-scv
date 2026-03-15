@@ -1,8 +1,4 @@
-import {
-  v7 as uuidV7,
-  validate as uuidValidate,
-  version as uuidVersion,
-} from 'uuid';
+import UUID64 from '../dist/uuid64.js';
 import { Identifiable } from './identifiable.mjs';
 import { Text, ScvMath } from '@sc-voice/tools';
 import { DBG } from './defines.mjs';
@@ -28,7 +24,7 @@ export class Forma extends Identifiable {
     instances++;
     Forma.#instances[prefix] = instances;
 
-    let { name = prefix + '-' + super.id.split('-')[0] } = cfg;
+    let { name = prefix + '-' + super.id.substring(0, 8) } = cfg;
 
     this.name = name;
 
@@ -60,17 +56,15 @@ export class Forma extends Identifiable {
     const msg = 'f3a.validate';
     const dbg = DBG.FORMA.VALIDATE;
     const {
-      defaultId = true, // id is uuid version 7
+      defaultId = true, // id is UUID64
       defaultName = false, // name is derived from id
     } = opts;
     const { id, name } = this;
     let err;
 
     if (!err && defaultId) {
-      if (!uuidValidate(id)) {
-        err = new Error(`${msg} uuid? ${id}`);
-      } else if (uuidVersion(id) !== 7) {
-        err = new Error(`${msg} uuidv7? ${id}`);
+      if (!UUID64.validate(id)) {
+        err = new Error(`${msg} uuid64? ${id}`);
       }
     }
     if (!err && defaultName) {

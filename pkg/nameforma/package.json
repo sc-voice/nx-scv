@@ -2,17 +2,20 @@
   "name": "@sc-voice/nameforma",
   "version": "3.33.0",
   "description": "Utilities for SC-Voice",
+  "type": "module",
   "main": "index.mjs",
   "files": [
     "LICENSE",
     "index.mjs",
     "package.json",
     "README.md",
-    "src"
+    "src",
+    "dist"
   ],
   "scripts": {
-    "test": "vitest run --config test/vitest.config.mjs",
-    "test:test": "vitest --config test/vitest.config.mjs"
+    "build": "npx tsc",
+    "test": "npm run build && vitest run --config test/vitest.config.mjs",
+    "test:test": "npm run build && vitest --config test/vitest.config.mjs"
   },
   "repository": {
     "type": "git",

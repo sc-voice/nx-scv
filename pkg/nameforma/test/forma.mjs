@@ -1,9 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import {
-  v7 as uuidV7,
-  validate as uuidValidate,
-  version as uuidVersion,
-} from 'uuid';
+import { UUID64 } from '@sc-voice/tools';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
@@ -27,11 +23,11 @@ class TestThing extends Forma {
 describe('Forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
-    expect(uuidValidate(f3a.id)).toBe(true);
-    expect(f3a.name).toMatch(/^F3A[-0-9a-z]+$/);
+    expect(UUID64.validate(f3a.id)).toBe(true);
+    expect(f3a.name).toMatch(/^F3A[-A-Za-z0-9_]+$/);
 
     let t7g = new TestThing();
-    expect(t7g.name).toMatch(/^T7G[-0-9a-z]+$/);
+    expect(t7g.name).toMatch(/^T7G[-A-Za-z0-9_]+$/);
   });
   it('patch', () => {
     const msg = 'tf3a.patch';

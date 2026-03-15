@@ -1,8 +1,4 @@
-import {
-  v7 as uuidV7,
-  validate as uuidValidate,
-  version as uuidVersion,
-} from 'uuid';
+import UUID64 from '../dist/uuid64.js';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole, Unicode, } = Text;
 import { DBG } from './defines.mjs';
@@ -23,21 +19,12 @@ export class Identifiable {
     });
   }
 
-  static uuid(opts) {
-    return uuidV7(opts);
+  static uuid() {
+    return new UUID64().base64;
   }
 
-  static uuidToTime(id) {
-    const msg = 'f3a.uuidToDate';
-    if (!uuidValidate(id)) {
-      throw new Error(`${msg} invalid uuid:${id}`);
-    }
-    if (uuidVersion(id) !== 7) {
-      throw new Error(`${msg} expected v7 uuid:${id}`);
-    }
-
-    let time = Number.parseInt(id.replace(/-/, '').substring(0, 12), 16);
-    return time;
+  static validate(id) {
+    return UUID64.validate(id);
   }
 
   get id() {

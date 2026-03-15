@@ -36,7 +36,7 @@ describe('task', () => {
     expect(t2k).toMatchObject({ title: 'title?' });
     expect(t2k.progress).toEqual(new Rational(0, 1, 'done'));
     expect(t2k.duration).toEqual(new Rational(null, 1, 's'));
-    expect(t2k.toString()).toMatch(/T2K[-0-9a-z]+\. title\? \(0\/1done\)/);
+    expect(t2k.toString()).toMatch(/T2K[-A-Za-z0-9_]+\. title\? \(0\/1done\)/);
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
   });
