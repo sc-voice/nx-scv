@@ -5,7 +5,7 @@ NameForma is world model for human/agentic use based on Kafka.
 ## Key Components
 
 ### Identifiable
-- Base class providing UUID v7 generation and validation. See [identifiable.md](identifiable.md)
+- Base class providing UUID64 generation and validation. See [identifiable.md](identifiable.md)
 
 ### Forma
 - Base class for identifiable named objects. See [forma.md](forma.md)
@@ -29,7 +29,6 @@ NameForma is world model for human/agentic use based on Kafka.
 
 ```
 External:
-├── uuid (UUID v7 generation)
 ├── avro-js (Avro schema parsing/encoding)
 └── @sc-voice/tools (Fraction, Text utilities)
 

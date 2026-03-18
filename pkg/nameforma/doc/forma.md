@@ -15,7 +15,7 @@
   namespace: 'scvoice.nameforma',
   type: 'record',
   fields: [
-    { name: 'id', type: 'string' },              // immutable, unique UUID v7
+    { name: 'id', type: 'string' },              // immutable, unique UUID64
     { name: 'name', type: 'string' },            // mutable
   ]
 }
