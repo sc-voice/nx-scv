@@ -1,47 +1,52 @@
 import { Text } from '@sc-voice/tools';
-import { DBG } from './defines.mjs';
-import { Forma } from './forma.mjs';
-import { Rational } from './rational.mjs';
-import { Schema } from './schema.mjs';
+import { DBG } from './defines.js';
+import { Forma } from './forma.js';
+import { Rational } from './rational.js';
+import { Schema } from './schema.js';
 
 const { ColorConsole, Unicode } = Text;
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
-const { ELLIPSIS, CHECKMARK: UOK } = Unicode;
+const { CHECKMARK: UOK } = Unicode;
 const RATIONAL = Rational.SCHEMA;
 const FORMA = Forma.SCHEMA;
 
 export class Task extends Forma {
-  constructor(cfg = {}) {
+  title: string = 'title?';
+  progress: any = new Rational(0, 1, 'done');
+  duration: any = new Rational(null, 1, 's');
+
+  constructor(cfg: any = {}) {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
     super({ id: cfg.id }); // for deserialized tasks
     this.put(cfg);
 
     dbg && cc.ok1(msg, ...cc.props(this));
-  } // t2k.ctor
+  }
 
-  static registerSchema(opts = {}) {
+  static registerSchema(opts: any = {}) {
     Schema.register(Rational.SCHEMA, opts);
     return Schema.register(this.SCHEMA, opts);
   }
 
-  static entity = "task"
+  static entity = 'task';
 
-  static get SCHEMA() {
-    return new Schema({
+  static override get SCHEMA() {
+    return {
       name: 'Task',
+      namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
         ...FORMA.fields,
         { name: 'title', type: 'string' },
-        { name: 'progress', type: RATIONAL.fullName },
-        { name: 'duration', type: RATIONAL.fullName },
+        { name: 'progress', type: (RATIONAL as any).fullName },
+        { name: 'duration', type: (RATIONAL as any).fullName },
       ],
-    });
+    };
   }
 
-  put(value) {
+  put(value: any) {
     const msg = 't2k.put';
     const dbg = T2K.PUT;
     super.patch(value);
@@ -61,7 +66,7 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   }
 
-  patch(value = {}) {
+  override patch(value: any = {}) {
     const msg = 't2k.patch';
     const dbg = T2K.PATCH;
     super.patch(value);
@@ -75,24 +80,24 @@ export class Task extends Forma {
     dbg && cc.ok1(msg, ...cc.props(this));
   }
 
-  toString() {
+  override toString() {
     const dbg = T2K.TO_STRING;
-    let { name, title, progress, duration, started } = this;
+    let { name, title, progress, duration } = this as any;
     let time = '';
-    let now = Date.now();
     let symbol = '.';
     let status = progress.toString({ asRange: '/' });
     let done = progress.value >= 1;
     if (done) {
       symbol = UOK;
       status = '' + progress.denominator + progress.units;
-    } else if (started) {
+    } else if ((this as any).started) {
       symbol = Unicode.RIGHT_GUILLEMET;
     }
     if (!duration.isNull) {
       time = ' ' + duration.toString();
     }
 
+    dbg;
     return `${name}${symbol} ${title} (${status}${time})`;
-  } // t2k.toString
-} // class Task
+  }
+}

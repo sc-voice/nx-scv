@@ -15,6 +15,7 @@ const CONSUMER = {
 };
 
 const FORMA = {
+  CTOR: 0,
   TEST: 0,
   VALIDATE: 0,
 };
@@ -66,6 +67,7 @@ const PRODUCER = {
 };
 
 const RATIONAL = {
+  CTOR: 0,
   REDUCE: 0,
   TEST: 0,
 };
@@ -81,6 +83,7 @@ const RUNNER = {
 const SCHEMA = {
   REGISTER: 0,
   TEST: 0,
+  TO_AVRO: 0,
   TO_AVRO_RECORD: 0,
   TO_AVRO_ARRAY: 0,
 };
@@ -96,6 +99,10 @@ const SEQUENCE = {
 };
 
 const TASK = {
+  CTOR: 0,
+  PUT: 0,
+  PATCH: 0,
+  TO_STRING: 0,
   TEST: 0,
 };
 

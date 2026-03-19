@@ -45,6 +45,10 @@
   "name" : "Integrate UUID64 with Identifiable",
   "plannedActions" : [
     {
+      "name" : "implement .nameforma serializable world for project serialization",
+      "test" : "update unit tests"
+    },
+    {
       "name" : "Update Forma.SCHEMA to use 'bytes' type for id field",
       "test" : "Forma.SCHEMA.id.type === 'bytes'; existing Forma tests pass"
     },
@@ -79,6 +83,10 @@
       "text" : "Forma.SCHEMA at pkg\/nameforma\/src\/forma.mjs:38-48 - defines id field as 'string' type, change to 'bytes' for wire efficiency"
     },
     {
+      "relevance" : 0.95,
+      "text" : ".nameforma world design: one world per project in .nameforma\/ directory. Storage structure: .nameforma\/{entity}\/{id}.json where entity comes from Entity.entity property (e.g., 'task'). CLI finds project root by searching up for .nameforma\/. Tests use -w parameter to create isolated temp worlds in \/tmp. Only concrete entities with entity property are persisted (Task only, not abstract Forma\/Schema). World auto-created on first use."
+    },
+    {
       "relevance" : 0.9,
       "text" : "UUID64 at pkg\/tools\/src\/uuid64.ts:52-343 - fromString(input) factory (line 85-101) handles both UUID strings and base64. Methods: asV7() (string), toDate(), compare(), validate(). Ready for integration, no changes needed."
     },
@@ -101,11 +109,15 @@
     {
       "relevance" : 0.65,
       "text" : "avro-js dependency at pkg\/nameforma\/package.json:39 - update from ^1.12.0 to ^1.12.1 (latest patch, no breaking changes)"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "Implementation scope for Claude clone: (1) Create World class to manage .nameforma\/ directory, (2) Implement world discovery (search up tree for .nameforma\/), (3) Add -w\/--world parameter to TaskCommand, (4) Modify TaskCommand to load\/save tasks from world instead of in-memory Map, (5) Create test\/cli\/task.mjs tests (currently skipped, waiting for context isolation), (6) CLI test helpers to create temp worlds for isolation."
     }
   ],
   "requiredTasks" : [
 
   ],
   "summary" : "Integrate UUID64 binary storage with Avro serialization - use bytes type instead of string for optimal binary transmission",
-  "updatedAt" : "2026-03-15T09:40:26Z"
+  "updatedAt" : "2026-03-18T19:30:47Z"
 }

@@ -1,9 +1,9 @@
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
-import { DBG } from './defines.mjs';
-import { Rational } from './rational.mjs';
-import { Schema } from './schema.mjs';
-import { Identifiable } from './identifiable.mjs';
+import { DBG } from './defines.js';
+import { Rational } from './rational.js';
+import { Schema } from './schema.js';
+import { Identifiable } from './identifiable.js';
 
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -20,6 +20,8 @@ const { PATCH: P3H } = DBG;
  * @extends Identifiable
  */
 export class Patch extends Identifiable {
+  [key: string]: any;
+
   /**
    * Create a new Patch instance.
    *
@@ -27,7 +29,7 @@ export class Patch extends Identifiable {
    * @param {string} [cfg.id] - Optional ID; generates UUID64 if not provided
    * @param {...*} cfg - Additional properties to include in the patch
    */
-  constructor(cfg = {}) {
+  constructor(cfg: any = {}) {
     super(cfg.id);
     Object.entries(cfg).forEach((entry) => {
       const [k, v] = entry;
@@ -50,7 +52,7 @@ export class Patch extends Identifiable {
    * @param {Schema} [opts.schema] - Optional schema from dst.SCHEMA
    * @throws {Error} If attempting to patch the 'id' property
    */
-  apply(dst, opts = {}) {
+  apply(dst: any, opts: any = {}) {
     const msg = 'P3h.apply';
     const dbg = P3H.APPLY;
     const { schema = dst?.SCHEMA } = opts;
@@ -66,7 +68,7 @@ export class Patch extends Identifiable {
         } else {
           // Prevent patching the id property
           if (k === 'id') {
-            throw new Error(`${msg} patch.id? ${this.id}:${vVorma}`);
+            throw new Error(`${msg} patch.id? ${this.id}:${vSrc}`);
           }
           // Update destination property with patch value
           dst[k] = vSrc;

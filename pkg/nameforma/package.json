@@ -3,7 +3,7 @@
   "version": "3.33.0",
   "description": "Utilities for SC-Voice",
   "type": "module",
-  "main": "index.mjs",
+  "main": "dist/index.js",
   "files": [
     "LICENSE",
     "index.mjs",
@@ -15,7 +15,8 @@
   "scripts": {
     "build": "npx tsc",
     "test": "npm run build && vitest run --config test/vitest.config.mjs",
-    "test:test": "npm run build && vitest --config test/vitest.config.mjs"
+    "test:test": "npm run build && vitest --config test/vitest.config.mjs",
+    "cli": "npm run build && node dist/cli/nameforma.js"
   },
   "repository": {
     "type": "git",
@@ -40,6 +41,10 @@
   },
   "dependencies": {
     "avro-js": "^1.12.0",
+    "commander": "^12.1.0",
     "uuid": "^11.1.0"
+  },
+  "bin": {
+    "nameforma": "dist/cli/nameforma.js"
   }
 }
