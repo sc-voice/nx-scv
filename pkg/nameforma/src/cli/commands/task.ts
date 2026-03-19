@@ -3,6 +3,7 @@
  * Supports: create, list, show, update
  */
 
+import path from 'path';
 import { NameForma } from '../../index.js';
 import { TaskWorld, World } from '../../world.js';
 
@@ -48,8 +49,8 @@ export default class TaskCommand {
     if (!worldPath) {
       worldPath = World.findWorld();
       if (!worldPath) {
-        // Use current directory as fallback
-        worldPath = process.cwd();
+        // Use .nameforma in current directory as fallback
+        worldPath = path.join(process.cwd(), '.nameforma');
       }
     }
 

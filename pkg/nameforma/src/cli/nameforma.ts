@@ -23,13 +23,38 @@ import TaskCommand from './commands/task.js';
 import FormaCommand from './commands/forma.js';
 import SchemaCommand from './commands/schema.js';
 
+// Preprocess argv to move -h/--help to the end so it applies to the deepest command
+function preprocessArgv(argv: string[]): string[] {
+  const helpFlags = ['-h', '--help'];
+  const withoutHelp: string[] = [];
+  let helpFlag: string | null = null;
+
+  for (let i = 2; i < argv.length; i++) {
+    if (helpFlags.includes(argv[i])) {
+      helpFlag = argv[i];
+    } else {
+      withoutHelp.push(argv[i]);
+    }
+  }
+
+  // Return argv with help flag moved to the end
+  return helpFlag ? [...argv.slice(0, 2), ...withoutHelp, helpFlag] : argv;
+}
+
 const program = new Command();
+
+const helpText = [
+  'Examples:',
+  '  $ nameforma --help',
+  '  $ nameforma -h task',
+  '  $ nameforma -h task create',
+].join('\n');
 
 program
   .name('nameforma')
   .description('NameForma CLI - Manage tasks, formas, and schemas')
   .version('3.33.0')
-  .addHelpText('after', '\nFor detailed help on a command:\n  $ nameforma help <command>\n\nFor detailed help on a subcommand:\n  $ nameforma <command> help <subcommand>\n\nExamples:\n  $ nameforma help task\n  $ nameforma task help create\n  $ nameforma task create --help');
+  .addHelpText('after', '\n' + helpText);
 
 program
   .option('-d, --debug', 'Enable debug output')
@@ -60,4 +85,4 @@ const schemaCmd = program
 
 SchemaCommand.register(schemaCmd);
 
-program.parse();
+program.parse(preprocessArgv(process.argv));
