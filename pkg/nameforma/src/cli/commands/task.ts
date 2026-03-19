@@ -60,6 +60,9 @@ export default class TaskCommand {
    * @param {Command} cmd - Commander command object
    */
   static register(cmd: any) {
+    // Add help text for the task command
+    cmd.addHelpText('after', '\nFor detailed subcommand help:\n  $ nameforma task help <subcommand>\n\nSubcommands:\n  create  - Create a new task\n  list    - List all tasks\n  show    - Show task details\n  update  - Update a task\n  delete  - Delete a task');
+
     // Add global -w/--world option
     cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
 
@@ -67,6 +70,7 @@ export default class TaskCommand {
     cmd
       .command('create')
       .description('Create a new task')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task create -t "My Task"\n  $ nameforma task create -t "Fix bug" -p 1/3 -d 2/8\n  $ nameforma task create -t "Review PR" -n custom-name -p 0/1')
       .requiredOption('-t, --title <title>', 'Task title')
       .option('-n, --name <name>', 'Task name (auto-generated if not provided)')
       .option('-p, --progress <progress>', 'Task progress (e.g., 0/1 or 1/3)', '0/1')
@@ -107,6 +111,7 @@ export default class TaskCommand {
     cmd
       .command('list')
       .description('List all tasks')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task list')
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.opts());
 
@@ -127,6 +132,7 @@ export default class TaskCommand {
     cmd
       .command('show <id>')
       .description('Show task details')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task show abc123def456')
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.opts());
 
@@ -149,6 +155,7 @@ export default class TaskCommand {
     cmd
       .command('update <id>')
       .description('Update a task')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task update abc123def456 -t "Updated title"\n  $ nameforma task update abc123def456 -p 2/3')
       .option('-t, --title <title>', 'Update task title')
       .option('-p, --progress <progress>', 'Update progress (e.g., 1/3)')
       .option('-d, --duration <duration>', 'Update duration')
@@ -193,6 +200,7 @@ export default class TaskCommand {
     cmd
       .command('delete <id>')
       .description('Delete a task')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task delete abc123def456')
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.opts());
 

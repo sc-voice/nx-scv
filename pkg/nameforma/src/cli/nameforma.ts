@@ -28,7 +28,8 @@ const program = new Command();
 program
   .name('nameforma')
   .description('NameForma CLI - Manage tasks, formas, and schemas')
-  .version('3.33.0');
+  .version('3.33.0')
+  .addHelpText('after', '\nFor detailed help on a command:\n  $ nameforma help <command>\n\nFor detailed help on a subcommand:\n  $ nameforma <command> help <subcommand>\n\nExamples:\n  $ nameforma help task\n  $ nameforma task help create\n  $ nameforma task create --help');
 
 program
   .option('-d, --debug', 'Enable debug output')
