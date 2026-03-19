@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
 import { execSync } from 'child_process';
 import { Command } from 'commander';
+import fs from 'fs';
+import path from 'path';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/commands/task.js';
 import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers';
@@ -328,5 +330,39 @@ describe('CLI: nameforma package script', () => {
 
     expect(output).toMatch(/usage|commands|options/i);
     expect(output).toMatch(/task/i);
+  });
+
+  it('npm run cli task list shows no tasks when empty', () => {
+    const tempWorld = createTempWorld();
+    try {
+      const output = execSync(`npm run cli -- task -w ${tempWorld.worldPath} list`, {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+      });
+
+      expect(output).toMatch(/No tasks/);
+    } finally {
+      tempWorld.cleanup();
+    }
+  });
+
+  it('cli task list without -w uses current directory', () => {
+    const tempWorld = createTempWorld();
+    try {
+      // Create symlink to CLI executable in temp directory
+      const cliPath = path.join(process.cwd(), 'dist/cli/nameforma.js');
+      const symlinkPath = path.join(tempWorld.tempDir, 'nameforma.js');
+      fs.symlinkSync(cliPath, symlinkPath);
+
+      // Run CLI from temp directory without -w option
+      const output = execSync('node nameforma.js task list', {
+        cwd: tempWorld.tempDir,
+        encoding: 'utf8',
+      });
+
+      expect(output).toMatch(/No tasks/);
+    } finally {
+      tempWorld.cleanup();
+    }
   });
 });

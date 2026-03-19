@@ -48,7 +48,8 @@ export default class TaskCommand {
     if (!worldPath) {
       worldPath = World.findWorld();
       if (!worldPath) {
-        throw new Error('.nameforma directory not found. Use -w/--world to specify path.');
+        // Use current directory as fallback
+        worldPath = process.cwd();
       }
     }
 
