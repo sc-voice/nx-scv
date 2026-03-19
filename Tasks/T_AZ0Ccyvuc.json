@@ -1,11 +1,5 @@
 {
   "completedActions" : [
-
-  ],
-  "createdAt" : "2026-03-18T19:36:35Z",
-  "id" : "019D0273-2BEE-7000-8574-587B8D7FE3FE",
-  "name" : "Implement .nameforma world for project serialization",
-  "plannedActions" : [
     {
       "name" : "Create World class (pkg\/nameforma\/src\/world.mjs) with save\/load\/list\/delete methods and entity file naming",
       "test" : "update unit tests"
@@ -21,7 +15,12 @@
     {
       "name" : "Add entity property to Task class",
       "test" : "update unit tests"
-    },
+    }
+  ],
+  "createdAt" : "2026-03-18T19:36:35Z",
+  "id" : "019D0273-2BEE-7000-8574-587B8D7FE3FE",
+  "name" : "Implement .nameforma world for project serialization",
+  "plannedActions" : [
     {
       "name" : "Create test\/cli\/task.mjs tests with isolated temp worlds in \/tmp",
       "test" : "update unit tests"
@@ -57,5 +56,5 @@
 
   ],
   "summary" : "Create World class to manage .nameforma\/ directory structure for persistent task storage",
-  "updatedAt" : "2026-03-18T20:05:50Z"
+  "updatedAt" : "2026-03-19T12:56:48Z"
 }
