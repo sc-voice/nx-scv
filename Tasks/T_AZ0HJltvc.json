@@ -1,0 +1,19 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-19T17:30:47Z",
+  "id" : "019D0726-5B6F-7000-87C2-E472675196C9",
+  "name" : "Add TypeScript definitions to @sc-voice\/tools package",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Convert tools package to export TypeScript types so clients like nameforma don't need custom .d.ts files",
+  "updatedAt" : "2026-03-19T17:30:47Z"
+}

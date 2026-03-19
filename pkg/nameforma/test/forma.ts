@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { UUID64 } from '@sc-voice/tools';
+import UUID64 from '../src/uuid64.js';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';

@@ -15,12 +15,7 @@
     {
       "name" : "Add entity property to Task class",
       "test" : "update unit tests"
-    }
-  ],
-  "createdAt" : "2026-03-18T19:36:35Z",
-  "id" : "019D0273-2BEE-7000-8574-587B8D7FE3FE",
-  "name" : "Implement .nameforma world for project serialization",
-  "plannedActions" : [
+    },
     {
       "name" : "Create test\/cli\/task.mjs tests with isolated temp worlds in \/tmp",
       "test" : "update unit tests"
@@ -29,6 +24,12 @@
       "name" : "Create CLI test helpers (pkg\/nameforma\/test\/cli\/helpers.mjs) for temp world creation and cleanup",
       "test" : "update unit tests"
     }
+  ],
+  "createdAt" : "2026-03-18T19:36:35Z",
+  "id" : "019D0273-2BEE-7000-8574-587B8D7FE3FE",
+  "name" : "Implement .nameforma world for project serialization",
+  "plannedActions" : [
+
   ],
   "references" : [
     {
@@ -56,5 +57,5 @@
 
   ],
   "summary" : "Create World class to manage .nameforma\/ directory structure for persistent task storage",
-  "updatedAt" : "2026-03-19T12:56:48Z"
+  "updatedAt" : "2026-03-19T17:16:33Z"
 }

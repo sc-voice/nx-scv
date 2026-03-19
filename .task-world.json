@@ -1,1 +1,1 @@
-{"taskStack":["019CC867-AE0D-7000-8C04-D480BA029A0F","019CEC85-6212-7000-A535-53DCD056EB9B","019D0273-2BEE-7000-8574-587B8D7FE3FE"],"verbosity":1,"showDone":false,"showUpdate":false,"limit":5,"testDefault":"update unit tests","lineLength":80}
+{"verbosity":1,"showDone":false,"lineLength":80,"limit":3,"showUpdate":false,"taskStack":["019CC867-AE0D-7000-8C04-D480BA029A0F","019CEC85-6212-7000-A535-53DCD056EB9B","019D0726-5B6F-7000-87C2-E472675196C9"],"testDefault":"update unit tests"}
