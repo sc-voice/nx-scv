@@ -17,7 +17,7 @@
     "build": "npx tsc",
     "test": "npm run build && vitest run --config test/vitest.config.mjs",
     "test:test": "npm run build && vitest --config test/vitest.config.mjs",
-    "cli": "npm run build && node dist/cli/nameforma.js"
+    "cli": "node dist/cli/nameforma.js"
   },
   "repository": {
     "type": "git",

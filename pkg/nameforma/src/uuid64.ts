@@ -83,8 +83,10 @@ class UUID64 {
    * Two successive calls will always produce different, strictly increasing UUIDs.
    */
   constructor() {
-    this.uuidv7 = this.generate();
-    this.base64 = UUID64.toOrderPreservingBase64(this.uuidv7);
+    this.uuidv7 = UUID64.createBufferUUIDV7();
+    this.base64 = UUID64.toOrderPreservingBase64(
+      UUID64.toUUID64Buffer(this.uuidv7),
+    );
   }
 
   // ========================================================================
@@ -100,8 +102,10 @@ class UUID64 {
    */
   static createRelation(relation: UUID64): UUID64 {
     const instance = Object.create(UUID64.prototype);
-    instance.uuidv7 = UUID64.createBuffer(Date.now(), relation.uuidv7);
-    instance.base64 = UUID64.toOrderPreservingBase64(instance.uuidv7);
+    instance.uuidv7 = UUID64.createBufferUUIDV7(Date.now(), relation.uuidv7);
+    instance.base64 = UUID64.toOrderPreservingBase64(
+      UUID64.toUUID64Buffer(instance.uuidv7),
+    );
     return instance;
   }
 
@@ -112,50 +116,53 @@ class UUID64 {
    * @returns UUID64 instance
    */
   static fromString(input: string): UUID64 {
-    let buf;
+    let uuidv7Buf: Buffer;
 
     // Check if it's a UUID string format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
     const uuidPattern =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidPattern.test(input)) {
-      // UUID string format
-      buf = UUID64.uuidStringToBytes(input);
+      // UUID string format (UUIDv7)
+      uuidv7Buf = UUID64.uuidStringToBytes(input);
     } else {
-      // Order-preserving base64 string format
-      buf = UUID64.bufferFromOPB64(input);
+      // Order-preserving base64 string format (UUID64)
+      const uuid64Buf = UUID64.bufferFromOPB64(input);
+      uuidv7Buf = UUID64.toUUIDV7Buffer(uuid64Buf);
     }
 
-    if (!UUID64.validate(buf)) {
+    if (!UUID64.validate(uuidv7Buf)) {
       throw new Error(`Invalid UUID64 string: ${input}`);
     }
 
     const instance = Object.create(UUID64.prototype);
-    instance.uuidv7 = buf;
-    instance.base64 = UUID64.toOrderPreservingBase64(instance.uuidv7);
+    instance.uuidv7 = uuidv7Buf;
+    instance.base64 = UUID64.toOrderPreservingBase64(
+      UUID64.toUUID64Buffer(uuidv7Buf),
+    );
     return instance;
   }
 
   /**
-   * Create a UUID64 instance from a 16-byte buffer.
+   * Create a UUID64 instance from a 16-byte UUIDv7 buffer.
    *
-   * @param buffer 16-byte buffer containing a valid UUID64
+   * @param buffer 16-byte UUIDV7 buffer 
    * @returns UUID64 instance
    * @throws Error if buffer is invalid or not 16 bytes
    */
-  static fromBuffer(buffer: Buffer): UUID64 {
-    if (!Buffer.isBuffer(buffer)) {
+  static fromBuffer(uuidv7Buf: Buffer): UUID64 {
+    if (!Buffer.isBuffer(uuidv7Buf)) {
       throw new Error('fromBuffer requires a Buffer');
     }
 
-    if (!UUID64.validate(buffer)) {
-      throw new Error(
-        `Invalid UUID64 buffer: length=${buffer.length}, must be 16 bytes with valid UUIDv7 format`,
-      );
+    if (!UUID64.validate(uuidv7Buf)) {
+      throw new Error( `Expected valid 16-byte uuidv7 buffer`);
     }
 
     const instance = Object.create(UUID64.prototype);
-    instance.uuidv7 = buffer;
-    instance.base64 = UUID64.toOrderPreservingBase64(instance.uuidv7);
+    instance.uuidv7 = uuidv7Buf;
+    instance.base64 = UUID64.toOrderPreservingBase64(
+      UUID64.toUUID64Buffer(uuidv7Buf),
+    );
     return instance;
   }
 
@@ -172,45 +179,186 @@ class UUID64 {
   }
 
   /**
-   * Validate a UUID64 base64 string or UUID64 buffer.
+   * Validate a UUIDv7 buffer or UUID64 base64 string.
+   * For buffers: checks UUIDv7 format (version in byte 6, variant in byte 8)
+   * For strings: decodes as UUID64 base64, converts to UUIDv7, validates UUIDv7 format
    *
-   * @param input UUID64 base64 string or Buffer (16 bytes)
-   * @returns true if valid UUID64 format, false otherwise
+   * @param input UUIDv7 buffer or UUID64 base64 string
+   * @returns true if valid, false otherwise
    */
   static validate(input: string | Buffer): boolean {
-    let buffer: Buffer;
+    let uuidv7Buffer: Buffer;
 
     if (typeof input === 'string') {
-      // Decode order-preserving base64 string
+      // Decode order-preserving base64 string (UUID64 format)
+      let uuid64Buffer: Buffer;
       try {
-        buffer = UUID64.bufferFromOPB64(input);
+        uuid64Buffer = UUID64.bufferFromOPB64(input);
       } catch {
         return false;
       }
+
+      // Must be exactly 16 bytes
+      if (uuid64Buffer.length !== 16) {
+        return false;
+      }
+
+      // Check UUID64 format: byte 15 bits 5-0 should be 0x1E (version/variant)
+      const byte15VersionVariant = uuid64Buffer[15] & 0x3f;
+      if (byte15VersionVariant !== 0x1e) {
+        return false;
+      }
+
+      // Convert from UUID64 to UUIDv7 format for further validation
+      uuidv7Buffer = UUID64.toUUIDV7Buffer(uuid64Buffer);
     } else if (Buffer.isBuffer(input)) {
-      buffer = input;
+      uuidv7Buffer = input;
     } else {
       return false;
     }
 
     // Must be exactly 16 bytes
-    if (buffer.length !== 16) {
+    if (uuidv7Buffer.length !== 16) {
       return false;
     }
 
-    // Check version field (byte 6, upper nibble should be 0x7)
-    const versionField = (buffer[6] >> 4) & 0x0f;
+    // Check UUIDv7 format: version field (byte 6, upper nibble should be 0x7)
+    const versionField = (uuidv7Buffer[6] >> 4) & 0x0f;
     if (versionField !== 7) {
       return false;
     }
 
     // Check variant field (byte 8, upper 2 bits should be 0b10)
-    const variantField = (buffer[8] >> 6) & 0x03;
+    const variantField = (uuidv7Buffer[8] >> 6) & 0x03;
     if (variantField !== 0b10) {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * Convert a standard UUIDv7 buffer to UUID64 format via bit rearrangement.
+   * Rearranges bits to move version/variant from bytes 6,8 to byte 15.
+   *
+   * @param uuidv7 Standard UUIDv7 buffer (16 bytes)
+   * @returns UUID64 buffer with version/variant in byte 15
+   */
+  static toUUID64Buffer(uuidv7: Buffer): Buffer {
+    if (!Buffer.isBuffer(uuidv7) || uuidv7.length !== 16) {
+      throw new Error('toUUID64Buffer requires a 16-byte buffer');
+    }
+
+    const uuid64 = Buffer.alloc(16);
+
+    // Bytes 0-5: timestamp (unchanged)
+    uuidv7.copy(uuid64, 0, 0, 6);
+
+    // Extract 12-bit sequence from UUIDv7 bytes 6-7
+    // UUIDv7 byte 6: [version 0x7 (4 bits)][sequence bits 11-8 (4 bits)]
+    // UUIDv7 byte 7: [sequence bits 7-0 (8 bits)]
+    const seqHigh = uuidv7[6] & 0x0f; // sequence bits 11-8
+    const seqLow = uuidv7[7]; // sequence bits 7-0
+    const sequence = (seqHigh << 8) | seqLow; // Full 12-bit sequence
+
+    // Extract 62 random bits from UUIDv7
+    // Byte 8: [variant 0b10 (2 bits)][random (6 bits)] -> extract 6 random bits
+    const byte8Random = uuidv7[8] & 0x3f; // Lower 6 bits
+    // Bytes 9-15: [random (56 bits)]
+    const randomBytes = Buffer.alloc(8);
+    randomBytes[0] = byte8Random; // 6 bits (upper 2 bits of first byte unused)
+    uuidv7.copy(randomBytes, 1, 9, 16); // Copy 7 bytes
+
+    // Distribute 62 random bits across UUID64 format:
+    // byte 7 lower 4 bits, byte 8 full 8 bits, bytes 9-14 full 48 bits, byte 15 upper 2 bits
+
+    // Reconstruct as 62-bit value for rearrangement
+    let randomBits = 0n;
+    for (let i = 0; i < 8; i++) {
+      randomBits = (randomBits << 8n) | BigInt(randomBytes[i]);
+    }
+
+    // Bytes 6-7: pure 12-bit sequence (no version bits)
+    uuid64[6] = (sequence >> 4) & 0xff; // Upper 8 bits of sequence
+    uuid64[7] = ((sequence & 0x0f) << 4) | Number((randomBits >> 58n) & 0x0fn); // Lower 4 bits of sequence + 4 random bits
+
+    // Byte 8: 8 random bits
+    uuid64[8] = Number((randomBits >> 50n) & 0xffn);
+
+    // Bytes 9-14: 48 random bits
+    uuid64[9] = Number((randomBits >> 42n) & 0xffn);
+    uuid64[10] = Number((randomBits >> 34n) & 0xffn);
+    uuid64[11] = Number((randomBits >> 26n) & 0xffn);
+    uuid64[12] = Number((randomBits >> 18n) & 0xffn);
+    uuid64[13] = Number((randomBits >> 10n) & 0xffn);
+    uuid64[14] = Number((randomBits >> 2n) & 0xffn);
+
+    // Byte 15: 2 random bits + 6-bit version/variant (0x1E)
+    uuid64[15] = ((Number(randomBits & 0x03n)) << 6) | 0x1e;
+
+    return uuid64;
+  }
+
+  /**
+   * Convert a UUID64 buffer back to standard UUIDv7 format via bit rearrangement.
+   * Reverses the transformation done by toUUID64Buffer().
+   *
+   * @param uuid64 UUID64 buffer (16 bytes)
+   * @returns Standard UUIDv7 buffer with version in byte 6, variant in byte 8
+   */
+  static toUUIDV7Buffer(uuid64: Buffer): Buffer {
+    if (!Buffer.isBuffer(uuid64) || uuid64.length !== 16) {
+      throw new Error('toUUIDV7Buffer requires a 16-byte buffer');
+    }
+
+    const uuidv7 = Buffer.alloc(16);
+
+    // Bytes 0-5: timestamp (unchanged)
+    uuid64.copy(uuidv7, 0, 0, 6);
+
+    // Extract 12-bit sequence from UUID64 bytes 6-7
+    const seqHigh = uuid64[6]; // 8 bits (upper bits of sequence)
+    const seqHighNibble = (uuid64[7] >> 4) & 0x0f; // Upper nibble (lower 4 bits of sequence)
+    const sequence = (seqHigh << 4) | seqHighNibble; // Full 12-bit sequence
+
+    // Reconstruct 62 random bits from UUID64 distribution
+    let randomBits = 0n;
+
+    // 4 bits from byte 7 lower nibble
+    randomBits = (randomBits << 4n) | BigInt(uuid64[7] & 0x0f);
+
+    // 8 bits from byte 8
+    randomBits = (randomBits << 8n) | BigInt(uuid64[8]);
+
+    // 48 bits from bytes 9-14
+    randomBits = (randomBits << 8n) | BigInt(uuid64[9]);
+    randomBits = (randomBits << 8n) | BigInt(uuid64[10]);
+    randomBits = (randomBits << 8n) | BigInt(uuid64[11]);
+    randomBits = (randomBits << 8n) | BigInt(uuid64[12]);
+    randomBits = (randomBits << 8n) | BigInt(uuid64[13]);
+    randomBits = (randomBits << 8n) | BigInt(uuid64[14]);
+
+    // 2 bits from byte 15 upper bits
+    randomBits = (randomBits << 2n) | ((BigInt(uuid64[15]) >> 6n) & 0x03n);
+
+    // Bytes 6-7: version (0x7) + 12-bit sequence
+    uuidv7[6] = (0x7 << 4) | ((sequence >> 8) & 0x0f); // Version 0x7 + upper 4 bits of sequence
+    uuidv7[7] = sequence & 0xff; // Lower 8 bits of sequence
+
+    // Byte 8: variant (0b10) + 6 random bits
+    const byte8Random = Number((randomBits >> 56n) & 0x3fn);
+    uuidv7[8] = 0x80 | byte8Random; // Variant 0b10 + 6 random bits
+
+    // Bytes 9-15: remaining 56 random bits
+    uuidv7[9] = Number((randomBits >> 48n) & 0xffn);
+    uuidv7[10] = Number((randomBits >> 40n) & 0xffn);
+    uuidv7[11] = Number((randomBits >> 32n) & 0xffn);
+    uuidv7[12] = Number((randomBits >> 24n) & 0xffn);
+    uuidv7[13] = Number((randomBits >> 16n) & 0xffn);
+    uuidv7[14] = Number((randomBits >> 8n) & 0xffn);
+    uuidv7[15] = Number(randomBits & 0xffn);
+
+    return uuidv7;
   }
 
   // ========================================================================
@@ -273,14 +421,19 @@ class UUID64 {
   }
 
   /**
-   * Get the time/sequence prefix of the UUID (first 11 base64 characters).
-   * Contains 48-bit timestamp + 12-bit sequence + 2 random bits from variant field.
+   * Get the time/sequence prefix of the UUID (first 10 base64 characters).
+   * Contains 48-bit timestamp + 12-bit sequence bits
    * Useful for time-based partitioning or sorting.
    *
-   * @returns 11-character base64 string prefix
+   * The first character changes every ~84 years
+   * The last two characters are associated with the 12-bit millisecond sequence numbers
+   * 
+   * @returns 10-character base64 string prefix
+   * @param start index of first character (default 0)
+   * @param end index of last character + 1 (default 10)
    */
-  timeId(): string {
-    return this.base64.substring(0, 11);
+  timeId(start:number = 0, end:number = 10): string {
+    return this.base64.substring(start, end);
   }
 
   /**
@@ -379,15 +532,6 @@ class UUID64 {
   // Instance Methods (Private)
   // ========================================================================
 
-  /**
-   * Generate a monotonically increasing UUIDv7 as Buffer.
-   *
-   * @returns Buffer 16-byte UUID buffer
-   */
-  private generate(): Buffer {
-    return UUID64.createBuffer();
-  }
-
   // ========================================================================
   // Static Methods (Private)
   // ========================================================================
@@ -399,7 +543,7 @@ class UUID64 {
    * @param randomBytes64 Optional 16-byte buffer with random bits for bytes 8-15. If not provided, generates new random bytes.
    * @returns Buffer 16-byte UUID buffer
    */
-  private static createBuffer(
+  private static createBufferUUIDV7(
     date: number = Date.now(),
     randomBytes64: Buffer | null = null,
   ): Buffer {
@@ -474,7 +618,7 @@ class UUID64 {
    * @param uuidString UUID in format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    * @returns 16 bytes
    */
-  private static uuidStringToBytes(uuidString: string): Buffer {
+  static uuidStringToBytes(uuidString: string): Buffer {
     const hex = uuidString.replace(/-/g, '');
     return Buffer.from(hex, 'hex');
   }

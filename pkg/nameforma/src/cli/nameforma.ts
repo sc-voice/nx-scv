@@ -6,15 +6,20 @@
  * Usage: nameforma [command] [options]
  *
  * Commands:
- *   task [subcommand]    Manage tasks
- *   forma [subcommand]   Manage formas
- *   schema [subcommand]  Manage schemas
+ *   task [subcommand]      Manage tasks
+ *   forma [subcommand]     Manage formas
+ *   schema [subcommand]    Manage schemas
+ *   uuid64 [subcommand]    Generate and manage UUID64 identifiers
  *
  * Examples:
  *   nameforma task create --title "My Task" --progress 0/1
  *   nameforma task list
  *   nameforma forma create --name "my-forma"
  *   nameforma schema list
+ *   nameforma uuid64 generate
+ *   nameforma uuid64 generate -c 5
+ *   nameforma uuid64 validate <uuid64-string>
+ *   nameforma uuid64 convert <uuid-string-or-base64>
  */
 
 import { Command } from 'commander';
@@ -22,6 +27,7 @@ import { NameForma } from '../index.js';
 import TaskCommand from './commands/task.js';
 import FormaCommand from './commands/forma.js';
 import SchemaCommand from './commands/schema.js';
+import UUIDCommand from './commands/uuid.js';
 
 // Preprocess argv to move -h/--help to the end so it applies to the deepest command
 function preprocessArgv(argv: string[]): string[] {
@@ -84,5 +90,12 @@ const schemaCmd = program
   .description('Manage Avro schemas');
 
 SchemaCommand.register(schemaCmd);
+
+// UUID command
+const uuidCmd = program
+  .command('uuid64')
+  .description('Generate and manage UUID64 identifiers');
+
+UUIDCommand.register(uuidCmd);
 
 program.parse(preprocessArgv(process.argv));
