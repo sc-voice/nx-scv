@@ -42,9 +42,11 @@ export default class UUIDCommand {
             console.log(`✓ Valid UUID64: ${input}`);
             // Try to create instance to show it works
             const uuid = UUID64.fromString(input);
-            console.log(`  Format: ${input.includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
-            console.log(`  Base64: ${uuid.base64}`);
-            console.log(`  UUID:   ${uuid.asV7()}`);
+            console.log(`  Format:    ${input.includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
+            console.log(`  Base64:    ${uuid.base64}`);
+            console.log(`  UUID:      ${uuid.asV7()}`);
+            console.log(`  Timestamp: ${uuid.toDate().toISOString()}`);
+            console.log(`  Sequence:  ${uuid.getSequence()}`);
           } else {
             console.error(`✗ Invalid UUID64: ${input}`);
             process.exit(1);

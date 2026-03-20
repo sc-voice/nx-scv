@@ -437,6 +437,30 @@ class UUID64 {
   }
 
   /**
+   * Extract the timestamp in milliseconds from the UUID.
+   *
+   * @returns Timestamp in milliseconds
+   */
+  getTimestamp(): number {
+    let millis = 0n;
+    for (let i = 0; i < 6; i++) {
+      millis = (millis << 8n) | BigInt(this.uuidv7[i]);
+    }
+    return Number(millis);
+  }
+
+  /**
+   * Extract the 12-bit sequence counter from the UUID.
+   *
+   * @returns 12-bit sequence value (0-4095)
+   */
+  getSequence(): number {
+    const seqHigh = this.uuidv7[6] & 0x0f; // Lower 4 bits of byte 6 (upper 4 bits are version)
+    const seqLow = this.uuidv7[7]; // Full 8 bits of byte 7
+    return (seqHigh << 8) | seqLow; // Combine to 12-bit value
+  }
+
+  /**
    * Get the UUID buffer for Avro serialization.
    * Avro will call this method when serializing UUID64 instances.
    *

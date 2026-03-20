@@ -25,11 +25,24 @@ export class Forma extends Identifiable {
     instances++;
     Forma.#instances[prefix] = instances;
 
-    let { name = prefix + '-' + super.id.substring(0, 8) } = cfg;
+    let { name } = cfg;
+    if (name == null) {
+      let uid: any = null;
+      try {
+        uid = UUID64.fromString(this.id);
+      } catch (err) {
+        // this.id is not a valid UUID64 string, use fallback
+      }
+      if (uid) {
+        name = uid.timeId();
+      } else {
+        name = prefix + '-' + this.id.substring(0, 8);
+      }
+    }
 
     this.name = name;
 
-    dbg && cc.ok1(msg + UOK, { id, name });
+    dbg && cc.ok1(msg + UOK, { id: this.id, name });
   }
 
   static get SCHEMA() {

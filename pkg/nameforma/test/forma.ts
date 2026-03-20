@@ -24,10 +24,10 @@ describe('Forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
     expect(UUID64.validate(f3a.id)).toBe(true);
-    expect(f3a.name).toMatch(/^F3A[-A-Za-z0-9_]+$/);
+    expect(f3a.id.includes(f3a.name)).toBe(true); // name is contained within id
 
     let t7g = new TestThing();
-    expect(t7g.name).toMatch(/^T7G[-A-Za-z0-9_]+$/);
+    expect(t7g.id.includes(t7g.name)).toBe(true); // name is contained within id
   });
   it('patch', () => {
     const msg = 'tf3a.patch';
