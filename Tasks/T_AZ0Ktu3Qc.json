@@ -1,0 +1,45 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Create standalone bit manipulation test (test\/uuid64-redesign.test.ts) to verify: byte 15 format (rr011110), 12-bit sequence in bytes 6-7, full 8 bits in byte 8, validation logic",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-03-20T10:07:33Z",
+  "id" : "019D0AB6-EDD0-7000-8837-3FEFB41A68B3",
+  "name" : "Redesign UUID64 to remove version\/variant bits",
+  "plannedActions" : [
+    {
+      "name" : "Update buildTimestampAndSequence() to write full 16-bit sequence to bytes 6-7 (remove version nibble)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update random generation to write full 8 bits to byte 8 (remove variant bits) and set byte 15 to (random[14] & 0x03) | 0x7C",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update constructor validation to check (buffer[15] & 0xFC) === 0x7C instead of checking bytes 6 and 8",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update validate() function to use new validation rules for byte 15",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update existing tests (test\/identifiable.ts) to verify monotonicity and validation still work",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run all tests to verify no regressions",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Move version\/variant bits (version 0x7 + variant 0b10) to the end of the 16-byte uuid buffer before base64 encoding. This will allow us to concentrate the timestamp\/sequence bits in the first 60 bits of the uuid",
+  "updatedAt" : "2026-03-20T11:23:16Z"
+}
