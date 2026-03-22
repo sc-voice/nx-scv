@@ -57,9 +57,7 @@ describe('Forma', () => {
     let name = `${schema.namespace}.${schema.name}`;
     expect(type).toEqual(typeExpected);
     expect(`"${name}"`).toEqual(typeExpected.toString());
-    expect(
-      Object.keys(registry).sort(),
-    ).toEqual([name, 'string'].sort());
+    expect(Object.keys(registry).sort()).toEqual([name, 'string'].sort());
     expect(registry).toMatchObject({
       [name]: typeExpected,
     });

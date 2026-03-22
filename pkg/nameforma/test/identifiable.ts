@@ -23,13 +23,13 @@ describe('Identifiable', () => {
     dbg > 1 && cc.tag(msg, { uuid1 });
     dbg > 1 && cc.tag(msg, { uuid2 });
 
-    expect(uuid1 > uuid0).toBe(true);
-    expect(uuid2 > uuid1).toBe(true);
+    expect(uuid1.compare(uuid0) > 0).toBe(true);
+    expect(uuid2.compare(uuid1) > 0).toBe(true);
     dbg > 1 && cc.tag(msg, 'uuids are strictly increasing');
 
-    expect(Identifiable.validate(uuid0)).toBe(true);
-    expect(Identifiable.validate(uuid1)).toBe(true);
-    expect(Identifiable.validate(uuid2)).toBe(true);
+    expect(uuid0.validate()).toBe(true);
+    expect(uuid1.validate()).toBe(true);
+    expect(uuid2.validate()).toBe(true);
 
     dbg && cc.tag1(msg + UOK, 'valid UUID64 identifiers');
   });

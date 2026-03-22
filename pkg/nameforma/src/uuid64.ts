@@ -1,6 +1,17 @@
 import { randomBytes } from 'crypto';
 
 // ============================================================================
+// UUID64String - Branded type for type-safe id handling
+// ============================================================================
+
+/**
+ * Branded type for UUID64 string values (OPB64 format).
+ * Enforces type-safe id handling at compile-time with zero runtime cost.
+ * Validation happens at boundaries (Identifiable.fromString, World.load).
+ */
+export type UUID64String = string & { readonly __brand: 'UUID64String' };
+
+// ============================================================================
 // MonotonicityState - Ensures successive UUIDs are always strictly increasing
 // ============================================================================
 
@@ -58,13 +69,16 @@ class UUID64 {
   // ========================================================================
 
   /**
-   * Avro schema for UUID64 (fixed 16-byte binary type)
+   * Avro schema for UUID64 (record type with uuidv7 bytes field).
+   * Serializes only the essential uuidv7 buffer; base64 is derived on deserialization.
    */
   static readonly avroSchema = {
-    type: 'fixed',
-    size: 16,
+    type: 'record',
     name: 'UUID64',
-    logicalType: 'uuid64',
+    namespace: 'scvoice.nameforma',
+    fields: [
+      { name: 'uuidv7', type: 'bytes' }
+    ]
   };
 
   // ========================================================================
@@ -72,7 +86,7 @@ class UUID64 {
   // ========================================================================
 
   public readonly uuidv7: Buffer;
-  public readonly base64: string;
+  #base64?: string;
 
   // ========================================================================
   // Constructor
@@ -81,12 +95,31 @@ class UUID64 {
   /**
    * Creates an instance with a monotonically increasing UUIDv7.
    * Two successive calls will always produce different, strictly increasing UUIDs.
+   *
+   * Internal use: pass uuidv7 and base64 to construct from factory methods.
    */
-  constructor() {
-    this.uuidv7 = UUID64.createBufferUUIDV7();
-    this.base64 = UUID64.toOrderPreservingBase64(
-      UUID64.toUUID64Buffer(this.uuidv7),
-    );
+  constructor(uuidv7Buf?:Buffer) {
+    if (uuidv7Buf == null) {
+      this.uuidv7 = UUID64.createBufferUUIDV7();
+    } else {
+      if (!UUID64.validate(uuidv7Buf)) {
+        throw new Error( `Expected valid 16-byte uuidv7 buffer`);
+      }
+      this.uuidv7 = Buffer.from(uuidv7Buf);
+    }
+  }
+
+  /**
+   * Get the base64 representation of this UUID64.
+   */
+  get base64(): string {
+    if (this.#base64 == null) {
+      this.#base64 = UUID64.toOrderPreservingBase64(
+          UUID64.toUUID64Buffer(this.uuidv7)
+      );
+    }
+
+    return this.#base64;
   }
 
   // ========================================================================
@@ -101,12 +134,11 @@ class UUID64 {
    * @returns UUID64 instance with new timestamp/sequence and relation's random bits
    */
   static createRelation(relation: UUID64): UUID64 {
-    const instance = Object.create(UUID64.prototype);
-    instance.uuidv7 = UUID64.createBufferUUIDV7(Date.now(), relation.uuidv7);
-    instance.base64 = UUID64.toOrderPreservingBase64(
-      UUID64.toUUID64Buffer(instance.uuidv7),
+    const uuidv7 = UUID64.createBufferUUIDV7(Date.now(), relation.uuidv7);
+    const base64 = UUID64.toOrderPreservingBase64(
+      UUID64.toUUID64Buffer(uuidv7),
     );
-    return instance;
+    return new UUID64(uuidv7);
   }
 
   /**
@@ -116,29 +148,20 @@ class UUID64 {
    * @returns UUID64 instance
    */
   static fromString(input: string): UUID64 {
-    let uuidv7Buf: Buffer;
+    let instance;
 
     // Check if it's a UUID string format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
     const uuidPattern =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidPattern.test(input)) {
       // UUID string format (UUIDv7)
-      uuidv7Buf = UUID64.uuidStringToBytes(input);
+      instance = new UUID64(UUID64.uuidStringToBytes(input));
     } else {
       // Order-preserving base64 string format (UUID64)
       const uuid64Buf = UUID64.bufferFromOPB64(input);
-      uuidv7Buf = UUID64.toUUIDV7Buffer(uuid64Buf);
+      instance = new UUID64(UUID64.toUUIDV7Buffer(uuid64Buf));
     }
 
-    if (!UUID64.validate(uuidv7Buf)) {
-      throw new Error(`Invalid UUID64 string: ${input}`);
-    }
-
-    const instance = Object.create(UUID64.prototype);
-    instance.uuidv7 = uuidv7Buf;
-    instance.base64 = UUID64.toOrderPreservingBase64(
-      UUID64.toUUID64Buffer(uuidv7Buf),
-    );
     return instance;
   }
 
@@ -158,12 +181,7 @@ class UUID64 {
       throw new Error( `Expected valid 16-byte uuidv7 buffer`);
     }
 
-    const instance = Object.create(UUID64.prototype);
-    instance.uuidv7 = uuidv7Buf;
-    instance.base64 = UUID64.toOrderPreservingBase64(
-      UUID64.toUUID64Buffer(uuidv7Buf),
-    );
-    return instance;
+    return new UUID64(uuidv7Buf);
   }
 
   /**
@@ -375,6 +393,13 @@ class UUID64 {
   }
 
   /**
+   * Generic
+   */
+  toString() {
+    return this.base64;
+  }
+
+  /**
    * Get a new item id. Creates a new relation UUID and returns the order-preserving
    * base64 encoding of the time/sequence bit difference between the relation and the instance.
    * Ensures the difference is at least `basis`.
@@ -468,6 +493,25 @@ class UUID64 {
    */
   toBuffer(): Buffer {
     return this.uuidv7;
+  }
+
+  /**
+   * Validate that this UUID64 instance is consistent and uncorrupted.
+   * Checks both the uuidv7 buffer format and ensures base64 matches the buffer.
+   *
+   * @returns true if valid, false if corrupted
+   */
+  validate(): boolean {
+    // Check uuidv7 is valid UUIDv7 format
+    if (!UUID64.validate(this.uuidv7)) {
+      return false;
+    }
+
+    // Check base64 matches the uuidv7 buffer (detects corruption)
+    const expectedBase64 = UUID64.toOrderPreservingBase64(
+      UUID64.toUUID64Buffer(this.uuidv7),
+    );
+    return this.base64 === expectedBase64;
   }
 
   /**

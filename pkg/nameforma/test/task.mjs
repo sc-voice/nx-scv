@@ -36,7 +36,9 @@ describe('task', () => {
     expect(t2k).toMatchObject({ title: 'title?' });
     expect(t2k.progress).toEqual(new Rational(0, 1, 'done'));
     expect(t2k.duration).toEqual(new Rational(null, 1, 's'));
-    expect(t2k.toString()).toMatch(/T2K[-A-Za-z0-9_]+\. title\? \(0\/1done\)/);
+    expect(t2k.toString()).toMatch(
+      /T2K[-A-Za-z0-9_]+\. title\? \(0\/1done\)/,
+    );
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
   });
@@ -99,14 +101,12 @@ describe('task', () => {
 
     t2k.patch({ progress: new Rational(1, 1, 'done') });
     expect(t2k.toString()).toBe(
-      `${newName}${UOK} new title (1done 5/60hr)`
+      `${newName}${UOK} new title (1done 5/60hr)`,
     );
     dbg > 1 && cc.tag(msg, 'patched progress numerator');
 
     t2k.patch({ duration: units.convert(duration).to('min') });
-    expect(t2k.toString()).toBe(
-      `${newName}${UOK} new title (1done 5min)`
-    );
+    expect(t2k.toString()).toBe(`${newName}${UOK} new title (1done 5min)`);
     dbg && cc.tag1(msg + UOK, 'patched duration unit conversion');
   });
 });

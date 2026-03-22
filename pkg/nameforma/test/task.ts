@@ -36,7 +36,7 @@ describe('task', () => {
     expect(t2k).toMatchObject({ title: 'title?' });
     expect(t2k.progress).toEqual(new Rational(0, 1, 'done'));
     expect(t2k.duration).toEqual(new Rational(null, 1, 's'));
-    expect(id.includes(name)).toBe(true); // name is contained within id
+    expect(id.base64.includes(name)).toBe(true); // name is contained within id
     expect(t2k.toString()).toMatch(/[A-Za-z0-9]+\. title\? \(0\/1done\)/);
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));

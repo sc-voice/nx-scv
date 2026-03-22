@@ -15,6 +15,7 @@
   "scripts": {
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build": "npx tsc",
+    "format": "npx biome format --write src test",
     "test": "npm run build && vitest run --config test/vitest.config.mjs",
     "test:test": "npm run build && vitest --config test/vitest.config.mjs",
     "cli": "node dist/cli/nameforma.js"

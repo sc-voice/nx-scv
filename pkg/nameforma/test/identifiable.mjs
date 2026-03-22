@@ -5,7 +5,7 @@ import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
 
 const { Identifiable } = NameForma;
-const { ColorConsole, Unicode, } = Text;
+const { ColorConsole, Unicode } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.IDENTIFIABLE.TEST;

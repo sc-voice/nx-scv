@@ -1,6 +1,6 @@
 import avro from 'avro-js';
 import { describe, it, expect } from '@sc-voice/vitest';
-import { Text, ScvMath, } from '@sc-voice/tools';
+import { Text, ScvMath } from '@sc-voice/tools';
 import { NameForma } from '../index.mjs';
 import { DBG } from '../src/defines.mjs';
 
@@ -86,9 +86,7 @@ describe('TESTTESTschema', () => {
     let name = `${f3a.namespace}.${f3a.name}`;
     expect(type).toEqual(typeExpected);
     expect(`"${name}"`).toEqual(typeExpected.toString());
-    expect(
-      Object.keys(registry).sort()
-    ).toEqual([name, 'string'].sort());
+    expect(Object.keys(registry).sort()).toEqual([name, 'string'].sort());
     expect(registry).toMatchObject({
       [name]: typeExpected,
     });
@@ -135,9 +133,9 @@ describe('TESTTESTschema', () => {
     expect(schema.name).toBe('TestRecord');
     let avro1 = schema.toAvro(thing1, { registry });
     let avro2 = type.clone(thing1, { wrapUnion: true });
-    expect(
-      JSON.stringify(avro1)
-    ).toEqual(JSON.stringify({ id, clr, qty, ok }));
+    expect(JSON.stringify(avro1)).toEqual(
+      JSON.stringify({ id, clr, qty, ok }),
+    );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
   it('toAvro union', () => {
@@ -167,14 +165,14 @@ describe('TESTTESTschema', () => {
     });
     expect(schema.name).toBe('TestRecord');
     let avro1 = schema.toAvro(thing1, { registry });
-    expect(
-      JSON.stringify(avro1)
-    ).toEqual(JSON.stringify({
+    expect(JSON.stringify(avro1)).toEqual(
+      JSON.stringify({
         id,
         clr: { string: clr },
         qty: { double: qty },
         ok: { boolean: ok },
-      }));
+      }),
+    );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
   it('toAvro simple array', () => {

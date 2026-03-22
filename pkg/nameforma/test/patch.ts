@@ -22,12 +22,12 @@ describe('Patch', () => {
   it('ctor default', () => {
     const msg = 'tp3h.ctor.default';
     const p3h1 = new Patch();
-    expect(UUID64.validate(p3h1.id)).toBe(true);
+    expect(p3h1.id.validate()).toBe(true);
     dbg && cc.tag1(msg + UOK, 'p3h1:', p3h1);
   });
   it('ctor simple', () => {
     const msg = 'tp3h.ctor.simple';
-    const id = 'testPatch';
+    const id = new UUID64();
     const color = 'red';
     const size = 42;
     const sale = false;
@@ -37,7 +37,7 @@ describe('Patch', () => {
   });
   it('patch simple', () => {
     const msg = 'tp3h.patch.simple';
-    const id = 'testThing';
+    const id = new UUID64();
     const color = 'red';
     const size = 42;
     const sale = false;

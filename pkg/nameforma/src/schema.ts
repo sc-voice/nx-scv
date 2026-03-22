@@ -1,4 +1,22 @@
+/**
+ * Schema - Avro schema registry and management
+ *
+ * ## Overview
+ * - Avro schema registry and management
+ * - Schema parsing via avro-js
+ * - Converts JavaScript objects to Avro format
+ * - Registers schemas with namespace tracking
+ *
+ * ## Features
+ * 1. **Schema Registry**: Static registry for all registered schemas with namespace tracking
+ * 2. **Schema Parsing**: Uses avro-js to parse schema definitions with nested references
+ * 3. **JavaScript to Avro Conversion**: `toAvro(jsObj, opts)` converts JS objects to Avro format
+ * 4. **Full Name Resolution**: Combines namespace and name (format: namespace.name or just name)
+ * 5. **Custom Type Support**: Automatically converts objects with toAvroValue() method
+ */
+
 import { Text } from '@sc-voice/tools';
+import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 
 const { ColorConsole, Unicode } = Text;
@@ -7,8 +25,9 @@ const { cc } = ColorConsole;
 const { SCHEMA: S4A } = DBG;
 
 export class Schema {
-  // an Avro schema
+  /** Static registry for all registered schemas, keyed by full name */
   static #registry: Record<string, any> = {};
+  /** avro-js library instance for schema parsing and type handling */
   static #avro: any;
 
   name?: string;
@@ -23,10 +42,21 @@ export class Schema {
     this.name = this.name || 'UnnamedSchema';
   }
 
+  /**
+   * Get a copy of the static schema registry.
+   * @returns Copy of all registered schemas keyed by full name
+   */
   static get REGISTRY() {
     return Object.assign({}, Schema.#registry);
   }
 
+  /**
+   * Register a schema with the registry and parse it via avro-js.
+   * Prevents duplicate registration by checking registry first.
+   * @param schema - Schema definition object with name and optional namespace
+   * @param opts - Options: avro (avro-js instance), registry (custom registry to use)
+   * @returns Parsed Avro type ready for serialization/deserialization
+   */
   static register(schema: any, opts: any = {}) {
     const msg = 's4a.register';
     const dbg = S4A.REGISTER;
@@ -63,10 +93,22 @@ export class Schema {
     return namespace == null ? name : `${namespace}.${name}`;
   }
 
+  /**
+   * Register this schema instance with the registry.
+   * @param opts - Options to pass to Schema.register()
+   * @returns Parsed Avro type ready for serialization/deserialization
+   */
   register(opts: any = {}) {
     return Schema.register(this, opts);
   }
 
+  /**
+   * Convert a JavaScript object to Avro-serializable format via type.clone().
+   * Looks up or registers the schema if needed.
+   * @param jsObj - JavaScript object to convert
+   * @param opts - Options: avro (avro-js instance), registry (custom registry)
+   * @returns Object ready for Avro serialization via type.toBuffer()
+   */
   toAvro(jsObj: any, opts: any = {}) {
     const msg = 's4a.toAvro';
     const dbg = S4A.TO_AVRO;

@@ -17,7 +17,7 @@ describe('clock', () => {
 
     const clock = new Clock();
     expect(clock).toMatchObject({ running: false });
-    expect(clock.id).toMatch(/[-0-9a-z]+/);
+    expect(clock.id.base64).toMatch(/[-0-9a-z]+/);
 
     // Clocks are distinguishable
     const clock2 = new Clock();

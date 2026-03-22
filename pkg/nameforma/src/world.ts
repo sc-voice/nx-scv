@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Text } from '@sc-voice/tools';
+import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 
 const { ColorConsole } = Text;
@@ -108,8 +109,9 @@ export class World {
   /**
    * Load entity from world storage
    * @param {string} entityType - Entity type (e.g., 'task')
-   * @param {string} id - Entity id
-   * @returns {object|null} - Parsed entity or null if not found
+   * @param {string} id - Entity id (OPB64 string)
+   * @returns {object|null} - Parsed entity with id reconstructed as UUID64 POJO, or null if not found
+   * @throws {Error} - If id validation fails
    */
   load(entityType: string, id: string): any | null {
     const msg = 'world.load';
@@ -123,6 +125,17 @@ export class World {
 
     const data = fs.readFileSync(filePath, 'utf8');
     const entity = JSON.parse(data);
+
+    // Validate and reconstruct id as UUID64 POJO
+    // After JSON.parse(), entity.id is OPB64 string (from uuid64.toJSON())
+    // Reconstruct it as UUID64 POJO so Entity contract (id: UUID64) is satisfied
+    if (entity.id) {
+      try {
+        entity.id = UUID64.fromString(entity.id);
+      } catch (err) {
+        throw new Error(`${filePath}: invalid id "${entity.id}"`);
+      }
+    }
 
     dbg && cc.ok1(msg, `loaded ${filePath}`);
     return entity;

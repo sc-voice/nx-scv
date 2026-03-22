@@ -18,6 +18,7 @@ export class Forma extends Identifiable {
     const msg = 'f3a.ctor';
     const dbg = (F3A as any).CTOR;
     const { id } = cfg;
+    // Identifiable constructor handles string-to-UUID64 conversion
     super(id);
 
     const prefix = this.#defaultPrefix();
@@ -27,17 +28,8 @@ export class Forma extends Identifiable {
 
     let { name } = cfg;
     if (name == null) {
-      let uid: any = null;
-      try {
-        uid = UUID64.fromString(this.id);
-      } catch (err) {
-        // this.id is not a valid UUID64 string, use fallback
-      }
-      if (uid) {
-        name = uid.timeId();
-      } else {
-        name = prefix + '-' + this.id.substring(0, 8);
-      }
+      // this.id is UUID64 POJO with guaranteed base64 property
+      name = this.id.timeId();
     }
 
     this.name = name;
@@ -51,7 +43,7 @@ export class Forma extends Identifiable {
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        { name: 'id', type: 'string' }, // immutable, unique
+        { name: 'id', type: UUID64.avroSchema }, // immutable, unique, UUID64 POJO
         { name: 'name', type: 'string' }, // mutable
       ],
     };
@@ -77,7 +69,7 @@ export class Forma extends Identifiable {
     let err;
 
     if (!err && defaultId) {
-      if (!UUID64.validate(id)) {
+      if (!id.validate()) {
         err = new Error(`${msg} uuid64? ${id}`);
       }
     }

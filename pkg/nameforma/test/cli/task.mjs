@@ -1,8 +1,19 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import { Command } from 'commander';
 import { NameForma } from '../../index.mjs';
 import TaskCommand from '../../src/cli/commands/task.mjs';
-import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers.mjs';
+import {
+  createTempWorld,
+  readTaskFile,
+  listTaskFiles,
+  countTasks,
+} from './helpers.mjs';
 
 const { Task, Rational } = NameForma;
 
@@ -104,7 +115,14 @@ describe('CLI: task command', () => {
   });
 
   it('list tasks when empty', async () => {
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'list',
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toBe('No tasks');
@@ -126,7 +144,14 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // List tasks
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'list',
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Tasks \(\d+\):/);
@@ -158,7 +183,15 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Show the task
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId]);
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'show',
+      taskId,
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Task:/);
@@ -266,7 +299,15 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Delete the task
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'delete',
+      taskId,
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/✓ Task deleted:/);

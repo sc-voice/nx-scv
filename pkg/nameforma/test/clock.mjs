@@ -141,10 +141,8 @@ describe('clock', () => {
     expect(nIdle).toBe(1);
     let { value: value3 } = await c3k.next();
     expect(c3k.timeIn).toBe(c3k.timeOut);
-    expect(value2 - value1)
-      .toBeGreaterThan(msIdle);
-    expect(value2 - value1)
-      .toBeLessThan(msLongIdle); // stale value
+    expect(value2 - value1).toBeGreaterThan(msIdle);
+    expect(value2 - value1).toBeLessThan(msLongIdle); // stale value
 
     dbg && cc.tag(msg, 'clocks offer external updates immediately');
     await new Promise((r) => setTimeout(() => r(), 10));

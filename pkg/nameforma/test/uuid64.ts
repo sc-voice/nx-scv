@@ -256,10 +256,13 @@ describe('UUID64 Avro Serialization', () => {
   // Test: avroSchema is defined
   it('avroSchema is defined and correct', () => {
     expect(UUID64.avroSchema).toBeDefined();
-    expect(UUID64.avroSchema.type).toBe('fixed');
-    expect(UUID64.avroSchema.size).toBe(16);
+    expect(UUID64.avroSchema.type).toBe('record');
     expect(UUID64.avroSchema.name).toBe('UUID64');
-    expect(UUID64.avroSchema.logicalType).toBe('uuid64');
+    expect(UUID64.avroSchema.namespace).toBe('scvoice.nameforma');
+    expect(UUID64.avroSchema.fields).toBeDefined();
+    expect(UUID64.avroSchema.fields.length).toBe(1);
+    expect(UUID64.avroSchema.fields[0].name).toBe('uuidv7');
+    expect(UUID64.avroSchema.fields[0].type).toBe('bytes');
   });
 
   // Test: toBuffer returns correct buffer

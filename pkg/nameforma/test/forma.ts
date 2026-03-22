@@ -23,11 +23,11 @@ class TestThing extends Forma {
 describe('Forma', () => {
   it('ctor', () => {
     let f3a = new Forma();
-    expect(UUID64.validate(f3a.id)).toBe(true);
-    expect(f3a.id.includes(f3a.name)).toBe(true); // name is contained within id
+    expect(f3a.id.validate()).toBe(true);
+    expect(f3a.id.base64.includes(f3a.name)).toBe(true); // name is contained within id
 
     let t7g = new TestThing();
-    expect(t7g.id.includes(t7g.name)).toBe(true); // name is contained within id
+    expect(t7g.id.base64.includes(t7g.name)).toBe(true); // name is contained within id
   });
   it('patch', () => {
     const msg = 'tf3a.patch';
@@ -49,7 +49,7 @@ describe('Forma', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, '===========');
 
-    const id = 'tavro-id';
+    const id = new UUID64();
     const registry = {};
     const schema = Forma.SCHEMA;
     let type = Schema.register(schema, { avro, registry });
@@ -59,7 +59,7 @@ describe('Forma', () => {
     expect(`"${name}"`).toEqual(typeExpected.toString());
     expect(
       Object.keys(registry).sort(),
-    ).toEqual([name, 'string'].sort());
+    ).toEqual([name, 'scvoice.nameforma.UUID64', 'bytes', 'string'].sort());
     expect(registry).toMatchObject({
       [name]: typeExpected,
     });

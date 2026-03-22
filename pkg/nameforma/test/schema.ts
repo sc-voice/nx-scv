@@ -3,6 +3,7 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import { Text, ScvMath, } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
+import UUID64 from '../src/uuid64.js';
 
 const { Rational, Forma, Schema } = NameForma;
 const { Unicode, ColorConsole } = Text;
@@ -70,11 +71,11 @@ describe('TESTTESTschema', () => {
 
     dbg && cc.tag1(msg + UOK, 'typical ctor');
   });
-  it('avro', () => {
+  it('avro serialization', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    const id = 'tavro-id';
+    const id = new UUID64()
 
     const registry = {};
     const f3a = Forma.SCHEMA;
@@ -88,7 +89,7 @@ describe('TESTTESTschema', () => {
     expect(`"${name}"`).toEqual(typeExpected.toString());
     expect(
       Object.keys(registry).sort()
-    ).toEqual([name, 'string'].sort());
+    ).toEqual([name, 'scvoice.nameforma.UUID64', 'bytes', 'string'].sort());
     expect(registry).toMatchObject({
       [name]: typeExpected,
     });
