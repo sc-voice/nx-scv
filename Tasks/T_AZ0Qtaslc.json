@@ -1,0 +1,81 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Add UUID64String branded type to uuid64.ts. EXPORT: type UUID64String = string & { readonly __brand: 'UUID64String' }. This is compile-time only, zero runtime cost. Used by Identifiable and Entity to enforce type-safe id handling. No validation here—validation happens at boundaries (Identifiable.fromString, World.load). No code changes needed, type-only addition.",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Verify uuid64.toJSON() behavior. Current: toJSON() returns this.base64 (OPB64 string). This is CORRECT—no changes needed. When JSON.stringify(uuid64Instance) is called, this method returns OPB64 string, not UUID64 object. Verify existing uuid64.test.ts line 250+ covers this behavior.",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "COMPLETED: Update Identifiable class. (1) Changed private #id: UUID64String → #id: UUID64 (actual POJO). (2) Constructor: constructor(id: UUID64 | string = new UUID64()). Auto-converts string to UUID64 via UUID64.fromString(id) for deserialization support. (3) static fromString(id: string) validates and reconstructs UUID64. (4) Marked static uuid() as @deprecated. Design: UUID64 POJO provides .toTime(), .toBuffer(), .base64 methods. Constructor handles string input from JSON deserialization.",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "COMPLETED: Update Entity interface. Changed id: string → id: UUID64. Also updated Forma.SCHEMA to use UUID64.avroSchema instead of 'string' for id field.",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "COMPLETED: Update World.load() method. After JSON.parse(data), reconstruct id as UUID64 POJO using UUID64.fromString(entity.id). Validates id and throws Error if invalid. Returns entity with id as UUID64 POJO.",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "COMPLETED: Fixed Forma constructor. Identifiable constructor now handles string-to-UUID64 conversion, so Forma passes cfg.id directly to super(). Simplified name generation: removed try\/catch, directly calls this.id.timeId() since id is guaranteed UUID64 POJO.",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "RESOLVE AVRO SERIALIZATION ISSUE: Tests fail with 'invalid UUID64' error from Avro. Root cause: Avro's toBuffer() expects 16-byte fixed buffer but receives UUID64 POJO object. SOLUTION NEEDED: In schema.toAvro() or custom serializer, detect UUID64 objects and extract .uuidv7 buffer for Avro serialization. Current status: 110 tests pass, 15 fail (clock.ts, forma.ts, patch.ts, task.ts avro tests, cli\/task.ts). Research POJO\/Avro integration: UUID64 POJO has .uuidv7 (Buffer) and .base64 (string) properties. Avro needs the 16-byte buffer for fixed type serialization.",
+      "test" : "investigate Avro handling of POJO objects"
+    }
+  ],
+  "createdAt" : "2026-03-21T14:03:54Z",
+  "id" : "019D10B5-AB25-7000-98D2-2BEAC6DBCF1E",
+  "name" : "Formalize UUID64 as Entity ID",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+    {
+      "relevance" : 0.95,
+      "text" : "world.ts: save() lines 108-129, load() lines 131-155 - add id validation on load"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "identifiable.ts: Constructor, uuid() static method, id getter - lines 8-33"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "uuid64.ts: UUID64 class definition, toJSON() at lines 479-481, toBuffer() at 469-471"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "entity.ts: Entity interface definition - newly created, needs UUID64String type"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "Tests: uuid64.test.ts (JSON round-trip 250+), identifiable.ts (14-35), forma.ts (23-79), task.ts (28-115)"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "UUID64 class with validation, toJSON()"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "World storage with id validation needed"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "Current id: string implementation"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "Entity interface (newly created)"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Refactor id handling: UUID64 object in memory, OPB64 string in JSON, timeId() for filenames",
+  "updatedAt" : "2026-03-22T13:43:09Z"
+}

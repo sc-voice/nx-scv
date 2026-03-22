@@ -42,12 +42,7 @@
     {
       "name" : "implement .nameforma serializable world for project serialization",
       "test" : "update unit tests"
-    }
-  ],
-  "createdAt" : "2026-03-14T13:24:50Z",
-  "id" : "019CEC85-6212-7000-A535-53DCD056EB9B",
-  "name" : "Integrate UUID64 with Identifiable",
-  "plannedActions" : [
+    },
     {
       "name" : "Update Forma.SCHEMA to use 'bytes' type for id field",
       "test" : "Forma.SCHEMA.id.type === 'bytes'; existing Forma tests pass"
@@ -72,6 +67,12 @@
       "name" : "Delete IdentifiableOld when all tests migrated",
       "test" : "IdentifiableOld.mjs removed; all tests still pass"
     }
+  ],
+  "createdAt" : "2026-03-14T13:24:50Z",
+  "id" : "019CEC85-6212-7000-A535-53DCD056EB9B",
+  "name" : "Integrate UUID64 with Identifiable",
+  "plannedActions" : [
+
   ],
   "references" : [
     {
@@ -119,5 +120,5 @@
 
   ],
   "summary" : "Integrate UUID64 binary storage with Avro serialization - use bytes type instead of string for optimal binary transmission",
-  "updatedAt" : "2026-03-19T17:17:07Z"
+  "updatedAt" : "2026-03-22T13:44:30Z"
 }
