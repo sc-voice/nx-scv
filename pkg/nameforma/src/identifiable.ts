@@ -8,7 +8,19 @@ const { cc } = ColorConsole;
 /**
  * Identifiable - Base class for entities with UUID64 ids
  *
- * DESIGN:
+ * ## Overview
+ * - Provides UUID64 generation and validation
+ * - Immutable `id` property with getter
+ * - Static methods: `uuid()`, `uuidToTime()`, `fromString()`, `validate()`
+ *
+ * ## Class Hierarchy
+ * Identifiable is the base for:
+ * - Forma (adds mutable name, patching, validation)
+ * - Task extends Forma (adds title, progress, duration)
+ * - Clock extends Forma (adds timing/scheduling)
+ * - Patch (adds patch application logic)
+ *
+ * ## Design Rationale
  *
  * 1. ID STORAGE: #id is a UUID64 POJO (not string)
  *    - Provides valuable methods: .toTime(), .toBuffer(), .base64 property
@@ -36,6 +48,16 @@ const { cc } = ColorConsole;
 export class Identifiable {
   #id: UUID64;
 
+  /**
+   * Constructor accepts UUID64 instance, string, Avro deserialized buffer, or default new UUID64.
+   * @param cfg - UUID64 instance, OPB64/UUID string, Avro record with uuidv7 Buffer, or undefined (generates new)
+   * @throws Error if cfg is invalid type
+   *
+   * Handles three input modes:
+   * 1. String (OPB64 or UUID): Validated via UUID64.fromString()
+   * 2. UUID64 instance: Used directly (trusted)
+   * 3. Avro deserialized record: Reconstructed from uuidv7 Buffer
+   */
   constructor(cfg: UUID64 | string | any = new UUID64()) {
     let uuid64Id: UUID64;
 
@@ -81,10 +103,19 @@ export class Identifiable {
     return new UUID64();
   }
 
+  /**
+   * Validate UUID v7 format (OPB64 or UUID string).
+   * @param id - UUID string to validate
+   * @returns true if valid UUID v7, false otherwise
+   */
   static validate(id: string): boolean {
     return UUID64.validate(id);
   }
 
+  /**
+   * Immutable id property - exposes UUID64 POJO with all its methods.
+   * @returns UUID64 instance with methods like .toTime(), .toBuffer(), .base64
+   */
   get id(): UUID64 {
     return this.#id;
   }
