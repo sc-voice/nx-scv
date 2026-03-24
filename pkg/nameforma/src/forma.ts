@@ -24,6 +24,7 @@ export class Forma extends Identifiable {
   static #instances: Record<string, number> = {};
   #prefix: string = '';
   name: string;
+  summary: string;
 
   constructor(cfg: any = {}) {
     const msg = 'f3a.ctor';
@@ -45,6 +46,9 @@ export class Forma extends Identifiable {
 
     this.name = name;
 
+    let { summary = '' } = cfg;
+    this.summary = summary;
+
     dbg && cc.ok1(msg + UOK, { id: this.id, name });
   }
 
@@ -56,6 +60,7 @@ export class Forma extends Identifiable {
       fields: [
         { name: 'id', type: UUID64.avroSchema }, // immutable, unique, UUID64 POJO
         { name: 'name', type: 'string' }, // mutable
+        { name: 'summary', type: 'string' }, // mutable
       ],
     };
   }
@@ -124,11 +129,13 @@ export class Forma extends Identifiable {
 
   /**
    * Patch (merge) properties on this instance.
-   * Only updates mutable fields (name); immutable id is preserved.
+   * Only updates mutable fields (name, summary); immutable id is preserved.
    * @param cfg - Configuration object with properties to update
    */
   patch(cfg: any = {}) {
     let { name = this.name } = cfg;
+    let { summary = this.summary } = cfg;
     this.name = name;
+    this.summary = summary;
   }
 }
