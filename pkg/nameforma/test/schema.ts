@@ -89,7 +89,7 @@ describe('TESTTESTschema', () => {
     expect(`"${name}"`).toEqual(typeExpected.toString());
     expect(
       Object.keys(registry).sort()
-    ).toEqual([name, 'scvoice.nameforma.UUID64', 'bytes', 'string'].sort());
+    ).toEqual([name, 'scvoice.nameforma.UUID64', 'bytes', 'string'].sort()); // includes 2 string fields: name, summary
     expect(registry).toMatchObject({
       [name]: typeExpected,
     });

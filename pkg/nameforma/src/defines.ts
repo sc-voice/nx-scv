@@ -14,6 +14,12 @@ const CONSUMER = {
   TEST: 0,
 };
 
+const ACTION = {
+  CTOR: 0,
+  PATCH: 0,
+  TEST: 0,
+};
+
 const FORMA = {
   CTOR: 0,
   TEST: 0,
@@ -130,6 +136,7 @@ const WORLD = {
 };
 
 export const DBG = {
+  ACTION,
   CLOCK,
   CONSUMER,
   PRODUCER,

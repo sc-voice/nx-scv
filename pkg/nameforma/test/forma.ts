@@ -25,9 +25,11 @@ describe('Forma', () => {
     let f3a = new Forma();
     expect(f3a.id.validate()).toBe(true);
     expect(f3a.id.base64.includes(f3a.name)).toBe(true); // name is contained within id
+    expect(f3a.summary).toBe('Forma?'); // default summary
 
     let t7g = new TestThing();
     expect(t7g.id.base64.includes(t7g.name)).toBe(true); // name is contained within id
+    expect(t7g.summary).toBe('TestThing?'); // default summary uses class name
   });
   it('patch', () => {
     const msg = 'tf3a.patch';
@@ -43,7 +45,13 @@ describe('Forma', () => {
     f3a.patch({ name: 'newName' });
     expect(f3a.id).toBe(id);
     expect(f3a.name).toBe('newName');
-    dbg && cc.tag1(msg + UOK, 'name is mutable');
+    dbg > 1 && cc.tag(msg, 'name is mutable');
+
+    f3a.patch({ summary: 'New summary' });
+    expect(f3a.id).toBe(id);
+    expect(f3a.name).toBe('newName');
+    expect(f3a.summary).toBe('New summary');
+    dbg && cc.tag1(msg + UOK, 'summary is mutable');
   });
   it('avro', () => {
     const msg = 'tf3a.avro';

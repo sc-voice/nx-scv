@@ -14,8 +14,9 @@ const { PATCH: P3H } = DBG;
  * Patch class for applying partial updates to objects.
  *
  * A patch represents a set of property changes that can be applied to a destination
- * object. It extends Identifiable to provide unique identification and only applies
- * updates to properties that already exist in the destination object.
+ * object. It extends Identifiable (not Forma) to provide unique identification while
+ * allowing all properties (including name and summary) to be patchable on Forma instances.
+ * Only applies updates to properties that already exist in the destination object.
  *
  * @extends Identifiable
  */
