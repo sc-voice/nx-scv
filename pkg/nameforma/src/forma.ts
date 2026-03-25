@@ -1,6 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { Text } from '@sc-voice/tools';
+import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 
@@ -8,6 +9,51 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 const { FORMA: F3A } = DBG;
+
+/**
+ * IFormaMatcher - Strategy interface for matching Forma instances
+ * Enables different matching algorithms (exact, fuzzy, prefix, name-based, etc.)
+ * Matcher encapsulates both search value and matching logic
+ */
+export interface IFormaMatcher<T extends Forma> {
+  /**
+   * Calculate similarity score between search value and item
+   * @param item - The item to compare
+   * @returns Similarity score: 0 = no match, 1 = exact match
+   */
+  similarity(item: T): number;
+
+  /**
+   * Compare two items by similarity (descending: b - a)
+   * @param a - First item
+   * @param b - Second item
+   * @returns Positive if b more similar, negative if a more similar, 0 if equal
+   */
+  compare(a: T, b: T): number;
+}
+
+/**
+ * AFormaMatcher - Abstract base class providing default compare() implementation
+ */
+export abstract class AFormaMatcher<T extends Forma> implements IFormaMatcher<T> {
+  abstract similarity(item: T): number;
+
+  /**
+   * Default compare implementation using similarity scores with ID tiebreaker
+   * @param a - First item
+   * @param b - Second item
+   * @returns Descending order by similarity; if equal, compare by ID lexicographically
+   */
+  compare(a: T, b: T): number {
+    const simDiff = this.similarity(b) - this.similarity(a);
+    if (simDiff !== 0) return simDiff;
+
+    // Tiebreaker: compare by ID base64 lexicographically for deterministic ordering
+    if (a.id.base64 > b.id.base64) return 1;
+    if (a.id.base64 < b.id.base64) return -1;
+    return 0;
+  }
+}
 
 /**
  * Forma - Base class for identifiable named objects
@@ -137,5 +183,47 @@ export class Forma extends Identifiable {
     let { summary = this.summary } = cfg;
     this.name = name;
     this.summary = summary;
+  }
+}
+
+/**
+ * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
+ * Returns similarity score (0-1) where 1 = exact match, 0 = completely different
+ */
+export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
+  /**
+   * Create a Levenshtein matcher
+   * @param searchValue - The id value to search for
+   * @param ignoreCase - If true (default), comparison is case-insensitive
+   */
+  constructor(
+    private searchValue: string,
+    private ignoreCase: boolean = true
+  ) {
+    super();
+  }
+
+  /**
+   * Calculate similarity score between searchValue and item id
+   * @param item - Item to compare
+   * @returns Similarity: 1 = exact match, 0 = no similarity
+   */
+  similarity(item: T): number {
+    const msg = "f3a.simlarity";
+    const s10e = this.ignoreCase ? this.searchValue.toLowerCase() : this.searchValue;
+
+    const itemId = item.id;
+    let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
+    itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
+
+    // Compare against prefix of same length as search
+    const compareStr = (s10e.length <= UUID64.TIME_SEQ_CHARS) 
+      ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
+      : itemIdStr;
+    //cc.tag1(msg, "TESTTAG1")
+
+    // Use normalized distance (0-1), convert to similarity (1-0)
+    const normalizedDistance = Levenshtein.normalizedDistance(s10e, compareStr);
+    return 1 - normalizedDistance;
   }
 }

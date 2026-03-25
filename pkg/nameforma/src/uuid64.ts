@@ -68,6 +68,12 @@ class UUID64 {
   // Static Constants
   // ========================================================================
 
+  /** Total characters in base64-encoded UUID64 (128 bits encoded as base64). */
+  static readonly CHARS = 22;
+
+  /** Characters in timestamp + sequence portion (60 bits: 48-bit timestamp + 12-bit sequence). Last 12 chars are random data. */
+  static readonly TIME_SEQ_CHARS = 10;
+
   /**
    * Avro schema for UUID64 (record type with uuidv7 bytes field).
    * Serializes only the essential uuidv7 buffer; base64 is derived on deserialization.
