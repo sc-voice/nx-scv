@@ -28,12 +28,12 @@ import { LegacyDoc } from './src/text/legacy-doc.mjs';
 import { Levenshtein } from './dist/text/levenshtein.js';
 import { MerkleJson } from './src/text/merkle-json.mjs';
 import { SuttaCentralId } from './src/text/sutta-central-id.mjs';
-import { Unicode } from './src/text/unicode.mjs';
+import { Unicode } from './dist/text/unicode.js';
 import { WordSpace } from './src/text/word-space.mjs';
 import { WordVector } from './src/text/word-vector.mjs';
 import { TfidfSpace } from './src/text/tfidf-space.mjs';
 import { LogEntry, Logger } from './src/text/logger.mjs';
-import { ColorConsole} from './src/text/color-console.mjs';
+import { ColorConsole} from './dist/text/color-console.js';
 
 export const Text = {
   BilaraPath,

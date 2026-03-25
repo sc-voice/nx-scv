@@ -1,6 +1,6 @@
 import util from 'node:util';
-import { DBG } from '../defines.mjs';
-import { Unicode } from './unicode.mjs';
+import { DBG } from '../defines.js';
+import { Unicode } from './unicode.js';
 const { COLOR_CONSOLE: C10E } = DBG;
 
 const { RED_X: URX, CHECKMARK: UOK } = Unicode;
@@ -25,27 +25,41 @@ const {
   NO_COLOR,
 } = Unicode.LINUX_COLOR;
 
-let CC;
+let CC: ColorConsole | undefined;
+
+interface ColorConsoleOpts {
+  badColor1?: string;
+  badColor2?: string;
+  fyiColor1?: string;
+  fyiColor2?: string;
+  okColor1?: string;
+  okColor2?: string;
+  tagColor1?: string;
+  tagColor2?: string;
+  valueColor?: string;
+  dateFormat?: Intl.DateTimeFormat;
+  precision?: number;
+  write?: (...args: any[]) => void;
+}
 
 /**
  * Iterator for object properties
  */
 class Props {
+  obj: object;
+  entries: [string, any][];
+  i: number = 0;
+  done: boolean = false;
+  value: any = undefined;
+  key: any = undefined;
+  emitKey: boolean = true;
+
   /**
    * @param {object} obj - Object to iterate over
    */
-  constructor(obj) {
-    let entries = Object.entries(obj);
-
-    Object.assign(this, {
-      obj,
-      entries,
-      i: 0,
-      done: false,
-      value: undefined,
-      key: undefined,
-      emitKey: true,
-    });
+  constructor(obj: object) {
+    this.obj = obj;
+    this.entries = Object.entries(obj);
   }
 
   [Symbol.iterator]() {
@@ -63,27 +77,27 @@ class Props {
         value = entry[0] + ':';
       } else {
         value = entry[1];
-        dbg > 1 && CC.ok(msg, 'emitKey', value);
+        dbg > 1 && CC?.ok(msg, 'emitKey', value);
         switch (typeof value) {
           case 'object': {
             if (value instanceof Array) {
-              dbg > 1 && CC.ok(msg, 'Array', value);
+              dbg > 1 && CC?.ok(msg, 'Array', value);
               value = value === null ? null : JSON.stringify(value);
             } else if (value && value.toString !== {}.toString) {
-              dbg > 1 && CC.ok(msg, 'toString', value);
+              dbg > 1 && CC?.ok(msg, 'toString', value);
               value = value.toString();
             } else {
-              dbg > 1 && CC.ok(msg, 'object', value);
+              dbg > 1 && CC?.ok(msg, 'object', value);
               value = value === null ? null : JSON.stringify(value);
             }
             break;
           }
           case 'function':
-            dbg > 1 && CC.ok(msg, 'function', value);
+            dbg > 1 && CC?.ok(msg, 'function', value);
             value = `[Function ${value.name}]`;
             break;
           default:
-            dbg > 1 && CC.ok(msg, 'default', value);
+            dbg > 1 && CC?.ok(msg, 'default', value);
             break;
         }
       }
@@ -95,7 +109,7 @@ class Props {
       done = true;
     }
     this.value = value;
-    dbg && CC.ok1(msg + UOK, { done, value });
+    dbg && CC?.ok1(msg + UOK, { done, value });
 
     return { done, value };
   }
@@ -105,6 +119,19 @@ class Props {
  * Console with color formatting support
  */
 export class ColorConsole {
+  badColor1: string;
+  badColor2: string;
+  dateFormat: Intl.DateTimeFormat;
+  fyiColor1: string;
+  fyiColor2: string;
+  okColor1: string;
+  okColor2: string;
+  tagColor1: string;
+  tagColor2: string;
+  precision: number;
+  valueColor: string;
+  write: (...args: any[]) => void;
+
   /**
    * @param {object} opts - Constructor options
    * @param {string} [opts.badColor1] - Primary bad/error color
@@ -120,7 +147,7 @@ export class ColorConsole {
    * @param {number} [opts.precision] - Number precision
    * @param {Function} [opts.write] - Write function
    */
-  constructor(opts = {}) {
+  constructor(opts: ColorConsoleOpts = {}) {
     let {
       badColor1 = BRIGHT_RED,
       badColor2 = RED,
@@ -135,23 +162,21 @@ export class ColorConsole {
         dateStyle: 'short',
       }),
       precision = 3,
-      write = (...args) => console.log.call(null, ...args),
+      write = (...args: any[]) => console.log.call(null, ...args),
     } = opts;
 
-    Object.assign(this, {
-      badColor1,
-      badColor2,
-      dateFormat,
-      fyiColor1,
-      fyiColor2,
-      okColor1,
-      okColor2,
-      tagColor1,
-      tagColor2,
-      precision,
-      valueColor,
-      write,
-    });
+    this.badColor1 = badColor1;
+    this.badColor2 = badColor2;
+    this.dateFormat = dateFormat;
+    this.fyiColor1 = fyiColor1;
+    this.fyiColor2 = fyiColor2;
+    this.okColor1 = okColor1;
+    this.okColor2 = okColor2;
+    this.tagColor1 = tagColor1;
+    this.tagColor2 = tagColor2;
+    this.precision = precision;
+    this.valueColor = valueColor;
+    this.write = write;
   }
 
   static get URX() {
@@ -167,7 +192,7 @@ export class ColorConsole {
     return CC;
   }
 
-  static utilColor(ansiColor) {
+  static utilColor(ansiColor: string): string {
     switch (ansiColor) {
       case BLACK:
         return 'black';
@@ -203,21 +228,22 @@ export class ColorConsole {
         return 'yellowBright';
       case NO_COLOR:
         return 'noColor';
+      default:
+        throw new Error(`Unsupported ANSI color: ${ansiColor}`);
     }
   }
 
-  props(obj) {
+  props(obj: object) {
     return new Props(obj);
   }
 
-  writeColor(color, rest) {
+  writeColor(color: string, rest: any[]) {
     let { styles, defaultOptions } = util.inspect || {};
     if (styles) {
       let oldStyles = Object.assign({}, styles);
       let oldColors = defaultOptions.colors;
       defaultOptions.colors = true;
       let valueColor = ColorConsole.utilColor(this.valueColor);
-      let textColor = ColorConsole.utilColor(color);
       styles.bigint = valueColor;
       styles.boolean = valueColor;
       styles.date = valueColor;
@@ -239,7 +265,7 @@ export class ColorConsole {
     }
   }
 
-  isOk(thing, tf) {
+  isOk(thing: any, tf?: any) {
     if (tf === undefined) {
       tf = thing;
     }
@@ -249,10 +275,10 @@ export class ColorConsole {
     return color + v;
   }
 
-  asString(thing) {
+  asString(thing: any): string {
     const msg = 'c10e.asString';
     const dbg = C10E.AS_STRING;
-    let { okColor1, okColor2, precision } = this;
+    let { okColor2, precision } = this;
     dbg > 2 && console.log(okColor2, msg, 'thing:', thing);
     switch (typeof thing) {
       case 'undefined':
@@ -316,12 +342,10 @@ export class ColorConsole {
     }
   } // asString
 
-  color(textColor, ...things) {
+  color(textColor: string, ...things: any[]) {
     let { valueColor } = this;
-    let { styleText } = util;
     let label = '';
     let endColor = NO_COLOR;
-    let eol;
     return things.reduce((a, thing) => {
       let newLabel = '';
       let v = this.asString(thing);
@@ -369,51 +393,51 @@ export class ColorConsole {
     }, []);
   } // color
 
-  fyi(...rest) {
+  fyi(...rest: any[]) {
     return this.fyi2(...rest);
   }
 
-  fyi1(...rest) {
+  fyi1(...rest: any[]) {
     this.writeColor(this.fyiColor1, rest);
   }
 
-  fyi2(...rest) {
+  fyi2(...rest: any[]) {
     this.writeColor(this.fyiColor2, rest);
   }
 
-  ok(...rest) {
+  ok(...rest: any[]) {
     return this.ok2(...rest);
   }
 
-  ok1(...rest) {
+  ok1(...rest: any[]) {
     this.writeColor(this.okColor1, rest);
   }
 
-  ok2(...rest) {
+  ok2(...rest: any[]) {
     this.writeColor(this.okColor2, rest);
   }
 
-  bad(...rest) {
+  bad(...rest: any[]) {
     return this.bad2(...rest);
   }
 
-  bad1(...rest) {
+  bad1(...rest: any[]) {
     this.writeColor(this.badColor1, rest);
   }
 
-  bad2(...rest) {
+  bad2(...rest: any[]) {
     this.writeColor(this.badColor2, rest);
   }
 
-  tag(...rest) {
+  tag(...rest: any[]) {
     return this.tag2(...rest);
   }
 
-  tag1(...rest) {
+  tag1(...rest: any[]) {
     this.writeColor(this.tagColor1, rest);
   }
 
-  tag2(...rest) {
+  tag2(...rest: any[]) {
     this.writeColor(this.tagColor2, rest);
   }
 }

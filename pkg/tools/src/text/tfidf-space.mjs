@@ -1,5 +1,5 @@
 import { DBG } from '../defines.mjs';
-import { ColorConsole } from './color-console.mjs';
+import { ColorConsole } from '../../dist/text/color-console.js';
 import { Corpus } from './corpus.mjs';
 import { WordVector } from './word-vector.mjs';
 const { cc } = ColorConsole;

@@ -1,5 +1,5 @@
 import { DBG } from '../defines.mjs';
-import { Unicode } from './unicode.mjs';
+import { Unicode } from '../../dist/text/unicode.js';
 const { ELLIPSIS } = Unicode;
 
 // The golden ratio is pretty.

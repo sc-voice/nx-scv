@@ -1,9 +1,9 @@
 import { DBG } from '../../src/defines.mjs';
 const { U3S } = DBG.S5H;
-import { Unicode } from '../text/unicode.mjs';
+import { Unicode } from '../../dist/text/unicode.js';
 import { Fraction } from './fraction.mjs';
 const { CHECKMARK: UOK, RIGHT_ARROW: URA } = Unicode;
-import { ColorConsole } from '../text/color-console.mjs';
+import { ColorConsole } from '../../dist/text/color-console.js';
 const { cc } = ColorConsole;
 
 const DEFAULT_LENGTH = {
