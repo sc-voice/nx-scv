@@ -27,7 +27,13 @@ const {
 
 let CC;
 
+/**
+ * Iterator for object properties
+ */
 class Props {
+  /**
+   * @param {object} obj - Object to iterate over
+   */
   constructor(obj) {
     let entries = Object.entries(obj);
 
@@ -95,7 +101,25 @@ class Props {
   }
 } // Props
 
+/**
+ * Console with color formatting support
+ */
 export class ColorConsole {
+  /**
+   * @param {object} opts - Constructor options
+   * @param {string} [opts.badColor1] - Primary bad/error color
+   * @param {string} [opts.badColor2] - Secondary bad/error color
+   * @param {string} [opts.fyiColor1] - Primary FYI color
+   * @param {string} [opts.fyiColor2] - Secondary FYI color
+   * @param {string} [opts.okColor1] - Primary OK/success color
+   * @param {string} [opts.okColor2] - Secondary OK/success color
+   * @param {string} [opts.tagColor1] - Primary tag color
+   * @param {string} [opts.tagColor2] - Secondary tag color
+   * @param {string} [opts.valueColor] - Value color
+   * @param {Intl.DateTimeFormat} [opts.dateFormat] - Date formatter
+   * @param {number} [opts.precision] - Number precision
+   * @param {Function} [opts.write] - Write function
+   */
   constructor(opts = {}) {
     let {
       badColor1 = BRIGHT_RED,
@@ -187,7 +211,7 @@ export class ColorConsole {
   }
 
   writeColor(color, rest) {
-    let { styles, defaultOptions } = util?.inspect || {};
+    let { styles, defaultOptions } = util.inspect || {};
     if (styles) {
       let oldStyles = Object.assign({}, styles);
       let oldColors = defaultOptions.colors;
