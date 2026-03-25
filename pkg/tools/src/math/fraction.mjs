@@ -1,6 +1,6 @@
 import { DBG } from '../defines.mjs';
-import { ColorConsole } from '../text/color-console.mjs';
-import { Unicode } from '../text/unicode.mjs';
+import { ColorConsole } from '../../dist/text/color-console.js';
+import { Unicode } from '../../dist/text/unicode.js';
 const { CHECKMARK: UOK } = Unicode;
 const { FRACTION: F6N } = DBG;
 const { cc } = ColorConsole;

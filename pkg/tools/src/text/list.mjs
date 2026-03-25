@@ -1,4 +1,4 @@
-import { ColorConsole } from './color-console.mjs';
+import { ColorConsole } from '../../dist/text/color-console.js';
 const { cc } = ColorConsole;
 
 let LIST_FACTORY_SINGLETON;

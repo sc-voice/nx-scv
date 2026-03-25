@@ -1,6 +1,6 @@
-import { Unicode } from '../text/unicode.mjs';
+import { Unicode } from '../../dist/text/unicode.js';
 const { EMPTY_SET, INFINITY } = Unicode;
-import { ColorConsole } from '../text/color-console.mjs';
+import { ColorConsole } from '../../dist/text/color-console.js';
 const { cc } = ColorConsole;
 import util from 'node:util';
 import { DBG } from '../defines.mjs';

@@ -186,7 +186,13 @@ let ROMANIZE_MAP = {
   '\u016b': 'u',
 };
 
+interface UnicodeOpts {
+  romanizeMap?: any;
+  symbols?: any;
+}
+
 export class Unicode {
+
   static get INFINITY() {
     return '\u221E';
   }
@@ -324,22 +330,22 @@ export class Unicode {
     };
   }
 
-  constructor(opts = {}) {
+  constructor(opts: UnicodeOpts = {}) {
     if (opts.romanizeMap == null) {
       Object.defineProperty(this, 'romanizeMap', {
         value: Unicode.ROMANIZE_MAP,
       });
     } else {
-      this.romanizeMap = opts.romanizeMap;
+      (this as any).romanizeMap = opts.romanizeMap;
     }
     if (opts.symbols == null) {
       Object.defineProperty(this, 'symbols', {
         value: Unicode.SYMBOLS,
       });
     } else {
-      this.symbols = opts.symbols; // enumerable
+      (this as any).symbols = opts.symbols; // enumerable
     }
-    let syms = Object.keys(this.symbols)
+    let syms = Object.keys((this as any).symbols)
       .sort((a, b) => {
         if (a === b) {
           return 0;
@@ -413,24 +419,24 @@ export class Unicode {
     return Unicode.u_MACRON;
   }
 
-  stripSymbols(text) {
-    return text.replace(this.reSymbols, '');
+  stripSymbols(text: string) {
+    return text.replace((this as any).reSymbols, '');
   }
 
-  romanize(text) {
-    if (this.romanizePats == null) {
-      let srcChars = Object.keys(this.romanizeMap);
+  romanize(text: string) {
+    if ((this as any).romanizePats == null) {
+      let srcChars = Object.keys((this as any).romanizeMap);
       Object.defineProperty(this, 'romanizePats', {
         value: srcChars.map((c) => {
           return {
-            rep: this.romanizeMap[c],
+            rep: (this as any).romanizeMap[c],
             pat: new RegExp(c, 'gui'),
           };
         }),
       });
     }
     let result = text.toLowerCase();
-    this.romanizePats.forEach((pat, i) => {
+    ((this as any).romanizePats).forEach((pat: any, i: any) => {
       result = result.replace(pat.pat, pat.rep);
     });
     return result;
