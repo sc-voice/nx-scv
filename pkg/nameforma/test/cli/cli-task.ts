@@ -247,33 +247,224 @@ describe('CLI: task command', () => {
     expect(output[1]).toMatch(/3\/4/);
   });
 
-  it('delete task', async () => {
-    // Create a task
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'create',
-      '-t',
-      'To Delete',
-    ]);
+  describe('delete command', () => {
+    it('delete task with partial fuzzy ID', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'create',
+        '-t',
+        'To Delete',
+      ]);
 
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
 
-    expect(taskId).not.toBeNull();
+      expect(taskId).not.toBeNull();
 
-    output.length = 0;
+      output.length = 0;
 
-    // Delete the task
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+      // Delete using partial fuzzy ID (first 8 chars)
+      const partialId = taskId?.substring(0, 8);
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', partialId]);
 
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task deleted:/);
-    expect(countTasks(tempWorld.worldPath)).toBe(0);
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/✓ Task deleted:/);
+      expect(countTasks(tempWorld.worldPath)).toBe(0);
+    });
+
+    it('delete task with exact full ID', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'create',
+        '-t',
+        'Exact Delete',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      expect(taskId).not.toBeNull();
+
+      output.length = 0;
+
+      // Delete using exact full ID
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/✓ Task deleted:/);
+      expect(countTasks(tempWorld.worldPath)).toBe(0);
+    });
+
+    it('delete task then verify not in list', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'create',
+        '-t',
+        'Task to Verify',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      output.length = 0;
+
+      // Delete the task
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+
+      output.length = 0;
+
+      // List tasks
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+
+      expect(output[0]).toBe('No tasks');
+    });
+
+    it('delete task then verify cannot show', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'create',
+        '-t',
+        'Show After Delete',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      output.length = 0;
+
+      // Delete the task
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+
+      output.length = 0;
+
+      // Try to show deleted task - should fail
+      await expect(
+        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId])
+      ).rejects.toThrow(/Task not found/);
+    });
+
+    it('delete one of multiple tasks', async () => {
+      // Create three tasks
+      const taskIds: (string | null)[] = [];
+
+      for (let i = 1; i <= 3; i++) {
+        await program.parseAsync([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'create',
+          '-t',
+          `Task ${i}`,
+        ]);
+
+        const createOutput = output.join('\n');
+        const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+        taskIds.push(idMatch ? idMatch[1] : null);
+        output.length = 0;
+      }
+
+      expect(countTasks(tempWorld.worldPath)).toBe(3);
+
+      // Delete the second task
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskIds[1]]);
+
+      expect(countTasks(tempWorld.worldPath)).toBe(2);
+
+      output.length = 0;
+
+      // List remaining tasks
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+
+      const listOutput = output.join('\n');
+      expect(listOutput).toMatch(/Task 1/);
+      expect(listOutput).not.toMatch(/Task 2/);
+      expect(listOutput).toMatch(/Task 3/);
+    });
+
+    it('delete with ambiguous partial ID throws error', async () => {
+      // Create two tasks
+      const taskIds: (string | null)[] = [];
+
+      for (let i = 1; i <= 2; i++) {
+        await program.parseAsync([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'create',
+          '-t',
+          `Ambiguous Task ${i}`,
+        ]);
+
+        const createOutput = output.join('\n');
+        const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+        taskIds.push(idMatch ? idMatch[1] : null);
+        output.length = 0;
+      }
+
+      expect(countTasks(tempWorld.worldPath)).toBe(2);
+
+      // Try to delete with very short ID that matches both - should throw ambiguous error
+      await expect(
+        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', '0'])
+      ).rejects.toThrow(/ambiguous match/);
+
+      // Verify both tasks still exist
+      expect(countTasks(tempWorld.worldPath)).toBe(2);
+    });
+
+    it('delete task shows correct ID in output', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'create',
+        '-t',
+        'ID Output Test',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      output.length = 0;
+
+      // Delete the task
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+
+      // Verify output shows the full task ID, not the search string
+      expect(output[0]).toMatch(/✓ Task deleted: 0Pq/);
+    });
   });
 
   it('show non-existent task returns error', async () => {

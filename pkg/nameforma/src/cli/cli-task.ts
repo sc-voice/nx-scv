@@ -195,8 +195,8 @@ export default class TaskCommand {
           throw new Error(`Task not found: ${id}`);
         }
 
-        world.delete('task', id);
-        console.log(`✓ Task deleted: ${id}`);
+        world.delete('task', task.id.toString());
+        console.log(`✓ Task deleted: ${task.id}`);
       });
   }
 }
