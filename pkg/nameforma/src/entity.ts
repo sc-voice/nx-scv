@@ -1,17 +1,17 @@
-import UUID64 from './uuid64.js';
+import { Forma } from './forma.js';
 
 /**
  * Entity interface - Contract for persistent entities in World
+ * All entities must extend Forma
  */
-export interface Entity {
-  id: UUID64;
+export interface Entity extends Forma {
   patch(updates: any): void;
 }
 
 export interface EntityConstructor {
   entity: string;
   SCHEMA: any;
-  new (cfg?: any): Entity;
+  fromJson(data: any): Entity;
 }
 
 /**
@@ -23,6 +23,9 @@ export function validateEntity(EntityClass: any): EntityClass is EntityConstruct
   }
   if (!EntityClass.SCHEMA) {
     throw new Error(`${EntityClass.name} missing static SCHEMA property`);
+  }
+  if (typeof EntityClass.fromJson !== 'function') {
+    throw new Error(`${EntityClass.name} missing static fromJson method`);
   }
   return true;
 }

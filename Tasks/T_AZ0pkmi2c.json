@@ -1,0 +1,77 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Replace list() with entityIdsOfType(entityType:string): UUID64[]",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update load() to load<T>(id:UUID64):T with type-driven entity lookup",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add loadFuzzy<T>(match:string):T with fuzzy matching",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update cli-task to use new API (remove taskFromData, pass Task class to World)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Remove TaskWorld class (no longer needed)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Fix loadFuzzy() default levenshtein behavior - discuss with developer",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-03-26T09:55:54Z",
+  "id" : "019D2992-68B6-7000-8B4A-FA4384C7D56B",
+  "name" : "Redesign World for multi-entity type support with instances",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+    {
+      "relevance" : 1,
+      "text" : "src\/entity.ts - Entity contract requires Forma base"
+    },
+    {
+      "relevance" : 1,
+      "text" : "test\/world.ts - Registry design with Forma-based entities"
+    },
+    {
+      "relevance" : 1,
+      "text" : "World class (lines 15-196) and TaskWorld class (lines 201-215)"
+    },
+    {
+      "relevance" : 1,
+      "text" : "Entity interface and EntityConstructor interface (lines 1-28)"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "CLI loadFuzzy() needs default levenshtein parameter - currently requires explicit value to enable fuzzy matching"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "Design note: Entity reconstruction via factory method"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "FormaArray.match() method (lines 15-43) for pattern\/matcher-based matching"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "IFormaMatcher interface (lines 18-33) and implementations"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "FormaArray.idFilter() takes levenshtein parameter (1-22)"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Make World generic: store entity constructors, return typed instances, add fuzzy load. Remove TaskWorld, eliminate manual reconstruction.",
+  "updatedAt" : "2026-03-26T12:53:55Z"
+}

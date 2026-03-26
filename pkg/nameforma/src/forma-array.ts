@@ -43,59 +43,72 @@ export class FormaArray<T extends Forma> extends Array<T> {
   }
 
   /**
-   * Find element by id with optional fuzzy matching via Levenshtein distance.
+   * Create a filter function for id matching with fuzzy matching via Levenshtein distance.
    *
    * UUID64 base64 structure (UUID64.CHARS total):
    * - First UUID64.TIME_SEQ_CHARS chars: 48-bit timestamp + 12-bit sequence
    * - Last chars: random data
    *
-   * @param id - The id to search for (can be partial or mutated string)
-   * @param levenshtein - Optional fuzzy matching parameter:
-   *   - undefined: Exact match on full UUID64.CHARS-char base64
+   * @param searchId - The id to search for (can be partial or mutated string)
+   * @param levenshtein - Optional fuzzy matching parameter (default: searchId.length):
    *   - 1 to UUID64.TIME_SEQ_CHARS: Fuzzy match on first UUID64.TIME_SEQ_CHARS chars
    *     max allowed distance = UUID64.TIME_SEQ_CHARS - levenshtein
    *   - (UUID64.TIME_SEQ_CHARS + 1) to UUID64.CHARS: Fuzzy match on full UUID64.CHARS chars
    *     max allowed distance = UUID64.CHARS - levenshtein
-   *   - null, 0, negative, >UUID64.CHARS: Throws error (reserved for future use)
+   * @param ignoreCase - If true (default), comparison is case-insensitive
+   *
+   * @returns Filter function that returns true if base64 id string matches with allowed distance
+   * @throws Error if levenshtein is out of range
+   */
+  static idFilter(
+    searchId: string,
+    levenshtein?: number,
+    ignoreCase: boolean = true
+  ): (itemId: string) => boolean {
+    // Default levenshtein to searchId length if not provided
+    if (levenshtein === undefined) {
+      levenshtein = searchId.length;
+    }
+
+    if (levenshtein < 1 || levenshtein > UUID64.CHARS) {
+      throw new Error(`levenshtein out of range: ${levenshtein}`);
+    }
+
+    const normalizedSearchId = ignoreCase ? searchId.toLowerCase() : searchId;
+
+    return (itemIdStr: string) => {
+      let idStr = ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
+
+      let compareStr: string;
+      let maxDistance: number;
+
+      if (levenshtein! >= 1 && levenshtein! <= UUID64.TIME_SEQ_CHARS) {
+        // Fuzzy match on first UUID64.TIME_SEQ_CHARS chars (time/sequence)
+        compareStr = idStr.substring(0, UUID64.TIME_SEQ_CHARS);
+        maxDistance = UUID64.TIME_SEQ_CHARS - levenshtein!;
+      } else {
+        // Fuzzy match on full UUID64.CHARS chars
+        compareStr = idStr;
+        maxDistance = UUID64.CHARS - levenshtein!;
+      }
+
+      const distance = Levenshtein.distance(normalizedSearchId, compareStr);
+      return distance <= maxDistance;
+    };
+  }
+
+  /**
+   * Find element by id with fuzzy matching via Levenshtein distance.
+   *
+   * @param id - The id to search for (can be partial or mutated string)
+   * @param levenshtein - Optional fuzzy matching parameter (default: id.length, see idFilter for details)
    * @param ignoreCase - If true (default), comparison is case-insensitive
    *
    * @returns First element matching the id with allowed distance, or undefined if not found
    * @throws Error if levenshtein is out of range
    */
   matchId(id: string, levenshtein?: number, ignoreCase: boolean = true): T | undefined {
-    if (levenshtein !== undefined) {
-      if (levenshtein < 1 || levenshtein > UUID64.CHARS) {
-        throw new Error(`levenshtein out of range: ${levenshtein}`);
-      }
-    }
-
-    const searchId = ignoreCase ? id.toLowerCase() : id;
-
-    return this.find(item => {
-      const itemId = item.id;
-      let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
-      itemIdStr = ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
-
-      if (levenshtein === undefined) {
-        // Exact match on full base64
-        return itemIdStr === searchId;
-      }
-
-      let compareStr: string;
-      let maxDistance: number;
-
-      if (levenshtein >= 1 && levenshtein <= UUID64.TIME_SEQ_CHARS) {
-        // Fuzzy match on first UUID64.TIME_SEQ_CHARS chars (time/sequence)
-        compareStr = itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS);
-        maxDistance = UUID64.TIME_SEQ_CHARS - levenshtein;
-      } else {
-        // Fuzzy match on full UUID64.CHARS chars
-        compareStr = itemIdStr;
-        maxDistance = UUID64.CHARS - levenshtein;
-      }
-
-      const distance = Levenshtein.distance(searchId, compareStr);
-      return distance <= maxDistance;
-    });
+    const filter = FormaArray.idFilter(id, levenshtein, ignoreCase);
+    return this.find(item => filter(item.id.base64));
   }
 }

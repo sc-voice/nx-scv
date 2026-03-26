@@ -46,6 +46,10 @@ export class Task extends Forma {
     };
   }
 
+  static fromJson(data: any): Task {
+    return new Task(data);
+  }
+
   put(value: any) {
     const msg = 't2k.put';
     const dbg = T2K.PUT;

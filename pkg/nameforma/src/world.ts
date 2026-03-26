@@ -3,6 +3,8 @@ import path from 'path';
 import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
+import { EntityConstructor, validateEntity } from './entity.js';
+import { FormaArray } from './forma-array.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -14,7 +16,7 @@ const { WORLD } = DBG;
  */
 export class World {
   #worldPath: string;
-  #entities: Record<string, any> = {};
+  #entityRegistry: Map<string, EntityConstructor> = new Map();
 
   /**
    * Create or load a World at the given path
@@ -61,20 +63,38 @@ export class World {
   }
 
   /**
-   * Register an entity type with this world
-   * @param {string} entityName - Entity name (e.g., 'task')
-   * @param {class} EntityClass - Entity class with SCHEMA property
+   * Register an entity class with this world
+   * Derives entity name from EntityClass.entity static property
+   * @param {EntityConstructor} EntityClass - Entity class with entity, SCHEMA, and fromJson
+   * @throws {Error} - If entity missing required static properties
    */
-  register(entityName: string, EntityClass: any): void {
+  register(EntityClass: EntityConstructor): void {
     const msg = 'world.register';
     const dbg = WORLD?.REGISTER;
 
-    if (!EntityClass.SCHEMA) {
-      throw new Error(`${msg}: ${EntityClass.name} missing SCHEMA property`);
-    }
+    // Validate entity class has required properties
+    validateEntity(EntityClass);
 
-    this.#entities[entityName] = EntityClass;
+    const entityName = EntityClass.entity;
+    this.#entityRegistry.set(entityName, EntityClass);
     dbg && cc.ok1(msg, `registered ${entityName}`);
+  }
+
+  /**
+   * Get all registered entity names
+   * @returns {string[]} - Array of entity names
+   */
+  getEntityNames(): string[] {
+    return Array.from(this.#entityRegistry.keys());
+  }
+
+  /**
+   * Get entity constructor by name
+   * @param {string} name - Entity name
+   * @returns {EntityConstructor|null} - Entity constructor or null if not registered
+   */
+  entityClassOfName(name: string): EntityConstructor | null {
+    return this.#entityRegistry.get(name) || null;
   }
 
   /**
@@ -107,17 +127,24 @@ export class World {
   }
 
   /**
-   * Load entity from world storage
-   * @param {string} entityType - Entity type (e.g., 'task')
-   * @param {string} id - Entity id (OPB64 string)
-   * @returns {object|null} - Parsed entity with id reconstructed as UUID64 POJO, or null if not found
+   * Load entity from world storage using type-driven lookup
+   * @template T - Entity constructor type
+   * @param {T} EntityClass - Entity class (e.g., Task)
+   * @param {UUID64 | string} id - Entity id (UUID64 instance or OPB64 string)
+   * @returns {ReturnType<T['fromJson']>|null} - Typed entity instance, or null if not found
    * @throws {Error} - If id validation fails
    */
-  load(entityType: string, id: string): any | null {
-    const msg = 'world.load';
+  loadEntity<T extends EntityConstructor>(EntityClass: T, id: UUID64 | string): ReturnType<T['fromJson']> | null {
+    const msg = 'world.loadEntity';
     const dbg = WORLD?.LOAD;
 
-    const filePath = path.join(this.#worldPath, entityType, `${id}.json`);
+    // Extract entityType from EntityClass.entity
+    const entityType = EntityClass.entity;
+
+    // Convert UUID64 to string if needed
+    const idStr = typeof id === 'string' ? id : id.toString();
+
+    const filePath = path.join(this.#worldPath, entityType, `${idStr}.json`);
     if (!fs.existsSync(filePath)) {
       dbg && cc.ok1(msg, `not found ${filePath}`);
       return null;
@@ -137,8 +164,77 @@ export class World {
       }
     }
 
+    // Reconstruct as typed instance via EntityClass.fromJson
+    const typedEntity = EntityClass.fromJson(entity);
+
     dbg && cc.ok1(msg, `loaded ${filePath}`);
-    return entity;
+    return typedEntity as ReturnType<T['fromJson']>;
+  }
+
+  /**
+   * Load entity from world storage using fuzzy id matching
+   * @template T - Entity constructor type
+   * @param {T} EntityClass - Entity class constructor
+   * @param {string} match - Partial or fuzzy id string to match
+   * @param {number} levenshtein - Optional fuzzy matching parameter (see FormaArray.idFilter)
+   * @returns {ReturnType<T['fromJson']>|null} - Matching typed entity instance, or null if not found
+   * @throws {Error} - If levenshtein parameter is out of range or multiple matches found
+   *
+   * @example
+   * const task = world.loadFuzzy(Task, "partial-id", 5); // Type is Task | null
+   */
+  loadFuzzy<T extends EntityConstructor>(
+    EntityClass: T,
+    match: string,
+    levenshtein?: number
+  ): ReturnType<T['fromJson']> | null {
+    const msg = 'world.loadFuzzy';
+    const dbg = WORLD?.LOAD;
+
+    const entityType = EntityClass.entity;
+    const entityDir = path.join(this.#worldPath, entityType);
+
+    if (!fs.existsSync(entityDir)) {
+      dbg && cc.ok1(msg, `no entities for ${entityType}`);
+      return null;
+    }
+
+    // Create filter function for filename matching
+    const filter = FormaArray.idFilter(match, levenshtein);
+
+    // Get all .json files and filter by filename (id)
+    const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));
+    const matchingFiles = files.filter((file) => filter(file.slice(0, -5)));
+
+    if (matchingFiles.length === 0) {
+      dbg && cc.ok1(msg, `no match for ${match} in ${entityType}`);
+      return null;
+    }
+
+    if (matchingFiles.length > 1) {
+      const ids = matchingFiles.map((f) => f.slice(0, -5)).join(', ');
+      throw new Error(`${msg}: ambiguous match for "${match}": found ${matchingFiles.length} matches [${ids}]`);
+    }
+
+    // Load and reconstruct the matching entity
+    const filePath = path.join(entityDir, matchingFiles[0]);
+    const data = fs.readFileSync(filePath, 'utf8');
+    const entity = JSON.parse(data);
+
+    // Reconstruct id as UUID64 POJO
+    if (entity.id) {
+      try {
+        entity.id = UUID64.fromString(entity.id);
+      } catch (err) {
+        throw new Error(`${filePath}: invalid id "${entity.id}"`);
+      }
+    }
+
+    // Reconstruct as typed instance
+    const typedEntity = EntityClass.fromJson(entity);
+
+    dbg && cc.ok1(msg, `loaded ${entityType}/${entity.id}`);
+    return typedEntity as ReturnType<T['fromJson']>;
   }
 
   /**
@@ -192,24 +288,5 @@ export class World {
    */
   get worldPath(): string {
     return this.#worldPath;
-  }
-}
-
-/**
- * Concrete TaskWorld manages Task entity storage
- */
-export class TaskWorld extends World {
-  constructor(worldPath: string) {
-    super(worldPath);
-    const msg = 'taskworld.ctor';
-    const dbg = WORLD?.CTOR;
-
-    // Register Task entity synchronously
-    // Task is imported dynamically to avoid circular imports at module load
-    (async () => {
-      const { Task } = await import('./task.js');
-      this.register('task', Task);
-      dbg && cc.ok1(msg, 'registered Task entity');
-    })();
   }
 }

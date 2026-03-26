@@ -5,7 +5,7 @@
 
 import path from 'path';
 import { NameForma } from '../index.js';
-import { TaskWorld, World } from '../world.js';
+import { World } from '../world.js';
 
 const { Task, Rational } = NameForma;
 
@@ -21,29 +21,14 @@ function parseRational(str: string): any {
   return new Rational(num, denom);
 }
 
-/**
- * Reconstruct Task object from plain JSON data
- * @param {object} data - Plain JSON object
- * @returns {Task} - Task instance
- */
-function taskFromData(data: any): any {
-  const task = new Task({
-    id: data.id,
-    name: data.name,
-    title: data.title,
-    progress: data.progress,
-    duration: data.duration,
-  });
-  return task;
-}
 
 export default class TaskCommand {
   /**
    * Get or create world instance, either from -w parameter or auto-discovery
    * @param {object} options - Command options
-   * @returns {TaskWorld} - World instance
+   * @returns {World} - World instance
    */
-  static getWorld(options: any): any {
+  static getWorld(options: any): World {
     let worldPath = options.world;
 
     if (!worldPath) {
@@ -54,7 +39,9 @@ export default class TaskCommand {
       }
     }
 
-    return new TaskWorld(worldPath);
+    const world = new World(worldPath);
+    world.register(Task);
+    return world;
   }
 
   /**
@@ -125,7 +112,7 @@ export default class TaskCommand {
 
         console.log(`Tasks (${taskData.length}):`);
         taskData.forEach((data: any) => {
-          const task = taskFromData(data);
+          const task = Task.fromJson(data);
           console.log(`  ${task.toString()}`);
         });
       });
@@ -138,12 +125,11 @@ export default class TaskCommand {
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.opts());
 
-        const data = world.load('task', id);
-        if (!data) {
+        const task = world.loadFuzzy(Task, id);
+        if (!task) {
           throw new Error(`Task not found: ${id}`);
         }
 
-        const task = taskFromData(data);
         console.log(`Task: ${task.id}`);
         console.log(`  name: ${task.name}`);
         console.log(`  title: ${task.title}`);
@@ -164,12 +150,10 @@ export default class TaskCommand {
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.opts());
 
-        const data = world.load('task', id);
-        if (!data) {
+        const task = world.loadFuzzy(Task, id);
+        if (!task) {
           throw new Error(`Task not found: ${id}`);
         }
-
-        const task = taskFromData(data);
 
         const updates: any = {};
 
@@ -206,8 +190,8 @@ export default class TaskCommand {
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.opts());
 
-        const data = world.load('task', id);
-        if (!data) {
+        const task = world.loadFuzzy(Task, id);
+        if (!task) {
           throw new Error(`Task not found: ${id}`);
         }
 
