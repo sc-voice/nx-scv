@@ -24,10 +24,10 @@
 
 import { Command } from 'commander';
 import { NameForma } from '../index.js';
-import TaskCommand from './commands/task.js';
-import FormaCommand from './commands/forma.js';
-import SchemaCommand from './commands/schema.js';
-import UUIDCommand from './commands/uuid.js';
+import TaskCommand from './cli-task.js';
+import FormaCommand from './cli-forma.js';
+import SchemaCommand from './cli-schema.js';
+import UUIDCommand from './cli-uuid.js';
 
 // Preprocess argv to move -h/--help to the end so it applies to the deepest command
 function preprocessArgv(argv: string[]): string[] {

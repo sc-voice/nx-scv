@@ -4,8 +4,8 @@
  */
 
 import path from 'path';
-import { NameForma } from '../../index.js';
-import { TaskWorld, World } from '../../world.js';
+import { NameForma } from '../index.js';
+import { TaskWorld, World } from '../world.js';
 
 const { Task, Rational } = NameForma;
 

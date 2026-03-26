@@ -3,7 +3,7 @@
  * Supports: create, list, show, update
  */
 
-import { NameForma } from '../../index.js';
+import { NameForma } from '../index.js';
 
 const { Forma } = NameForma;
 

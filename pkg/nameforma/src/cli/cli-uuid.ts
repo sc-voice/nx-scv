@@ -3,7 +3,7 @@
  * Supports: generate UUID64 base64 strings
  */
 
-import UUID64 from '../../uuid64.js';
+import UUID64 from '../uuid64.js';
 
 export default class UUIDCommand {
   /**

@@ -3,7 +3,7 @@
  * Supports: list, show, register
  */
 
-import { NameForma } from '../../index.js';
+import { NameForma } from '../index.js';
 
 const { Schema } = NameForma;
 

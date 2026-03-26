@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import { NameForma } from '../../src/index.js';
-import TaskCommand from '../../src/cli/commands/task.js';
+import TaskCommand from '../../src/cli/cli-task.js';
 import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers';
 
 const { Task, Rational } = NameForma;
