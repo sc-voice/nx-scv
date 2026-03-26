@@ -243,9 +243,9 @@ describe('Forma', () => {
     const arr = new FormaArray<Forma>();
     arr.push(...formas)
 
-    cc.tag1(msg, ...formas.map(f=>f.id.base64));
+    //cc.tag1(msg, ...formas.map(f=>f.id.base64));
     const partialId_f2 = formas[1].id.base64.substring(5, 10);
-    cc.tag1(msg, partialId_f2)
+    //cc.tag1(msg, partialId_f2)
 
     // Sort by similarity to formas[1]'s id (descending: highest first)
     const matcher = new LevenshteinMatcher<Forma>(partialId_f2);
