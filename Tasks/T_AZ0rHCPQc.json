@@ -1,0 +1,38 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-26T17:05:57Z",
+  "id" : "019D2B1C-23D0-7000-93C2-9AC5F2EBBEE0",
+  "name" : "Build nameforma task system with UUID64 actions",
+  "plannedActions" : [
+    {
+      "name" : "Define Action interface with id (UUID64), summary, measure (Rational), details, status",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement fuzzy matching for UUID64 action IDs (substring, levenshtein, prefix)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Single unified action array with status field (no separate planned\/completed lists)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Display actions with UUID64 IDs instead of numbered lists to avoid ambiguity",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Ensure action IDs remain stable across sessions (no renumbering on completion)",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Replace scv-app Task system with improved nameforma version using Identifiable Actions with UUID64s, fuzzy matching, and Rational measures",
+  "updatedAt" : "2026-03-26T17:06:13Z"
+}

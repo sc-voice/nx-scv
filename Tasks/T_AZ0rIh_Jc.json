@@ -1,0 +1,89 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-26T17:12:29Z",
+  "id" : "019D2B22-1FC9-7000-A7DF-C314DF9CC277",
+  "name" : "Add action list support to Task",
+  "plannedActions" : [
+    {
+      "name" : "Update Forma.ts imports: add FormaArray and Action imports",
+      "test" : "verify imports compile"
+    },
+    {
+      "name" : "Add private #actions: FormaArray<Action> field to Forma class; initialize in constructor from optional cfg.actions array; add public getter",
+      "test" : "verify constructor accepts actions array, getter returns FormaArray"
+    },
+    {
+      "name" : "Update Forma.SCHEMA: add actions field as { name: 'actions', type: { type: 'array', items: Action.SCHEMA } }",
+      "test" : "verify schema includes actions field"
+    },
+    {
+      "name" : "Implement addAction(action: Action): void - append to #actions",
+      "test" : "test addAction adds to array"
+    },
+    {
+      "name" : "Implement removeAction(id: string): Action | undefined - use matchId to find, remove, return removed action",
+      "test" : "test removeAction with exact and fuzzy id"
+    },
+    {
+      "name" : "Implement getAction(id: string): Action | undefined - use FormaArray.matchId() for fuzzy lookup",
+      "test" : "test getAction with exact and fuzzy id"
+    },
+    {
+      "name" : "Implement updateAction(id: string, cfg: any): Action | undefined - find via matchId, call action.patch(cfg), return updated action",
+      "test" : "test updateAction with status changes"
+    },
+    {
+      "name" : "Verify patch() ignores actions field (only updates name\/summary)",
+      "test" : "test patch() does not modify actions"
+    },
+    {
+      "name" : "Add comprehensive tests: constructor with actions, add\/remove\/get\/update methods, fuzzy ID matching, Avro serialize\/deserialize with actions, actions immutability",
+      "test" : "all tests pass"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 0.95,
+      "text" : "DECISION: Store actions as private #actions: FormaArray<Action> with controlled methods (addAction, removeAction, updateAction, getAction) for Kafka-friendly granular mutations"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "DECISION: Use FormaArray.matchId() pattern for fuzzy ID lookup - returns first match within Levenshtein distance threshold (see forma-array.ts:110-113)"
+    },
+    {
+      "relevance" : 0.85,
+      "text" : "DECISION: patch() ignores actions field; use dedicated methods (addAction\/removeAction\/updateAction) for Kafka-friendly granular updates"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "DECISION: Support both constructor init (new Forma({ actions: [...] })) and post-construction (forma.addAction(action))"
+    },
+    {
+      "relevance" : 0.75,
+      "text" : "DECISION: Method naming follows camelCase (addAction, getAction) - matches existing codebase style"
+    },
+    {
+      "relevance" : 0.7,
+      "text" : "FormaArray class (forma-array.ts) - extends Array<T extends Forma>, provides matchId() for fuzzy id lookup via Levenshtein"
+    },
+    {
+      "relevance" : 0.7,
+      "text" : "Action class - extends Forma with status field (todo|done), Avro schema with enum (action.ts:25)"
+    },
+    {
+      "relevance" : 0.7,
+      "text" : "Forma base class - extends Identifiable with name\/summary, Avro schema, patch() method (forma.ts:69)"
+    },
+    {
+      "relevance" : 0.7,
+      "text" : "UUID64 class - has avroSchema property for Avro encoding (uuid64.ts:81-88)"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Add actions: Action[] field to Forma with Avro schema support, getters\/setters, and comprehensive tests",
+  "updatedAt" : "2026-03-26T17:18:04Z"
+}

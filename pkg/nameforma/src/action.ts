@@ -42,9 +42,7 @@ export class Action extends Forma {
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        { name: 'id', type: UUID64.avroSchema }, // immutable, unique, UUID64 POJO
-        { name: 'name', type: 'string' }, // mutable
-        { name: 'summary', type: 'string' }, // mutable
+        ...Forma.SCHEMA.fields,
         {
           name: 'status',
           type: {

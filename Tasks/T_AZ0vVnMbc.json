@@ -1,0 +1,19 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-27T12:48:07Z",
+  "id" : "019D2F56-731B-7000-AC71-4BEF99485640",
+  "name" : "FormaArray CRUD API",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Design and implement generic CRUD methods (addItem\/deleteItem\/getItem\/moveItem\/updateItem) for FormaArray collections to standardize collection management across Forma classes",
+  "updatedAt" : "2026-03-27T12:48:07Z"
+}
