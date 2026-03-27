@@ -1,9 +1,28 @@
 import UUID64 from './uuid64.js';
 import { Text } from '@sc-voice/tools';
+import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
 
 const { ColorConsole, Unicode } = Text;
 const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
+
+/**
+ * FuzzyId - String ID for fuzzy matching against UUID64 identifiers
+ *
+ * FuzzyId can be:
+ * - Full UUID64 base64 string (exact match)
+ * - Partial UUID64 string (first N characters)
+ * - Fuzzy variant with Levenshtein distance tolerance
+ *
+ * Used throughout nameforma for flexible ID resolution:
+ * - FormaCollection.getItem(fuzzyId)
+ * - world.loadFuzzy(EntityClass, fuzzyId)
+ * - CLI commands accepting partial IDs
+ *
+ * Fuzzy matching uses Levenshtein distance with default tolerance of fuzzyId.length.
+ * For stricter matching or custom tolerance, use items(filter) with Identifiable.idFilter().
+ */
+export type FuzzyId = string;
 
 /**
  * Identifiable - Base class for entities with UUID64 ids
@@ -110,6 +129,58 @@ export class Identifiable {
    */
   static validate(id: string): boolean {
     return UUID64.validate(id);
+  }
+
+  /**
+   * Create a filter function for fuzzy ID matching with Levenshtein distance.
+   *
+   * UUID64 base64 structure (UUID64.CHARS total):
+   * - First UUID64.TIME_SEQ_CHARS chars: 48-bit timestamp + 12-bit sequence
+   * - Last chars: random data
+   *
+   * @param fuzzyId - The fuzzy ID to search for (can be partial or mutated string)
+   * @param levenshtein - Optional fuzzy matching parameter (default: fuzzyId.length):
+   *   - 1 to UUID64.TIME_SEQ_CHARS: Fuzzy match on first UUID64.TIME_SEQ_CHARS chars
+   *     max allowed distance = UUID64.TIME_SEQ_CHARS - levenshtein
+   *   - (UUID64.TIME_SEQ_CHARS + 1) to UUID64.CHARS: Fuzzy match on full UUID64.CHARS chars
+   *     max allowed distance = UUID64.CHARS - levenshtein
+   * @param ignoreCase - If true (default), comparison is case-insensitive
+   *
+   * @returns Filter function that returns true if base64 id string matches with allowed distance
+   * @throws Error if levenshtein is out of range
+   */
+  static idFilter(
+    fuzzyId: FuzzyId,
+    levenshtein?: number,
+    ignoreCase: boolean = true
+  ): (itemId: string) => boolean {
+    if (levenshtein === undefined) {
+      levenshtein = fuzzyId.length;
+    }
+
+    if (levenshtein < 1 || levenshtein > UUID64.CHARS) {
+      throw new Error(`idFilter: levenshtein out of range: ${levenshtein}`);
+    }
+
+    const normalizedSearchId = ignoreCase ? fuzzyId.toLowerCase() : fuzzyId;
+
+    return (itemIdStr: string) => {
+      let idStr = ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
+
+      let compareStr: string;
+      let maxDistance: number;
+
+      if (levenshtein! >= 1 && levenshtein! <= UUID64.TIME_SEQ_CHARS) {
+        compareStr = idStr.substring(0, UUID64.TIME_SEQ_CHARS);
+        maxDistance = UUID64.TIME_SEQ_CHARS - levenshtein!;
+      } else {
+        compareStr = idStr;
+        maxDistance = UUID64.CHARS - levenshtein!;
+      }
+
+      const distance = Levenshtein.distance(normalizedSearchId, compareStr);
+      return distance <= maxDistance;
+    };
   }
 
   /**

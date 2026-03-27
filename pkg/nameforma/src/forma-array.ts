@@ -3,16 +3,23 @@ import { Forma, IFormaMatcher, LevenshteinMatcher } from './forma.js';
 import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
 
 /**
- * FormaArray - Typed array that finds elements by id
+ * FormaArray - Utility class with static matching methods for Forma arrays
+ *
+ * Note: This is NOT an Array extension. Use FormaCollection for managed arrays.
+ * This class provides static utility methods for searching/matching Forma items.
  */
-export class FormaArray<T extends Forma> extends Array<T> {
+export class FormaArray {
   /**
    * Find element with highest similarity score
+   * @param items - Array of items to search
    * @param options - Either {pattern} for default fuzzy matching or {matcher} for custom matching
    * @returns Best matching element or undefined if array is empty
    * @throws Error if both or neither pattern/matcher provided
    */
-  match(options: { pattern?: string; matcher?: IFormaMatcher<T> }): T | undefined {
+  static match<T extends Forma>(
+    items: T[],
+    options: { pattern?: string; matcher?: IFormaMatcher<T> }
+  ): T | undefined {
     // Validate: exactly one must be provided
     const hasPattern = options.pattern !== undefined;
     const hasMatcher = options.matcher !== undefined;
@@ -24,14 +31,14 @@ export class FormaArray<T extends Forma> extends Array<T> {
       throw new Error('match() requires exactly one of pattern or matcher, not both');
     }
 
-    if (this.length === 0) return undefined;
+    if (items.length === 0) return undefined;
 
     const matcher = options.matcher ?? new LevenshteinMatcher<T>(options.pattern!);
 
     let bestItem: T | undefined = undefined;
     let maxSimilarity = -1;
 
-    for (const item of this) {
+    for (const item of items) {
       const sim = matcher.similarity(item);
       if (sim > maxSimilarity) {
         maxSimilarity = sim;
@@ -100,6 +107,7 @@ export class FormaArray<T extends Forma> extends Array<T> {
   /**
    * Find element by id with fuzzy matching via Levenshtein distance.
    *
+   * @param items - Array of items to search
    * @param id - The id to search for (can be partial or mutated string)
    * @param levenshtein - Optional fuzzy matching parameter (default: id.length, see idFilter for details)
    * @param ignoreCase - If true (default), comparison is case-insensitive
@@ -107,8 +115,13 @@ export class FormaArray<T extends Forma> extends Array<T> {
    * @returns First element matching the id with allowed distance, or undefined if not found
    * @throws Error if levenshtein is out of range
    */
-  matchId(id: string, levenshtein?: number, ignoreCase: boolean = true): T | undefined {
+  static matchId<T extends Forma>(
+    items: T[],
+    id: string,
+    levenshtein?: number,
+    ignoreCase: boolean = true
+  ): T | undefined {
     const filter = FormaArray.idFilter(id, levenshtein, ignoreCase);
-    return this.find(item => filter(item.id.base64));
+    return items.find(item => filter(item.id.base64));
   }
 }
