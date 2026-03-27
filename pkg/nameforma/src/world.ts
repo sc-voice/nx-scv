@@ -4,7 +4,7 @@ import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 import { EntityConstructor, validateEntity } from './entity.js';
-import { FormaArray } from './forma-array.js';
+import { Identifiable } from './identifiable.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -176,7 +176,7 @@ export class World {
    * @template T - Entity constructor type
    * @param {T} EntityClass - Entity class constructor
    * @param {string} match - Partial or fuzzy id string to match
-   * @param {number} levenshtein - Optional fuzzy matching parameter (see FormaArray.idFilter)
+   * @param {number} levenshtein - Optional fuzzy matching parameter (see Identifiable.idFilter)
    * @returns {ReturnType<T['fromJson']>|null} - Matching typed entity instance, or null if not found
    * @throws {Error} - If levenshtein parameter is out of range or multiple matches found
    *
@@ -200,7 +200,7 @@ export class World {
     }
 
     // Create filter function for filename matching
-    const filter = FormaArray.idFilter(match, levenshtein);
+    const filter = Identifiable.idFilter(match, levenshtein);
 
     // Get all .json files and filter by filename (id)
     const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));

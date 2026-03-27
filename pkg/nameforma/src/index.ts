@@ -1,7 +1,6 @@
 import { Action, ActionStatus } from './action.js';
 import { Clock } from './clock.js';
 import { Forma, type IFormaMatcher, AFormaMatcher, LevenshteinMatcher } from './forma.js';
-import { FormaArray } from './forma-array.js';
 import { FormaCollection, type IFormaItem, type IFormaItemClass } from './forma-collection.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import UUID64 from './uuid64.js';
@@ -27,7 +26,6 @@ export const NameForma = {
   Clock,
   Consumer,
   Forma,
-  FormaArray,
   FormaCollection,
   Identifiable,
   Kafka1,
