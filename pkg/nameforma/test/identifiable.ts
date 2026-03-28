@@ -33,4 +33,19 @@ describe('Identifiable', () => {
 
     dbg && cc.tag1(msg + UOK, 'valid UUID64 identifiers');
   });
+
+  it('SCHEMA', () => {
+    const msg = 'ti10e.SCHEMA';
+    dbg > 1 && cc.tag(msg, '==============');
+    const schema = Identifiable.SCHEMA;
+
+    expect(schema.name).toBe('Identifiable');
+    expect(schema.namespace).toBe('scvoice.nameforma');
+    expect(schema.type).toBe('record');
+    expect(schema.fields).toBeDefined();
+    expect(schema.fields.length).toBe(1);
+    expect(schema.fields[0].name).toBe('id');
+
+    dbg && cc.tag1(msg + UOK, 'SCHEMA correctly defined');
+  });
 });

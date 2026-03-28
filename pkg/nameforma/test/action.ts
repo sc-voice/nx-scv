@@ -5,7 +5,7 @@ import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 
-const { Schema, Action, ActionStatus } = NameForma;
+const { Schema, Action, ActionStatus, FormaCollection } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -70,5 +70,40 @@ describe('Action', () => {
     expect(thing2.status).toBe('done');
     expect(thing2.id.base64).toBe(thing1.id.base64);
     dbg && cc.tag1(msg + UOK, 'Action serialized with avro');
+  });
+
+  it('avro Action[]', () => {
+    const msg = 'ta6n.avro.array';
+    dbg > 1 && cc.tag(msg, '===========');
+
+    // Get schema for Action collection
+    const arraySchema = FormaCollection.schemaOf(Action);
+
+    const registry = {};
+    let type = Schema.register(arraySchema, { avro, registry });
+    dbg > 1 && cc.tag(msg + UOK, 'array schema registered');
+
+    // Create test array of Actions
+    const action1 = new Action({ status: 'done' });
+    const action2 = new Action({ status: 'todo' });
+    const action3 = new Action({ status: 'done' });
+    const actions = [action1, action2, action3];
+
+    dbg > 1 && cc.tag(msg, 'serialize Action array');
+    const buf = type.toBuffer(actions);
+    const parsed = type.fromBuffer(buf);
+
+    // Reconstruct Action instances from parsed data
+    const reconstructed = parsed.map(a => new Action(a));
+
+    expect(reconstructed).toHaveLength(3);
+    expect(reconstructed[0].status).toBe('done');
+    expect(reconstructed[1].status).toBe('todo');
+    expect(reconstructed[2].status).toBe('done');
+    expect(reconstructed[0].id.base64).toBe(action1.id.base64);
+    expect(reconstructed[1].id.base64).toBe(action2.id.base64);
+    expect(reconstructed[2].id.base64).toBe(action3.id.base64);
+
+    dbg && cc.tag1(msg + UOK, 'Action[] serialized with avro');
   });
 });

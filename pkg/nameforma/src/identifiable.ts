@@ -132,6 +132,20 @@ export class Identifiable {
   }
 
   /**
+   * Avro schema for Identifiable record
+   */
+  static get SCHEMA(): any {
+    return {
+      name: 'Identifiable',
+      namespace: 'scvoice.nameforma',
+      type: 'record',
+      fields: [
+        { name: 'id', type: UUID64.avroSchema },
+      ],
+    };
+  }
+
+  /**
    * Create a filter function for fuzzy ID matching with Levenshtein distance.
    *
    * UUID64 base64 structure (UUID64.CHARS total):

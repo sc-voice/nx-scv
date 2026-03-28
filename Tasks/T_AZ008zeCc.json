@@ -1,0 +1,19 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-28T14:57:27Z",
+  "id" : "019D34F3-3782-7000-B582-71BD48B62F6C",
+  "name" : "Set up local Kafka broker for integration testing",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Evaluate and implement local Kafka setup (Docker Compose\/Redpanda\/KRaft) with integration tests for event emission patterns",
+  "updatedAt" : "2026-03-28T14:57:27Z"
+}

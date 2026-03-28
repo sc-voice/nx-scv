@@ -30,9 +30,33 @@ class TestItem {
     const name = cfg.name || id.timeId();
     return new TestItem(id, parentId, name);
   }
+
+  static get SCHEMA() {
+    return {
+      name: 'TestItem',
+      namespace: 'scvoice.nameforma',
+      type: 'record',
+      fields: [
+        { name: 'id', type: UUID64.avroSchema },
+        { name: 'parentId', type: UUID64.avroSchema },
+        { name: 'name', type: 'string' },
+      ],
+    };
+  }
 }
 
 describe('FormaCollection', () => {
+  it('FormaCollection.schemaOf', () => {
+    const msg = 'tfc.schemaOf';
+    const schema = FormaCollection.schemaOf(TestItem);
+
+    expect(schema.name).toBe('TestItemFormaCollection');
+    expect(schema.namespace).toBe('scvoice.nameforma');
+    expect(schema.type).toBe('array');
+    expect(schema.items).toEqual(TestItem.SCHEMA);
+    dbg && cc.ok1(msg + UOK, 'schemaOf generates correct collection schema');
+  });
+
   it('FormaCollection.constructor', () => {
     const msg = 'tfc.ctor';
     const parentId = new UUID64();

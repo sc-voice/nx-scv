@@ -1,0 +1,53 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Add static SCHEMA getter to Identifiable class with id field, namespace scvoice.nameforma",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add static schemaOf(ItemClass) method to FormaCollection returning {ItemType}FormaCollection schema",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update test\/action.ts to use FormaCollection.schemaOf(Action) instead of inline schema",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run tests to verify all pass",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-03-28T12:57:14Z",
+  "id" : "019D3485-277F-7000-8D66-8B40F2ADC33A",
+  "name" : "Add FormaCollection Avro schema support",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+    {
+      "relevance" : 0.95,
+      "text" : "Naming convention: {ItemType}FormaCollection (e.g., ActionFormaCollection)"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Decision: Add SCHEMA to Identifiable (non-breaking, type-safe solution)"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Namespace standard: scvoice.nameforma for all schemas"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "schemaOf() signature: static schemaOf(ItemClass: IFormaItemClass)"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "Avro recommends: namespace as reverse domain, name in PascalCase"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Add SCHEMA to Identifiable and schemaOf() static method to FormaCollection for type-safe Avro serialization of collections",
+  "updatedAt" : "2026-03-28T14:06:27Z"
+}

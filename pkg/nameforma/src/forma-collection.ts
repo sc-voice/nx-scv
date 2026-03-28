@@ -59,6 +59,20 @@ export class FormaCollection<T extends IFormaItem> {
   }
 
   /**
+   * Generate Avro schema for a FormaCollection of a specific item type
+   * @param ItemClass - The item class (e.g., Action, Task)
+   * @returns Avro array schema for the collection
+   */
+  static schemaOf(ItemClass: IFormaItemClass): any {
+    return {
+      name: `${ItemClass.name}FormaCollection`,
+      namespace: 'scvoice.nameforma',
+      type: 'array',
+      items: (ItemClass as any).SCHEMA,
+    };
+  }
+
+  /**
    * Add new item to collection using item's createForParent factory method
    * @param cfg - Item configuration
    * @returns New item
