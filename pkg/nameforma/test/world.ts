@@ -454,7 +454,8 @@ describe('World Serialization - save()/load() methods', () => {
       const json = JSON.parse(data);
 
       expect(json.id).toBeDefined();
-      expect(Object.keys(json)).toEqual(['id']);  // Only id, no worldPath
+      expect(json.numeronym).toBeDefined();
+      expect(Object.keys(json)).toEqual(['id','numeronym']);  // Only id, no worldPath
     });
 
     it('should preserve World id across save', () => {
@@ -563,7 +564,8 @@ describe('World Serialization - save()/load() methods', () => {
       const data = fs.readFileSync(worldFile, 'utf8');
       const json = JSON.parse(data);
       expect(json.id).toBeDefined();
-      expect(Object.keys(json)).toEqual(['id']);
+      expect(json.numeronym).toBeDefined();
+      expect(Object.keys(json).sort()).toEqual(['id', 'numeronym']);
     });
 
     it('should load existing World if world.json exists', () => {
@@ -593,7 +595,8 @@ describe('World Serialization - save()/load() methods', () => {
       const data = fs.readFileSync(worldFile, 'utf8');
       const json = JSON.parse(data);
       expect(json.id).toBe(originalId);
-      expect(Object.keys(json)).toEqual(['id']);
+      expect(json.numeronym).toBeDefined();
+      expect(Object.keys(json).sort()).toEqual(['id', 'numeronym']);
     });
   });
 });

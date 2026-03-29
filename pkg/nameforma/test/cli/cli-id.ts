@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { Command } from 'commander';
 import { validate as validateUUID } from 'uuid';
 import UUID64 from '../../src/uuid64.js';
 import IdCommand from '../../src/cli/cli-id.js';
+import { World } from '../../src/world.js';
 
 describe('CLI: id command', () => {
   let program: Command;
@@ -270,9 +274,9 @@ describe('CLI: id command', () => {
       expect(output).toEqual(['F13n']);
     });
 
-    it('returns "undefined" for numeronym input', async () => {
+    it('returns numeronym as-is for numeronym input', async () => {
       await program.parseAsync(['node', 'test', 'id', 'F13n']);
-      expect(output).toEqual(['undefined']);
+      expect(output).toEqual(['F13n']);
     });
 
     it('generates UUID64 with no arguments', async () => {
@@ -310,6 +314,140 @@ describe('CLI: id command', () => {
       await program.parseAsync(['node', 'test', 'id', '-i', testUuid]);
       expect(output.length).toBe(5);
       expect(output[0]).toContain('UUIDv7');
+    });
+  });
+
+  describe('Numeronym generation with save (-s -n)', () => {
+    let tempDir: string;
+    let worldPath: string;
+
+    beforeEach(() => {
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'id-test-'));
+      worldPath = path.join(tempDir, '.nameforma');
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it('generates and saves numeronym with -s -n', async () => {
+      // Create new program for this test to isolate world directory
+      const testProgram = new Command();
+      testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+      const testIdCmd = testProgram.command('id');
+      IdCommand.register(testIdCmd);
+
+      const testOutput: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args: any[]) => {
+        testOutput.push(args.join(' '));
+      };
+
+      try {
+        // Test with -w before id subcommand
+        await testProgram.parseAsync([
+          'node',
+          'test',
+          '-w',
+          worldPath,
+          'id',
+          '-s',
+          '-n',
+          'FormaCollection',
+        ]);
+
+        // Check output
+        expect(testOutput).toEqual(['F13n']);
+
+        // Check world.json
+        const worldFile = path.join(worldPath, 'world.json');
+        expect(fs.existsSync(worldFile)).toBe(true);
+
+        const data = fs.readFileSync(worldFile, 'utf8');
+        const json = JSON.parse(data);
+        expect(json.numeronym).toBeDefined();
+        expect(json.numeronym['F13n']).toBe('FormaCollection');
+      } finally {
+        console.log = originalLog;
+      }
+    });
+
+    it('uses -w option before command to specify world directory', async () => {
+      const testProgram = new Command();
+      testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+      const testIdCmd = testProgram.command('id');
+      IdCommand.register(testIdCmd);
+
+      const testOutput: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args: any[]) => {
+        testOutput.push(args.join(' '));
+      };
+
+      try {
+        // Global option -w must come BEFORE the command
+        await testProgram.parseAsync([
+          'node',
+          'test',
+          '-w',
+          worldPath,
+          'id',
+          '-s',
+          '-n',
+          'Internationalization',
+        ]);
+
+        const worldFile = path.join(worldPath, 'world.json');
+        expect(fs.existsSync(worldFile)).toBe(true);
+
+        const data = fs.readFileSync(worldFile, 'utf8');
+        const json = JSON.parse(data);
+        expect(json.numeronym['I18n']).toBe('Internationalization');
+      } finally {
+        console.log = originalLog;
+      }
+    });
+
+    it('generates and saves numeronym with --save --numeronym', async () => {
+      const testProgram = new Command();
+      testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+      const testIdCmd = testProgram.command('id');
+      IdCommand.register(testIdCmd);
+
+      const testOutput: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args: any[]) => {
+        testOutput.push(args.join(' '));
+      };
+
+      try {
+        // Test with long form options
+        await testProgram.parseAsync([
+          'node',
+          'test',
+          '-w',
+          worldPath,
+          'id',
+          '--save',
+          '--numeronym',
+          'JavaScript',
+        ]);
+
+        // Check output
+        expect(testOutput).toEqual(['J8t']);
+
+        // Check world.json
+        const worldFile = path.join(worldPath, 'world.json');
+        expect(fs.existsSync(worldFile)).toBe(true);
+
+        const data = fs.readFileSync(worldFile, 'utf8');
+        const json = JSON.parse(data);
+        expect(json.numeronym['J8t']).toBe('JavaScript');
+      } finally {
+        console.log = originalLog;
+      }
     });
   });
 });

@@ -28,22 +28,45 @@ import FormaCommand from './cli-forma.js';
 import SchemaCommand from './cli-schema.js';
 import IdCommand from './cli-id.js';
 
-// Preprocess argv to move -h/--help to the end so it applies to the deepest command
+// Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
+  const globalOptions = ['-w', '--world', '-d', '--debug'];
   const helpFlags = ['-h', '--help'];
-  const withoutHelp: string[] = [];
+  const globalArgs: string[] = [];
+  const commandArgs: string[] = [];
   let helpFlag: string | null = null;
+  let foundCommand = false;
 
   for (let i = 2; i < argv.length; i++) {
-    if (helpFlags.includes(argv[i])) {
-      helpFlag = argv[i];
-    } else {
-      withoutHelp.push(argv[i]);
+    const arg = argv[i];
+
+    // Check if it's a help flag
+    if (helpFlags.includes(arg)) {
+      helpFlag = arg;
+      continue;
     }
+
+    // Check if it's a global option (with or without value)
+    if (globalOptions.includes(arg)) {
+      globalArgs.push(arg);
+      // If it takes a value, include the next arg
+      if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
+        globalArgs.push(argv[++i]);
+      }
+      continue;
+    }
+
+    // First non-option arg is the command
+    if (!foundCommand && !arg.startsWith('-')) {
+      foundCommand = true;
+    }
+
+    commandArgs.push(arg);
   }
 
-  // Return argv with help flag moved to the end
-  return helpFlag ? [...argv.slice(0, 2), ...withoutHelp, helpFlag] : argv;
+  // Return argv with global options before command and help flag at the end
+  const result = [...argv.slice(0, 2), ...globalArgs, ...commandArgs];
+  return helpFlag ? [...result, helpFlag] : result;
 }
 
 const program = new Command();
@@ -62,6 +85,7 @@ program
   .addHelpText('after', '\n' + helpText);
 
 program
+  .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
   .option('-d, --debug', 'Enable debug output')
   .hook('preAction', (thisCommand: any) => {
     if (thisCommand.optsWithGlobals().debug) {

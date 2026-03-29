@@ -395,7 +395,7 @@ export class World extends Identifiable {
 
   /**
    * Serialize World to JSON
-   * Only stores id and numeronym - worldPath is inferred from file location
+   * Only stores enumerable fields 
    * @returns {object} - JSON representation
    */
   toJSON(): any {

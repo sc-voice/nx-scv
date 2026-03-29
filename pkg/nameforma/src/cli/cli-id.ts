@@ -5,11 +5,23 @@
  * Validates ID types
  */
 
+import path from 'path';
 import { validate as validateUUID } from 'uuid';
 import { Identifiable } from '../identifiable.js';
+import { World } from '../world.js';
 import UUID64 from '../uuid64.js';
 
 export default class IdCommand {
+  /**
+   * Get or create world instance for saving numeronyms
+   * @param {string} worldPath - Optional path to .nameforma directory
+   * @returns {World} - World instance
+   */
+  static getWorld(worldPath?: string): World {
+    let resolvedPath = worldPath || World.findWorld() || path.join(process.cwd(), '.nameforma');
+    return World.fromPath(resolvedPath);
+  }
+
   /**
    * Validate an ID and return its type
    * @param id - The ID to validate
@@ -53,8 +65,10 @@ export default class IdCommand {
       .option('-7, --uuidv7', 'Generate a new UUIDv7 identifier')
       .option('-v, --validate', 'Validate an ID and return its type')
       .option('-g, --generate [count]', 'Generate N UUIDs (default: 1)')
+      .option('-s, --save', 'Save numeronym to world')
       .option('-i, --inspect', 'Inspect a numeronym, UUID64 or UUIDv7')
       .action((words: string[], options: any, cmd: any) => {
+        const worldPath = cmd.parent?.optsWithGlobals()?.world;
         try {
           // If --inspect flag is set, inspect the ID or generate and inspect new UUID64
           if (options.inspect) {
@@ -69,8 +83,15 @@ export default class IdCommand {
 
               // Check if it's a numeronym first
               if (Identifiable.isNumeronym(words[0])) {
+                const world = IdCommand.getWorld(worldPath);
+                const numeronymMap = world.getNumeronym();
+                const word = numeronymMap.get(words[0]);
+
                 console.log(`Type: numeronym`);
                 console.log(`Value: ${words[0]}`);
+                if (word) {
+                  console.log(`Word: ${word}`);
+                }
               } else {
                 // Try to parse as UUID
                 try {
@@ -98,9 +119,46 @@ export default class IdCommand {
             return;
           }
 
+          // If --save flag is set with --numeronym, save and generate numeronym
+          if (options.save) {
+            if (!options.numeronym) {
+              console.error('✗ Error: -n/--numeronym required with -s/--save');
+              process.exit(1);
+            }
+            if (!words || words.length === 0) {
+              console.error('✗ Error: Word required for numeronym generation');
+              process.exit(1);
+            }
+            if (words.length > 1) {
+              console.error('✗ Error: Single word expected for numeronym generation');
+              process.exit(1);
+            }
+
+            const word = words[0];
+            const numeronym = Identifiable.numeronym(word);
+            if (numeronym === undefined) {
+              console.error(`✗ Error: cannot create valid numeronym from "${word}"`);
+              process.exit(1);
+            }
+
+            // Save to world
+            const world = IdCommand.getWorld(worldPath);
+            const numeronymMap = world.getNumeronym();
+            numeronymMap.set(numeronym, word);
+            world.setNumeronym(numeronymMap);
+            world.save();
+
+            console.log(numeronym);
+            return;
+          }
+
           // If --generate flag is set, generate N UUIDs
           if (options.generate !== undefined) {
             const count = options.generate === true ? 1 : Number(options.generate);
+            if (isNaN(count) || count < 0) {
+              console.error(`✗ Error: invalid count for -g: ${options.generate}`);
+              process.exit(1);
+            }
             for (let i = 0; i < count; i++) {
               const uuid = new UUID64();
               console.log(uuid.base64);
@@ -175,7 +233,7 @@ export default class IdCommand {
             });
             console.log(numeronyms.join(' '));
           } else {
-            // Default: single word conversion or return "undefined" for numeronyms
+            // Default: single word conversion or return numeronym as-is
             if (words.length > 1) {
               console.error('✗ Error: Single word expected. Use --numeronym to convert multiple words');
               process.exit(1);
@@ -183,8 +241,8 @@ export default class IdCommand {
 
             // Try to identify if it's a numeronym
             if (Identifiable.isNumeronym(words[0])) {
-              // It's a numeronym - return undefined
-              console.log('undefined');
+              // It's a numeronym - return it as-is
+              console.log(words[0]);
             } else {
               // Try to convert to numeronym
               try {
