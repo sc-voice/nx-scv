@@ -1,0 +1,47 @@
+#!/bin/bash
+# Stop Tansu Kafka broker
+
+set -e
+
+# Check if PID file exists
+if [ ! -f local/tansu.pid ]; then
+    echo "No Tansu PID file found."
+
+    # Try to find running tansu process anyway
+    if pgrep -x "tansu" > /dev/null; then
+        echo "Found running Tansu process, stopping..."
+        pkill -x "tansu"
+        echo "Tansu stopped"
+    else
+        echo "Tansu is not running."
+    fi
+    exit 0
+fi
+
+# Read PID and check if process is running
+PID=$(cat local/tansu.pid)
+
+if ps -p $PID > /dev/null 2>&1; then
+    echo "Stopping Tansu (PID: $PID)..."
+    kill $PID
+
+    # Wait for process to stop
+    timeout=10
+    elapsed=0
+    while [ $elapsed -lt $timeout ]; do
+        if ! ps -p $PID > /dev/null 2>&1; then
+            echo "Tansu stopped"
+            rm -f local/tansu.pid
+            exit 0
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+
+    # Force kill if still running
+    echo "Force stopping Tansu..."
+    kill -9 $PID 2>/dev/null || true
+fi
+
+rm -f local/tansu.pid
+echo "Tansu stopped"

@@ -1,19 +1,104 @@
 {
   "completedActions" : [
-
+    {
+      "name" : "Check current state of nx-nameforma project and identify Kafka integration points",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Evaluate Docker Compose vs Redpanda vs KRaft mode for local development",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Decide Tansu volume mount location (.\/local\/tansu-data or other)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Define integration test scope (producer-only, consumer, topics)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Decide npm script naming (kafka: vs tansu:, test:integration scope)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Choose documentation location (KAFKA.md, README.md, or doc\/)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Clarify expected production Kafka setup for migration path",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Research Tansu actual installation method (Cargo, not Docker)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Install kafkajs dependency (production, not dev)",
+      "test" : "verify kafkajs in package.json dependencies"
+    },
+    {
+      "name" : "Add npm scripts: tansu:install, tansu:start, tansu:stop, test:integration",
+      "test" : "verify npm run tansu:start works"
+    },
+    {
+      "name" : "Create pkg\/nameforma\/test\/kafka.integration.ts with FormaCollection Avro serialization tests",
+      "test" : "verify integration test runs and passes when Kafka available"
+    },
+    {
+      "name" : "Update vitest config to filter integration tests from unit tests",
+      "test" : "verify npm test excludes integration tests by default"
+    },
+    {
+      "name" : "Document Tansu setup and usage in doc\/tansu.md with README.md reference",
+      "test" : "verify documentation covers setup, usage, and migration path"
+    },
+    {
+      "name" : "Rewrite tansu-install for Cargo-based installation",
+      "test" : "verify tansu:install works"
+    },
+    {
+      "name" : "Rewrite tansu-start to run binary (defaults to port 9092)",
+      "test" : "verify tansu:start works and is idempotent"
+    },
+    {
+      "name" : "Rewrite tansu-stop to kill tansu process",
+      "test" : "verify tansu:stop works"
+    },
+    {
+      "name" : "Create complete Tansu setup documentation in doc\/tansu.md",
+      "test" : "verify documentation covers all setup and troubleshooting"
+    },
+    {
+      "name" : "Test complete flow: install→start→integration tests→stop",
+      "test" : "all integration tests pass"
+    }
   ],
   "createdAt" : "2026-03-28T14:57:27Z",
   "id" : "019D34F3-3782-7000-B582-71BD48B62F6C",
   "name" : "Set up local Kafka broker for integration testing",
   "plannedActions" : [
-
   ],
   "references" : [
-
+    {
+      "relevance" : 1,
+      "text" : "Migration path: Package users run tansu:start for local dev. Production Kafka setup deferred. Focus docs on local Tansu usage."
+    },
+    {
+      "relevance" : 1,
+      "text" : "Full round-trip test: Producer → Kafka → Replicating consumer with verification. World extends Identifiable, topic naming: world-${id}"
+    },
+    {
+      "relevance" : 1,
+      "text" : "npm scripts: tansu:start (idempotent), tansu:stop, test:integration (calls tansu:start then runs tests). Reserves kafka: prefix for future use."
+    },
+    {
+      "relevance" : 1,
+      "text" : "Documentation: Create doc\/tansu.md (dedicated Tansu setup guide) and add reference in README.md. Avoids confusion with kafka1.md."
+    }
   ],
   "requiredTasks" : [
 
   ],
   "summary" : "Evaluate and implement local Kafka setup (Docker Compose\/Redpanda\/KRaft) with integration tests for event emission patterns",
-  "updatedAt" : "2026-03-28T14:57:27Z"
+  "updatedAt" : "2026-03-28T22:12:06Z"
 }

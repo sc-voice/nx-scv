@@ -25,6 +25,9 @@ NameForma is world model for human/agentic use based on Kafka.
 ### Kafka1 (Mock Kafka)
 - In-memory Kafka implementation compatible with kafkajs API. See [kafka1.md](kafka1.md)
 
+### Tansu (Local Kafka)
+- Lightweight SQLite-based Kafka broker for local development and integration testing. See [doc/tansu.md](doc/tansu.md)
+
 ## Dependencies
 
 ```

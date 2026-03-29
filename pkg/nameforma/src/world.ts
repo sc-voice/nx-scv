@@ -11,18 +11,24 @@ const { cc } = ColorConsole;
 const { WORLD } = DBG;
 
 /**
- * Abstract World class manages persistent entity storage in .nameforma/ directory
+ * World class manages persistent entity storage in .nameforma/ directory
+ * World is a singleton that maintains local preferences and is
+ * client-serializable using fromPath() to deserialize.
+ * 
  * Storage structure: .nameforma/{entity}/{id}.json
  */
-export class World {
+export class World extends Identifiable {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
 
   /**
-   * Create or load a World at the given path
+   * Create a World at the given path with optional id
    * @param {string} worldPath - Path to .nameforma/ directory
+   * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
-  constructor(worldPath: string) {
+  constructor(worldPath: string, id?: UUID64 | string) {
+    super(id);
+
     const msg = 'world.ctor';
     const dbg = WORLD?.CTOR;
 
@@ -288,5 +294,58 @@ export class World {
    */
   get worldPath(): string {
     return this.#worldPath;
+  }
+
+  /**
+   * Load or create World from path
+   * Reads .nameforma/world.json if exists, otherwise creates new World
+   * @param {string} worldPath - Path to .nameforma/ directory
+   * @returns {World} - World instance with persistent or new id
+   */
+  static fromPath(worldPath: string): World {
+    const msg = 'world.fromPath';
+    const dbg = WORLD?.CTOR;
+
+    const worldFile = path.join(worldPath, 'world.json');
+
+    if (fs.existsSync(worldFile)) {
+      const data = fs.readFileSync(worldFile, 'utf8');
+      const json = JSON.parse(data);
+      dbg && cc.ok1(msg, `loaded ${worldFile}`);
+      return World.fromJson(json);
+    }
+
+    // Create new World
+    const world = new World(worldPath);
+
+    // Save world.json with generated id
+    const worldData = JSON.stringify(world.toJSON(), null, 2);
+    fs.writeFileSync(worldFile, worldData, 'utf8');
+    dbg && cc.ok1(msg, `created ${worldFile}`);
+
+    return world;
+  }
+
+  /**
+   * Serialize World to JSON
+   * @returns {object} - JSON representation
+   */
+  toJSON(): any {
+    return {
+      id: this.id,
+      worldPath: this.#worldPath,
+    };
+  }
+
+  /**
+   * Deserialize World from JSON
+   * @param {object} data - JSON data
+   * @returns {World} - World instance
+   */
+  static fromJson(data: any): World {
+    if (!data.worldPath) {
+      throw new Error('World.fromJson: missing worldPath');
+    }
+    return new World(data.worldPath, data.id);
   }
 }

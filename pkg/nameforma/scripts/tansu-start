@@ -1,0 +1,45 @@
+#!/bin/bash
+# Start Tansu Kafka broker
+# Exits successfully even if Tansu not installed (allows tests to skip gracefully)
+
+set -e
+
+# Check if Tansu is installed
+if ! command -v tansu &> /dev/null; then
+    echo "Tansu not installed. Run 'npm run tansu:install' first."
+    echo "Or install manually: cargo install tansu --features libsql"
+    exit 0  # Success exit - allows npm scripts to continue
+fi
+
+# Check if Tansu is already running
+if pgrep -x "tansu" > /dev/null; then
+    echo "Tansu is already running on port 9092"
+    exit 0
+fi
+
+# Create data directory if it doesn't exist
+mkdir -p local/tansu-data
+
+# Start Tansu in background
+echo "Starting Tansu Kafka broker on port 9092..."
+nohup tansu --storage-engine=sqlite://local/tansu-data/tansu.db > local/tansu.log 2>&1 &
+
+# Save PID
+echo $! > local/tansu.pid
+
+# Wait for Tansu to be ready
+echo "Waiting for Tansu to be ready..."
+timeout=30
+elapsed=0
+while [ $elapsed -lt $timeout ]; do
+    if nc -z localhost 9092 2>/dev/null; then
+        echo "Tansu is ready on port 9092 (PID: $(cat local/tansu.pid))"
+        exit 0
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+done
+
+echo "Warning: Tansu health check timeout after ${timeout}s"
+echo "Check logs: local/tansu.log"
+exit 0  # Still exit success to allow tests to attempt connection

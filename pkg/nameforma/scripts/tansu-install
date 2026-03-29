@@ -1,0 +1,58 @@
+#!/bin/bash
+# One-time setup for Tansu Kafka broker development environment
+# Run this after cloning the repository to prepare for integration testing
+
+set -e
+
+echo "=== Tansu Installation Check ==="
+echo
+
+# Check if Cargo is installed
+if ! command -v cargo &> /dev/null; then
+    echo "ERROR: Cargo (Rust package manager) not installed."
+    echo
+    echo "Please install Rust/Cargo from:"
+    echo "  https://rustup.rs"
+    echo
+    echo "Or run:"
+    echo "  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    echo
+    echo "After installation:"
+    echo "  1. Restart your terminal (to update PATH)"
+    echo "  2. Run 'npm run tansu:install' again"
+    exit 1
+fi
+
+echo "✓ Cargo is installed"
+
+# Install Tansu with SQLite support
+echo
+echo "Installing Tansu with SQLite support..."
+echo "This may take several minutes..."
+cargo install tansu --features libsql
+
+echo "✓ Tansu installed"
+
+# Verify installation
+if ! command -v tansu &> /dev/null; then
+    echo "ERROR: Tansu binary not found in PATH"
+    echo "Check that ~/.cargo/bin is in your PATH"
+    exit 1
+fi
+
+echo "✓ Tansu binary available"
+
+# Create data directory
+echo
+echo "Creating local data directory..."
+mkdir -p local/tansu-data
+
+echo "✓ Data directory created: local/tansu-data"
+
+echo
+echo "=== Tansu Installation Complete ==="
+echo
+echo "You can now:"
+echo "  • Start Tansu:  npm run tansu:start"
+echo "  • Stop Tansu:   npm run tansu:stop"
+echo "  • Run tests:    npm run test:integration"
