@@ -166,10 +166,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
     }
   });
 
-  describe('save()', () => {
+  describe('saveEntity()', () => {
     it('should save entity to disk with entity type directory', () => {
       const entity = new MockEntity({ name: 'test-entity' });
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
 
       const filePath = path.join(worldPath, 'mock', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -180,7 +180,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const mockDir = path.join(worldPath, 'mock');
 
       expect(fs.existsSync(mockDir)).toBe(false);
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
       expect(fs.existsSync(mockDir)).toBe(true);
     });
 
@@ -188,12 +188,12 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const entity = new MockEntity({ name: 'test-entity' });
       const badEntity = { name: 'test-entity', id: null };
 
-      expect(() => world.save('mock', badEntity)).toThrow(/entity missing id/);
+      expect(() => world.saveEntity('mock', badEntity)).toThrow(/entity missing id/);
     });
 
     it('should store valid JSON that can be parsed', () => {
       const entity = new MockEntity({ name: 'test-entity' });
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
 
       const filePath = path.join(worldPath, 'mock', `${entity.id}.json`);
       const data = fs.readFileSync(filePath, 'utf8');
@@ -207,7 +207,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
   describe('loadEntity()', () => {
     it('should load entity by exact UUID64', () => {
       const original = new MockEntity({ name: 'test-entity' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const loaded = world.loadEntity(MockEntity, original.id);
 
@@ -218,7 +218,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should load entity by UUID64 string', () => {
       const original = new MockEntity({ name: 'test-entity' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const idStr = original.id.toString();
       const loaded = world.loadEntity(MockEntity, idStr);
@@ -241,7 +241,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should reconstruct id as UUID64 POJO', () => {
       const original = new MockEntity({ name: 'test-entity' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const loaded = world.loadEntity(MockEntity, original.id);
 
@@ -253,7 +253,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
   describe('loadFuzzy() - Default Levenshtein Behavior', () => {
     it('should match exact full UUID64 (default levenshtein = searchId.length)', () => {
       const original = new MockEntity({ name: 'exact-match' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const idStr = original.id.toString();
       const loaded = world.loadFuzzy(MockEntity, idStr);
@@ -264,7 +264,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should match partial UUID64 with default levenshtein', () => {
       const original = new MockEntity({ name: 'partial-match' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 8);
@@ -276,7 +276,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should return null if no match found', () => {
       const entity = new MockEntity({ name: 'test' });
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
 
       const loaded = world.loadFuzzy(MockEntity, 'nonexistent-id');
 
@@ -288,8 +288,8 @@ describe('World Storage - Save, Load, List, Delete', () => {
       // UUID64 base64 uses specific characters; we search with a character that appears in both
       const e1 = new MockEntity({ name: 'entity1' });
       const e2 = new MockEntity({ name: 'entity2' });
-      world.save('mock', e1);
-      world.save('mock', e2);
+      world.saveEntity('mock', e1);
+      world.saveEntity('mock', e2);
 
       // Use a single character that both UUIDs likely contain (fuzzy matching with levenshtein=1)
       // This should match both entities and throw ambiguous error
@@ -300,7 +300,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should use searchId.length as default levenshtein', () => {
       const original = new MockEntity({ name: 'fuzzy-test' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 10);
@@ -313,7 +313,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
   describe('loadFuzzy() - Custom Levenshtein', () => {
     it('should accept explicit levenshtein parameter', () => {
       const original = new MockEntity({ name: 'custom-lev' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 5);
@@ -324,7 +324,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should throw if levenshtein out of range', () => {
       const entity = new MockEntity({ name: 'test' });
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
 
       expect(() =>
         world.loadFuzzy(MockEntity, 'search', 999)
@@ -335,7 +335,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
   describe('loadFuzzy() - Case Insensitivity', () => {
     it('should match case-insensitively by default', () => {
       const original = new MockEntity({ name: 'case-test' });
-      world.save('mock', original);
+      world.saveEntity('mock', original);
 
       const idStr = original.id.toString();
       const uppercase = idStr.toUpperCase().substring(0, 8);
@@ -356,9 +356,9 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const e2 = new MockEntity({ name: 'entity2' });
       const e3 = new MockEntity({ name: 'entity3' });
 
-      world.save('mock', e1);
-      world.save('mock', e2);
-      world.save('mock', e3);
+      world.saveEntity('mock', e1);
+      world.saveEntity('mock', e2);
+      world.saveEntity('mock', e3);
 
       const entities = world.list('mock');
       expect(entities.length).toBe(3);
@@ -371,7 +371,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should return parsed JSON objects', () => {
       const entity = new MockEntity({ name: 'test-entity' });
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
 
       const entities = world.list('mock');
       expect(entities[0].name).toBe('test-entity');
@@ -382,7 +382,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
   describe('delete()', () => {
     it('should delete entity file from disk', () => {
       const entity = new MockEntity({ name: 'delete-me' });
-      world.save('mock', entity);
+      world.saveEntity('mock', entity);
 
       const filePath = path.join(worldPath, 'mock', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -399,14 +399,201 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const e1 = new MockEntity({ name: 'keep' });
       const e2 = new MockEntity({ name: 'delete' });
 
-      world.save('mock', e1);
-      world.save('mock', e2);
+      world.saveEntity('mock', e1);
+      world.saveEntity('mock', e2);
 
       world.delete('mock', e2.id.toString());
 
       const entities = world.list('mock');
       expect(entities.length).toBe(1);
       expect(entities[0].name).toBe('keep');
+    });
+  });
+});
+
+describe('World Serialization - save()/load() methods', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let world: World;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    world = new World(worldPath);
+    world.register(MockEntity);
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  describe('save()', () => {
+    it('should save World state to world.json', () => {
+      const worldFile = path.join(worldPath, 'world.json');
+      world.save();
+
+      expect(fs.existsSync(worldFile)).toBe(true);
+    });
+
+    it('should create .nameforma directory if missing', () => {
+      // Remove the world directory
+      fs.rmSync(worldPath, { recursive: true, force: true });
+      expect(fs.existsSync(worldPath)).toBe(false);
+
+      world.save();
+      expect(fs.existsSync(worldPath)).toBe(true);
+    });
+
+    it('should write correct JSON format with only id', () => {
+      world.save();
+
+      const worldFile = path.join(worldPath, 'world.json');
+      const data = fs.readFileSync(worldFile, 'utf8');
+      const json = JSON.parse(data);
+
+      expect(json.id).toBeDefined();
+      expect(Object.keys(json)).toEqual(['id']);  // Only id, no worldPath
+    });
+
+    it('should preserve World id across save', () => {
+      const originalId = world.id.toString();
+      world.save();
+
+      const worldFile = path.join(worldPath, 'world.json');
+      const data = fs.readFileSync(worldFile, 'utf8');
+      const json = JSON.parse(data);
+
+      expect(json.id).toBe(originalId);
+    });
+  });
+
+  describe('load()', () => {
+    it('should load and verify world.json exists and is valid', () => {
+      world.save();
+
+      // Create a new World instance at same path (with different id)
+      const world2 = new World(worldPath);
+      const world2Id = world2.id.toString();
+
+      // load() should not fail
+      expect(() => world2.load()).not.toThrow();
+
+      // world2 keeps its own id (load doesn't change it)
+      expect(world2.id.toString()).toBe(world2Id);
+    });
+
+    it('should return this for method chaining', () => {
+      world.save();
+
+      const world2 = new World(worldPath);
+      const result = world2.load();
+
+      expect(result).toBe(world2);
+    });
+
+    it('should throw Error if world.json does not exist', () => {
+      const world2 = new World(worldPath);
+
+      expect(() => world2.load()).toThrow(/world.json not found/);
+    });
+
+    it('should throw Error if world.json missing id', () => {
+      world.save();
+
+      // Corrupt the world.json file to remove id
+      const worldFile = path.join(worldPath, 'world.json');
+      fs.writeFileSync(worldFile, '{}', 'utf8');
+
+      const world2 = new World(worldPath);
+
+      expect(() => world2.load()).toThrow(/world.json missing id/);
+    });
+
+    it('should let JSON parse errors throw naturally', () => {
+      world.save();
+
+      // Corrupt the world.json file
+      const worldFile = path.join(worldPath, 'world.json');
+      fs.writeFileSync(worldFile, 'invalid json {', 'utf8');
+
+      const world2 = new World(worldPath);
+
+      expect(() => world2.load()).toThrow();
+    });
+  });
+
+  describe('round-trip: save() then load()', () => {
+    it('should allow save/load cycle without errors', () => {
+      // Save world state
+      world.save();
+
+      // Load into new instance at same path
+      const world2 = new World(worldPath);
+      expect(() => world2.load()).not.toThrow();
+    });
+
+    it('should preserve entity data across save/load cycle', () => {
+      const entity = new MockEntity({ name: 'test-entity' });
+      world.saveEntity('mock', entity);
+
+      // Save and load world
+      world.save();
+
+      const world2 = new World(worldPath);
+      world2.register(MockEntity);
+      world2.load();
+
+      // Verify entity can still be loaded (entities are stored separately)
+      const loaded = world2.loadEntity(MockEntity, entity.id);
+      expect(loaded).not.toBeNull();
+      expect(loaded?.name).toBe('test-entity');
+    });
+  });
+
+  describe('fromPath() integration', () => {
+    it('should create and save new World if world.json does not exist', () => {
+      const world2 = World.fromPath(worldPath);
+
+      const worldFile = path.join(worldPath, 'world.json');
+      expect(fs.existsSync(worldFile)).toBe(true);
+
+      // Verify world.json has only id (no worldPath)
+      const data = fs.readFileSync(worldFile, 'utf8');
+      const json = JSON.parse(data);
+      expect(json.id).toBeDefined();
+      expect(Object.keys(json)).toEqual(['id']);
+    });
+
+    it('should load existing World if world.json exists', () => {
+      // Create and save initial world
+      const originalId = world.id.toString();
+      world.save();
+
+      // Use fromPath to load it
+      const world2 = World.fromPath(worldPath);
+
+      expect(world2.id.toString()).toBe(originalId);
+    });
+
+    it('should not overwrite existing world.json on fromPath', () => {
+      // Create and save initial world
+      const originalId = world.id.toString();
+      world.save();
+
+      // Use fromPath to load (should not overwrite)
+      const world2 = World.fromPath(worldPath);
+
+      // Verify the loaded world has same id
+      expect(world2.id.toString()).toBe(originalId);
+
+      // Verify world.json still has original id and only id (no worldPath)
+      const worldFile = path.join(worldPath, 'world.json');
+      const data = fs.readFileSync(worldFile, 'utf8');
+      const json = JSON.parse(data);
+      expect(json.id).toBe(originalId);
+      expect(Object.keys(json)).toEqual(['id']);
     });
   });
 });

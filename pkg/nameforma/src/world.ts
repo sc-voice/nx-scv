@@ -20,6 +20,7 @@ const { WORLD } = DBG;
 export class World extends Identifiable {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
+  #numeronym: Map<string, string> = new Map();
 
   /**
    * Create a World at the given path with optional id
@@ -108,7 +109,7 @@ export class World extends Identifiable {
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {object} entity - Entity with id
    */
-  save(entityType: string, entity: any): void {
+  saveEntity(entityType: string, entity: any): void {
     const msg = 'world.save';
     const dbg = WORLD?.SAVE;
 
@@ -130,6 +131,56 @@ export class World extends Identifiable {
     fs.writeFileSync(filePath, data, 'utf8');
 
     dbg && cc.ok1(msg, `saved ${filePath}`);
+  }
+
+  /**
+   * Save World state to world.json
+   * Creates .nameforma/ directory if missing
+   */
+  save(): void {
+    const msg = 'world.save';
+    const dbg = WORLD?.SAVE;
+
+    // Ensure .nameforma directory exists
+    if (!fs.existsSync(this.#worldPath)) {
+      fs.mkdirSync(this.#worldPath, { recursive: true });
+      dbg && cc.ok1(msg, `created ${this.#worldPath}`);
+    }
+
+    const worldFile = path.join(this.#worldPath, 'world.json');
+    const data = JSON.stringify(this.toJSON(), null, 2);
+    fs.writeFileSync(worldFile, data, 'utf8');
+
+    dbg && cc.ok1(msg, `saved ${worldFile}`);
+  }
+
+  /**
+   * Load World state from world.json
+   * Validates that world.json exists and contains valid id.
+   * @returns {World} - Returns this for method chaining
+   * @throws {Error} - If world.json does not exist or is invalid
+   */
+  load(): World {
+    const msg = 'world.load';
+    const dbg = WORLD?.LOAD;
+
+    const worldFile = path.join(this.#worldPath, 'world.json');
+
+    if (!fs.existsSync(worldFile)) {
+      throw new Error(`${msg}: world.json not found at ${worldFile}`);
+    }
+
+    const data = fs.readFileSync(worldFile, 'utf8');
+    const json = JSON.parse(data);
+
+    // Verify id exists in loaded data
+    if (!json.id) {
+      throw new Error(`${msg}: world.json missing id`);
+    }
+
+    dbg && cc.ok1(msg, `loaded ${worldFile}`);
+
+    return this;
   }
 
   /**
@@ -312,7 +363,7 @@ export class World extends Identifiable {
       const data = fs.readFileSync(worldFile, 'utf8');
       const json = JSON.parse(data);
       dbg && cc.ok1(msg, `loaded ${worldFile}`);
-      return World.fromJson(json);
+      return World.fromJson(json, worldPath);
     }
 
     // Create new World
@@ -327,25 +378,54 @@ export class World extends Identifiable {
   }
 
   /**
+   * Get numeronym map
+   * @returns {Map<string, string>} - Map of numeronyms
+   */
+  getNumeronym(): Map<string, string> {
+    return this.#numeronym;
+  }
+
+  /**
+   * Set numeronym map
+   * @param {Map<string, string>} numeronym - Map of numeronyms
+   */
+  setNumeronym(numeronym: Map<string, string>): void {
+    this.#numeronym = numeronym;
+  }
+
+  /**
    * Serialize World to JSON
+   * Only stores id and numeronym - worldPath is inferred from file location
    * @returns {object} - JSON representation
    */
   toJSON(): any {
     return {
       id: this.id,
-      worldPath: this.#worldPath,
+      numeronym: Object.fromEntries(this.#numeronym),
     };
   }
 
   /**
    * Deserialize World from JSON
-   * @param {object} data - JSON data
-   * @returns {World} - World instance
+   * @param {object} data - JSON data with id and optional numeronym
+   * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
+   * @returns {World} - World instance with worldPath set to baseDir
    */
-  static fromJson(data: any): World {
-    if (!data.worldPath) {
-      throw new Error('World.fromJson: missing worldPath');
+  static fromJson(data: any, baseDir?: string): World {
+    if (!data.id) {
+      throw new Error('World.fromJson: missing id');
     }
-    return new World(data.worldPath, data.id);
+
+    // worldPath is the directory containing world.json
+    const worldPath = baseDir || '.';
+
+    const world = new World(worldPath, data.id);
+
+    // Restore numeronym map if present
+    if (data.numeronym && typeof data.numeronym === 'object') {
+      world.#numeronym = new Map(Object.entries(data.numeronym));
+    }
+
+    return world;
   }
 }

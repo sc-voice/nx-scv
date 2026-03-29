@@ -39,7 +39,7 @@ export default class TaskCommand {
       }
     }
 
-    const world = new World(worldPath);
+    const world = World.fromPath(worldPath);
     world.register(Task);
     return world;
   }
@@ -90,7 +90,7 @@ export default class TaskCommand {
         }
 
         const task = new Task(taskConfig);
-        world.save('task', task);
+        world.saveEntity('task', task);
 
         console.log(`✓ Task created: ${task.id}`);
         console.log(`  ${task.toString()}`);
@@ -176,7 +176,7 @@ export default class TaskCommand {
         }
 
         task.patch(updates);
-        world.save('task', task);
+        world.saveEntity('task', task);
 
         console.log(`✓ Task updated: ${task.id}`);
         console.log(`  ${task.toString()}`);

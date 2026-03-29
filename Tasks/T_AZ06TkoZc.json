@@ -1,0 +1,109 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-03-29T15:55:02Z",
+  "id" : "019D3A4E-4A19-7000-9688-B4C869237BBB",
+  "name" : "Refactor World serialization",
+  "plannedActions" : [
+    {
+      "name" : "Rename save() to saveEntity() in world.ts:111",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update 2 calls in cli-task.ts:93,179 to use saveEntity()",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update 23 calls in test\/world.ts to use saveEntity()",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run npm run test to verify renamed saveEntity() works",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add save() method after world.ts:133 to serialize World to world.json",
+      "test" : "Auto-creates .nameforma\/ if missing, writes this.toJSON() to .nameforma\/world.json, includes debug logging with WORLD?.SAVE flag"
+    },
+    {
+      "name" : "Test new save() method writes to .nameforma\/world.json with correct format",
+      "test" : "Verify auto-creation of .nameforma\/ directory and correct JSON format"
+    },
+    {
+      "name" : "Add load() method to deserialize World from world.json",
+      "test" : "Throws Error if world.json missing, returns this after Object.assign(this, World.fromJson(data)), includes debug logging with WORLD?.LOAD flag, lets parse errors throw"
+    },
+    {
+      "name" : "Test new load() returns this when world.json exists and loads data correctly",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Test new load() throws Error when world.json does not exist",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Test round-trip: world.save() then world.load() preserves id and worldPath",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update cli-task.ts:42 to use World.fromPath() to load existing world.json",
+      "test" : "Ensures CLI loads existing World state, making save()\/load() methods functional"
+    },
+    {
+      "name" : "Run full test suite: npm run test to verify no regressions",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 1,
+      "text" : "CRITICAL: cli-task.ts:42 must use World.fromPath() - without it, save()\/load() methods are never used by CLI"
+    },
+    {
+      "relevance" : 1,
+      "text" : "Implementation decisions: Let parse errors throw (aids debugging), add debug logging with WORLD?.SAVE\/LOAD flags"
+    },
+    {
+      "relevance" : 1,
+      "text" : "New load() is instance method with no args: load(): World - throws Error if file missing, returns this after loading data when file exists"
+    },
+    {
+      "relevance" : 1,
+      "text" : "New save() is instance method with no args: save(): void - auto-creates .nameforma\/ if missing, writes this.toJSON() to .nameforma\/world.json"
+    },
+    {
+      "relevance" : 1,
+      "text" : "fromPath() at world.ts:305-327 only writes world.json on creation (line 323), not on load - need explicit save() for updates"
+    },
+    {
+      "relevance" : 1,
+      "text" : "Confirmed usage: 2 save() calls in cli-task.ts (lines 93, 179), 23 calls in test\/world.ts, total 25 direct calls"
+    },
+    {
+      "relevance" : 1,
+      "text" : "load() behavior clarified: throws Error if world.json missing (corruption state), returns this after Object.assign(), always returns this (never null)"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "toJSON() at world.ts:333-338 serializes id and worldPath only"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "entityRegistry should NOT be serialized - rebuilt at runtime via register() calls"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "fromJson() at world.ts:345-350 deserializes World from {id, worldPath}"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "File location: .nameforma\/world.json (already standardized)"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Rename save() to saveEntity() and add explicit save()\/load() methods for World state",
+  "updatedAt" : "2026-03-29T17:52:37Z"
+}
