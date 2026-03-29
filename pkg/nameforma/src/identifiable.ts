@@ -132,6 +132,46 @@ export class Identifiable {
   }
 
   /**
+   * Convert a word to numeronym format.
+   * Format: [first letter][count of middle letters][last letter]
+   * Example: "FormaCollection" -> "F13n"
+   *
+   * @param word - The word to convert
+   * @returns The numeronym string, or undefined if word cannot produce valid numeronym
+   * @throws Error if word is less than 2 characters
+   */
+  static numeronym(word: string): string | undefined {
+    if (!word || word.length < 2) {
+      throw new Error('Word must be at least 2 characters long');
+    }
+
+    const first = word.charAt(0);
+    const last = word.charAt(word.length - 1);
+    const middleCount = word.length - 2;
+
+    const numeronym = `${first}${middleCount}${last}`;
+
+    // Return undefined if the result is not a valid numeronym
+    if (!this.isNumeronym(numeronym)) {
+      return undefined;
+    }
+
+    return numeronym;
+  }
+
+  /**
+   * Check if a string is a valid numeronym.
+   * Format: [uppercase letter][1+ digits][lowercase letter]
+   * Example: "F13n" is a valid numeronym
+   *
+   * @param id - The string to check
+   * @returns true if valid numeronym format, false otherwise
+   */
+  static isNumeronym(id: string): boolean {
+    return /^[a-zA-Z]\d+[a-z]$/.test(id);
+  }
+
+  /**
    * Avro schema for Identifiable record
    */
   static get SCHEMA(): any {

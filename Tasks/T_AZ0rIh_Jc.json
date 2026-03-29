@@ -4,98 +4,74 @@
   ],
   "createdAt" : "2026-03-26T17:12:29Z",
   "id" : "019D2B22-1FC9-7000-A7DF-C314DF9CC277",
-  "name" : "Add action list support to Task",
+  "name" : "Add action list support to Forma",
   "plannedActions" : [
     {
       "name" : "Update Forma.ts imports: add FormaCollection and Action imports",
       "test" : "verify imports compile"
     },
     {
-      "name" : "Add private #actions: FormaCollection<Action> field to Forma class; initialize in constructor from optional cfg.actions array; add public getter",
-      "test" : "verify constructor accepts actions array, getter returns FormaCollection"
+      "name" : "Add readonly actions: FormaCollection<Action> field to Forma class; initialize in constructor from optional cfg.actions array",
+      "test" : "verify constructor accepts actions array, actions property returns FormaCollection"
     },
     {
-      "name" : "Update Forma.SCHEMA: add actions field as { name: 'actions', type: { type: 'array', items: Action.SCHEMA } }",
-      "test" : "verify schema includes actions field"
+      "name" : "Update Forma.SCHEMA: add actions field using FormaCollection.schemaOf(Action)",
+      "test" : "verify schema includes actions field with correct Avro structure"
     },
     {
-      "name" : "Implement addAction(cfg: any): Action - delegate to #actions.addItem(cfg)",
-      "test" : "test addAction adds to array"
-    },
-    {
-      "name" : "Implement deleteAction(id: FuzzyId): Action - delegate to #actions.deleteItem(id)",
-      "test" : "test removeAction with exact and fuzzy id"
-    },
-    {
-      "name" : "Implement getAction(id: FuzzyId): Action - delegate to #actions.getItem(id)",
-      "test" : "test getAction with exact and fuzzy id"
-    },
-    {
-      "name" : "Implement patchAction(id: FuzzyId, cfg: any): Action - delegate to #actions.patchItem(id, cfg)",
-      "test" : "test updateAction with status changes"
-    },
-    {
-      "name" : "Verify patch() ignores actions field (only updates name\/summary)",
+      "name" : "Verify patch() ignores actions field (only updates name/summary)",
       "test" : "test patch() does not modify actions"
     },
     {
-      "name" : "Add comprehensive tests: constructor with actions, add\/remove\/get\/update methods, fuzzy ID matching, Avro serialize\/deserialize with actions, actions immutability",
+      "name" : "Add comprehensive tests: constructor with actions, FormaCollection CRUD via forma.actions.*, fuzzy ID matching, Avro serialize/deserialize with actions",
       "test" : "all tests pass"
     }
   ],
   "references" : [
     {
       "relevance" : 0.95,
-      "text" : "FormaCollection.schemaOf(ItemClass) - generates Avro array schema for typed collections (e.g., ActionFormaCollection). Returns { name, namespace, type: 'array', items: ItemClass.SCHEMA }"
+      "text" : "DECISION: Direct exposure pattern - expose FormaCollection as readonly public field. API: forma.actions.addItem() instead of forma.addAction(). Zero boilerplate, Kafka-compatible (FormaCollection methods are controlled mutation points for future event emission)"
     },
     {
       "relevance" : 0.95,
-      "text" : "Identifiable.SCHEMA - static getter returning Avro record schema with id field (UUID64.avroSchema). Namespace: scvoice.nameforma. Added for type-safe serialization of all Identifiable subclasses."
+      "text" : "FormaCollection.schemaOf(Action) - generates Avro array schema for typed collections (ActionFormaCollection). Returns { name, namespace, type: 'array', items: Action.SCHEMA }"
     },
     {
       "relevance" : 0.95,
-      "text" : "DECISION: Store actions as private #actions: FormaCollection<Action> with controlled methods (addAction, removeAction, updateAction, getAction) for Kafka-friendly granular mutations"
+      "text" : "Identifiable.SCHEMA - static getter returning Avro record schema with id field (UUID64.avroSchema). Namespace: scvoice.nameforma"
     },
     {
       "relevance" : 0.9,
-      "text" : "DECISION: Use FormaCollection.matchId() pattern for fuzzy ID lookup - returns first match within Levenshtein distance threshold (see forma-collection.ts:110-113)"
+      "text" : "FormaCollection API: addItem(cfg), deleteItem(id), getItem(id), patchItem(id, cfg), moveItem(id, opts), items(filter?), size - all accept FuzzyId for fuzzy matching"
     },
     {
       "relevance" : 0.9,
-      "text" : "test\/action.ts now uses FormaCollection.schemaOf(Action) instead of inline array schema definition. Pattern: const schema = FormaCollection.schemaOf(ItemClass); Schema.register(schema, ...);"
+      "text" : "Constructor pattern: new Forma({ actions: [{ status: 'todo' }, ...] }) - FormaCollection initialized from cfg.actions array using Action.createForParent()"
     },
     {
       "relevance" : 0.85,
-      "text" : "DECISION: patch() ignores actions field; use dedicated methods (addAction\/removeAction\/updateAction) for Kafka-friendly granular updates"
+      "text" : "DECISION: patch() ignores actions field; use forma.actions.addItem/deleteItem/patchItem for mutations (Kafka-friendly granular updates)"
     },
     {
       "relevance" : 0.8,
-      "text" : "DECISION: Support both constructor init (new Forma({ actions: [...] })) and post-construction (forma.addAction(action))"
+      "text" : "Kafka integration: FormaCollection methods (addItem, deleteItem, patchItem) are future event emission points per transactional outbox pattern (see T_AZ008zeCc)"
     },
     {
       "relevance" : 0.75,
-      "text" : "DECISION: Method naming follows camelCase (addAction, getAction) - matches existing codebase style"
+      "text" : "Action class - extends Forma with status field (todo|done), has SCHEMA and createForParent() for FormaCollection integration"
     },
     {
       "relevance" : 0.7,
-      "text" : "UUID64 class - has avroSchema property for Avro encoding (uuid64.ts:81-88)"
+      "text" : "FormaCollection class (forma-collection.ts) - encapsulates array, CRUD methods use Identifiable.idFilter() for fuzzy ID matching"
     },
     {
       "relevance" : 0.7,
-      "text" : "FormaCollection class (forma-collection.ts) - extends Array<T extends Forma>, provides matchId() for fuzzy id lookup via Levenshtein"
-    },
-    {
-      "relevance" : 0.7,
-      "text" : "Forma base class - extends Identifiable with name\/summary, Avro schema, patch() method (forma.ts:69)"
-    },
-    {
-      "relevance" : 0.7,
-      "text" : "Action class - extends Forma with status field (todo|done), Avro schema with enum (action.ts:25)"
+      "text" : "Forma base class - extends Identifiable with name/summary, Avro schema, patch() method"
     }
   ],
   "requiredTasks" : [
 
   ],
-  "summary" : "Add actions: Action[] field to Forma with Avro schema support, getters\/setters, and comprehensive tests",
-  "updatedAt" : "2026-03-28T14:23:36Z"
+  "summary" : "Add readonly actions: FormaCollection<Action> field to Forma with Avro schema support, direct FormaCollection API exposure, and comprehensive tests",
+  "updatedAt" : "2026-03-29T15:30:00Z"
 }

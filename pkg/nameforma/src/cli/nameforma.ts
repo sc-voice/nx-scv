@@ -9,17 +9,16 @@
  *   task [subcommand]      Manage tasks
  *   forma [subcommand]     Manage formas
  *   schema [subcommand]    Manage schemas
- *   uuid64 [subcommand]    Generate and manage UUID64 identifiers
+ *   id [subcommand]        Convert to numeronym, generate/validate IDs
  *
  * Examples:
  *   nameforma task create --title "My Task" --progress 0/1
  *   nameforma task list
  *   nameforma forma create --name "my-forma"
  *   nameforma schema list
- *   nameforma uuid64 generate
- *   nameforma uuid64 generate -c 5
- *   nameforma uuid64 validate <uuid64-string>
- *   nameforma uuid64 convert <uuid-string-or-base64>
+ *   nameforma id FormaCollection
+ *   nameforma id -g 5
+ *   nameforma id -v F13n
  */
 
 import { Command } from 'commander';
@@ -27,7 +26,7 @@ import { NameForma } from '../index.js';
 import TaskCommand from './cli-task.js';
 import FormaCommand from './cli-forma.js';
 import SchemaCommand from './cli-schema.js';
-import UUIDCommand from './cli-uuid.js';
+import IdCommand from './cli-id.js';
 
 // Preprocess argv to move -h/--help to the end so it applies to the deepest command
 function preprocessArgv(argv: string[]): string[] {
@@ -91,11 +90,11 @@ const schemaCmd = program
 
 SchemaCommand.register(schemaCmd);
 
-// UUID command
-const uuidCmd = program
-  .command('uuid64')
-  .description('Generate and manage UUID64 identifiers');
+// ID command
+const idCmd = program
+  .command('id')
+  .description('Generate/validate numeronym, UUIDv7, UUID64');
 
-UUIDCommand.register(uuidCmd);
+IdCommand.register(idCmd);
 
 program.parse(preprocessArgv(process.argv));
