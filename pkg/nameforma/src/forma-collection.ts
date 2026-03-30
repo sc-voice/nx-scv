@@ -12,11 +12,10 @@ export interface IFormaItem extends Identifiable {
 
 /**
  * IFormaItemClass - Constructor shape for item classes
- * Enforces both constructor and static createForParent factory method
+ * Constructor accepts optional cfg parameter with id property
  */
 export interface IFormaItemClass {
-  new (): IFormaItem;
-  createForParent(parentId: UUID64, cfg: any): IFormaItem;
+  new (cfg?: any): IFormaItem;
 }
 
 
@@ -31,13 +30,13 @@ export interface IFormaItemClass {
  * - Data structure, not a Forma (does not have id, name, or summary)
  * - Encapsulates internal array (does not extend Array to prevent uncontrolled mutations)
  * - All mutations go through controlled CRUD methods only
- * - Items created via IFormaItemClass.createForParent factory method (passed at construction)
+ * - Items created via direct constructor call with cfg parameter including id property
  * - parentId: UUID64 is immutable, used to link child items to parent
  * - Generic type T must extend IFormaItem (have Identifiable id property)
  *
  * ## Construction
  * - new FormaCollection(parentId: UUID64, ItemClass: IFormaItemClass)
- * - ItemClass must have static createForParent(parentId, cfg): T method
+ * - ItemClass constructor must accept cfg parameter with id property
  *
  * ## API
  * - addItem(cfg): T - Create and add new item using ItemClass factory
@@ -73,12 +72,13 @@ export class FormaCollection<T extends IFormaItem> {
   }
 
   /**
-   * Add new item to collection using item's createForParent factory method
-   * @param cfg - Item configuration
+   * Add new item to collection
+   * @param cfg - Item configuration (optional, merged with auto-generated id and parentId)
    * @returns New item
    */
-  addItem(cfg: any): T {
-    const item = this.#ItemClass.createForParent(this.parentId, cfg) as T;
+  addItem(cfg: any = {}): T {
+    const id = UUID64.createRelation(this.parentId);
+    const item = new (this.#ItemClass as any)({ ...cfg, id, parentId: this.parentId }) as T;
     this.#items.push(item);
     return item;
   }

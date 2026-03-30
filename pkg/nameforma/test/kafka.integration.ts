@@ -19,10 +19,6 @@ class TestItem extends Identifiable implements IFormaItem {
     this.name = cfg.name || 'test';
   }
 
-  static createForParent(parentId: UUID64, cfg: any): TestItem {
-    return new TestItem({ ...cfg, id: cfg.id || new UUID64() });
-  }
-
   toJSON(): any {
     return {
       id: this.id.base64,

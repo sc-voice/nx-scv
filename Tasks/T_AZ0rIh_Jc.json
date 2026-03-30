@@ -4,30 +4,110 @@
   ],
   "createdAt" : "2026-03-26T17:12:29Z",
   "id" : "019D2B22-1FC9-7000-A7DF-C314DF9CC277",
-  "name" : "Add action list support to Forma",
+  "name" : "Add action list support to Task",
   "plannedActions" : [
     {
-      "name" : "Update Forma.ts imports: add FormaCollection and Action imports",
+      "name" : "Phase 1: Refactor FormaCollection to eliminate createForParent requirement",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "Update IFormaItemClass interface: change constructor signature to accept cfg parameter, remove createForParent requirement",
+      "test" : "verify interface compiles"
+    },
+    {
+      "name" : "Update FormaCollection.addItem(): create related UUID64 internally using UUID64.createRelation(this.parentId), call constructor with cfg",
+      "test" : "verify addItem creates items with related IDs"
+    },
+    {
+      "name" : "Update FormaCollection documentation: remove createForParent references from comments",
+      "test" : "verify documentation clarity"
+    },
+    {
+      "name" : "Update test\/forma-collection.ts: remove TestItem.createForParent(), update constructor to handle cfg.id",
+      "test" : "all FormaCollection tests pass"
+    },
+    {
+      "name" : "Update test\/kafka.integration.ts: remove TestItem.createForParent()",
+      "test" : "all Kafka integration tests pass"
+    },
+    {
+      "name" : "Update doc\/tansu.md: remove MyItem.createForParent() example",
+      "test" : "verify documentation accuracy"
+    },
+    {
+      "name" : "Run full test suite: npm run test to verify FormaCollection refactor",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "Phase 2: Add Task.actions field using refactored FormaCollection",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "Update Task.ts imports: add FormaCollection and Action imports",
       "test" : "verify imports compile"
     },
     {
-      "name" : "Add readonly actions: FormaCollection<Action> field to Forma class; initialize in constructor from optional cfg.actions array",
+      "name" : "Add readonly actions: FormaCollection<Action> field to Task class; initialize in constructor from optional cfg.actions array",
       "test" : "verify constructor accepts actions array, actions property returns FormaCollection"
     },
     {
-      "name" : "Update Forma.SCHEMA: add actions field using FormaCollection.schemaOf(Action)",
+      "name" : "Update Task.SCHEMA: add actions field using FormaCollection.schemaOf(Action)",
       "test" : "verify schema includes actions field with correct Avro structure"
     },
     {
-      "name" : "Verify patch() ignores actions field (only updates name/summary)",
+      "name" : "Add comprehensive tests: constructor with actions, FormaCollection CRUD via task.actions.*, fuzzy ID matching, Avro serialize\/deserialize with actions",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "Verify patch() ignores actions field (only updates name\/summary)",
       "test" : "test patch() does not modify actions"
     },
     {
-      "name" : "Add comprehensive tests: constructor with actions, FormaCollection CRUD via forma.actions.*, fuzzy ID matching, Avro serialize/deserialize with actions",
+      "name" : "Run full test suite: npm run test to verify Task.actions integration",
       "test" : "all tests pass"
     }
   ],
   "references" : [
+    {
+      "relevance" : 1,
+      "text" : "CURRENT IFormaItemClass (lines 17-20): export interface IFormaItemClass { new (): IFormaItem; createForParent(parentId: UUID64, cfg: any): IFormaItem; }"
+    },
+    {
+      "relevance" : 1,
+      "text" : "ZERO production classes implement createForParent() - Action, Task, Clock all lack it. Only test classes have it. Safe to refactor."
+    },
+    {
+      "relevance" : 1,
+      "text" : "CRITICAL: createForParent() is unnecessary boilerplate - only creates UUID64.createRelation(parentId) and passes to constructor. FormaCollection should handle this internally."
+    },
+    {
+      "relevance" : 1,
+      "text" : "File: test\/kafka.integration.ts - TestItem.createForParent() at lines 22-24 (REMOVE THIS METHOD)"
+    },
+    {
+      "relevance" : 1,
+      "text" : "CURRENT addItem() (lines 80-84): addItem(cfg: any): T { const item = this.#ItemClass.createForParent(this.parentId, cfg) as T; this.#items.push(item); return item; }"
+    },
+    {
+      "relevance" : 1,
+      "text" : "File: src\/forma-collection.ts - IFormaItemClass interface at lines 17-20, addItem() at lines 80-84, documentation comments at lines 34, 40, 76-78"
+    },
+    {
+      "relevance" : 1,
+      "text" : "NEW IFormaItemClass: export interface IFormaItemClass { new (cfg?: any): IFormaItem; }"
+    },
+    {
+      "relevance" : 1,
+      "text" : "File: doc\/tansu.md - MyItem.createForParent() example at lines 141-154 (REMOVE FROM DOCS)"
+    },
+    {
+      "relevance" : 1,
+      "text" : "File: test\/forma-collection.ts - TestItem.createForParent() at lines 28-32 (REMOVE THIS METHOD)"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Refactor scope: 4 files (forma-collection.ts, 2 test files, 1 doc), ~15 lines. Small, low-risk change."
+    },
     {
       "relevance" : 0.95,
       "text" : "DECISION: Direct exposure pattern - expose FormaCollection as readonly public field. API: forma.actions.addItem() instead of forma.addAction(). Zero boilerplate, Kafka-compatible (FormaCollection methods are controlled mutation points for future event emission)"
@@ -37,8 +117,8 @@
       "text" : "FormaCollection.schemaOf(Action) - generates Avro array schema for typed collections (ActionFormaCollection). Returns { name, namespace, type: 'array', items: Action.SCHEMA }"
     },
     {
-      "relevance" : 0.95,
-      "text" : "Identifiable.SCHEMA - static getter returning Avro record schema with id field (UUID64.avroSchema). Namespace: scvoice.nameforma"
+      "relevance" : 0.9,
+      "text" : "New addItem() pattern: const id = UUID64.createRelation(this.parentId); return new this.#ItemClass({ ...cfg, id }) as T;"
     },
     {
       "relevance" : 0.9,
@@ -46,11 +126,19 @@
     },
     {
       "relevance" : 0.9,
-      "text" : "Constructor pattern: new Forma({ actions: [{ status: 'todo' }, ...] }) - FormaCollection initialized from cfg.actions array using Action.createForParent()"
+      "text" : "New IFormaItemClass interface: { new (cfg?: any): IFormaItem } - constructor accepts cfg, no createForParent requirement"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "Constructor pattern: new Task({ actions: [{ status: 'todo' }, ...] }) - FormaCollection initialized from cfg.actions array, addItem() creates related IDs automatically"
     },
     {
       "relevance" : 0.85,
-      "text" : "DECISION: patch() ignores actions field; use forma.actions.addItem/deleteItem/patchItem for mutations (Kafka-friendly granular updates)"
+      "text" : "DECISION: patch() ignores actions field; use forma.actions.addItem\/deleteItem\/patchItem for mutations (Kafka-friendly granular updates)"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "Identifiable.SCHEMA - static getter returning Avro record schema with id field (UUID64.avroSchema). Namespace: scvoice.nameforma"
     },
     {
       "relevance" : 0.8,
@@ -58,7 +146,7 @@
     },
     {
       "relevance" : 0.75,
-      "text" : "Action class - extends Forma with status field (todo|done), has SCHEMA and createForParent() for FormaCollection integration"
+      "text" : "Action class - extends Forma with status field (todo|done), has SCHEMA. No createForParent() needed after refactor."
     },
     {
       "relevance" : 0.7,
@@ -66,12 +154,16 @@
     },
     {
       "relevance" : 0.7,
-      "text" : "Forma base class - extends Identifiable with name/summary, Avro schema, patch() method"
+      "text" : "Forma base class - extends Identifiable with name\/summary, Avro schema, patch() method"
+    },
+    {
+      "relevance" : 1,
+      "text" : "NEW addItem(): addItem(cfg: any = {}): T { const id = UUID64.createRelation(this.parentId); const item = new this.#ItemClass({ ...cfg, id }) as T; this.#items.push(item); return item; }"
     }
   ],
   "requiredTasks" : [
 
   ],
-  "summary" : "Add readonly actions: FormaCollection<Action> field to Forma with Avro schema support, direct FormaCollection API exposure, and comprehensive tests",
-  "updatedAt" : "2026-03-29T15:30:00Z"
+  "summary" : "Phase 1: Refactor FormaCollection to eliminate createForParent boilerplate. Phase 2: Add readonly actions: FormaCollection<Action> field to Task with Avro schema support, direct FormaCollection API exposure, and comprehensive tests",
+  "updatedAt" : "2026-03-30T01:14:28Z"
 }

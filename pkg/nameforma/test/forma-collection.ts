@@ -19,16 +19,10 @@ class TestItem {
   parentId: UUID64;
   name: string;
 
-  constructor(id: UUID64, parentId: UUID64, name: string) {
-    this.id = id;
-    this.parentId = parentId;
-    this.name = name;
-  }
-
-  static createForParent(parentId: UUID64, cfg: any): TestItem {
-    const id = UUID64.createRelation(parentId);
-    const name = cfg.name || id.timeId();
-    return new TestItem(id, parentId, name);
+  constructor(cfg: any = {}) {
+    this.id = cfg.id || new UUID64();
+    this.parentId = cfg.parentId || new UUID64();
+    this.name = cfg.name || this.id.timeId();
   }
 
   static get SCHEMA() {

@@ -526,7 +526,7 @@ describe('CLI: nameforma package script', () => {
   it('npm run cli task list shows no tasks when empty', () => {
     const tempWorld = createTempWorld();
     try {
-      const output = execSync(`npm run cli -- task -w ${tempWorld.worldPath} list`, {
+      const output = execSync(`npm run cli -- task -w ${tempWorld.tempDir} list`, {
         cwd: process.cwd(),
         encoding: 'utf8',
       });

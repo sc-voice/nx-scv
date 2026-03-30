@@ -1,11 +1,5 @@
 {
   "completedActions" : [
-
-  ],
-  "createdAt" : "2026-03-29T15:55:02Z",
-  "id" : "019D3A4E-4A19-7000-9688-B4C869237BBB",
-  "name" : "Refactor World serialization",
-  "plannedActions" : [
     {
       "name" : "Rename save() to saveEntity() in world.ts:111",
       "test" : "update unit tests"
@@ -55,7 +49,17 @@
       "test" : "update unit tests"
     }
   ],
+  "createdAt" : "2026-03-29T15:55:02Z",
+  "id" : "019D3A4E-4A19-7000-9688-B4C869237BBB",
+  "name" : "Refactor World serialization",
+  "plannedActions" : [
+
+  ],
   "references" : [
+    {
+      "relevance" : 1,
+      "text" : "New load() is instance method with no args: load(): World - throws Error if file missing, returns this after loading data when file exists"
+    },
     {
       "relevance" : 1,
       "text" : "CRITICAL: cli-task.ts:42 must use World.fromPath() - without it, save()\/load() methods are never used by CLI"
@@ -63,10 +67,6 @@
     {
       "relevance" : 1,
       "text" : "Implementation decisions: Let parse errors throw (aids debugging), add debug logging with WORLD?.SAVE\/LOAD flags"
-    },
-    {
-      "relevance" : 1,
-      "text" : "New load() is instance method with no args: load(): World - throws Error if file missing, returns this after loading data when file exists"
     },
     {
       "relevance" : 1,
@@ -105,5 +105,5 @@
 
   ],
   "summary" : "Rename save() to saveEntity() and add explicit save()\/load() methods for World state",
-  "updatedAt" : "2026-03-29T17:52:37Z"
+  "updatedAt" : "2026-03-29T23:46:20Z"
 }

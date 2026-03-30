@@ -288,10 +288,37 @@ describe('CLI: id command', () => {
 
   describe('Inspect option (-i, --inspect)', () => {
     it('inspects numeronym with -i', async () => {
-      await program.parseAsync(['node', 'test', 'id', '-i', 'F13n']);
-      expect(output.length).toBe(2);
-      expect(output[0]).toContain('Type: numeronym');
-      expect(output[1]).toContain('Value: F13n');
+      // Create temp world to avoid interference from project's .nameforma
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cli-id-test'));
+      const worldPath = path.join(tempDir, '.nameforma');
+      fs.mkdirSync(worldPath, { recursive: true });
+
+      try {
+        // Use a new program with -w option support
+        const testProgram = new Command();
+        testProgram.option('-w, --world <path>', 'Path to .nameforma directory');
+        const testIdCmd = testProgram.command('id');
+        IdCommand.register(testIdCmd);
+
+        const testOutput: string[] = [];
+        const originalLog = console.log;
+        console.log = (...args: any[]) => {
+          testOutput.push(args.join(' '));
+        };
+
+        try {
+          await testProgram.parseAsync(['node', 'test', '-w', tempDir, 'id', '-i', 'F13n']);
+          expect(testOutput.length).toBe(2);
+          expect(testOutput[0]).toContain('Type: numeronym');
+          expect(testOutput[1]).toContain('Value: F13n');
+        } finally {
+          console.log = originalLog;
+        }
+      } finally {
+        if (fs.existsSync(tempDir)) {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      }
     });
 
     it('generates and inspects UUID64 with -i and no args', async () => {

@@ -141,15 +141,16 @@ FormaCollection items must implement `toJSON()` for Kafka serialization:
 class MyItem extends Identifiable implements IFormaItem {
   name: string;
 
+  constructor(cfg: any = {}) {
+    super(cfg?.id);
+    this.name = cfg.name || 'item';
+  }
+
   toJSON() {
     return {
       id: this.id.base64,  // UUID64 serialized as base64 string
       name: this.name,
     };
-  }
-
-  static createForParent(parentId: UUID64, cfg: any): MyItem {
-    return new MyItem({ ...cfg, id: cfg.id || new UUID64() });
   }
 }
 ```

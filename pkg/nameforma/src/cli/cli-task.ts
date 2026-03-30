@@ -37,6 +37,11 @@ export default class TaskCommand {
         // Use .nameforma in current directory as fallback
         worldPath = path.join(process.cwd(), '.nameforma');
       }
+    } else {
+      // If -w points to parent directory, append .nameforma
+      if (!worldPath.endsWith('.nameforma')) {
+        worldPath = path.join(worldPath, '.nameforma');
+      }
     }
 
     const world = World.fromPath(worldPath);
@@ -65,7 +70,7 @@ export default class TaskCommand {
       .option('-p, --progress <progress>', 'Task progress (e.g., 0/1 or 1/3)', '0/1')
       .option('-d, --duration <duration>', 'Task duration (e.g., 5/60 for 5/60 hours)')
       .action((options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.opts());
+        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
         const taskConfig: any = {
           title: options.title,
@@ -102,7 +107,7 @@ export default class TaskCommand {
       .description('List all tasks')
       .addHelpText('after', '\nExamples:\n  $ nameforma task list')
       .action((options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.opts());
+        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
         const taskData = world.list('task');
         if (taskData.length === 0) {
@@ -123,7 +128,7 @@ export default class TaskCommand {
       .description('Show task details')
       .addHelpText('after', '\nExamples:\n  $ nameforma task show abc123def456')
       .action((id: string, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.opts());
+        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
         const task = world.loadFuzzy(Task, id);
         if (!task) {
@@ -148,7 +153,7 @@ export default class TaskCommand {
       .option('-p, --progress <progress>', 'Update progress (e.g., 1/3)')
       .option('-d, --duration <duration>', 'Update duration')
       .action((id: string, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.opts());
+        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
         const task = world.loadFuzzy(Task, id);
         if (!task) {
@@ -188,7 +193,7 @@ export default class TaskCommand {
       .description('Delete a task')
       .addHelpText('after', '\nExamples:\n  $ nameforma task delete abc123def456')
       .action((id: string, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.opts());
+        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
         const task = world.loadFuzzy(Task, id);
         if (!task) {
