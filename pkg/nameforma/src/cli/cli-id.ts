@@ -56,7 +56,7 @@ export default class IdCommand {
    * Register id command
    * @param {Command} cmd - Commander command object
    */
-  static register(cmd: any) {
+  static registerCommand(cmd: any) {
     // id [words...]
     cmd
       .argument('[words...]', 'Words to convert to numeronym format')

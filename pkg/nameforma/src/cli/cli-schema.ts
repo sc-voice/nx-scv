@@ -12,7 +12,7 @@ export default class SchemaCommand {
    * Register schema subcommands
    * @param {Command} cmd - Commander command object
    */
-  static register(cmd: any) {
+  static registerCommand(cmd: any) {
     // schema list
     cmd
       .command('list')

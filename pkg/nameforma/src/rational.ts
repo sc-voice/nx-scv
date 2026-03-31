@@ -19,7 +19,7 @@ export class Rational extends Fraction {
     dbg && cc.ok1(msg + UOK);
   }
 
-  static get SCHEMA() {
+  static get avroSchema() {
     return new Schema({
       name: 'Rational',
       namespace: 'scvoice.nameforma',

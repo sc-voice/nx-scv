@@ -72,11 +72,11 @@ export class World extends Identifiable {
   /**
    * Register an entity class with this world
    * Derives entity name from EntityClass.entity static property
-   * @param {EntityConstructor} EntityClass - Entity class with entity, SCHEMA, and fromJson
+   * @param {EntityConstructor} EntityClass - Entity class with entity, avroSchema, and fromJson
    * @throws {Error} - If entity missing required static properties
    */
-  register(EntityClass: EntityConstructor): void {
-    const msg = 'world.register';
+  registerEntity(EntityClass: EntityConstructor): void {
+    const msg = 'world.registerEntity';
     const dbg = WORLD?.REGISTER;
 
     // Validate entity class has required properties

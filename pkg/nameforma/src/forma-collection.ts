@@ -31,7 +31,7 @@ export interface IFormaItemClass {
  * - Encapsulates internal array (does not extend Array to prevent uncontrolled mutations)
  * - All mutations go through controlled CRUD methods only
  * - Items created via direct constructor call with cfg parameter including id property
- * - parentId: UUID64 is immutable, used to link child items to parent
+ * - parentId: UUID64 is immutable, child item ids must be related to parent
  * - Generic type T must extend IFormaItem (have Identifiable id property)
  *
  * ## Construction
@@ -67,18 +67,24 @@ export class FormaCollection<T extends IFormaItem> {
       name: `${ItemClass.name}FormaCollection`,
       namespace: 'scvoice.nameforma',
       type: 'array',
-      items: (ItemClass as any).SCHEMA,
+      items: (ItemClass as any).avroSchema,
     };
   }
 
   /**
-   * Add new item to collection
+   * Add new item to collection, enforcing parentId relation
    * @param cfg - Item configuration (optional, merged with auto-generated id and parentId)
    * @returns New item
    */
   addItem(cfg: any = {}): T {
-    const id = UUID64.createRelation(this.parentId);
-    const item = new (this.#ItemClass as any)({ ...cfg, id, parentId: this.parentId }) as T;
+    const msg = "F13n.addItem:";
+    if (cfg.id == null) {
+      cfg.id = UUID64.createRelation(this.parentId);
+    }
+    if (!this.parentId.isRelated(cfg.id)) {
+      throw new Error(`${msg} cannot add unrelated item:${cfg.id}`);
+    }
+    const item = new (this.#ItemClass as any)(cfg) as T;
     this.#items.push(item);
     return item;
   }

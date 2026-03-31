@@ -35,7 +35,7 @@ describe('CLI: id command', () => {
     // Setup commander program
     program = new Command();
     idCmd = program.command('id');
-    IdCommand.register(idCmd);
+    IdCommand.registerCommand(idCmd);
   });
 
   afterEach(() => {
@@ -298,7 +298,7 @@ describe('CLI: id command', () => {
         const testProgram = new Command();
         testProgram.option('-w, --world <path>', 'Path to .nameforma directory');
         const testIdCmd = testProgram.command('id');
-        IdCommand.register(testIdCmd);
+        IdCommand.registerCommand(testIdCmd);
 
         const testOutput: string[] = [];
         const originalLog = console.log;
@@ -364,7 +364,7 @@ describe('CLI: id command', () => {
       const testProgram = new Command();
       testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
       const testIdCmd = testProgram.command('id');
-      IdCommand.register(testIdCmd);
+      IdCommand.registerCommand(testIdCmd);
 
       const testOutput: string[] = [];
       const originalLog = console.log;
@@ -405,7 +405,7 @@ describe('CLI: id command', () => {
       const testProgram = new Command();
       testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
       const testIdCmd = testProgram.command('id');
-      IdCommand.register(testIdCmd);
+      IdCommand.registerCommand(testIdCmd);
 
       const testOutput: string[] = [];
       const originalLog = console.log;
@@ -441,7 +441,7 @@ describe('CLI: id command', () => {
       const testProgram = new Command();
       testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
       const testIdCmd = testProgram.command('id');
-      IdCommand.register(testIdCmd);
+      IdCommand.registerCommand(testIdCmd);
 
       const testOutput: string[] = [];
       const originalLog = console.log;

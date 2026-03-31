@@ -36,13 +36,13 @@ export class Action extends Forma {
     dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
   }
 
-  static override get SCHEMA() {
+  static override get avroSchema() {
     return {
       name: 'Action',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        ...Forma.SCHEMA.fields,
+        ...Forma.avroSchema.fields,
         {
           name: 'status',
           type: {

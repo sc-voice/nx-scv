@@ -16,23 +16,20 @@ const dbg = DBG.FORMA.TEST;
  */
 class TestItem {
   id: UUID64;
-  parentId: UUID64;
   name: string;
 
   constructor(cfg: any = {}) {
     this.id = cfg.id || new UUID64();
-    this.parentId = cfg.parentId || new UUID64();
     this.name = cfg.name || this.id.timeId();
   }
 
-  static get SCHEMA() {
+  static get avroSchema() {
     return {
       name: 'TestItem',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
         { name: 'id', type: UUID64.avroSchema },
-        { name: 'parentId', type: UUID64.avroSchema },
         { name: 'name', type: 'string' },
       ],
     };
@@ -47,7 +44,7 @@ describe('FormaCollection', () => {
     expect(schema.name).toBe('TestItemFormaCollection');
     expect(schema.namespace).toBe('scvoice.nameforma');
     expect(schema.type).toBe('array');
-    expect(schema.items).toEqual(TestItem.SCHEMA);
+    expect(schema.items).toEqual(TestItem.avroSchema);
     dbg && cc.ok1(msg + UOK, 'schemaOf generates correct collection schema');
   });
 
@@ -70,7 +67,7 @@ describe('FormaCollection', () => {
     // Add items
     const item1 = col.addItem({ name: 'item1' });
     expect(item1.name).toBe('item1');
-    expect(item1.parentId).toEqual(parentId);
+    expect(item1.id.isRelated(parentId)).toBe(true);
     expect(col.size).toBe(1);
     dbg && cc.ok1(msg + UOK, 'addItem creates and adds item');
 

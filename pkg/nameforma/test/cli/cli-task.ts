@@ -40,7 +40,7 @@ describe('CLI: task command', () => {
     // Setup commander program
     program = new Command();
     taskCmd = program.command('task');
-    TaskCommand.register(taskCmd);
+    TaskCommand.registerCommand(taskCmd);
   });
 
   afterEach(() => {
@@ -463,7 +463,7 @@ describe('CLI: task command', () => {
       await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
 
       // Verify output shows the full task ID, not the search string
-      expect(output[0]).toMatch(/✓ Task deleted: 0Pq/);
+      expect(output[0]).toContain(`✓ Task deleted: ${taskId}`);
     });
   });
 

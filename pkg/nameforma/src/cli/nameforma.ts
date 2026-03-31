@@ -98,27 +98,27 @@ const taskCmd = program
   .command('task')
   .description('Manage tasks');
 
-TaskCommand.register(taskCmd);
+TaskCommand.registerCommand(taskCmd);
 
 // Forma command
 const formaCmd = program
   .command('forma')
   .description('Manage formas (named identifiable objects)');
 
-FormaCommand.register(formaCmd);
+FormaCommand.registerCommand(formaCmd);
 
 // Schema command
 const schemaCmd = program
   .command('schema')
   .description('Manage Avro schemas');
 
-SchemaCommand.register(schemaCmd);
+SchemaCommand.registerCommand(schemaCmd);
 
 // ID command
 const idCmd = program
   .command('id')
   .description('Generate/validate numeronym, UUIDv7, UUID64');
 
-IdCommand.register(idCmd);
+IdCommand.registerCommand(idCmd);
 
 program.parse(preprocessArgv(process.argv));

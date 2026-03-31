@@ -44,7 +44,7 @@ sequenceDiagram
     Task->>Rational: new Rational(duration)
 
     Code->>Schema: Task.registerSchema()
-    Schema->>Avro: avro.parse(Task.SCHEMA)
+    Schema->>Avro: avro.parse(Task.avroSchema)
     Avro-->>Schema: Type instance
 
     Code->>Schema: schema.toAvro(task)

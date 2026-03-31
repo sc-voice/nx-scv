@@ -59,8 +59,8 @@ describe('Forma', () => {
 
     const id = new UUID64();
     const registry = {};
-    const schema = Forma.SCHEMA;
-    let type = Schema.register(schema, { avro, registry });
+    const schema = Forma.avroSchema;
+    let type = Schema.registerType(Forma, { avro, registry });
     let typeExpected = avro.parse(schema);
     let name = `${schema.namespace}.${schema.name}`;
     expect(type).toEqual(typeExpected);
@@ -89,16 +89,16 @@ describe('Forma', () => {
     const msg = 'tc5s';
     class ClassA {
       static register() {
-        return this.SCHEMA;
+        return this.avroSchema;
       }
 
-      static get SCHEMA() {
+      static get avroSchema() {
         return 'schemaA';
       }
     }
 
     class ClassB extends ClassA {
-      static get SCHEMA() {
+      static get avroSchema() {
         return 'schemaB';
       }
 
@@ -107,10 +107,10 @@ describe('Forma', () => {
       }
     }
 
-    expect(ClassA.register()).toBe(ClassA.SCHEMA);
+    expect(ClassA.register()).toBe(ClassA.avroSchema);
     dbg && cc.ok(msg + UOK, 'ClassA:', ClassA.register());
 
-    expect(ClassB.register()).toBe('CLASSB' + ClassB.SCHEMA);
+    expect(ClassB.register()).toBe('CLASSB' + ClassB.avroSchema);
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
 });

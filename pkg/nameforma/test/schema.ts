@@ -26,13 +26,13 @@ describe('TESTTESTschema', () => {
     const msg = 's4a.testArraySchema';
     const schema = arraySchemaOf(s4aItems);
     dbg > 1 && cc.tag(msg, s4aItems, 'schema:', schema);
-    const type = Schema.register(schema, { avro });
-    dbg > 1 && cc.tag(msg, s4aItems, 'type:', type);
+    const avroType = Schema.registerSchema(schema, { avro });
+    dbg > 1 && cc.tag(msg, s4aItems, 'avroType:', avroType);
     const avro1 = schema.toAvro(thing1);
     expect(avro1).not.toBe(undefined);
     dbg > 1 && cc.tag(msg, s4aItems, 'avro1:', avro1);
-    const buf1 = type.toBuffer(avro1);
-    const avro2 = type.fromBuffer(buf1);
+    const buf1 = avroType.toBuffer(avro1);
+    const avro2 = avroType.fromBuffer(buf1);
     expect(avro2).toEqual(avro1);
     dbg && cc.tag1(msg, s4aItems, 'avro2:', avro2);
   }
@@ -78,10 +78,10 @@ describe('TESTTESTschema', () => {
     const id = new UUID64()
 
     const registry = {};
-    const f3a = Forma.SCHEMA;
+    const f3a = Forma.avroSchema;
     dbg > 1 && cc.tag(msg, 'registerSchema');
-    let type = Schema.register(Forma.SCHEMA, { avro, registry });
-    let typeAgain = Schema.register(Forma.SCHEMA);
+    let type = Schema.registerType(Forma, { avro, registry });
+    let typeAgain = Schema.registerType(Forma);
     expect(typeAgain).toBe(type);
     let typeExpected = avro.parse(f3a);
     let name = `${f3a.namespace}.${f3a.name}`;
@@ -132,7 +132,7 @@ describe('TESTTESTschema', () => {
         { name: 'ok', type: 'boolean' },
       ],
     });
-    const type = schema.register({ avro, registry });
+    const type = Schema.registerSchema(schema, { avro, registry });
     expect(schema.name).toBe('TestRecord');
     let avro1 = schema.toAvro(thing1, { registry });
     let avro2 = type.clone(thing1, { wrapUnion: true });
@@ -195,7 +195,7 @@ describe('TESTTESTschema', () => {
     const msg = 'ts4a.toAvro.array.Rational';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    let rationalType = Schema.register(Rational.SCHEMA, { avro });
+    let rationalType = Schema.registerType(Rational, { avro });
     let f1 = new Rational(1, 3, 'inch');
 
     testArraySchema('scvoice.nameforma.Rational', [f1]);

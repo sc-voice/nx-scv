@@ -48,7 +48,7 @@ describe('CLI: task command', () => {
     // Setup commander program
     program = new Command();
     taskCmd = program.command('task');
-    TaskCommand.register(taskCmd);
+    TaskCommand.registerCommand(taskCmd);
   });
 
   afterEach(() => {

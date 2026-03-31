@@ -50,13 +50,13 @@ export class Patch extends Identifiable {
    *
    * @param {Object} dst - Destination object to apply patch to (mutated in-place)
    * @param {Object} [opts={}] - Options object (currently unused)
-   * @param {Schema} [opts.schema] - Optional schema from dst.SCHEMA
+   * @param {Schema} [opts.schema] - Optional schema from dst.avroSchema
    * @throws {Error} If attempting to patch the 'id' property
    */
   apply(dst: any, opts: any = {}) {
     const msg = 'P3h.apply';
     const dbg = P3H.APPLY;
-    const { schema = dst?.SCHEMA } = opts;
+    const { schema = dst?.avroSchema } = opts;
 
     Object.entries(this).forEach((entry) => {
       const [k, vSrc] = entry;

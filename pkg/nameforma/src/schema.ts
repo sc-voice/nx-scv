@@ -24,6 +24,13 @@ const { CHECKMARK: UOK } = Unicode;
 const { cc } = ColorConsole;
 const { SCHEMA: S4A } = DBG;
 
+export type AvroType = any;
+
+export interface ISchemaClass {
+  new(...args:any[]): any;
+  readonly avroSchema: any
+}
+
 export class Schema {
   /** Static registry for all registered schemas, keyed by full name */
   static #registry: Record<string, any> = {};
@@ -33,7 +40,8 @@ export class Schema {
   name?: string;
   namespace?: string;
   type?: string;
-  fields?: any[];
+  fields?: any[]; // parent fields
+  dependencies?: any[]; // avroSchema dependencies
   [key: string]: any;
 
   constructor(cfg: any = {}) {
@@ -50,15 +58,55 @@ export class Schema {
     return Object.assign({}, Schema.#registry);
   }
 
+  static registerType(type:ISchemaClass, opts: any={}): AvroType {
+    const msg = 's4a.registerType';
+    const dbg = S4A.REGISTER;
+
+    for (const dep in type.avroSchema.dependencies) {
+      Schema.registerType(type, opts);
+    }
+
+    let { avroSchema } = type
+    return Schema.registerSchema(avroSchema, opts);
+    /*
+    let { name, namespace } = avroSchema;
+    if (name == null) {
+      throw new Error(`${msg} name?`);
+    }
+    let fullName = namespace ? `${namespace}.${name}` : `${name}`;
+    dbg > 1 && cc.ok(msg, 'parsing:', fullName);
+    let { avro = Schema.#avro, registry = Schema.#registry } = opts;
+    if (avro == null) {
+      throw new Error(`${msg} avro?`);
+    }
+    Schema.#avro = avro;
+    let avroType = registry[fullName];
+
+    if (avroType == null) {
+      avroType = avro.parse(avroSchema, Object.assign({ registry }, opts));
+      if (avroType == null) {
+        let eMsg = `${msg} parse?`;
+        throw new Error(eMsg);
+      }
+      dbg && cc.ok1(msg + UOK, fullName);
+      registry[fullName] = avroType;
+      Schema.#registry[fullName] = avroType;
+    }
+
+    return avroType;
+    */
+  }
+
   /**
    * Register a schema with the registry and parse it via avro-js.
    * Prevents duplicate registration by checking registry first.
    * @param schema - Schema definition object with name and optional namespace
    * @param opts - Options: avro (avro-js instance), registry (custom registry to use)
    * @returns Parsed Avro type ready for serialization/deserialization
+   * @deprecated
    */
-  static register(schema: any, opts: any = {}) {
-    const msg = 's4a.register';
+  static registerSchema(schema: Schema, opts: any = {}) {
+    const msg = 's4a.registerSchema';
     const dbg = S4A.REGISTER;
 
     let { name, namespace } = schema;
@@ -94,15 +142,6 @@ export class Schema {
   }
 
   /**
-   * Register this schema instance with the registry.
-   * @param opts - Options to pass to Schema.register()
-   * @returns Parsed Avro type ready for serialization/deserialization
-   */
-  register(opts: any = {}) {
-    return Schema.register(this, opts);
-  }
-
-  /**
    * Convert a JavaScript object to Avro-serializable format via type.clone().
    * Looks up or registers the schema if needed.
    * @param jsObj - JavaScript object to convert
@@ -122,7 +161,7 @@ export class Schema {
     const fullName = this.fullName;
     let type = (name && registry[name]) || (fullName && registry[fullName]);
     if (type == null) {
-      type = this.register({ avro, registry });
+      type = Schema.registerSchema(this, { avro, registry });
     }
     if (type == null) {
       let eMsg = `${msg} type?`;

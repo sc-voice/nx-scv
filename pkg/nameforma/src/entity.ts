@@ -10,7 +10,7 @@ export interface Entity extends Forma {
 
 export interface EntityConstructor {
   entity: string;
-  SCHEMA: any;
+  avroSchema: any;
   fromJson(data: any): Entity;
 }
 
@@ -21,8 +21,8 @@ export function validateEntity(EntityClass: any): EntityClass is EntityConstruct
   if (!EntityClass.entity) {
     throw new Error(`${EntityClass.name} missing static entity property`);
   }
-  if (!EntityClass.SCHEMA) {
-    throw new Error(`${EntityClass.name} missing static SCHEMA property`);
+  if (!EntityClass.avroSchema) {
+    throw new Error(`${EntityClass.name} missing static avroSchema property`);
   }
   if (typeof EntityClass.fromJson !== 'function') {
     throw new Error(`${EntityClass.name} missing static fromJson method`);

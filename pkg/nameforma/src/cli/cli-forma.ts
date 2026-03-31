@@ -15,7 +15,7 @@ export default class FormaCommand {
    * Register forma subcommands
    * @param {Command} cmd - Commander command object
    */
-  static register(cmd: any) {
+  static registerCommand(cmd: any) {
     // forma create
     cmd
       .command('create')

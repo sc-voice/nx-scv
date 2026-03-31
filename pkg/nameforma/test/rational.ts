@@ -208,7 +208,7 @@ describe('TESTTESTRational', () => {
   it('avro', () => {
     const msg = 'tf6n.avro';
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
-    let type = Schema.register(Rational.SCHEMA, { avro });
+    let type = Schema.registerType(Rational, { avro });
 
     let thing1 = new Rational(2, 3, 'tbsp');
     let buf1 = type.toBuffer(thing1);

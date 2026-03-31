@@ -3,36 +3,46 @@ import { DBG } from './defines.js';
 import { Forma } from './forma.js';
 import { Rational } from './rational.js';
 import { Schema } from './schema.js';
+import { Action } from './action.js';
+import { FormaCollection } from './forma-collection.js';
 
 const { ColorConsole, Unicode } = Text;
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
-const RATIONAL = Rational.SCHEMA;
-const FORMA = Forma.SCHEMA;
+const RATIONAL = Rational.avroSchema;
+const FORMA = Forma.avroSchema;
 
 export class Task extends Forma {
   title: string = 'title?';
   progress: any = new Rational(0, 1, 'done');
   duration: any = new Rational(null, 1, 's');
+  #actions: FormaCollection<Action>;
 
   constructor(cfg: any = {}) {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
     super({ id: cfg.id }); // for deserialized tasks
+    this.#actions = new FormaCollection(this.id, Action);
     this.put(cfg);
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
 
+  get actions(): FormaCollection<Action> {
+    return this.#actions;
+  }
+
+  // TODO: This method is unexpected and seems to be a hack
   static registerSchema(opts: any = {}) {
-    Schema.register(Rational.SCHEMA, opts);
-    return Schema.register(this.SCHEMA, opts);
+    Schema.registerType(Rational, opts);
+    //Schema.registerType(FormaCollection.schemaOf(Action), opts);
+    return Schema.registerType(this, opts);
   }
 
   static entity = 'task';
 
-  static override get SCHEMA() {
+  static override get avroSchema() {
     return {
       name: 'Task',
       namespace: 'scvoice.nameforma',
@@ -42,6 +52,7 @@ export class Task extends Forma {
         { name: 'title', type: 'string' },
         { name: 'progress', type: (RATIONAL as any).fullName },
         { name: 'duration', type: (RATIONAL as any).fullName },
+     //   { name: 'actions', type: (FormaCollection.schemaOf(Action) as any).fullName },
       ],
     };
   }
@@ -58,6 +69,7 @@ export class Task extends Forma {
       title = 'title?',
       progress = new Rational(0, 1, 'done'),
       duration = new Rational(null, 1, 's'),
+      actions = [],
     } = value;
     if (!(duration instanceof Rational)) {
       duration = new Rational(duration);
@@ -66,6 +78,14 @@ export class Task extends Forma {
       progress = new Rational(progress);
     }
     Object.assign(this, { title, progress, duration });
+
+    // Replace actions FormaCollection entirely
+    this.#actions = new FormaCollection(this.id, Action);
+    if (actions?.length) {
+      for (const actionCfg of actions) {
+        this.#actions.addItem(actionCfg);
+      }
+    }
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }

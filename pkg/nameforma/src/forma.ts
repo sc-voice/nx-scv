@@ -98,7 +98,7 @@ export class Forma extends Identifiable {
     dbg && cc.ok1(msg + UOK, { id: this.id, name });
   }
 
-  static override get SCHEMA() {
+  static override get avroSchema() {
     return {
       name: 'Forma',
       namespace: 'scvoice.nameforma',

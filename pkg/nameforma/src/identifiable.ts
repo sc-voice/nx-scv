@@ -1,6 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
+import { ISchemaClass } from './schema.js'
 
 const { ColorConsole, Unicode } = Text;
 const { CHECKMARK: UOK } = Unicode;
@@ -174,7 +175,7 @@ export class Identifiable {
   /**
    * Avro schema for Identifiable record
    */
-  static get SCHEMA(): any {
+  static get avroSchema(): any {
     return {
       name: 'Identifiable',
       namespace: 'scvoice.nameforma',

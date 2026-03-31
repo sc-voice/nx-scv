@@ -54,8 +54,8 @@ describe('Action', () => {
 
     const id = new UUID64();
     const registry = {};
-    const schema = Action.SCHEMA;
-    let type = Schema.register(schema, { avro, registry });
+    const schema = Action.avroSchema;
+    let type = Schema.registerType(Action, { avro, registry });
     let typeExpected = avro.parse(schema);
     let name = `${schema.namespace}.${schema.name}`;
     expect(type).toEqual(typeExpected);
@@ -80,7 +80,7 @@ describe('Action', () => {
     const arraySchema = FormaCollection.schemaOf(Action);
 
     const registry = {};
-    let type = Schema.register(arraySchema, { avro, registry });
+    let type = Schema.registerSchema(arraySchema, { avro, registry });
     dbg > 1 && cc.tag(msg + UOK, 'array schema registered');
 
     // Create test array of Actions

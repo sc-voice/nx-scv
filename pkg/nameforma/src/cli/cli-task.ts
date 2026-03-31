@@ -45,7 +45,7 @@ export default class TaskCommand {
     }
 
     const world = World.fromPath(worldPath);
-    world.register(Task);
+    world.registerEntity(Task);
     return world;
   }
 
@@ -53,7 +53,7 @@ export default class TaskCommand {
    * Register task subcommands
    * @param {Command} cmd - Commander command object
    */
-  static register(cmd: any) {
+  static registerCommand(cmd: any) {
     // Add help text for the task command
     cmd.addHelpText('after', '\nFor detailed subcommand help:\n  $ nameforma task help <subcommand>\n\nSubcommands:\n  create  - Create a new task\n  list    - List all tasks\n  show    - Show task details\n  update  - Update a task\n  delete  - Delete a task');
 

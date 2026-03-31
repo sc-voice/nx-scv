@@ -50,7 +50,7 @@ describe('task', () => {
     const duration = new Rational(3, 4, 's');
 
     const registry = {};
-    Schema.register(Rational.SCHEMA, { avro, registry });
+    Schema.registerType(Rational, { avro, registry });
     let type = Task.registerSchema({ avro, registry });
     dbg > 1 && cc.tag(msg, 'schema registered');
 

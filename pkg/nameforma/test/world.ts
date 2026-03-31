@@ -15,13 +15,13 @@ class MockEntity extends Forma {
   }
 
   static entity = 'mock';
-  static override get SCHEMA() {
+  static override get avroSchema() {
     return {
       name: 'MockEntity',
       namespace: 'test',
       type: 'record',
       fields: [
-        ...Forma.SCHEMA.fields,
+        ...Forma.avroSchema.fields,
         { name: 'name', type: 'string' },
       ],
     };
@@ -63,7 +63,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
   describe('Entity Registration', () => {
     it('should register entity and derive name from EntityClass.entity', () => {
       const world = new World(worldPath);
-      world.register(MockEntity);
+      world.registerEntity(MockEntity);
 
       expect(world.getEntityNames()).toContain('mock');
     });
@@ -72,27 +72,27 @@ describe('World Registry - Constructor & Entity Registration', () => {
       const world = new World(worldPath);
       class BadEntity extends Forma {
         patch() {}
-        static SCHEMA = {};
+        static avroSchema = {};
       }
 
-      expect(() => world.register(BadEntity as any)).toThrow(
+      expect(() => world.registerEntity(BadEntity as any)).toThrow(
         /missing static entity property/
       );
     });
 
-    it('should throw if entity missing SCHEMA static property', () => {
+    it('should throw if entity missing avroSchema static property', () => {
       const world = new World(worldPath);
       class BadEntity extends Forma {
         patch() {}
         static entity = 'bad';
-        static SCHEMA = undefined;
+        static avroSchema = undefined;
         static fromJson(data: any): BadEntity {
           return new BadEntity(data);
         }
       }
 
-      expect(() => world.register(BadEntity as any)).toThrow(
-        /missing static SCHEMA property/
+      expect(() => world.registerEntity(BadEntity as any)).toThrow(
+        /missing static avroSchema property/
       );
     });
 
@@ -101,10 +101,10 @@ describe('World Registry - Constructor & Entity Registration', () => {
       class BadEntity extends Forma {
         patch() {}
         static entity = 'bad';
-        static SCHEMA = {};
+        static avroSchema = {};
       }
 
-      expect(() => world.register(BadEntity as any)).toThrow(
+      expect(() => world.registerEntity(BadEntity as any)).toThrow(
         /missing static fromJson method/
       );
     });
@@ -115,14 +115,14 @@ describe('World Registry - Constructor & Entity Registration', () => {
       class AnotherEntity extends Forma {
         patch() {}
         static entity = 'another';
-        static SCHEMA = {};
+        static avroSchema = {};
         static fromJson(data: any): AnotherEntity {
           return new AnotherEntity(data);
         }
       }
 
-      world.register(MockEntity);
-      world.register(AnotherEntity);
+      world.registerEntity(MockEntity);
+      world.registerEntity(AnotherEntity);
 
       const names = world.getEntityNames();
       expect(names).toContain('mock');
@@ -132,12 +132,12 @@ describe('World Registry - Constructor & Entity Registration', () => {
 
     it('should retrieve registered entity constructor by name', () => {
       const world = new World(worldPath);
-      world.register(MockEntity);
+      world.registerEntity(MockEntity);
 
       const ctor = world.entityClassOfName('mock');
       expect(ctor).not.toBeNull();
       expect(ctor?.entity).toBe('mock');
-      expect(ctor?.SCHEMA).toBeDefined();
+      expect(ctor?.avroSchema).toBeDefined();
       expect(ctor?.fromJson).toBeDefined();
     });
 
@@ -157,7 +157,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
     world = new World(worldPath);
-    world.register(MockEntity);
+    world.registerEntity(MockEntity);
   });
 
   afterEach(() => {
@@ -420,7 +420,7 @@ describe('World Serialization - save()/load() methods', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
     world = new World(worldPath);
-    world.register(MockEntity);
+    world.registerEntity(MockEntity);
   });
 
   afterEach(() => {
@@ -543,7 +543,7 @@ describe('World Serialization - save()/load() methods', () => {
       world.save();
 
       const world2 = new World(worldPath);
-      world2.register(MockEntity);
+      world2.registerEntity(MockEntity);
       world2.load();
 
       // Verify entity can still be loaded (entities are stored separately)
