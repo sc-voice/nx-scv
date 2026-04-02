@@ -48,7 +48,7 @@ export class Patch extends Identifiable {
    * 2. Apply phase: Update all validated fields
    *
    * Only updates properties listed in the destination's patchableFields.
-   * Prevents patching immutable 'id' property and non-patchable FormaCollection fields.
+   * Prevents patching immutable 'id' property and non-patchable fields.
    *
    * @param {Object} dst - Destination object to apply patch to (mutated in-place)
    * @param {Object} [opts={}] - Options object (currently unused)
