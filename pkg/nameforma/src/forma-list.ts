@@ -23,8 +23,7 @@ export interface IFormaItemClass {
  *
  * FormaList is a mutator (like a method helper), not a data structure.
  * It wraps an existing array reference and provides controlled CRUD methods
- * to mutate that array. Unlike FormaCollection (encapsulated), FormaList
- * operates on arrays passed by reference.
+ * to mutate that array. FormaList operates on arrays passed by reference.
  *
  * ## Design Principles
  * - Mutator helper, not a data structure (mutates external array)

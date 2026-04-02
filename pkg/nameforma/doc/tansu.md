@@ -104,20 +104,21 @@ See `test/kafka.integration.ts` for full examples. Basic pattern:
 
 ```typescript
 import { World } from '../src/world.js';
-import { FormaCollection } from '../src/forma-collection.js';
+import { FormaList } from '../src/forma-list.js';
 import { Kafka } from 'kafkajs';
 
 // Create test world with unique ID
 const world = new World('/tmp/test-world');
 const topicName = `world-${world.id.base64}`;
 
-// Create collection and serialize
-const collection = new FormaCollection(world.id, ItemClass);
-const item = collection.addItem({ name: 'test' });
+// Create list and serialize
+const itemsArray = [];
+const list = new FormaList(itemsArray, ItemClass, world.id);
+const item = list.addItem({ name: 'test' });
 
 const message = {
   worldId: world.id.base64,
-  items: collection.items().map(item => item.toJSON()),
+  items: list.items().map(item => item.toJSON()),
 };
 
 // Produce to Kafka
@@ -133,9 +134,9 @@ await producer.send({
 // See test/kafka.integration.ts for full example
 ```
 
-## FormaCollection Serialization
+## FormaList Serialization
 
-FormaCollection items must implement `toJSON()` for Kafka serialization:
+FormaList items must implement `toJSON()` for Kafka serialization:
 
 ```typescript
 class MyItem extends Identifiable implements IFormaItem {
@@ -226,5 +227,5 @@ source ~/.bashrc  # or ~/.zshrc
 - Tansu GitHub: https://github.com/tansu-io/tansu
 - Tansu Docs: https://docs.tansu.io
 - KafkaJS: https://kafka.js.org/
-- FormaCollection: See `src/forma-collection.ts`
+- FormaList: See `src/forma-list.ts`
 - World: See `src/world.ts`

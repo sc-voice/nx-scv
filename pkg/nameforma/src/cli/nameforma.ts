@@ -16,7 +16,7 @@
  *   nameforma task list
  *   nameforma forma create --name "my-forma"
  *   nameforma schema list
- *   nameforma id FormaCollection
+ *   nameforma id FormaList
  *   nameforma id -g 5
  *   nameforma id -v F13n
  */

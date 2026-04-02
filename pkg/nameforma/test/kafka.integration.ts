@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { World } from '../src/world.js';
-import { FormaCollection, type IFormaItem } from '../src/forma-collection.js';
+import { FormaList, type IFormaItem } from '../src/forma-list.js';
 import { Identifiable } from '../src/identifiable.js';
 import UUID64 from '../src/uuid64.js';
 
@@ -105,19 +105,20 @@ describe('Kafka Integration Tests', () => {
     expect(topicName).toContain(world.id.base64);
   });
 
-  it('should produce FormaCollection to Kafka', async () => {
-    const collection = new FormaCollection(world.id, TestItem);
+  it('should produce FormaList to Kafka', async () => {
+    const itemsArray: TestItem[] = [];
+    const list = new FormaList(itemsArray, TestItem, world.id);
 
     // Add test items
-    const item1 = collection.addItem({ name: 'item1' });
-    const item2 = collection.addItem({ name: 'item2' });
+    const item1 = list.addItem({ name: 'item1' });
+    const item2 = list.addItem({ name: 'item2' });
 
-    expect(collection.size).toBe(2);
+    expect(list.size).toBe(2);
 
-    // Serialize collection
+    // Serialize list
     const message = {
       worldId: world.id.base64,
-      items: collection.items().map((item) => item.toJSON()),
+      items: list.items.map((item) => item.toJSON()),
     };
 
     // Produce to Kafka
@@ -137,15 +138,16 @@ describe('Kafka Integration Tests', () => {
   });
 
   it('should perform full round-trip with replicating consumer verification', async () => {
-    const collection = new FormaCollection(world.id, TestItem);
+    const itemsArray: TestItem[] = [];
+    const list = new FormaList(itemsArray, TestItem, world.id);
 
     // Create test items
-    const item1 = collection.addItem({ name: 'round-trip-1' });
-    const item2 = collection.addItem({ name: 'round-trip-2' });
+    const item1 = list.addItem({ name: 'round-trip-1' });
+    const item2 = list.addItem({ name: 'round-trip-2' });
 
     const originalData = {
       worldId: world.id.base64,
-      items: collection.items().map((item) => item.toJSON()),
+      items: list.items.map((item) => item.toJSON()),
     };
 
     // Produce message
@@ -205,9 +207,11 @@ describe('Kafka Integration Tests', () => {
     expect(received2.id).toBe(item2.id.base64);
 
     // Replicate: deserialize and verify data matches original
-    const replicatedCollection = new FormaCollection(
-      UUID64.fromString(receivedMessage.worldId),
-      TestItem
+    const replicatedArray: TestItem[] = [];
+    const replicatedList = new FormaList(
+      replicatedArray,
+      TestItem,
+      UUID64.fromString(receivedMessage.worldId)
     );
 
     for (const itemData of receivedMessage.items) {
@@ -219,7 +223,7 @@ describe('Kafka Integration Tests', () => {
       expect(item.name).toBe(itemData.name);
     }
 
-    expect(replicatedCollection.size).toBe(0); // Empty until items added
+    expect(replicatedList.size).toBe(0); // Empty until items added
   });
 
   it('World.fromPath should create persistent world with stable ID', () => {

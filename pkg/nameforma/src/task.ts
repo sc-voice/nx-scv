@@ -4,7 +4,7 @@ import { Forma } from './forma.js';
 import { Rational } from './rational.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action } from './action.js';
-import { FormaCollection } from './forma-collection.js';
+import { FormaList } from './forma-list.js';
 import { NotImplementedError } from './errors.js';
 
 const { ColorConsole, Unicode } = Text;
@@ -21,7 +21,7 @@ const FORMA = Forma.avroSchema;
  * - `title`: Task description (string)
  * - `progress`: Task completion state as Rational (numerator/denominator)
  * - `duration`: Task time estimate as Rational with units (e.g., "2 s")
- * - `actions`: FormaCollection<Action> for managing task actions
+ * - `actions`: FormaList<Action> for managing task actions
  *
  * ## Usage
  * ```typescript
@@ -35,7 +35,7 @@ const FORMA = Forma.avroSchema;
  *   ]
  * });
  *
- * // Access actions via FormaCollection API
+ * // Access actions via FormaList API
  * task.actions.addItem({ status: 'todo' });
  * task.actions.deleteItem(id);
  * task.actions.patchItem(id, { status: 'done' });
@@ -56,7 +56,6 @@ export class Task extends Forma {
   title: string = 'title?';
   progress: any = new Rational(0, 1, 'done');
   duration: any = new Rational(null, 1, 's');
-  //actions: FormaCollection<Action>;
   rawActions: Array<Action> = [];
 
   /**
@@ -68,7 +67,7 @@ export class Task extends Forma {
    *   - `title`: Task description
    *   - `progress`: Rational or plain object {numerator, denominator, units}
    *   - `duration`: Rational or plain object {numerator, denominator, units}
-   *   - `actions`: Array of action configs (auto-constructed via FormaCollection)
+   *   - `actions`: Array of action configs (auto-constructed via FormaList)
    *
    * Calls put() to initialize all fields from cfg.
    */
@@ -82,16 +81,16 @@ export class Task extends Forma {
   }
 
   /**
-   * Readonly access to task actions as a FormaCollection.
-   * Use FormaCollection API for mutations:
+   * Readonly access to task actions as a FormaList.
+   * Use FormaList API for mutations:
    * - addItem(cfg): Create new action
    * - deleteItem(id): Remove action
    * - patchItem(id, cfg): Update action fields
    * - getItem(id): Retrieve action
    * - items(filter): List all actions
    */
-  get actions(): FormaCollection<Action> {
-    throw new Error("not implemented");
+  get actions(): FormaList<Action> {
+    return new FormaList(this.rawActions, Action, this.id);
   }
 
   /**
@@ -101,7 +100,7 @@ export class Task extends Forma {
    * - Schema.#registry: Prevents duplicate schema registrations
    * - avro registry: The avro-js library's type registry (passed to avro.parse())
    *
-   * Registers dependencies (Forma parent, Rational, FormaCollection<Action>) first,
+   * Registers dependencies (Forma parent, Rational, Action) first,
    * then registers Task type itself into BOTH registries.
    *
    * @param opts Optional schema registration options (avro instance, registry)
@@ -111,17 +110,12 @@ export class Task extends Forma {
     const msg = "t2k.registerAvro";
     const dbg = DBG.SCHEMA.ALL;
 
-    dbg && cc.ok(msg+1.1, 'parent:', 'Forma');
+    dbg>1 && cc.ok(msg, 'dependencies');
     Forma.registerAvro(opts);
     Rational.registerAvro(opts);
     Action.registerAvro(opts);
 
-    // Register FormaCollection.schemaOf(Action) schema
-    // dbg && cc.ok(msg+1.2, 'actions');
-    const actionsSchema = FormaCollection.schemaOf(Action);
-    Schema.registerSchema(actionsSchema, opts);
-
-    dbg && cc.ok(msg+1.3, 'task');
+    dbg && cc.ok(msg, 'task');
     let avroType = Schema.registerType(Task, opts);
     dbg && cc.ok1(msg, Task.avroSchema.fullName);
     return avroType
@@ -137,12 +131,11 @@ export class Task extends Forma {
    * - title: Task description
    * - progress: Task completion state (Rational type)
    * - duration: Time estimate (Rational type with units)
-   * - actions: Array of Action items (FormaCollection<Action>)
+   * - actions: Array of Action items (FormaList<Action>)
    *
    * Empty actions serialize as []. All fields are required.
    */
   static override get avroSchema(): Schema {
-    //const actionsSchema = FormaCollection.schemaOf(Action);
     return new Schema({
       name: 'Task',
       namespace: 'scvoice.nameforma',
@@ -189,7 +182,7 @@ export class Task extends Forma {
    *   - `title`: Task description
    *   - `progress`: Rational or {numerator, denominator, units}
    *   - `duration`: Rational or {numerator, denominator, units}
-   *   - `actions`: Array of action configs (constructs FormaCollection internally)
+   *   - `rawActions`: Array of Action
    *
    * Called by constructor to initialize instance. Also used for deserialization.
    */
@@ -201,7 +194,7 @@ export class Task extends Forma {
       title = 'title?',
       progress = new Rational(0, 1, 'done'),
       duration = new Rational(null, 1, 's'),
-      actions = [],
+      rawActions = [],
     } = value;
     if (!(duration instanceof Rational)) {
       duration = new Rational(duration);
@@ -209,15 +202,7 @@ export class Task extends Forma {
     if (!(progress instanceof Rational)) {
       progress = new Rational(progress);
     }
-    Object.assign(this, { title, progress, duration });
-
-    // Replace actions FormaCollection entirely
-    //this.rawActions = new FormaCollection(this.id, Action);
-    //if (actions?.length) {
-      //for (const actionCfg of actions) {
-        //this.rawActions.addItem(actionCfg);
-      //}
-    //}
+    Object.assign(this, { title, progress, duration, rawActions:[...rawActions] });
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
@@ -225,8 +210,7 @@ export class Task extends Forma {
   /**
    * Update task fields selectively without replacing actions.
    *
-   * Only updates title, progress, and duration fields. FormaCollection fields
-   * (actions) are protected by Patch.apply() validation and cannot be patched directly.
+   * Only updates title, progress, duration, etc. fields. 
    * Use task.actions.* methods for action mutations instead.
    *
    * @param value Configuration object with fields to update:

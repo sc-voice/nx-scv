@@ -18,7 +18,7 @@ const { cc } = ColorConsole;
  * - Fuzzy variant with Levenshtein distance tolerance
  *
  * Used throughout nameforma for flexible ID resolution:
- * - FormaCollection.getItem(fuzzyId)
+ * - FormaList.getItem(fuzzyId)
  * - world.loadFuzzy(EntityClass, fuzzyId)
  * - CLI commands accepting partial IDs
  *
@@ -137,7 +137,7 @@ export class Identifiable {
   /**
    * Convert a word to numeronym format.
    * Format: [first letter][count of middle letters][last letter]
-   * Example: "FormaCollection" -> "F13n"
+   * Example: "FormaList" -> "F7t"
    *
    * @param word - The word to convert
    * @returns The numeronym string, or undefined if word cannot produce valid numeronym

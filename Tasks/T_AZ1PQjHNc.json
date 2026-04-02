@@ -1,0 +1,93 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-04-02T17:33:51Z",
+  "id" : "019D4F42-31CD-7000-BB22-4473992393C2",
+  "name" : "Convert FormaCollection to FormaList",
+  "plannedActions" : [
+    {
+      "name" : "Change src\/task.ts: import FormaList instead of FormaCollection (line 7)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run tests to verify import change: npm test",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement src\/task.ts actions getter: return new FormaList(this.rawActions, Action, this.id) (lines 92-94)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run tests to verify actions getter: npm test",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update src\/task.ts JSDoc: replace 7 FormaCollection references with FormaList (lines 24, 38, 70, 84, 134, 186)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Remove src\/task.ts commented FormaCollection.schemaOf() line (line 139)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Change test\/action.ts: import FormaList instead of FormaCollection",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Replace test\/action.ts FormaCollection.schemaOf(Action) with direct array schema (line 81)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run tests to verify test\/action.ts changes: npm test",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update CLI docs in src\/cli\/nameforma.ts",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update doc\/tansu.md FormaCollection examples",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 0.5,
+      "text" : "FormaList has NO schemaOf() - use direct array schema like Task.avroSchema line 150 (serialization schema pattern)"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "test\/action.ts:81 - FormaCollection.schemaOf(Action) usage"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "src\/task.ts:92-94 - actions getter throws 'not implemented'"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "Key difference: FormaCollection owns array (encapsulated), FormaList wraps external array (mutator)"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "No breaking changes: task.actions currently throws, has zero callers"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "src\/task.ts:59 - rawActions: Array<Action> storage exists"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "FormaList constructor: new FormaList(items: T[], ItemClass, parentId?: UUID64)"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "src\/task.ts:7 - FormaCollection import location"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Deprecate FormaCollection in favor of FormaList throughout codebase",
+  "updatedAt" : "2026-04-02T17:53:04Z"
+}

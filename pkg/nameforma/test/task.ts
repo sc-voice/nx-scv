@@ -4,7 +4,7 @@ import { NameForma } from '../src/index.js';
 import { ScvMath, Text } from '@sc-voice/tools';
 import { DBG } from '../src/defines.js';
 
-const { Schema, Rational, Task, Forma } = NameForma;
+const { Schema, Rational, Task, Forma, Action } = NameForma;
 const { TASK: T2K } = DBG;
 const { Units } = ScvMath;
 const { Unicode, ColorConsole } = Text;
@@ -112,5 +112,81 @@ describe('task', () => {
       `${newName}${UOK} new title (1done 5min)`
     );
     dbg && cc.tag1(msg + UOK, 'patched duration unit conversion');
+  });
+  it('actions getter returns FormaList', () => {
+    const msg = 't2k.actions';
+    dbg > 1 && cc.tag(msg, '===================');
+
+    const t2k = new Task({ title: 'test task' });
+    const actions = t2k.actions;
+
+    // Verify FormaList is returned
+    expect(actions).toBeDefined();
+    expect(actions.constructor.name).toBe('FormaList');
+    dbg > 1 && cc.tag(msg, 'actions is a FormaList');
+
+    // Verify initially empty
+    expect(actions.items).toHaveLength(0);
+    dbg > 1 && cc.tag(msg, 'actions initially empty');
+
+    // Verify can add actions and creates Action instance
+    const action1 = actions.addItem({ status: 'todo' });
+    expect(action1).toBeDefined();
+    expect(action1 instanceof Action).toBe(true);
+    expect(action1.status).toBe('todo');
+    expect(actions.items).toHaveLength(1);
+    dbg > 1 && cc.tag(msg, 'added first action as Action instance');
+
+    // Verify can add multiple actions, all as Action instances
+    const action2 = actions.addItem({ status: 'done' });
+    expect(action2 instanceof Action).toBe(true);
+    expect(actions.items).toHaveLength(2);
+    expect(actions.items[0].status).toBe('todo');
+    expect(actions.items[1].status).toBe('done');
+    expect(actions.items[0] instanceof Action).toBe(true);
+    expect(actions.items[1] instanceof Action).toBe(true);
+    dbg > 1 && cc.tag(msg, 'added second action as Action instance');
+
+    // Verify actions are stored in rawActions as Action instances
+    expect(t2k.rawActions).toHaveLength(2);
+    expect(t2k.rawActions[0]).toBe(action1);
+    expect(t2k.rawActions[1]).toBe(action2);
+    expect(t2k.rawActions[0] instanceof Action).toBe(true);
+    expect(t2k.rawActions[1] instanceof Action).toBe(true);
+    dbg && cc.tag1(msg + UOK, 'actions backed by rawActions as Action instances');
+  });
+  it('actions getter wraps rawActions', () => {
+    const msg = 't2k.actions.wrap';
+    dbg > 1 && cc.tag(msg, '===================');
+
+    const t2k = new Task({ title: 'test task' });
+    const actions = t2k.actions;
+
+    // Build up actions array via FormaList
+    const action1 = actions.addItem({ status: 'todo' });
+    const action2 = actions.addItem({ status: 'done' });
+    dbg > 1 && cc.tag(msg, 'added initial actions');
+
+    // Verify actions.items and rawActions are same array reference
+    expect(actions.items).toBe(t2k.rawActions);
+    expect(t2k.rawActions).toHaveLength(2);
+    dbg > 1 && cc.tag(msg, 'wrapped same array reference');
+
+    // Add another action via FormaList
+    const action3 = actions.addItem({ status: 'in-progress' });
+    expect(action3 instanceof Action).toBe(true);
+    expect(t2k.rawActions).toHaveLength(3);
+    expect(t2k.rawActions[2]).toBe(action3);
+    expect(t2k.rawActions[2] instanceof Action).toBe(true);
+    dbg > 1 && cc.tag(msg, 'addItem creates and syncs Action instances with rawActions');
+
+    // Delete action via FormaList ID
+    actions.deleteItem(action2.id.base64);
+    expect(t2k.rawActions).toHaveLength(2);
+    expect(t2k.rawActions[0]).toBe(action1);
+    expect(t2k.rawActions[1]).toBe(action3);
+    expect(t2k.rawActions[0] instanceof Action).toBe(true);
+    expect(t2k.rawActions[1] instanceof Action).toBe(true);
+    dbg && cc.tag1(msg + UOK, 'deleteItem mutations sync with rawActions as Action instances');
   });
 });

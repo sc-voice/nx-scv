@@ -45,8 +45,8 @@ describe('CLI: id command', () => {
 
   describe('numeronym conversion', () => {
     it('converts single word to numeronym', async () => {
-      await program.parseAsync(['node', 'test', 'id', 'FormaCollection']);
-      expect(output).toEqual(['F13n']);
+      await program.parseAsync(['node', 'test', 'id', 'FormaList']);
+      expect(output).toEqual(['F7t']);
     });
 
     it('converts with -n flag for multiple words', async () => {
@@ -68,10 +68,10 @@ describe('CLI: id command', () => {
         'test',
         'id',
         '--numeronym',
-        'FormaCollection',
+        'FormaList',
         'Internationalization',
       ]);
-      expect(output).toEqual(['F13n I18n']);
+      expect(output).toEqual(['F7t I18n']);
     });
 
     it('errors with multiple words without flag', async () => {
@@ -270,8 +270,8 @@ describe('CLI: id command', () => {
 
   describe('Default behavior (no options)', () => {
     it('converts word to numeronym', async () => {
-      await program.parseAsync(['node', 'test', 'id', 'FormaCollection']);
-      expect(output).toEqual(['F13n']);
+      await program.parseAsync(['node', 'test', 'id', 'FormaList']);
+      expect(output).toEqual(['F7t']);
     });
 
     it('returns numeronym as-is for numeronym input', async () => {
@@ -382,11 +382,11 @@ describe('CLI: id command', () => {
           'id',
           '-s',
           '-n',
-          'FormaCollection',
+          'FormaList',
         ]);
 
         // Check output
-        expect(testOutput).toEqual(['F13n']);
+        expect(testOutput).toEqual(['F7t']);
 
         // Check world.json
         const worldFile = path.join(worldPath, 'world.json');
@@ -395,7 +395,7 @@ describe('CLI: id command', () => {
         const data = fs.readFileSync(worldFile, 'utf8');
         const json = JSON.parse(data);
         expect(json.numeronym).toBeDefined();
-        expect(json.numeronym['F13n']).toBe('FormaCollection');
+        expect(json.numeronym['F7t']).toBe('FormaList');
       } finally {
         console.log = originalLog;
       }

@@ -5,7 +5,7 @@ import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 
-const { Schema, Action, ActionStatus, FormaCollection } = NameForma;
+const { Schema, Action, ActionStatus, FormaList } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -77,8 +77,12 @@ describe('Action', () => {
     const msg = 'ta4n.avro.array';
     dbg > 1 && cc.tag(msg, '===========');
 
-    // Get schema for Action collection
-    const arraySchema = FormaCollection.schemaOf(Action);
+    // Get schema for Action array (direct array schema like Task.avroSchema line 150)
+    const arraySchema = new Schema({
+      name: 'ActionArray',
+      type: 'array',
+      items: Action.avroSchema.fullName,
+    });
 
     const registry = {id:'Pr9y3LH'}
     Action.registerAvro({avro, registry});
