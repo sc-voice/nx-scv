@@ -87,6 +87,7 @@ const RUNNER = {
 };
 
 const SCHEMA = {
+  ALL: 2,
   REGISTER: 0,
   TEST: 0,
   TO_AVRO: 0,

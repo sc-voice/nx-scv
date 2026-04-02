@@ -1,5 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
+import { Schema, ISchemaClass } from './schema.js';
 
 /**
  * IFormaItem - Instance shape for items managed by FormaCollection
@@ -14,7 +15,7 @@ export interface IFormaItem extends Identifiable {
  * IFormaItemClass - Constructor shape for item classes
  * Constructor accepts optional cfg parameter with id property
  */
-export interface IFormaItemClass {
+export interface IFormaItemClass extends ISchemaClass {
   new (cfg?: any): IFormaItem;
 }
 
@@ -63,12 +64,12 @@ export class FormaCollection<T extends IFormaItem> {
    * @returns Avro array schema for the collection
    */
   static schemaOf(ItemClass: IFormaItemClass): any {
-    return {
+    return new Schema({
       name: `${ItemClass.name}FormaCollection`,
       namespace: 'scvoice.nameforma',
       type: 'array',
-      items: (ItemClass as any).avroSchema,
-    };
+      items: (ItemClass as any).avroSchema.fullName,
+    });
   }
 
   /**

@@ -10,7 +10,7 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = DBG.SCHEMA.TEST;
+const dbg = Math.max(2, DBG.SCHEMA.TEST);
 const STARTTEST = '============';
 
 describe('TESTTESTschema', () => {
@@ -71,38 +71,40 @@ describe('TESTTESTschema', () => {
 
     dbg && cc.tag1(msg + UOK, 'typical ctor');
   });
-  it('avro serialization', () => {
+  it('avro serialization Forma', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
     const id = new UUID64()
-
-    const registry = {};
+    const registry = {id:'Pr9zmfd'};
+    const registry2 = {id:'Pr9zmfe'};
     const f3a = Forma.avroSchema;
-    dbg > 1 && cc.tag(msg, 'registerSchema');
-    let type = Schema.registerType(Forma, { avro, registry });
-    let typeAgain = Schema.registerType(Forma);
-    expect(typeAgain).toBe(type);
-    let typeExpected = avro.parse(f3a);
-    let name = `${f3a.namespace}.${f3a.name}`;
-    expect(type).toEqual(typeExpected);
-    expect(`"${name}"`).toEqual(typeExpected.toString());
-    expect(
-      Object.keys(registry).sort()
-    ).toEqual([name, 'scvoice.nameforma.UUID64', 'bytes', 'string'].sort()); // includes 2 string fields: name, summary
-    expect(registry).toMatchObject({
-      [name]: typeExpected,
-    });
-    expect(Schema.REGISTRY).toMatchObject({
-      [name]: typeExpected,
-    });
-    dbg > 1 &&
-      cc.tag(msg + UOK, 'parsed schema is added to registry:', name);
+    dbg > 1 && cc.tag(msg, 'registerType Forma');
+    let avroType = Forma.registerAvro({ avro, registry });
+    dbg > 1 && cc.tag(msg, 'registerType Forma again');
+    let avroTypeAgain = Forma.registerAvro({ avro, registry });
+    expect(avroTypeAgain).toBe(avroType);
+    dbg > 1 && cc.tag(msg, 'registerType Forma registry2');
+    let avroType2 = Forma.registerAvro({ avro, registry:registry2 });
+    let { fullName } = f3a;
+    expect(avroType).toEqual(avroType2);
+    expect(`"${fullName}"`).toEqual(avroType2.toString());
+    expect( Object.keys(registry).sort()).toEqual([
+      'id',
+      'scvoice.nameforma.UUID64', 
+      'scvoice.nameforma.Identifiable', 
+      'scvoice.nameforma.Forma', 
+      'bytes', 
+      'string',
+    ].sort()); // includes 2 string fields: fullName, summary
+    expect(registry).toMatchObject({ [fullName]: avroType2, });
+    expect(registry2).toMatchObject({ [fullName]: avroType2, });
+    dbg > 1 && cc.tag(msg + UOK, 'registries match');
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Forma({ id });
-    let buf = type.toBuffer(thing1);
-    let parsed = type.fromBuffer(buf);
+    let buf = avroType.toBuffer(thing1);
+    let parsed = avroType.fromBuffer(buf);
     let thing2 = new Forma(parsed);
     expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
@@ -154,20 +156,24 @@ describe('TESTTESTschema', () => {
       constructor(cfg) {
         Object.assign(this, cfg);
       }
-    }
+
+      static get avroSchema(): Schema {
+        return new Schema({
+          type: 'record',
+          name: 'TestRecord',
+          fields: [
+            { name: 'id', type: 'string', default: 'id?' },
+            { name: 'clr', type: ['null', 'string'], default: null },
+            { name: 'qty', type: ['null', 'double'], default: null },
+            { name: 'ok', type: ['null', 'boolean'], default: null },
+          ],
+        });
+      }
+    } // TestRecord
+    const { avroSchema } = TestRecord;
     const thing1 = new TestRecord({ id, clr, qty, ok });
-    const schema = new Schema({
-      type: 'record',
-      name: thing1.constructor.name,
-      fields: [
-        { name: 'id', type: 'string', default: 'id?' },
-        { name: 'clr', type: ['null', 'string'], default: null },
-        { name: 'qty', type: ['null', 'double'], default: null },
-        { name: 'ok', type: ['null', 'boolean'], default: null },
-      ],
-    });
-    expect(schema.name).toBe('TestRecord');
-    let avro1 = schema.toAvro(thing1, { registry });
+    expect(avroSchema.name).toBe('TestRecord');
+    let avro1 = avroSchema.toAvro(thing1, { registry, avro });
     expect(
       JSON.stringify(avro1)
     ).toEqual(JSON.stringify({

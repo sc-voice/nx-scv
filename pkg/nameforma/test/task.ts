@@ -23,7 +23,7 @@ const FRY_EGG = [
   },
 ];
 
-let dbg = T2K.TEST;
+let dbg = Math.max(2, T2K.TEST);
 
 describe('task', () => {
   it('ctor', () => {
@@ -41,7 +41,7 @@ describe('task', () => {
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
   });
-  it('avro', () => {
+  it('avro serialization', () => {
     const msg = 'tt2k.avro';
     dbg > 1 && cc.tag(msg, '==============');
 
@@ -49,14 +49,15 @@ describe('task', () => {
     const progress = new Rational(3, 4, 'tbsp');
     const duration = new Rational(3, 4, 's');
 
-    const registry = {};
-    Schema.registerType(Rational, { avro, registry });
-    let type = Task.registerSchema({ avro, registry });
+    const { fullName } = Task.avroSchema;
+    const registry = {id: "PrAZmGm"};
+    let avroType = Task.registerAvro({ avro, registry });
     dbg > 1 && cc.tag(msg, 'schema registered');
 
     let thing1 = new Task({ title, progress, duration });
-    let buf = type.toBuffer(thing1);
-    let parsed = type.fromBuffer(buf);
+    //let buf = avroType.toBuffer(thing1.toAvroValue());
+    let buf = avroType.toBuffer(thing1);
+    let parsed = avroType.fromBuffer(buf);
     let thing2 = new Task(parsed);
     expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Task serialized with avro');

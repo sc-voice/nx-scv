@@ -410,11 +410,11 @@ export class ColorConsole {
   }
 
   ok1(...rest: any[]) {
-    this.writeColor(this.okColor1, rest);
+    this.writeColor(this.okColor1, ["✅", ...rest]);
   }
 
   ok2(...rest: any[]) {
-    this.writeColor(this.okColor2, rest);
+    this.writeColor(this.okColor2, [" ↓", ...rest]);
   }
 
   bad(...rest: any[]) {

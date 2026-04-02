@@ -7,9 +7,9 @@ const { Rational, Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
 
-const dbg = DBG.RATIONAL.TEST;
+const dbg = 2;
 
-describe('TESTTESTRational', () => {
+describe('Rational', () => {
   it('default ctor', () => {
     const msg = 'tf6n.ctor';
     let f = new Rational();
@@ -205,20 +205,6 @@ describe('TESTTESTRational', () => {
     }
     expect(eCaught.message).toMatch(/units.*dollars.*euros/);
   });
-  it('avro', () => {
-    const msg = 'tf6n.avro';
-    dbg > 1 && cc.tag(msg, '===============', 'register schema');
-    let type = Schema.registerType(Rational, { avro });
-
-    let thing1 = new Rational(2, 3, 'tbsp');
-    let buf1 = type.toBuffer(thing1);
-    let thing2 = type.fromBuffer(buf1);
-    expect(thing1.toString()).toBe('2/3tbsp');
-    expect(new Rational(thing2)).toEqual(thing1);
-    dbg > 1 && cc.tag(msg, 'Rational with units');
-
-    dbg && cc.tag1(msg + UOK, 'Rational serialized with avro');
-  });
   it('toString()', () => {
     let f12 = new Rational(1, 2, 'in');
     let f13 = new Rational(1, 3, 'in');
@@ -237,5 +223,39 @@ describe('TESTTESTRational', () => {
     expect(f1632.toString()).toBe('0.5in');
     expect(f1632.reduce().toString()).toBe('1/2in');
     expect(f254.toString()).toBe('2.54cm');
+  });
+  it('avro null', () => {
+    const msg = 'tf6n.avro';
+    dbg > 1 && cc.tag(msg, '===============', 'register schema');
+    let schema = Rational.avroSchema;
+    let { fullName } = schema;
+    const registry = {id: "PrAr6Tg"};
+    let avroType = Rational.registerAvro({avro, registry});
+
+    let thing1 = new Rational(null, 3, 'seconds');
+    let buf1 = avroType.toBuffer(thing1);
+    let thing2 = avroType.fromBuffer(buf1);
+    expect(thing1.toString()).toBe('?seconds');
+    expect(new Rational(thing2)).toEqual(thing1);
+    dbg > 1 && cc.tag(msg, 'Rational with units');
+
+    dbg && cc.tag1(msg + UOK, 'Rational serialized with avro');
+  });
+  it('avro 2/3 tbsp', () => {
+    const msg = 'tf6n.avro';
+    dbg > 1 && cc.tag(msg, '===============', 'register schema');
+    let schema = Rational.avroSchema;
+    let { fullName } = schema;
+    const registry = {id: "PrAr6Th"};
+    let avroType = Rational.registerAvro({avro, registry});
+
+    let thing1 = new Rational(2, 3, 'tbsp');
+    let buf1 = avroType.toBuffer(thing1);
+    let thing2 = avroType.fromBuffer(buf1);
+    expect(thing1.toString()).toBe('2/3tbsp');
+    expect(new Rational(thing2)).toEqual(thing1);
+    dbg > 1 && cc.tag(msg, 'Rational with units');
+
+    dbg && cc.tag1(msg + UOK, 'Rational serialized with avro');
   });
 });

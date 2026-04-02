@@ -1,4 +1,9 @@
 import { randomBytes } from 'crypto';
+import { Schema } from './schema.js';
+import { DBG } from './defines.js';
+import { Text } from '@sc-voice/tools';
+const { Unicode, ColorConsole } = Text;
+const { cc } = ColorConsole;
 
 // ============================================================================
 // UUID64String - Branded type for type-safe id handling
@@ -75,17 +80,33 @@ class UUID64 {
   static readonly TIME_SEQ_CHARS = 10;
 
   /**
+   * Register this class's avroSchema into the avro registry and return AvroType.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
+   */
+  static registerAvro(opts: any = {}) {
+    const msg = "uuid64.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+    let { fullName } = UUID64.avroSchema;
+    dbg > 2 && cc.ok(msg, "registerType:", fullName)
+    let avroType = Schema.registerType(UUID64, opts);
+    dbg && cc.ok1(msg, "schema:", fullName);
+    return avroType
+  }
+
+  /**
    * Avro schema for UUID64 (record type with uuidv7 bytes field).
    * Serializes only the essential uuidv7 buffer; base64 is derived on deserialization.
    */
-  static readonly avroSchema = {
+  static readonly avroSchema = new Schema({
     type: 'record',
     name: 'UUID64',
     namespace: 'scvoice.nameforma',
     fields: [
       { name: 'uuidv7', type: 'bytes' }
     ]
-  };
+  });
 
   // ========================================================================
   // Instance Properties

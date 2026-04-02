@@ -10,62 +10,63 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = DBG.ACTION?.TEST;
+const dbg = DBG.ACTION?.TEST || 1;
 
 describe('Action', () => {
   it('ctor default', () => {
-    const a6n = new Action();
-    expect(a6n.id.validate()).toBe(true);
-    expect(a6n.status).toBe('todo'); // default status
-    expect(a6n.summary).toBe('Action?'); // inherits from Forma
+    const a4n = new Action();
+    expect(a4n.id.validate()).toBe(true);
+    expect(a4n.status).toBe('todo'); // default status
+    expect(a4n.summary).toBe('Action?'); // inherits from Forma
   });
 
   it('ctor with status', () => {
-    const a6n = new Action({ status: 'done' });
-    expect(a6n.id.validate()).toBe(true);
-    expect(a6n.status).toBe('done');
+    const a4n = new Action({ status: 'done' });
+    expect(a4n.id.validate()).toBe(true);
+    expect(a4n.status).toBe('done');
   });
 
   it('patch status', () => {
-    const msg = 'ta6n.patch';
-    const a6n = new Action();
-    expect(a6n.status).toBe('todo');
+    const msg = 'ta4n.patch';
+    const a4n = new Action();
+    expect(a4n.status).toBe('todo');
 
-    const { id } = a6n;
-    a6n.patch({ status: 'done' });
-    expect(a6n.id).toBe(id);
-    expect(a6n.status).toBe(ActionStatus.done);
+    const { id } = a4n;
+    a4n.patch({ status: 'done' });
+    expect(a4n.id).toBe(id);
+    expect(a4n.status).toBe(ActionStatus.done);
 
-    a6n.patch({status: ActionStatus.todo})
-    expect(a6n.id).toBe(id);
-    expect(a6n.status).toBe('todo');
+    a4n.patch({status: ActionStatus.todo})
+    expect(a4n.id).toBe(id);
+    expect(a4n.status).toBe('todo');
 
     dbg && cc.tag1(msg + UOK, 'status is mutable');
   });
 
   it('patch invalid status', () => {
-    const a6n = new Action();
-    expect(() => a6n.patch({ status: 'invalid' })).toThrow();
+    const a4n = new Action();
+    expect(() => a4n.patch({ status: 'invalid' })).toThrow();
   });
 
-  it('avro', () => {
-    const msg = 'ta6n.avro';
+  it('avro Action', () => {
+    const msg = 'ta4n.avro';
     dbg > 1 && cc.tag(msg, '===========');
 
     const id = new UUID64();
-    const registry = {};
+    const registry = {id:'Pr9QpW800'}
     const schema = Action.avroSchema;
-    let type = Schema.registerType(Action, { avro, registry });
-    let typeExpected = avro.parse(schema);
-    let name = `${schema.namespace}.${schema.name}`;
-    expect(type).toEqual(typeExpected);
-    expect(`"${name}"`).toEqual(typeExpected.toString());
-    dbg > 1 && cc.tag(msg + UOK, 'parsed schema is added to registry:', name);
+    let { fullName } = schema;
+    expect(!!registry[fullName]).toBe(false);
+    let avroType = Action.registerAvro({avro, registry});
+    dbg && cc.tag(msg, "avro.parse");
+    expect(avroType._name).toEqual(fullName);
+    expect(!!registry[fullName]).toBe(true);
+    dbg > 1 && cc.tag(msg + UOK, 'parsed schema is added to registry:', fullName);
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Action({ id, status: 'done' });
-    let buf = type.toBuffer(thing1);
-    let parsed = type.fromBuffer(buf);
+    let buf = avroType.toBuffer(thing1);
+    let parsed = avroType.fromBuffer(buf);
     let thing2 = new Action(parsed);
     expect(thing2.status).toBe('done');
     expect(thing2.id.base64).toBe(thing1.id.base64);
@@ -73,14 +74,15 @@ describe('Action', () => {
   });
 
   it('avro Action[]', () => {
-    const msg = 'ta6n.avro.array';
+    const msg = 'ta4n.avro.array';
     dbg > 1 && cc.tag(msg, '===========');
 
     // Get schema for Action collection
     const arraySchema = FormaCollection.schemaOf(Action);
 
-    const registry = {};
-    let type = Schema.registerSchema(arraySchema, { avro, registry });
+    const registry = {id:'Pr9y3LH'}
+    Action.registerAvro({avro, registry});
+    let arrayType = Schema.registerSchema(arraySchema, {avro, registry});
     dbg > 1 && cc.tag(msg + UOK, 'array schema registered');
 
     // Create test array of Actions
@@ -90,8 +92,8 @@ describe('Action', () => {
     const actions = [action1, action2, action3];
 
     dbg > 1 && cc.tag(msg, 'serialize Action array');
-    const buf = type.toBuffer(actions);
-    const parsed = type.fromBuffer(buf);
+    const buf = arrayType.toBuffer(actions);
+    const parsed = arrayType.fromBuffer(buf);
 
     // Reconstruct Action instances from parsed data
     const reconstructed = parsed.map(a => new Action(a));

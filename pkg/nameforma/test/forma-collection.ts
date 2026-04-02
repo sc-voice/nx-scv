@@ -14,7 +14,7 @@ const dbg = DBG.FORMA.TEST;
 /**
  * Test item class implementing IFormaItem
  */
-class TestItem {
+class TestItem implements ISchemaClass {
   id: UUID64;
   name: string;
 
@@ -23,13 +23,31 @@ class TestItem {
     this.name = cfg.name || this.id.timeId();
   }
 
+  /**
+   * Register this class's avroSchema into the avro registry and return AvroType.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
+   */
+  static registerAvro(opts: any = {}) {
+    const msg = "I6m.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+    let { fullName } = TestItem.avroSchema;
+    dbg && cc.ok(msg, "dependency:", "UUID64");
+    UUID64.registerAvro(opts);
+    dbg && cc.ok(msg, "registerType:", fullName)
+    let avroType = Schema.registerType(TestItem, opts);
+    dbg && cc.ok1(msg, "schema:", fullName);
+    return avroType
+  }
+
   static get avroSchema() {
     return {
       name: 'TestItem',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        { name: 'id', type: UUID64.avroSchema },
+        { name: 'id', type: UUID64.avroSchema.fullNaame },
         { name: 'name', type: 'string' },
       ],
     };
@@ -44,7 +62,7 @@ describe('FormaCollection', () => {
     expect(schema.name).toBe('TestItemFormaCollection');
     expect(schema.namespace).toBe('scvoice.nameforma');
     expect(schema.type).toBe('array');
-    expect(schema.items).toEqual(TestItem.avroSchema);
+    expect(schema.items).toBe(TestItem.avroSchema.fullName);
     dbg && cc.ok1(msg + UOK, 'schemaOf generates correct collection schema');
   });
 

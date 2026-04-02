@@ -1,7 +1,9 @@
 import UUID64 from './uuid64.js';
+import { Schema } from './schema.js';
 import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
 import { ISchemaClass } from './schema.js'
+import { DBG } from "./defines.js"
 
 const { ColorConsole, Unicode } = Text;
 const { CHECKMARK: UOK } = Unicode;
@@ -173,17 +175,36 @@ export class Identifiable {
   }
 
   /**
-   * Avro schema for Identifiable record
+   * Schema wrapper for Identifiable avro schema record
+   * @returns Schema
    */
-  static get avroSchema(): any {
-    return {
+  static get avroSchema(): Schema {
+    return new Schema({
       name: 'Identifiable',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        { name: 'id', type: UUID64.avroSchema },
+        { name: 'id', type: UUID64.avroSchema.fullName },
       ],
-    };
+    });
+  }
+
+  /**
+   * Register this class's avroSchema into the avro registry and return AvroType.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
+   */
+  static registerAvro(opts: any = {}) {
+    const msg = "i10e.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+    let { fullName } = Identifiable.avroSchema;
+    dbg && cc.ok(msg, "dependency:", "UUID64");
+    UUID64.registerAvro(opts);
+    dbg && cc.ok(msg, "registerType:", fullName)
+    let avroType = Schema.registerType(Identifiable, opts);
+    dbg && cc.ok1(msg, "schema:", fullName);
+    return avroType
   }
 
   /**

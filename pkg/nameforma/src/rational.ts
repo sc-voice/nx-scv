@@ -19,6 +19,23 @@ export class Rational extends Fraction {
     dbg && cc.ok1(msg + UOK);
   }
 
+  /**
+   * Register Rational avroSchema into the avro registry and return AvroType.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
+   */
+  static registerAvro(opts: any = {}) {
+    const msg = "r6l.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+
+    let { fullName } = Rational.avroSchema;
+    dbg && cc.ok(msg, "registerType:", fullName);
+    let avroType = Schema.registerType(Rational, opts);
+    dbg && cc.ok1(msg, "schema:", fullName);
+    return avroType
+  }
+
   static get avroSchema() {
     return new Schema({
       name: 'Rational',

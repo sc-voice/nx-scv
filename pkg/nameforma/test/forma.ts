@@ -10,7 +10,7 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = DBG.FORMA.TEST;
+const dbg = DBG.FORMA.TEST || 2;
 
 class TestThing extends Forma {
   constructor(cfg = {}) {
@@ -53,34 +53,29 @@ describe('Forma', () => {
     expect(f3a.summary).toBe('New summary');
     dbg && cc.tag1(msg + UOK, 'summary is mutable');
   });
-  it('avro', () => {
+  it('avro Forma defaultRegistry', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, '===========');
 
-    const id = new UUID64();
-    const registry = {};
+    const id = new UUID64()
     const schema = Forma.avroSchema;
-    let type = Schema.registerType(Forma, { avro, registry });
-    let typeExpected = avro.parse(schema);
-    let name = `${schema.namespace}.${schema.name}`;
-    expect(type).toEqual(typeExpected);
-    expect(`"${name}"`).toEqual(typeExpected.toString());
-    expect(
-      Object.keys(registry).sort(),
-    ).toEqual([name, 'scvoice.nameforma.UUID64', 'bytes', 'string'].sort());
-    expect(registry).toMatchObject({
-      [name]: typeExpected,
-    });
-    expect(Schema.REGISTRY).toMatchObject({
-      [name]: typeExpected,
-    });
-    dbg > 1 &&
-      cc.tag(msg + UOK, 'parsed schema is added to registry:', name);
+    const { fullName } = schema;
+    let avroType = Forma.registerAvro({avro});
+    expect(avroType._name).toEqual(fullName);
+    expect(Schema.REGISTRY[fullName]).toBe(avroType);
+    expect(Schema.REGISTRY.id).toBe("defaultRegistry");
+    expect( Object.keys(Schema.REGISTRY).sort(),).toEqual([
+      'id',
+      'scvoice.nameforma.UUID64', 
+      'scvoice.nameforma.Identifiable', 
+      'scvoice.nameforma.Forma', 
+      'bytes', 'string',
+    ].sort());
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Forma({ id });
-    let buf = type.toBuffer(thing1);
-    let parsed = type.fromBuffer(buf);
+    let buf = avroType.toBuffer(thing1);
+    let parsed = avroType.fromBuffer(buf);
     let thing2 = new Forma(parsed);
     expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');

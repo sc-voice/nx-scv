@@ -1,8 +1,9 @@
 import UUID64 from './uuid64.js';
 import { Forma } from './forma.js';
-import { Text } from '@sc-voice/tools';
 import { DBG } from './defines.js';
+import { Schema } from './schema.js';
 
+import { Text } from '@sc-voice/tools';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -36,13 +37,36 @@ export class Action extends Forma {
     dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
   }
 
+  /**
+   * Register this class's avroSchema into the avro registry and return AvroType.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
+   */
+  static override registerAvro(opts: any = {}) {
+    const msg = "a4n.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+    Forma.registerAvro(opts);
+
+    let { fullName } = Action.avroSchema;
+    dbg && cc.ok(msg, "registerType:", fullName);
+    let avroType = Schema.registerType(Action, opts);
+    dbg && cc.ok1(msg, "schema:", fullName);
+    return avroType
+  }
+
+  /**
+   * Schema wrapper for Action avro schema record
+   * @returns Schema
+   */
   static override get avroSchema() {
-    return {
+    const formaSchema = Forma.avroSchema;
+    return new Schema({
       name: 'Action',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        ...Forma.avroSchema.fields,
+        ...(formaSchema.fields || []),
         {
           name: 'status',
           type: {
@@ -52,7 +76,7 @@ export class Action extends Forma {
           } as any,
         }, // mutable
       ],
-    } as any;
+    });
   }
 
   /**

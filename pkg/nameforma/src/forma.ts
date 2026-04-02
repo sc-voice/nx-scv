@@ -4,6 +4,7 @@ import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
+import type { AvroType } from './schema.js';
 
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -68,6 +69,7 @@ export abstract class AFormaMatcher<T extends Forma> implements IFormaMatcher<T>
  */
 export class Forma extends Identifiable {
   static #instances: Record<string, number> = {};
+  static patchableFields = ['name', 'summary'];
   #prefix: string = '';
   name: string;
   summary: string;
@@ -98,17 +100,40 @@ export class Forma extends Identifiable {
     dbg && cc.ok1(msg + UOK, { id: this.id, name });
   }
 
-  static override get avroSchema() {
-    return {
+  /**
+   * Register this class's avroSchema into the avro registry and return AvroType.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
+   */
+  static override registerAvro(opts: any = {}) {
+    const msg = "f3a.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+    Identifiable.registerAvro(opts);
+
+    dbg && cc.ok(msg, "registerType")
+    let { fullName } = Forma.avroSchema;
+    dbg && cc.ok(msg, "registerType:", fullName)
+    let avroType = Schema.registerType(Forma, opts);
+    dbg && cc.ok1(msg, "schema:", fullName)
+    return avroType
+  }
+
+  /**
+   * Schema wrapper for Forma avro schema record
+   * @returns Schema
+   */
+  static override get avroSchema(): Schema {
+    return new Schema({
       name: 'Forma',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        { name: 'id', type: UUID64.avroSchema }, // immutable, unique, UUID64 POJO
+        { name: 'id', type: UUID64.avroSchema.fullName }, // immutable, unique, UUID64 POJO
         { name: 'name', type: 'string' }, // mutable
         { name: 'summary', type: 'string' }, // mutable
       ],
-    };
+    });
   }
 
   /**

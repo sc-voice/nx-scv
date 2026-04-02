@@ -2,7 +2,7 @@ import { Text } from '@sc-voice/tools';
 import { DBG } from './defines.js';
 import { Forma } from './forma.js';
 import { Rational } from './rational.js';
-import { Schema } from './schema.js';
+import { Schema, type AvroType } from './schema.js';
 import { Action } from './action.js';
 import { FormaCollection } from './forma-collection.js';
 import { NotImplementedError } from './errors.js';
@@ -51,10 +51,13 @@ const FORMA = Forma.avroSchema;
  *   Use task.actions.* methods for action mutations instead.
  */
 export class Task extends Forma {
+  static override readonly patchableFields = [...Forma.patchableFields, 'title', 'progress', 'duration'];
+
   title: string = 'title?';
   progress: any = new Rational(0, 1, 'done');
   duration: any = new Rational(null, 1, 's');
-  #actions: FormaCollection<Action>;
+  //actions: FormaCollection<Action>;
+  rawActions: Array<Action> = [];
 
   /**
    * Create a new Task instance.
@@ -73,7 +76,6 @@ export class Task extends Forma {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
     super({ id: cfg.id }); // for deserialized tasks
-    this.#actions = new FormaCollection(this.id, Action);
     this.put(cfg);
 
     dbg && cc.ok1(msg, ...cc.props(this));
@@ -89,22 +91,40 @@ export class Task extends Forma {
    * - items(filter): List all actions
    */
   get actions(): FormaCollection<Action> {
-    return this.#actions;
+    throw new Error("not implemented");
   }
 
   /**
-   * Register Task schema with Schema registry.
+   * Register Task schema into the avro registry and return AvroType.
    *
-   * Registers dependencies (Rational) and Task type itself.
-   * TODO: Consider whether this method is necessary or if it's a schema registry hack.
+   * TWO-REGISTRY SYSTEM:
+   * - Schema.#registry: Prevents duplicate schema registrations
+   * - avro registry: The avro-js library's type registry (passed to avro.parse())
    *
-   * @param opts Optional schema registration options
-   * @returns Registered Task schema
+   * Registers dependencies (Forma parent, Rational, FormaCollection<Action>) first,
+   * then registers Task type itself into BOTH registries.
+   *
+   * @param opts Optional schema registration options (avro instance, registry)
+   * @returns Registered AvroType from avro.parse()
    */
-  static registerSchema(opts: any = {}) {
-    Schema.registerType(Rational, opts);
-    // TODO: Register FormaCollection.schemaOf(Action) when schema registry is finalized
-    return Schema.registerType(this, opts);
+  static override registerAvro(opts: any = {}) : AvroType {
+    const msg = "t2k.registerAvro";
+    const dbg = DBG.SCHEMA.ALL;
+
+    dbg && cc.ok(msg+1.1, 'parent:', 'Forma');
+    Forma.registerAvro(opts);
+    Rational.registerAvro(opts);
+    Action.registerAvro(opts);
+
+    // Register FormaCollection.schemaOf(Action) schema
+    // dbg && cc.ok(msg+1.2, 'actions');
+    const actionsSchema = FormaCollection.schemaOf(Action);
+    Schema.registerSchema(actionsSchema, opts);
+
+    dbg && cc.ok(msg+1.3, 'task');
+    let avroType = Schema.registerType(Task, opts);
+    dbg && cc.ok1(msg, Task.avroSchema.fullName);
+    return avroType
   }
 
   static entity = 'task';
@@ -121,24 +141,42 @@ export class Task extends Forma {
    *
    * Empty actions serialize as []. All fields are required.
    */
-  static override get avroSchema() {
-    return {
+  static override get avroSchema(): Schema {
+    //const actionsSchema = FormaCollection.schemaOf(Action);
+    return new Schema({
       name: 'Task',
       namespace: 'scvoice.nameforma',
       type: 'record',
       fields: [
-        ...FORMA.fields,
+        ...(FORMA as any).fields,
         { name: 'title', type: 'string' },
         { name: 'progress', type: (RATIONAL as any).fullName },
         { name: 'duration', type: (RATIONAL as any).fullName },
-        // TODO: Uncomment when actions schema is ready
-        // { name: 'actions', type: (FormaCollection.schemaOf(Action) as any).fullName },
+        //{ name: 'actions', type: (actionsSchema as any).fullName },
+        { name: 'rawActions', type: { type: 'array', items: Action.avroSchema.fullName } },
       ],
-    };
+    });
   }
 
   static fromJson(data: any): Task {
     return new Task(data);
+  }
+
+  /**
+   * Convert Task to Avro-compatible value for serialization.
+   * Returns plain object with actions serialized as array items.
+   */
+  toAvroValue(): any {
+    return {
+      id: this.id,
+      name: this.name,
+      summary: this.summary,
+      title: this.title,
+      progress: this.progress,
+      duration: this.duration,
+      //actions: this.rawActions.items(),
+      rawActions: this.rawActions,
+    };
   }
 
   /**
@@ -174,12 +212,12 @@ export class Task extends Forma {
     Object.assign(this, { title, progress, duration });
 
     // Replace actions FormaCollection entirely
-    this.#actions = new FormaCollection(this.id, Action);
-    if (actions?.length) {
-      for (const actionCfg of actions) {
-        this.#actions.addItem(actionCfg);
-      }
-    }
+    //this.rawActions = new FormaCollection(this.id, Action);
+    //if (actions?.length) {
+      //for (const actionCfg of actions) {
+        //this.rawActions.addItem(actionCfg);
+      //}
+    //}
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
@@ -187,25 +225,18 @@ export class Task extends Forma {
   /**
    * Update task fields selectively without replacing actions.
    *
-   * Only updates title, progress, and duration fields. Throws NotImplementedError
-   * if actions field is provided—use task.actions.* methods for action mutations instead.
+   * Only updates title, progress, and duration fields. FormaCollection fields
+   * (actions) are protected by Patch.apply() validation and cannot be patched directly.
+   * Use task.actions.* methods for action mutations instead.
    *
    * @param value Configuration object with fields to update:
    *   - `title`: Task description
    *   - `progress`: Rational or {numerator, denominator, units}
    *   - `duration`: Rational or {numerator, denominator, units}
    *
-   * @throws NotImplementedError if value contains 'actions' field
-   *
    * Note: Uses patch() from parent Forma class for name/summary fields.
    */
   override patch(value: any = {}) {
-    if ('actions' in value) {
-      throw new NotImplementedError(
-        'Cannot patch actions field directly. Use task.actions.addItem(), deleteItem(), or patchItem() instead.'
-      );
-    }
-
     const msg = 't2k.patch';
     const dbg = T2K.PATCH;
     super.patch(value);
