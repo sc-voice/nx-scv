@@ -145,8 +145,8 @@ describe('UUID64', () => {
   // Test: isRelated identifies related UUIDs correctly
   it('isRelated identifies related UUIDs correctly', () => {
     const uuid1 = new UUID64();
-    const uuid2 = UUID64.createRelation(uuid1);
-    const uuid3 = UUID64.createRelation(uuid2);
+    const uuid2 = UUID64.createRelatedId(uuid1);
+    const uuid3 = UUID64.createRelatedId(uuid2);
     const unrelated = new UUID64();
 
     // All related UUIDs should identify as related (commutative)

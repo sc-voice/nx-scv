@@ -160,7 +160,7 @@ class UUID64 {
    * @param relation UUID64 instance to create a relation with
    * @returns UUID64 instance with new timestamp/sequence and relation's random bits
    */
-  static createRelation(relation: UUID64): UUID64 {
+  static createRelatedId(relation: UUID64): UUID64 {
     const uuidv7 = UUID64.createBufferUUIDV7(Date.now(), relation.uuidv7);
     const base64 = UUID64.toOrderPreservingBase64(
       UUID64.toUUID64Buffer(uuidv7),
@@ -439,12 +439,12 @@ class UUID64 {
    * @returns order-preserving base64 encoding of the time/sequence difference
    */
   itemId(basis: number = 1, width: number = 3): string {
-    let relation = UUID64.createRelation(this);
+    let relation = UUID64.createRelatedId(this);
     let diff = UUID64.extractTimeSeqDiff(relation.uuidv7, this.uuidv7);
 
     // Keep creating relations until difference is at least basis
     while (diff < basis) {
-      relation = UUID64.createRelation(this);
+      relation = UUID64.createRelatedId(this);
       diff = UUID64.extractTimeSeqDiff(relation.uuidv7, this.uuidv7);
     }
 
@@ -650,7 +650,7 @@ class UUID64 {
     UUID64.buildTimestampAndSequence(uuid, millis, sequence);
 
     if (randomBytes64) {
-      // Copy bytes 8-15 from provided random bytes (for createRelation)
+      // Copy bytes 8-15 from provided random bytes (for createRelatedId)
       randomBytes64.copy(uuid, 8, 8, 16);
     } else {
       // Generate new random bytes (for generate)

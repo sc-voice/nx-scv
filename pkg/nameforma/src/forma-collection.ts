@@ -80,7 +80,7 @@ export class FormaCollection<T extends IFormaItem> {
   addItem(cfg: any = {}): T {
     const msg = "F13n.addItem:";
     if (cfg.id == null) {
-      cfg.id = UUID64.createRelation(this.parentId);
+      cfg.id = UUID64.createRelatedId(this.parentId);
     }
     if (!this.parentId.isRelated(cfg.id)) {
       throw new Error(`${msg} cannot add unrelated item:${cfg.id}`);
