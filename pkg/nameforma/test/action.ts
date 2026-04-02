@@ -10,7 +10,7 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = DBG.ACTION?.TEST || 1;
+const dbg = Math.max(0,DBG.ACTION?.TEST);
 
 describe('Action', () => {
   it('ctor default', () => {

@@ -10,7 +10,7 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = Math.max(2, DBG.SCHEMA.TEST);
+const dbg = Math.max(0, DBG.SCHEMA.TEST);
 const STARTTEST = '============';
 
 describe('TESTTESTschema', () => {

@@ -123,13 +123,13 @@ export class Schema {
     const dbg = S4A.ALL;
 
     let { fullName="fullName?", name, namespace } = schema;
-    dbg > 1 && cc.ok(msg, "schema:", fullName)
+    dbg>1 && cc.ok(msg, "schema:", fullName)
     if (name == null) {
       let emsg = (`${msg} name?`)
       cc.bad1(msg+-1, emsg)
       throw new Error(emsg)
     }
-    dbg > 2 && cc.ok(msg, 'parsing:', fullName);
+    dbg>2 && cc.ok(msg, 'parsing:', fullName);
     let { avro = Schema.#avro, registry = Schema.#defaultRegistry } = opts;
     if (avro == null) {
       throw new Error(`${msg} avro?`);
@@ -138,7 +138,7 @@ export class Schema {
     let avroType = registry[fullName];
 
     if (avroType == null) {
-      dbg && cc.ok(msg, 'avro.parse registry:', registry.id);
+      dbg>1 && cc.ok(msg, 'avro.parse registry:', registry.id);
       avroType = avro.parse(schema, Object.assign({ registry }, opts));
       if (avroType == null) {
         let eMsg = `${msg} parse?`;

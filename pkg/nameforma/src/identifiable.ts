@@ -199,9 +199,9 @@ export class Identifiable {
     const msg = "i10e.registerAvro";
     const dbg = DBG.SCHEMA.ALL;
     let { fullName } = Identifiable.avroSchema;
-    dbg && cc.ok(msg, "dependency:", "UUID64");
+    dbg>1 && cc.ok(msg, "dependency:", "UUID64");
     UUID64.registerAvro(opts);
-    dbg && cc.ok(msg, "registerType:", fullName)
+    dbg>1 && cc.ok(msg, "registerType:", fullName)
     let avroType = Schema.registerType(Identifiable, opts);
     dbg && cc.ok1(msg, "schema:", fullName);
     return avroType

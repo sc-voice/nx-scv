@@ -7,7 +7,7 @@ const { Rational, Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
 
-const dbg = 2;
+const dbg = 0;
 
 describe('Rational', () => {
   it('default ctor', () => {

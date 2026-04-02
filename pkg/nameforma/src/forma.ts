@@ -111,9 +111,9 @@ export class Forma extends Identifiable {
     const dbg = DBG.SCHEMA.ALL;
     Identifiable.registerAvro(opts);
 
-    dbg && cc.ok(msg, "registerType")
+    dbg>1 && cc.ok(msg, "registerType")
     let { fullName } = Forma.avroSchema;
-    dbg && cc.ok(msg, "registerType:", fullName)
+    dbg>1 && cc.ok(msg, "registerType:", fullName)
     let avroType = Schema.registerType(Forma, opts);
     dbg && cc.ok1(msg, "schema:", fullName)
     return avroType

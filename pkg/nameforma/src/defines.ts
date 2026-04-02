@@ -10,8 +10,7 @@ const CONSUMER = {
   CTOR: 0,
   READ_TOPICS: 0,
   RUN: 0,
-  SUBSCRIBE: 0,
-  TEST: 0,
+  SUBSCRIBE: 0, TEST: 0,
 };
 
 const ACTION = {
@@ -87,7 +86,7 @@ const RUNNER = {
 };
 
 const SCHEMA = {
-  ALL: 2,
+  ALL: 0,
   REGISTER: 0,
   TEST: 0,
   TO_AVRO: 0,
@@ -136,12 +135,17 @@ const WORLD = {
   DELETE: 0,
 };
 
+const FORMA_LIST = {
+  TEST: 0,
+};
+
 export const DBG = {
   ACTION,
   CLOCK,
   CONSUMER,
   PRODUCER,
   FORMA,
+  FORMA_LIST,
   IDENTIFIABLE,
   ID_VALUE,
   KAFKA,

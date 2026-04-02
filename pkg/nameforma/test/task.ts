@@ -23,7 +23,7 @@ const FRY_EGG = [
   },
 ];
 
-let dbg = Math.max(2, T2K.TEST);
+let dbg = Math.max(0, T2K.TEST);
 
 describe('task', () => {
   it('ctor', () => {

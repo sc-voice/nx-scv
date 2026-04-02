@@ -10,7 +10,7 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = DBG.FORMA.TEST || 2;
+const dbg = Math.max(0, DBG.FORMA.TEST);
 
 class TestThing extends Forma {
   constructor(cfg = {}) {

@@ -49,7 +49,7 @@ export class Action extends Forma {
     Forma.registerAvro(opts);
 
     let { fullName } = Action.avroSchema;
-    dbg && cc.ok(msg, "registerType:", fullName);
+    dbg>1 && cc.ok(msg, "registerType:", fullName);
     let avroType = Schema.registerType(Action, opts);
     dbg && cc.ok1(msg, "schema:", fullName);
     return avroType
