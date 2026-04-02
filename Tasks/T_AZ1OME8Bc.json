@@ -1,0 +1,49 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Create src\/forma-list.ts as a mutator class (not encapsulated collection) with constructor(items, ItemClass, parentId?) that wraps an existing array reference, and CRUD methods: addItem(cfg) with auto-generated related ID (if parentId provided), deleteItem(id), getItem(id), patchItem(id, cfg), moveItem(id, {before?, after?}), items(filter?)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement Symbol.iterator for iterable support (spread syntax, for...of loops)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add comprehensive JSDoc: class description with usage examples, method parameter\/return docs, related ID generation behavior notes. Add Avro schema support if needed (following FormaCollection.schemaOf pattern)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Create test\/forma-list.ts with: CRUD operation tests, iterable interface tests, encapsulation verification, fuzzy ID matching tests, related ID validation tests",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-04-02T12:34:42Z",
+  "id" : "019D4E30-4F01-7000-AA90-C96C9CE1AF40",
+  "name" : "Implement FormaList class",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+    {
+      "relevance" : 0.9,
+      "text" : "FormaList is a mutator class that wraps an existing array reference (not an encapsulated collection like FormaCollection). Constructor signature: (items, ItemClass, parentId?) where parentId is optional and third parameter. CRUD methods mutate the wrapped array directly."
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "src\/forma-collection.ts - Reference implementation for CRUD pattern"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "src\/identifiable.ts - For understanding FuzzyId and idFilter()"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "src\/uuid64.ts line 163 - UUID64.createRelatedId() method"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Create FormaList mutation helper for Forma subclass arrays with CRUD methods and iterable interface",
+  "updatedAt" : "2026-04-02T13:29:10Z"
+}

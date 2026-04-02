@@ -170,11 +170,15 @@
     {
       "relevance" : 0.7,
       "text" : "Forma base class - extends Identifiable with name\/summary, Avro schema, patch() method"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Implementation complete. 16\/17 tests passing. 1 test (fuzzy ID matching) modified by user to use timeId(6) for unambiguous partial ID matching - user replaced substring(0,9) approach which suffered from ambiguity when items share timestamp prefix. Test now passes with user-provided approach."
     }
   ],
   "requiredTasks" : [
 
   ],
   "summary" : "Phase 1: Refactor FormaCollection to eliminate createForParent boilerplate. Phase 2: Add readonly actions: FormaCollection<Action> field to Task with Avro schema support, direct FormaCollection API exposure, and comprehensive tests",
-  "updatedAt" : "2026-03-31T10:54:40Z"
+  "updatedAt" : "2026-04-02T13:29:14Z"
 }
