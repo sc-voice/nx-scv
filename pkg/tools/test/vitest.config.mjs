@@ -2,7 +2,7 @@ import { defineConfig } from '@sc-voice/vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['test/**/*.mjs'],
+    include: ['test/**/*.mjs', 'test/**/*.ts'],
     exclude: ['test/vitest.config.mjs'],
     setupFiles: [],
   },

@@ -1,0 +1,101 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Convert src\/js\/assert.mjs + test\/js\/assert.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/js\/uuidv7.mjs + test\/js\/uuidv7.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/math\/activation.mjs + test\/math\/activation.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/defines.mjs + test\/defines.mjs to TypeScript, verify tests pass",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-04-03T12:40:16Z",
+  "id" : "019D535B-C4BB-7000-B3D9-24E894C99996",
+  "name" : "Convert remaining .mjs files to TypeScript",
+  "plannedActions" : [
+    {
+      "name" : "Convert src\/math\/fraction.mjs + test\/math\/fraction.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/math\/hadamard.mjs + test\/math\/hadamard.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/math\/interval.mjs + test\/math\/interval.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/math\/units.mjs + test\/math\/units.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/bilara-path.mjs + test\/text\/bilara-path.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/corpus.mjs + test\/text\/corpus.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/ebt-doc.mjs + test\/text\/ebt-doc.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/legacy-doc.mjs + test\/text\/legacy-doc.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/list.mjs + test\/text\/list.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/logger.mjs + test\/text\/logger.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/merkle-json.mjs + test\/text\/merkle-json.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/sutta-central-id.mjs + test\/text\/sutta-central-id.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/tfidf-space.mjs + test\/text\/tfidf-space.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/word-space.mjs + test\/text\/word-space.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/text\/word-vector.mjs + test\/text\/word-vector.mjs, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/graph\/sankey.mjs (no direct test file), verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Convert src\/defines.mjs (already has defines.ts), verify tests pass",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Convert 20 src and test file pairs from .mjs to .ts",
+  "updatedAt" : "2026-04-03T13:09:41Z"
+}

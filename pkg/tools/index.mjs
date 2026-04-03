@@ -1,13 +1,14 @@
 import UUID64 from './dist/uuid64.js';
 export { UUID64 }
 
-import { Assert } from './src/js/assert.mjs';
-import UUIDV7 from './src/js/uuidv7.mjs';
+import { Assert } from './dist/js/assert.js';
+import UUIDV7 from './dist/js/uuidv7.js';
 export const JS = { Assert, UUIDV7,
 }
 
-import { Activation } from './src/math/activation.mjs';
+import { Activation } from './dist/math/activation.js';
 import { Fraction } from './src/math/fraction.mjs';
+//import { Fraction } from './src/math/fraction.mjs';
 import { Units } from './src/math/units.mjs';
 import { Interval } from './src/math/interval.mjs';
 import { Hadamard } from './src/math/hadamard.mjs';

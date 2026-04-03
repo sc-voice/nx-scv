@@ -1,7 +1,7 @@
 import util from 'node:util';
 import { describe, it, expect } from '@sc-voice/vitest';
 import { ScvMath, Text } from '../../index.mjs';
-import { DBG } from '../../src/defines.mjs';
+import { DBG } from '../../dist/defines.js';
 
 const { COLOR_CONSOLE: C10E } = DBG;
 const { Unicode, ColorConsole, Corpus } = Text;
