@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import UUIDV7 from '../../src/js/uuidv7.mjs';
+import UUIDV7 from '../../src/util/uuidv7.mjs';
 
 describe('UUIDV7', () => {
   // Test: 2 Random Instances are Not Equal

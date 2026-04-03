@@ -1,0 +1,46 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-04-03T18:46:21Z",
+  "id" : "019D54AA-EEC7-7000-95B1-85FE0EC837DE",
+  "name" : "Implement named entry points architecture",
+  "plannedActions" : [
+    {
+      "name" : "Create src\/math\/index.ts exporting Activation, Fraction (from .mjs for now), Hadamard, Interval, Units",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Create src\/text\/index.ts exporting all text modules (BilaraPath, ColorConsole, Corpus, EbtDoc, LegacyDoc, Levenshtein, List, ListFactory, LogEntry, Logger, MerkleJson, SuttaCentralId, Unicode, WordSpace, WordVector, TfidfSpace)",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Create src\/js\/index.ts exporting Assert, UUIDV7",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Create src\/graph\/index.ts exporting Sankey",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update package.json with named exports: '.\/math', '.\/text', '.\/js', '.\/graph' pointing to dist category index files",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run npm run build to compile new index.ts files",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Run npm test to verify all tests still pass with new architecture",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Create category-level index.ts files and update package.json exports for Vite-optimized module structure",
+  "updatedAt" : "2026-04-03T18:46:46Z"
+}
