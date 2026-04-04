@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 
-import { ScvMath, Text } from '../../index.mjs';
+import { ScvMath, Text } from '../../src/index.ts';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { Fraction, Activation } = ScvMath;

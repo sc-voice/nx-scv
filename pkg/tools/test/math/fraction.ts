@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { ScvMath, Text } from '../../index.mjs';
+import { ScvMath, Text } from '../../src/index.ts';
 import { DBG } from '../../src/defines.js';
 const { Fraction } = ScvMath;
 const { cc } = Text.ColorConsole;

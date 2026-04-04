@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { JS } from '../../index.mjs';
-const { Assert } = JS;
+import { Util } from '../../src/index.ts';
+const { Assert } = Util;
 
 describe('assert', () => {
   it('ok', () => {

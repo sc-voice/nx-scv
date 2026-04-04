@@ -1,20 +1,44 @@
 {
   "completedActions" : [
     {
-      "name" : "Convert src\/js\/assert.mjs + test\/js\/assert.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "Convert src\/util\/assert.mjs + test\/util\/assert.mjs, verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/js\/uuidv7.mjs + test\/js\/uuidv7.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "Convert src\/util\/uuidv7.mjs + test\/util\/uuidv7.mjs, verify tests pass",
+      "test" : "all tests pass"
     },
     {
       "name" : "Convert src\/math\/activation.mjs + test\/math\/activation.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "test" : "all tests pass"
     },
     {
       "name" : "Convert src\/defines.mjs + test\/defines.mjs to TypeScript, verify tests pass",
-      "test" : "update unit tests"
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 1 - Leaf modules (no internal dependencies): Convert src\/text\/bilara-path.mjs + test, verify tests pass",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 1: Convert src\/text\/merkle-json.mjs + test, verify tests pass",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 1: Convert src\/math\/interval.mjs + test, verify tests pass",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 2 - Dependent modules: Convert src\/text\/logger.mjs + test, verify tests pass",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 2: Convert src\/text\/sutta-central-id.mjs + test (depends on bilara-path), verify tests pass",
+      "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 2: Convert src\/text\/word-vector.mjs + test (depends on dist\/unicode), verify tests pass",
+      "test" : "all tests pass"
     }
   ],
   "createdAt" : "2026-04-03T12:40:16Z",
@@ -22,80 +46,82 @@
   "name" : "Convert remaining .mjs files to TypeScript",
   "plannedActions" : [
     {
-      "name" : "Convert src\/math\/fraction.mjs + test\/math\/fraction.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 2: Convert src\/text\/legacy-doc.mjs + test, verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/math\/hadamard.mjs + test\/math\/hadamard.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 2: Convert src\/text\/ebt-doc.mjs + test (depends on sutta-central-id), verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/math\/interval.mjs + test\/math\/interval.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 3 - Higher-level: Convert src\/text\/corpus.mjs + test (depends on word-vector), verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/math\/units.mjs + test\/math\/units.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 3: Convert src\/math\/hadamard.mjs + test, verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/bilara-path.mjs + test\/text\/bilara-path.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 3: Convert src\/math\/fraction.mjs + test (use existing src\/math\/fraction.ts, verify not duplicated), verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/corpus.mjs + test\/text\/corpus.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 3: Convert src\/math\/units.mjs + test (depends on fraction), verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/ebt-doc.mjs + test\/text\/ebt-doc.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 3: Convert src\/text\/word-space.mjs + test, verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/legacy-doc.mjs + test\/text\/legacy-doc.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 3: Convert src\/text\/tfidf-space.mjs + test (depends on corpus + word-vector), verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/list.mjs + test\/text\/list.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 4 - Update exports: Convert src\/graph\/sankey.mjs + test, verify tests pass",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/logger.mjs + test\/text\/logger.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 4: Update src\/math\/index.ts to export Fraction, Hadamard, Interval, Units",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/merkle-json.mjs + test\/text\/merkle-json.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 4: Create\/update src\/text\/index.ts to export all text category classes (BilaraPath, ColorConsole, Corpus, EbtDoc, LegacyDoc, Levenshtein, List, ListFactory, Logger, LogEntry, MerkleJson, SuttaCentralId, Unicode, WordSpace, WordVector, TfidfSpace)",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/sutta-central-id.mjs + test\/text\/sutta-central-id.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 4: Create src\/graph\/index.ts to export Sankey",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/tfidf-space.mjs + test\/text\/tfidf-space.mjs, verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 4: Update index.mjs import paths from .mjs to .js files for all converted modules, verify no broken imports",
+      "test" : "all tests pass"
     },
     {
-      "name" : "Convert src\/text\/word-space.mjs + test\/text\/word-space.mjs, verify tests pass",
-      "test" : "update unit tests"
-    },
-    {
-      "name" : "Convert src\/text\/word-vector.mjs + test\/text\/word-vector.mjs, verify tests pass",
-      "test" : "update unit tests"
-    },
-    {
-      "name" : "Convert src\/graph\/sankey.mjs (no direct test file), verify tests pass",
-      "test" : "update unit tests"
-    },
-    {
-      "name" : "Convert src\/defines.mjs (already has defines.ts), verify tests pass",
-      "test" : "update unit tests"
+      "name" : "PHASE 4: Run full test suite (npm test), verify all 307+ tests pass",
+      "test" : "all tests pass"
     }
   ],
   "references" : [
-
+    {
+      "relevance" : 0.95,
+      "text" : "Conversion blockers resolved by previous task: No circular dependencies detected. Dependency graph is acyclic.",
+      "url" : "about:blank"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Recommended conversion order (4 phases, no blockers): Phase 1: bilara-path, merkle-json, interval. Phase 2: logger, sutta-central-id, word-vector, legacy-doc, ebt-doc. Phase 3: corpus, hadamard, fraction, units, word-space, tfidf-space. Phase 4: sankey + index updates",
+      "url" : "about:blank"
+    },
+    {
+      "relevance" : 0.95,
+      "text" : "Already-converted TS modules safe to import from dist\/: Activation, Fraction (ts), ColorConsole, Unicode, Levenshtein, Assert, UUIDV7",
+      "url" : "about:blank"
+    }
   ],
   "requiredTasks" : [
-
+    "019D54AA-EEC7-7000-95B1-85FE0EC837DE (Implement named entry points architecture - COMPLETED)"
   ],
-  "summary" : "Convert 20 src and test file pairs from .mjs to .ts",
-  "updatedAt" : "2026-04-03T13:09:41Z"
+  "summary" : "Convert 17 remaining .mjs files to TypeScript in 4 phases. No blockers remain after named entry points architecture task. Leaf modules first, then dependent modules. Update category index.ts files and index.mjs in final phase.",
+  "updatedAt" : "2026-04-03T21:53:30Z"
 }

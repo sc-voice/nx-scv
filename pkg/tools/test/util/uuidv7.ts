@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import UUIDV7 from '../../dist/js/uuidv7.js';
+import { Util } from '../../src/index.ts';
+const { UUIDV7 } = Util;
 
 describe('UUIDV7', () => {
   // Test: 2 Random Instances are Not Equal
