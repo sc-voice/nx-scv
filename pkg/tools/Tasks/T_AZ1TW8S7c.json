@@ -39,12 +39,7 @@
     {
       "name" : "PHASE 2: Convert src\/text\/word-vector.mjs + test (depends on dist\/unicode), verify tests pass",
       "test" : "all tests pass"
-    }
-  ],
-  "createdAt" : "2026-04-03T12:40:16Z",
-  "id" : "019D535B-C4BB-7000-B3D9-24E894C99996",
-  "name" : "Convert remaining .mjs files to TypeScript",
-  "plannedActions" : [
+    },
     {
       "name" : "PHASE 2: Convert src\/text\/legacy-doc.mjs + test, verify tests pass",
       "test" : "all tests pass"
@@ -70,15 +65,19 @@
       "test" : "all tests pass"
     },
     {
-      "name" : "PHASE 3: Convert src\/text\/word-space.mjs + test, verify tests pass",
+      "name" : "PHASE 3: Convert src\/math\/hadamard.mjs + test, verify tests pass",
       "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 3: Convert src\/text\/word-space.mjs + test, verify tests pass",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "PHASE 3: Convert src\/text\/list.mjs + test, verify tests pass",
+      "test" : "update unit tests"
     },
     {
       "name" : "PHASE 3: Convert src\/text\/tfidf-space.mjs + test (depends on corpus + word-vector), verify tests pass",
-      "test" : "all tests pass"
-    },
-    {
-      "name" : "PHASE 4 - Update exports: Convert src\/graph\/sankey.mjs + test, verify tests pass",
       "test" : "all tests pass"
     },
     {
@@ -88,11 +87,12 @@
     {
       "name" : "PHASE 4: Create\/update src\/text\/index.ts to export all text category classes (BilaraPath, ColorConsole, Corpus, EbtDoc, LegacyDoc, Levenshtein, List, ListFactory, Logger, LogEntry, MerkleJson, SuttaCentralId, Unicode, WordSpace, WordVector, TfidfSpace)",
       "test" : "all tests pass"
-    },
-    {
-      "name" : "PHASE 4: Create src\/graph\/index.ts to export Sankey",
-      "test" : "all tests pass"
-    },
+    }
+  ],
+  "createdAt" : "2026-04-03T12:40:16Z",
+  "id" : "019D535B-C4BB-7000-B3D9-24E894C99996",
+  "name" : "Convert remaining .mjs files to TypeScript",
+  "plannedActions" : [
     {
       "name" : "PHASE 4: Update index.mjs import paths from .mjs to .js files for all converted modules, verify no broken imports",
       "test" : "all tests pass"
@@ -100,6 +100,10 @@
     {
       "name" : "PHASE 4: Run full test suite (npm test), verify all 307+ tests pass",
       "test" : "all tests pass"
+    },
+    {
+      "name" : "PHASE 4 - Update exports: Convert src\/graph\/sankey.mjs + test, verify tests pass",
+      "test" : "update unit tests"
     }
   ],
   "references" : [
@@ -123,5 +127,5 @@
     "019D54AA-EEC7-7000-95B1-85FE0EC837DE (Implement named entry points architecture - COMPLETED)"
   ],
   "summary" : "Convert 17 remaining .mjs files to TypeScript in 4 phases. No blockers remain after named entry points architecture task. Leaf modules first, then dependent modules. Update category index.ts files and index.mjs in final phase.",
-  "updatedAt" : "2026-04-03T21:53:30Z"
+  "updatedAt" : "2026-04-04T14:53:44Z"
 }

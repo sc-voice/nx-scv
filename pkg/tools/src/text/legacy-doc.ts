@@ -106,14 +106,13 @@ export class LegacyDoc {
     return LegacyDoc.create(translation);
   }
 
-  static create(translation: TranslationData | string): LegacyDoc {
+  static create(t13aOrString: any | string): LegacyDoc {
     const msg = 'LegacyDoc.create:';
-    let legacy: any = translation;
-    if (typeof legacy === 'string') {
-      legacy = JSON.parse(legacy);
-    }
+    let t13a = (typeof t13aOrString === 'string') 
+      ? JSON.parse(t13aOrString) as TranslationData
+      : t13aOrString as TranslationData
 
-    let { uid, lang, title, author, author_uid, text } = legacy as TranslationData;
+    let { uid, lang, title, author, author_uid, text } = t13a;
     let textLines: string[] = typeof text === 'string' ? text.split('\n') : text;
 
     let para: string;

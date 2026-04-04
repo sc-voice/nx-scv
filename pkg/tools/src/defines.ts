@@ -37,7 +37,7 @@ export const DBG = {
     },
   },
   W7E_BOW_OF_TEXT: 0,
-  WORD_MAP_TRANFORMER: 0,
+  WORD_MAP_TRANSFORMER: 0,
   S5H: {
     U3S: {
       CONVERT_FRACTION: 0,
