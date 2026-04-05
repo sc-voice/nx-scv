@@ -15,6 +15,7 @@ class Vector extends Object {
     }
     Object.defineProperty(this, '$length', {
       writable: true,
+      enumerable: false,
     });
   }
 
@@ -147,9 +148,9 @@ export class WordMapTransformer {
   static normalizeFR(s: string): string {
     return s
       .replace(/[«»]/gi, '')
-      .replace(/\bd['']/gi, 'de ')
-      .replace(/\bl['']/gi, 'le ')
-      .replace(/\bs['']/gi, 'se ')
+      .replace(/\bd[’']/gi, 'de ')
+      .replace(/\bl[’']/gi, 'le ')
+      .replace(/\bs[’']/gi, 'se ')
       .replace('?', '$QUESTION')
       .replace('!', '$EXCLAMATION')
       .trim();
@@ -185,7 +186,7 @@ export class WordMapTransformer {
       .toLowerCase()
       .trim()
       .replace(/[-]/g, ' ')
-      .replace(/[.,_:;"'""''!?]/g, '');
+      .replace(/[.,_:;"'“”‘’!?]/g, '');
     return rslt;
   }
 }

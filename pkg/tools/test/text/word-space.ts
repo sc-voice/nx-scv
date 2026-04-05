@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { describe, it, expect } from '@sc-voice/vitest';
 import path from 'node:path';
-import { Text } from '../../index.mjs';
+import { Text } from '../../src/index.ts';
 
 const { WordMapTransformer, WordSpace } = Text;
 const TEST_DIR = new URL('.', import.meta.url).pathname;

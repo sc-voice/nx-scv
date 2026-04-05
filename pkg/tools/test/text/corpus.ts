@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { Text } from '../../index.mjs';
+import { Text } from '../../src/index.ts';
 
 const { Corpus } = Text;
 

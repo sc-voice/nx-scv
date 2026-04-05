@@ -120,9 +120,9 @@ export class TfidfSpace {
    */
   static removeNonWords(s: string, opts: any = {}): string {
     const RE_RESERVED = /[_-]/g; // allowed in bow words
-    const RE_LQUOTE = /["'«]/g; // Left-side quotes
-    const RE_PUNCT = /[.,:;$"'""''!?«»\[\]]/g; // Punctuation and other symbols
-    const RE_SPACE = /\s+/g; // Multiple spaces
+    const RE_LQUOTE = /[“‘«]/g;
+    const RE_PUNCT = /[.,:;$"'“”‘’!?«»\[\]]/g;
+    const RE_SPACE = /\s+/g;
     let {
       leftQuoteToken = '', // TBD: is this useful?
     } = opts;
@@ -147,13 +147,13 @@ export class TfidfSpace {
   static normalizeFR(s: string, opts: any = {}): string {
     let sAbbr = s
       .toLowerCase()
-      .replace(/\bd['']/gi, 'de ') // d' -> de
-      .replace(/\bl['']/gi, 'le ') // l' -> le
-      .replace(/\bs['']/gi, 's_') // s' -> s_
-      .replace(/\bj['']/gi, 'j_') // j' -> j_
-      .replace(/\bm['']/gi, 'm_') // m' -> m_
-      .replace(/\bn['']/gi, 'n_') // n' -> n_
-      .replace(/\bc['']/gi, 'c_'); // c' -> c_
+      .replace(/\bd[’']/gi, 'de ')
+      .replace(/\bl[’']/gi, 'le ')
+      .replace(/\bs[’']/gi, 's_')
+      .replace(/\bj[’']/gi, 'j_')
+      .replace(/\bm[’']/gi, 'm_')
+      .replace(/\bn[’']/gi, 'n_')
+      .replace(/\bc[’']/gi, 'c_');
     return TfidfSpace.removeNonWords(sAbbr, opts);
   }
 

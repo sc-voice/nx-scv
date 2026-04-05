@@ -1,1 +1,1 @@
-// Sankey not yet converted to TypeScript - exported from index.mjs
+// Sankey not yet converted to TypeScript 
