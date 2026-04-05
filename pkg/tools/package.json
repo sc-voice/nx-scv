@@ -12,10 +12,8 @@
   },
   "files": [
     "LICENSE",
-    "index.mjs",
     "package.json",
     "README.md",
-    "src",
     "dist"
   ],
   "scripts": {
