@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { DBG } from '../dist/defines.js';
+import { DBG } from '../src/defines.ts';
 
 describe('defines', () => {
   it('DBG has expected structure', () => {
