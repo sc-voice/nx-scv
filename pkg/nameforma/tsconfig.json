@@ -1,12 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "declaration": true,
-    "emitDeclarationOnly": false,
-    "noUnusedLocals": false,
     "rootDir": "src",
     "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.mjs"],
+  "include": ["src/**/*.ts"],
   "exclude": ["test/**/*", "node_modules", "dist/**/*"]
 }

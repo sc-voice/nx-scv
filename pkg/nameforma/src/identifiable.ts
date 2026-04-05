@@ -1,7 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Schema } from './schema.js';
 import { Text } from '@sc-voice/tools';
-import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
+import { Levenshtein } from '@sc-voice/tools/text';
 import { ISchemaClass } from './schema.js'
 import { DBG } from "./defines.js"
 

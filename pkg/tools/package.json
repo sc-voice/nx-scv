@@ -1,15 +1,19 @@
 {
   "name": "@sc-voice/tools",
-  "version": "3.35.0",
+  "version": "4.0.0",
   "description": "Utilities for SC-Voice",
   "type": "module",
-  "main": "index.mjs",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./math": "./dist/math/index.js",
+    "./text": "./dist/text/index.js",
+    "./util": "./dist/util/index.js"
+  },
   "files": [
     "LICENSE",
-    "index.mjs",
     "package.json",
     "README.md",
-    "src",
     "dist"
   ],
   "scripts": {
