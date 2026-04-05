@@ -119,6 +119,8 @@ describe('Forma', () => {
     expect(JSON.stringify(f3a)).toEqual(JSON.stringify({id, name, summary}));
 
     let line = f3a.toString({format:'line'})
-    expect(line).toBe("asdf");
+    expect(line).toMatch(name);
+    expect(line).toMatch(summary);
+    expect(line).toMatch(id.timeId());
   });
 });

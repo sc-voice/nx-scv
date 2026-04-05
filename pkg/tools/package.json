@@ -10,6 +10,7 @@
     "./text": "./dist/text/index.js",
     "./util": "./dist/util/index.js"
   },
+  "types": "./dist/index.d.ts",
   "files": [
     "LICENSE",
     "package.json",
@@ -18,6 +19,7 @@
   ],
   "scripts": {
     "build": "npx tsc",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "format": "npx biome format --write src test",
     "test": "npm run build && vitest run --config test/vitest.config.mjs",
     "test:test": "npm run build && vitest --config test/vitest.config.mjs"

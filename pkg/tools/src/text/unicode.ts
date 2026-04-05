@@ -418,6 +418,54 @@ export class Unicode {
   get u_MACRON() {
     return Unicode.u_MACRON;
   }
+  get INFINITY() {
+    return Unicode.INFINITY;
+  }
+  get WHITE_CIRCLE() {
+    return Unicode.WHITE_CIRCLE;
+  }
+  get INVERSE_BULLET() {
+    return Unicode.INVERSE_BULLET;
+  }
+  get CIRCLED_BULLET() {
+    return Unicode.CIRCLED_BULLET;
+  }
+  get FISHEYE() {
+    return Unicode.FISHEYE;
+  }
+  get WHITE_BULLET() {
+    return Unicode.WHITE_BULLET;
+  }
+  get BULLET() {
+    return Unicode.BULLET;
+  }
+  get LEFT_ARROW() {
+    return Unicode.LEFT_ARROW;
+  }
+  get RIGHT_ARROW() {
+    return Unicode.RIGHT_ARROW;
+  }
+  get LEFT_RIGHT_ARROW() {
+    return Unicode.LEFT_RIGHT_ARROW;
+  }
+  get CHECKMARK() {
+    return Unicode.CHECKMARK;
+  }
+  get WARNING() {
+    return Unicode.WARNING;
+  }
+  get RED_X() {
+    return Unicode.RED_X;
+  }
+  get GREEN_CHECKBOX() {
+    return Unicode.GREEN_CHECKBOX;
+  }
+  get LEFT_GUILLEMET() {
+    return Unicode.LEFT_GUILLEMET;
+  }
+  get RIGHT_GUILLEMET() {
+    return Unicode.RIGHT_GUILLEMET;
+  }
 
   stripSymbols(text: string) {
     return text.replace((this as any).reSymbols, '');

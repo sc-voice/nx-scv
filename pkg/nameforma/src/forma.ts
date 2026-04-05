@@ -1,14 +1,15 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { Text } from '@sc-voice/tools';
-import { Levenshtein } from '@sc-voice/tools/text';
+import { Levenshtein, Unicode } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import type { AvroType } from './schema.js';
 
-const { Unicode, ColorConsole } = Text;
+const { ColorConsole } = Text;
 const { cc } = ColorConsole;
-const { EMPTY_SET: UNA, CHECKMARK: UOK } = Unicode;
+const UOK = Unicode.CHECKMARK;
+const UNA = Unicode.EMPTY_SET;
 const { FORMA: F3A } = DBG;
 
 /**
@@ -192,10 +193,6 @@ export class Forma extends Identifiable {
 
     dbg && cc.ok1(msg + UOK, { id, name });
     return true;
-  }
-
-  override toString() {
-    return this.name;
   }
 
   /**
