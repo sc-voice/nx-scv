@@ -1,6 +1,6 @@
 import util from 'node:util';
 import { describe, it, expect } from '@sc-voice/vitest';
-import { Text } from '../../index.mjs';
+import { Text } from '../../src/index.ts';
 import { DBG } from '../../src/defines.js';
 
 const { Unicode, ColorConsole, List, ListFactory } = Text;

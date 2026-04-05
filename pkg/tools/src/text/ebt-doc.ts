@@ -40,17 +40,18 @@ export class EbtDoc {
   author_uid?: string;
   wordSpace?: any;
   footer?: string;
-  _scids?: string[];
+  #scids?: string[];
 
   constructor(opts: EbtDocOpts) {
     const msg = 'E4c.ctor:';
     if (!privateCtor) {
       throw new Error(`${msg} create()!`);
     }
-    Object.defineProperty(this, '_scids', {
-      writable: true,
-      value: undefined,
-    });
+    //Object.defineProperty(this, '_scids', {
+      //writable: true,
+      //enumerable: false,
+      //value: undefined,
+    //});
     Object.defineProperty(this, 'parent', {
       writable: true,
     });
@@ -103,14 +104,14 @@ export class EbtDoc {
   }
 
   scids(): string[] {
-    let { _scids } = this;
-    if (_scids == null) {
-      _scids = Object.keys(this.segMap);
-      _scids.sort(SuttaCentralId.compareLow);
-      this._scids = _scids;
+    let scids = this.#scids;
+    if (scids == null) {
+      scids = Object.keys(this.segMap);
+      scids.sort(SuttaCentralId.compareLow);
+      this.#scids = scids;
     }
 
-    return _scids;
+    return scids;
   }
 
   segments(): SegmentData[] {

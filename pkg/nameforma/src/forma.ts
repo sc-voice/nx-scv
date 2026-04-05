@@ -1,7 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { Text } from '@sc-voice/tools';
-import { Levenshtein } from '@sc-voice/tools/dist/text/levenshtein.js';
+import { Levenshtein } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import type { AvroType } from './schema.js';
