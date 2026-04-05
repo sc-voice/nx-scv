@@ -8,7 +8,7 @@ import type { AvroType } from './schema.js';
 
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
-const { CHECKMARK: UOK } = Unicode;
+const { EMPTY_SET: UNA, CHECKMARK: UOK } = Unicode;
 const { FORMA: F3A } = DBG;
 
 /**
@@ -209,7 +209,18 @@ export class Forma extends Identifiable {
     this.name = name;
     this.summary = summary;
   }
-}
+
+  override toString(cfg={}) : string{
+    const msg = 'f3a.toString';
+    let {
+      id, 
+      name = UNA,
+      summary = UNA,
+    } = this;
+    cc.ok1(msg, id);
+    return [id.base64, name, summary].join(' ');
+  }
+} // Forma
 
 /**
  * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
@@ -251,4 +262,4 @@ export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
     const normalizedDistance = Levenshtein.normalizedDistance(s10e, compareStr);
     return 1 - normalizedDistance;
   }
-}
+} // LevenshteinMatcher

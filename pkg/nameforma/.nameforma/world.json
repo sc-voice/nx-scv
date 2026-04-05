@@ -3,6 +3,7 @@
   "numeronym": {
     "F13n": "FormaCollection",
     "N18r": "NotImplemenetedError",
-    "I10e": "Identifiable"
+    "I10e": "Identifiable",
+    "T13a": "TranslationData"
   }
 }
