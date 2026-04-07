@@ -1,5 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
+import { Forma } from './forma.js';
 
 /**
  * IFormaItem - Instance shape for items managed by FormaList
@@ -181,6 +182,46 @@ export class FormaList<T extends IFormaItem> {
     // Insert at new position
     this.items.splice(insertIndex, 0, item);
     return item;
+  }
+
+  /**
+   * Return a unique list item identifier for the given item.
+   * The list item id is computed from the timeId of item.id,
+   * omitting the prefix and suffix in common with the timeIds of
+   * the list items.
+   */
+  itemListId(item:T) : string {
+    const timeIds = this.items.map(it => it.id.timeId());
+    const targetTimeId = item.id.timeId();
+
+    if (timeIds.length === 0) return targetTimeId;
+
+    // Find common prefix
+    let prefixLen = 0;
+    const minLen = Math.min(...timeIds.map(id => id.length));
+    for (let i = 0; i < minLen; i++) {
+      const char = timeIds[0][i];
+      if (timeIds.every(id => id[i] === char)) {
+        prefixLen = i + 1;
+      } else {
+        break;
+      }
+    }
+
+    // Find common suffix
+    let suffixLen = 0;
+    for (let i = 1; i <= minLen - prefixLen; i++) {
+      const char = timeIds[0][timeIds[0].length - i];
+      if (timeIds.every(id => id[id.length - i] === char)) {
+        suffixLen = i;
+      } else {
+        break;
+      }
+    }
+
+    // Trim prefix and suffix from target
+    const endIndex = targetTimeId.length - suffixLen;
+    return targetTimeId.substring(prefixLen, endIndex);
   }
 
   /**
