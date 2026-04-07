@@ -406,24 +406,31 @@ describe('FormaList', () => {
     // We use manual construction of UUID64 to ensure exact patterns.
     // Pattern: [common_prefix][unique_middle][common_suffix]
     const id1 = UUID64.fromString('0PrekDWc007LykSgQ5TutW');
-    const id2 = UUID64.fromString('0PrekI4s001_58Qc4M8DdW');
+    const id2 = UUID64.fromString('0PrejD4s001_58Qc4M8DdW');
 
-    const items = [
-      new Forma({id:id1, name:"name1", summary: "summary1"}),
-      new Forma({id:id2, name:"name2", summary: "summary2"}),
-    ];
-
+    const items: Forma[] = [];
     const list = new FormaList(items, Forma);
 
-    // The trimmed ID for the first item should be the part that is unique 
-    // relative to the commonality found in the whole list.
-    // Based on our previous discussion: 'DWc'
-    expect(list.itemListId(items[0])).toBe('DWc');
-    expect(list.itemListId(items[1])).toBe('I4s');
-    expect(list.getItem("DWc")).toBe(items[0]);
-    expect(list.getItem("I4s")).toBe(items[1]);
-    expect(list.getItem("dwc")).toBe(items[0]);
-    expect(list.getItem("i4s")).toBe(items[1]);
+    // Add first item - single item case uses suffix=2, prefix=5
+    // timeId('0PrekDWc00'), result should be middle 3 chars: 'DWc'
+    const forma1 = new Forma({id:id1, name:"name1", summary: "summary1"});
+    list.addItem({id: id1, name:"name1", summary: "summary1"});
+    expect(list.itemListId(forma1)).toBe('DWc');
+
+    // Add second item - now multiple items, common prefix/suffix
+    // timeIds: '0PrekDWc00' and '0PrekI4s00'
+    // Common prefix: '0Prek' (5 chars), common suffix: '00' (2 chars)
+    // Result: 'DWc' and 'I4s'
+    const forma2 = new Forma({id:id2, name:"name2", summary: "summary2"});
+    list.addItem({id: id2, name:"name2", summary: "summary2"});
+    expect(list.itemListId(forma1)).toBe('kDWc');
+    expect(list.itemListId(forma2)).toBe('jD4s');
+
+    // Verify getItem works with trimmed IDs
+    expect(list.getItem("kDWc")).toBe(items[0]);
+    expect(list.getItem("jD4s")).toBe(items[1]);
+    expect(list.getItem("kdwc")).toBe(items[0]);
+    expect(list.getItem("jd4s")).toBe(items[1]);
   });
 
 });

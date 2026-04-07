@@ -51,9 +51,13 @@ export interface IFormaItemClass {
  * Note: FormaList is not Avro serializable (mutator helpers are runtime-only)
  */
 export class FormaList<T extends IFormaItem> {
+  static readonly MIN_LIST_ITEM_ID_LENGTH = 3;
+
   readonly items: T[];
   readonly #ItemClass: IFormaItemClass;
   readonly parentId?: UUID64;
+  #cachedPrefixLen: number | null = null;
+  #cachedSuffixLen: number | null = null;
 
   constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64) {
     this.items = items;
@@ -80,6 +84,7 @@ export class FormaList<T extends IFormaItem> {
 
     const item = new (this.#ItemClass as any)(cfg) as T;
     this.items.push(item);
+    this.#invalidateCache();
     return item;
   }
 
@@ -93,6 +98,7 @@ export class FormaList<T extends IFormaItem> {
     const itemToDelete = this.getItem(id);
     const index = this.items.indexOf(itemToDelete);
     this.items.splice(index, 1);
+    this.#invalidateCache();
     return itemToDelete;
   }
 
@@ -185,21 +191,40 @@ export class FormaList<T extends IFormaItem> {
   }
 
   /**
-   * Return a unique list item identifier for the given item.
-   * The list item id is computed from the timeId of item.id,
-   * omitting the prefix and suffix in common with the timeIds of
-   * the list items.
+   * Invalidate cached prefix/suffix lengths when list contents change.
    */
-  itemListId(item:T) : string {
-    const timeIds = this.items.map(it => it.id.timeId());
-    const targetTimeId = item.id.timeId();
+  #invalidateCache(): void {
+    this.#cachedPrefixLen = null;
+    this.#cachedSuffixLen = null;
+  }
 
-    if (timeIds.length === 0) return targetTimeId;
+  /**
+   * Compute and cache common prefix/suffix lengths across all list item timeIds.
+   * Ensures minimum listItemId length of MIN_LIST_ITEM_ID_LENGTH.
+   * Special case: single item uses suffixLen=2 and adjusted prefixLen.
+   * Invalidated when list contents change.
+   */
+  #computePrefixSuffixLengths(): void {
+    const timeIds = this.items.map(it => it.id.timeId());
+
+    if (timeIds.length === 0) {
+      this.#cachedPrefixLen = 0;
+      this.#cachedSuffixLen = 0;
+      return;
+    }
+
+    // Special case: single item in list
+    if (timeIds.length === 1) {
+      const suffixLen = 2;
+      const prefixLen = UUID64.TIME_SEQ_CHARS - FormaList.MIN_LIST_ITEM_ID_LENGTH - suffixLen;
+      this.#cachedPrefixLen = prefixLen;
+      this.#cachedSuffixLen = suffixLen;
+      return;
+    }
 
     // Find common prefix
     let prefixLen = 0;
-    const minLen = Math.min(...timeIds.map(id => id.length));
-    for (let i = 0; i < minLen; i++) {
+    for (let i = 0; i < UUID64.TIME_SEQ_CHARS; i++) {
       const char = timeIds[0][i];
       if (timeIds.every(id => id[i] === char)) {
         prefixLen = i + 1;
@@ -210,7 +235,7 @@ export class FormaList<T extends IFormaItem> {
 
     // Find common suffix
     let suffixLen = 0;
-    for (let i = 1; i <= minLen - prefixLen; i++) {
+    for (let i = 1; i <= UUID64.TIME_SEQ_CHARS - prefixLen; i++) {
       const char = timeIds[0][timeIds[0].length - i];
       if (timeIds.every(id => id[id.length - i] === char)) {
         suffixLen = i;
@@ -219,9 +244,37 @@ export class FormaList<T extends IFormaItem> {
       }
     }
 
-    // Trim prefix and suffix from target
-    const endIndex = targetTimeId.length - suffixLen;
-    return targetTimeId.substring(prefixLen, endIndex);
+    // Ensure minimum listItemId length
+    const resultLen = UUID64.TIME_SEQ_CHARS - prefixLen - suffixLen;
+    if (resultLen < FormaList.MIN_LIST_ITEM_ID_LENGTH) {
+      // Need to reduce prefix or suffix to meet minimum length
+      const needed = FormaList.MIN_LIST_ITEM_ID_LENGTH - resultLen;
+      if (suffixLen >= needed) {
+        suffixLen -= needed;
+      } else {
+        prefixLen -= (needed - suffixLen);
+        suffixLen = 0;
+      }
+    }
+
+    this.#cachedPrefixLen = prefixLen;
+    this.#cachedSuffixLen = suffixLen;
+  }
+
+  /**
+   * Return a unique list item identifier for the given item.
+   * The list item id is computed from the timeId of item.id,
+   * omitting the prefix and suffix in common with the timeIds of
+   * the list items. Results are cached until list contents change.
+   */
+  itemListId(item:T) : string {
+    if (this.#cachedPrefixLen === null || this.#cachedSuffixLen === null) {
+      this.#computePrefixSuffixLengths();
+    }
+
+    const targetTimeId = item.id.timeId();
+    const endIndex = targetTimeId.length - this.#cachedSuffixLen!;
+    return targetTimeId.substring(this.#cachedPrefixLen!, endIndex);
   }
 
   /**
