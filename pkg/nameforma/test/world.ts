@@ -409,6 +409,60 @@ describe('World Storage - Save, Load, List, Delete', () => {
       expect(entities[0].name).toBe('keep');
     });
   });
+
+  describe('entityList()', () => {
+    it('should return empty FormaList if entity type not found', () => {
+      const list = world.entityList(MockEntity);
+      expect(list.size).toBe(0);
+    });
+
+    it('should return FormaList with typed entities after saves', () => {
+      const e1 = new MockEntity({ name: 'entity1' });
+      const e2 = new MockEntity({ name: 'entity2' });
+      const e3 = new MockEntity({ name: 'entity3' });
+
+      world.saveEntity('mock', e1);
+      world.saveEntity('mock', e2);
+      world.saveEntity('mock', e3);
+
+      const list = world.entityList(MockEntity);
+      expect(list.size).toBe(3);
+
+      const names = Array.from(list).map((e) => e.name).sort();
+      expect(names).toEqual(['entity1', 'entity2', 'entity3']);
+    });
+
+    it('should return entities with UUID64 POJO ids', () => {
+      const entity = new MockEntity({ name: 'test-entity' });
+      world.saveEntity('mock', entity);
+
+      const list = world.entityList(MockEntity);
+      expect(list.size).toBe(1);
+
+      const items = Array.from(list);
+      expect(items[0].name).toBe('test-entity');
+      expect(items[0].id).toBeDefined();
+      expect(items[0].id.base64).toBeDefined();
+    });
+
+    it('should return FormaList that is iterable', () => {
+      const e1 = new MockEntity({ name: 'first' });
+      const e2 = new MockEntity({ name: 'second' });
+
+      world.saveEntity('mock', e1);
+      world.saveEntity('mock', e2);
+
+      const list = world.entityList(MockEntity);
+      const collected: MockEntity[] = [];
+
+      for (const entity of list) {
+        collected.push(entity);
+      }
+
+      expect(collected.length).toBe(2);
+      expect(collected.map((e) => e.name).sort()).toEqual(['first', 'second']);
+    });
+  });
 });
 
 describe('World Serialization - save()/load() methods', () => {

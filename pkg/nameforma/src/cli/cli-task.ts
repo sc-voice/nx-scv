@@ -7,7 +7,6 @@ import path from 'path';
 import { Unicode } from "@sc-voice/tools/text"
 import { World } from '../world.js';
 import { Task } from '../task.js';
-import { FormaList } from '../forma-list.js';
 import { Rational } from '../rational.js';
 
 
@@ -66,20 +65,20 @@ export default class TaskCommand {
     cmd
       .command('create')
       .description('Create a new task')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task create -t "My Task"\n  $ nameforma task create -t "Fix bug" -p 1/3 -d 2/8\n  $ nameforma task create -t "Review PR" -n custom-name -p 0/1')
-      .requiredOption('-t, --title <title>', 'Task title')
-      .option('-n, --name <name>', 'Task name (auto-generated if not provided)')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task create -n "My Task"\n  $ nameforma task create -n "Fix bug" -s "Description" -p 1/3 -d 2/8\n  $ nameforma task create -n "Review PR" -p 0/1')
+      .requiredOption('-n, --name <name>', 'Task name')
+      .option('-s, --summary <summary>', 'Task summary')
       .option('-p, --progress <progress>', 'Task progress (e.g., 0/1 or 1/3)', '0/1')
       .option('-d, --duration <duration>', 'Task duration (e.g., 5/60 for 5/60 hours)')
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
         const taskConfig: any = {
-          title: options.title,
+          name: options.name,
         };
 
-        if (options.name) {
-          taskConfig.name = options.name;
+        if (options.summary) {
+          taskConfig.summary = options.summary;
         }
 
         if (options.progress) {
@@ -111,23 +110,22 @@ export default class TaskCommand {
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
-        const taskData = world.list('task');
-        if (taskData.length === 0) {
+        const taskList = world.entityList(Task);
+        if (taskList.size === 0) {
           console.log('No tasks');
           return;
         }
 
-        console.log(`Tasks (${taskData.length}):`);
-        const tasks: Task[] = taskData.map((data: any) => Task.fromJson(data));
-        const taskList = new FormaList<Task>(tasks, Task);
-        for (let i=0; i < tasks.length; i++) {
-          let task = tasks[i];
-          let bullet = (i % 5 === 4) ? Unicode.BULLET : Unicode.BUL_TRIANGLE; 
+        console.log(`Tasks (${taskList.size}):`);
+        let i = 0;
+        for (const task of taskList) {
+          let bullet = (i % 5 === 4) ? Unicode.BULLET : Unicode.BUL_TRIANGLE;
           let listStr = task.listItemString({
             itemId: taskList.itemListId(task),
             bullet,
           });
           console.log(listStr);
+          i++;
         }
       });
 

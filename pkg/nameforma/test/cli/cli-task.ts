@@ -57,7 +57,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
+      '-n',
       'Test Task',
     ]);
 
@@ -74,7 +74,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
+      '-n',
       'My Task',
       '-p',
       '2/5',
@@ -94,7 +94,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
+      '-n',
       'Timed Task',
       '-d',
       '5/60',
@@ -122,7 +122,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
+      '-n',
       'Task 1',
     ]);
 
@@ -145,10 +145,8 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
-      'Show Me',
       '-n',
-      'test-task',
+      'Show Me',
     ]);
 
     // Extract task ID from output
@@ -165,8 +163,7 @@ describe('CLI: task command', () => {
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Task:/);
-    expect(output.join('\n')).toMatch(/name: test-task/);
-    expect(output.join('\n')).toMatch(/title: Show Me/);
+    expect(output.join('\n')).toMatch(/name: Show Me/);
   });
 
   it('update task title', async () => {
@@ -178,7 +175,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
+      '-n',
       'Original Title',
     ]);
 
@@ -217,7 +214,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'create',
-      '-t',
+      '-n',
       'Progress Task',
       '-p',
       '0/4',
@@ -257,7 +254,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'create',
-        '-t',
+        '-n',
         'To Delete',
       ]);
 
@@ -287,7 +284,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'create',
-        '-t',
+        '-n',
         'Exact Delete',
       ]);
 
@@ -316,7 +313,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'create',
-        '-t',
+        '-n',
         'Task to Verify',
       ]);
 
@@ -346,7 +343,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'create',
-        '-t',
+        '-n',
         'Show After Delete',
       ]);
 
@@ -379,7 +376,7 @@ describe('CLI: task command', () => {
           '-w',
           tempWorld.worldPath,
           'create',
-          '-t',
+          '-n',
           `Task ${i}`,
         ]);
 
@@ -419,7 +416,7 @@ describe('CLI: task command', () => {
           '-w',
           tempWorld.worldPath,
           'create',
-          '-t',
+          '-n',
           `Ambiguous Task ${i}`,
         ]);
 
@@ -449,7 +446,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'create',
-        '-t',
+        '-n',
         'ID Output Test',
       ]);
 

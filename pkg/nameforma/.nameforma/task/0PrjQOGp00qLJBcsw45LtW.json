@@ -1,0 +1,19 @@
+{
+  "id": "0PrjQOGp00qLJBcsw45LtW",
+  "name": "make omelette",
+  "summary": "mix eggs and cook undisturbed",
+  "title": "title?",
+  "progress": {
+    "numerator": 0,
+    "denominator": 1,
+    "units": "",
+    "isNull": false
+  },
+  "duration": {
+    "numerator": 0,
+    "denominator": 1,
+    "units": "s",
+    "isNull": true
+  },
+  "rawActions": []
+}

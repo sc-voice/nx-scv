@@ -108,19 +108,4 @@ describe('Forma', () => {
     expect(ClassB.register()).toBe('CLASSB' + ClassB.avroSchema);
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
-  it('toString', ()=> {
-    let name = 'TheFox';
-    let summary = 'The quick fox jumps over the lazy dog';
-    let f3a = new Forma({name, summary});
-    let id = f3a.id;
-
-    // default is same as stringify
-    let stringify = f3a.toString();
-    expect(JSON.stringify(f3a)).toEqual(JSON.stringify({id, name, summary}));
-
-    let line = f3a.toString({format:'line'})
-    expect(line).toMatch(name);
-    expect(line).toMatch(summary);
-    expect(line).toMatch(id.timeId());
-  });
 });

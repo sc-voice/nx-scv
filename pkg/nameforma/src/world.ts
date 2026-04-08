@@ -5,6 +5,7 @@ import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 import { EntityConstructor, validateEntity } from './entity.js';
 import { Identifiable } from './identifiable.js';
+import { FormaList, type IFormaItem } from './forma-list.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -318,6 +319,55 @@ export class World extends Identifiable {
 
     dbg && cc.ok1(msg, `listed ${entities.length} ${entityType}(s)`);
     return entities;
+  }
+
+  /**
+   * Load entities of a given type as a FormaList for CRUD operations
+   * Reconstructs entity.id as UUID64 POJO and returns typed FormaList
+   * @template T - Entity constructor type
+   * @param {T} EntityClass - Entity class (e.g., Task)
+   * @returns {FormaList<ReturnType<T['fromJson']>>} - FormaList of typed entities
+   *
+   * @example
+   * const taskList = world.entityList(Task);
+   * for (const task of taskList) {
+   *   console.log(task.title);
+   * }
+   */
+  entityList<T extends EntityConstructor>(
+    EntityClass: T
+  ): FormaList<ReturnType<T['fromJson']>> {
+    const msg = 'world.entityList';
+    const dbg = WORLD?.LIST;
+
+    const entityType = EntityClass.entity;
+    const entityDir = path.join(this.#worldPath, entityType);
+    const items: ReturnType<T['fromJson']>[] = [];
+
+    if (fs.existsSync(entityDir)) {
+      const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));
+      for (const file of files) {
+        const filePath = path.join(entityDir, file);
+        const data = fs.readFileSync(filePath, 'utf8');
+        const entity = JSON.parse(data);
+
+        // Reconstruct id as UUID64 POJO (consistent with loadEntity/loadFuzzy)
+        if (entity.id) {
+          try {
+            entity.id = UUID64.fromString(entity.id);
+          } catch (err) {
+            throw new Error(`${filePath}: invalid id "${entity.id}"`);
+          }
+        }
+
+        // Reconstruct as typed instance
+        const typedEntity = EntityClass.fromJson(entity);
+        items.push(typedEntity as ReturnType<T['fromJson']>);
+      }
+    }
+
+    dbg && cc.ok1(msg, `loaded ${items.length} ${entityType}(s) as FormaList`);
+    return new FormaList<ReturnType<T['fromJson']>>(items, EntityClass as any);
   }
 
   /**
