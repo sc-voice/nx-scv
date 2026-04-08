@@ -200,7 +200,7 @@ export class FormaList<T extends IFormaItem> {
 
   /**
    * Compute and cache common prefix/suffix lengths across all list item timeIds.
-   * Ensures minimum listItemId length of MIN_LIST_ITEM_ID_LENGTH.
+   * Ensures minimum itemListId length of MIN_LIST_ITEM_ID_LENGTH.
    * Special case: single item uses suffixLen=2 and adjusted prefixLen.
    * Invalidated when list contents change.
    */
@@ -244,7 +244,7 @@ export class FormaList<T extends IFormaItem> {
       }
     }
 
-    // Ensure minimum listItemId length
+    // Ensure minimum itemListId length
     const resultLen = UUID64.TIME_SEQ_CHARS - prefixLen - suffixLen;
     if (resultLen < FormaList.MIN_LIST_ITEM_ID_LENGTH) {
       // Need to reduce prefix or suffix to meet minimum length
