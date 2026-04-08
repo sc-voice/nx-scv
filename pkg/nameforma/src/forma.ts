@@ -1,12 +1,10 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
-import { Text } from '@sc-voice/tools';
-import { Levenshtein, Unicode } from '@sc-voice/tools/text';
+import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import type { AvroType } from './schema.js';
 
-const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const UOK = Unicode.CHECKMARK;
 const UNA = Unicode.EMPTY_SET;
@@ -32,6 +30,15 @@ export interface IFormaMatcher<T extends Forma> {
    * @returns Positive if b more similar, negative if a more similar, 0 if equal
    */
   compare(a: T, b: T): number;
+}
+
+/**
+ * Configuration for configuring the string representation of a list item
+ */
+export interface ListItemStringCfg {
+  itemId?: string,
+  bullet?: string,
+  separator?: string,
 }
 
 /**
@@ -207,15 +214,29 @@ export class Forma extends Identifiable {
     this.summary = summary;
   }
 
-  override toString(cfg={}) : string{
-    const msg = 'f3a.toString';
+  /**
+   * Return the string representation used for lists
+   */
+  listItemString(cfg:ListItemStringCfg={}) : string {
+    const msg = 'f3a.listItemString';
     let {
       id, 
-      name = UNA,
-      summary = UNA,
+      name = "name?",
+      summary,
     } = this;
-    cc.ok1(msg, id);
-    return [id.base64, name, summary].join(' ');
+    let { 
+      itemId = id.timeId(),
+      bullet,
+      separator = " ",
+    } = cfg;
+    let row = [itemId, name]
+    if (bullet != null) {
+      row.unshift(bullet);
+    }
+    if (summary != null) {
+      row.push(summary);
+    }
+    return row.join(" ")
   }
 } // Forma
 

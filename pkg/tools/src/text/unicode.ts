@@ -259,6 +259,12 @@ export class Unicode {
   static get BULLET() {
     return '\u2022';
   }
+  static get BUL_TRIANGLE() {
+    return '\u2023';
+  }
+  static get BUL_HYPHEN() {
+    return '\u2043';
+  }
   static get LEFT_ARROW() {
     return '\u2190';
   }
@@ -438,6 +444,12 @@ export class Unicode {
   }
   get BULLET() {
     return Unicode.BULLET;
+  }
+  get BUL_TRIANGLE() {
+    return Unicode.BUL_TRIANGLE;
+  }
+  get BUL_HYPHEN() {
+    return Unicode.BUL_HYPHEN;
   }
   get LEFT_ARROW() {
     return Unicode.LEFT_ARROW;

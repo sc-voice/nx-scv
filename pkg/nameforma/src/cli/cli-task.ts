@@ -4,10 +4,12 @@
  */
 
 import path from 'path';
-import { NameForma } from '../index.js';
+import { Unicode } from "@sc-voice/tools/text"
 import { World } from '../world.js';
+import { Task } from '../task.js';
+import { FormaList } from '../forma-list.js';
+import { Rational } from '../rational.js';
 
-const { Task, Rational } = NameForma;
 
 /**
  * Parse rational string (e.g., "1/3" or "0/1")
@@ -116,10 +118,17 @@ export default class TaskCommand {
         }
 
         console.log(`Tasks (${taskData.length}):`);
-        taskData.forEach((data: any) => {
-          const task = Task.fromJson(data);
-          console.log(`  ${task.toString()}`);
-        });
+        const tasks: Task[] = taskData.map((data: any) => Task.fromJson(data));
+        const taskList = new FormaList<Task>(tasks, Task);
+        for (let i=0; i < tasks.length; i++) {
+          let task = tasks[i];
+          let bullet = (i % 5 === 4) ? Unicode.BULLET : Unicode.BUL_TRIANGLE; 
+          let listStr = task.listItemString({
+            itemId: taskList.itemListId(task),
+            bullet,
+          });
+          console.log(listStr);
+        }
       });
 
     // task show
