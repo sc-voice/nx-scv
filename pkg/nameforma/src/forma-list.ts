@@ -9,6 +9,7 @@ import { Forma } from './forma.js';
 export interface IFormaItem extends Identifiable {
   // Instance properties inherited from Identifiable
   // Subclasses can add additional properties
+  patch(cfg: any): void;
 }
 
 /**
@@ -17,6 +18,25 @@ export interface IFormaItem extends Identifiable {
  */
 export interface IFormaItemClass {
   new (cfg?: any): IFormaItem;
+  readonly entity?: string;
+}
+
+/**
+ * FormaListEvent<T> - Discriminated union of FormaList mutation events
+ * Used to notify external systems (e.g., World persistence) of list changes
+ */
+export type FormaListEvent<T extends IFormaItem> =
+  | { type: 'add'; item: T; cfg: any; parentId?: UUID64; entityType: string }
+  | { type: 'patch'; item: T; cfg: any; entityType: string }
+  | { type: 'delete'; item: T; entityType: string }
+  | { type: 'move'; item: T; options: { before?: FuzzyId | null; after?: FuzzyId | null }; entityType: string };
+
+/**
+ * IEventBus - Event emission interface for FormaList listeners
+ */
+export interface IEventBus {
+  emit(event: string, payload: any): void;
+  on(event: string, listener: (payload: any) => void): void;
 }
 
 /**
@@ -58,11 +78,13 @@ export class FormaList<T extends IFormaItem> {
   readonly parentId?: UUID64;
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
+  #emitter?: IEventBus;
 
-  constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64) {
+  constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64, emitter?: IEventBus) {
     this.items = items;
     this.#ItemClass = ItemClass;
     this.parentId = parentId;
+    this.#emitter = emitter;
   }
 
   /**
@@ -85,6 +107,17 @@ export class FormaList<T extends IFormaItem> {
     const item = new (this.#ItemClass as any)(cfg) as T;
     this.items.push(item);
     this.#invalidateCache();
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'add',
+        item,
+        cfg,
+        parentId: this.parentId,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return item;
   }
 
@@ -99,6 +132,15 @@ export class FormaList<T extends IFormaItem> {
     const index = this.items.indexOf(itemToDelete);
     this.items.splice(index, 1);
     this.#invalidateCache();
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'delete',
+        item: itemToDelete,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return itemToDelete;
   }
 
@@ -134,8 +176,18 @@ export class FormaList<T extends IFormaItem> {
     if (!item) {
       throw new Error(`Item not found: ${id}`);
     }
-    // Apply partial update - merge cfg into item
-    Object.assign(item, cfg);
+    // Delegate to item.patch() to enforce field restrictions
+    item.patch(cfg);
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'patch',
+        item,
+        cfg,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return item;
   }
 
@@ -187,6 +239,17 @@ export class FormaList<T extends IFormaItem> {
 
     // Insert at new position
     this.items.splice(insertIndex, 0, item);
+    this.#invalidateCache();
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'move',
+        item,
+        options,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return item;
   }
 

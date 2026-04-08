@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import { World } from '../src/world.js';
 import { Forma } from '../src/forma.js';
+import { Task } from '../src/task.js';
 
 // Mock entity class for testing - extends Forma
 class MockEntity extends Forma {
@@ -651,6 +652,96 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBe(originalId);
       expect(json.numeronym).toBeDefined();
       expect(Object.keys(json).sort()).toEqual(['id', 'numeronym']);
+    });
+  });
+
+  describe('FormaList persistence (round-trip)', () => {
+    it('should persist entity to file when added via entityList', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
+      const worldPath = path.join(tmpDir, '.nameforma');
+      const world = new World(worldPath);
+      world.registerEntity(Task);
+
+      const list = world.entityList(Task);
+      const task = list.addItem({ title: 'test task' });
+
+      // Verify file was created
+      const filePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+      expect(fs.existsSync(filePath)).toBe(true);
+
+      const content = fs.readFileSync(filePath, 'utf8');
+      const json = JSON.parse(content);
+      expect(json.title).toBe('test task');
+
+      fs.rmSync(tmpDir, { recursive: true });
+    });
+
+    it('should delete entity file when removed via entityList', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
+      const worldPath = path.join(tmpDir, '.nameforma');
+      const world = new World(worldPath);
+      world.registerEntity(Task);
+
+      const list = world.entityList(Task);
+      const task = list.addItem({ title: 'test task' });
+      const filePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+
+      expect(fs.existsSync(filePath)).toBe(true);
+
+      list.deleteItem(task.id.base64);
+
+      expect(fs.existsSync(filePath)).toBe(false);
+
+      fs.rmSync(tmpDir, { recursive: true });
+    });
+
+    it('should update entity file when patched via entityList', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
+      const worldPath = path.join(tmpDir, '.nameforma');
+      const world = new World(worldPath);
+      world.registerEntity(Task);
+
+      const list = world.entityList(Task);
+      const task = list.addItem({ title: 'original' });
+      const filePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+
+      // Patch via FormaList
+      list.patchItem(task.id.base64, { title: 'updated' });
+
+      // Verify file was updated
+      const content = fs.readFileSync(filePath, 'utf8');
+      const json = JSON.parse(content);
+      expect(json.title).toBe('updated');
+
+      fs.rmSync(tmpDir, { recursive: true });
+    });
+
+    it('should load persisted entities on entityList() call', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
+      const worldPath = path.join(tmpDir, '.nameforma');
+      const world = new World(worldPath);
+      world.registerEntity(Task);
+
+      // Add and modify tasks
+      const list1 = world.entityList(Task);
+      const task1 = list1.addItem({ title: 'task1' });
+      const task2 = list1.addItem({ title: 'task2' });
+      list1.patchItem(task1.id.base64, { title: 'task1-updated' });
+
+      // Create new world instance and load
+      const world2 = new World(worldPath);
+      world2.registerEntity(Task);
+      const list2 = world2.entityList(Task);
+
+      expect(list2.size).toBe(2);
+
+      const loaded1 = list2.getItem(task1.id.base64);
+      const loaded2 = list2.getItem(task2.id.base64);
+
+      expect(loaded1.title).toBe('task1-updated');
+      expect(loaded2.title).toBe('task2');
+
+      fs.rmSync(tmpDir, { recursive: true });
     });
   });
 });

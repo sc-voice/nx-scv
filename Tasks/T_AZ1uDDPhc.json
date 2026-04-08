@@ -1,0 +1,77 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-04-08T17:03:06Z",
+  "id" : "019D6E0C-33E1-7000-A32B-E86DED64C376",
+  "name" : "FormaList persistence callbacks",
+  "plannedActions" : [
+    {
+      "name" : "Fix FormaList.patchItem() to delegate to item.patch(cfg) instead of Object.assign, so entity field restrictions are enforced",
+      "test" : "verify patchItem does NOT overwrite id field"
+    },
+    {
+      "name" : "Export FormaListEvent<T> discriminated union from forma-list.ts: type FormaListEvent<T> = {type:'add';item:T;cfg:any;parentId?:UUID64;entityType:string} | {type:'patch';item:T;cfg:any;...} | {type:'delete';item:T;...} | {type:'move';item:T;options:{before?:FuzzyId|null;after?:FuzzyId|null};...}. entityType derived from (ItemClass as any).entity",
+      "test" : "TypeScript compiles; interface used in all emitter calls"
+    },
+    {
+      "name" : "Add IEventBus interface (emit\/on) to forma-list.ts; add optional emitter?: IEventBus param to FormaList constructor; after each mutation emit single channel 'change' with FormaListEvent<T> payload (type discriminator in payload) if emitter is set",
+      "test" : "attach mock emitter; verify each mutation emits correct event and payload"
+    },
+    {
+      "name" : "World extends Identifiable implements IEventBus; add private #bus = new EventEmitter(); delegate emit\/on to #bus; wire single 'change' persistence listener in constructor branching on event.type: add\/patch -> saveEntity, delete -> delete entity file, move -> no-op",
+      "test" : "world instanceof EventEmitter; listeners registered"
+    },
+    {
+      "name" : "Update World.entityList() to pass 'this' as emitter when constructing FormaList",
+      "test" : "add\/delete\/patch via returned FormaList creates\/removes\/updates .json files in .nameforma\/{type}\/"
+    },
+    {
+      "name" : "Update TestItem in test\/forma-list.ts to add patch(cfg) method; add patchItem test verifying id field not overwritten; add mock IEventBus tests verifying add\/delete\/patch\/move emit correct FormaListEvent payloads",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add round-trip persistence tests for World.entityList() mutations (add, delete, patch)",
+      "test" : "npm test passes"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 1,
+      "text" : "pkg\/nameforma\/src\/world.ts"
+    },
+    {
+      "relevance" : 1,
+      "text" : "Implementation plan: FormaList persistence callbacks (IEventBus approach)"
+    },
+    {
+      "relevance" : 1,
+      "text" : "pkg\/nameforma\/src\/forma-list.ts"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "pkg\/nameforma\/src\/task.ts"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "pkg\/nameforma\/test\/forma-list.ts"
+    },
+    {
+      "relevance" : 0.9,
+      "text" : "pkg\/nameforma\/test\/world.ts"
+    },
+    {
+      "relevance" : 0.8,
+      "text" : "pkg\/nameforma\/src\/forma.ts"
+    },
+    {
+      "relevance" : 1,
+      "text" : "~\/.claude\/plans\/atomic-sparking-forest.md"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "World is the single EventEmitter bus. FormaList accepts an optional emitter param and emits FormaListEvent<T> payloads (add, delete, patch, move) after each mutation. World.entityList() passes 'this' as emitter and wires persistence listeners (saveEntity, delete). patchItem delegates to item.patch() to enforce field restrictions.",
+  "updatedAt" : "2026-04-08T20:23:37Z"
+}

@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'node:events';
 import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 import { EntityConstructor, validateEntity } from './entity.js';
 import { Identifiable } from './identifiable.js';
-import { FormaList, type IFormaItem } from './forma-list.js';
+import { FormaList, type IFormaItem, type IEventBus, type FormaListEvent } from './forma-list.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -15,13 +16,17 @@ const { WORLD } = DBG;
  * World class manages persistent entity storage in .nameforma/ directory
  * World is a singleton that maintains local preferences and is
  * client-serializable using fromPath() to deserialize.
- * 
+ *
  * Storage structure: .nameforma/{entity}/{id}.json
+ *
+ * Implements IEventBus to receive FormaList mutation events and
+ * automatically persist changes to disk.
  */
-export class World extends Identifiable {
+export class World extends Identifiable implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
+  #bus: EventEmitter;
 
   /**
    * Create a World at the given path with optional id
@@ -35,12 +40,29 @@ export class World extends Identifiable {
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
+    this.#bus = new EventEmitter();
 
     // Ensure .nameforma directory exists
     if (!fs.existsSync(worldPath)) {
       fs.mkdirSync(worldPath, { recursive: true });
       dbg && cc.ok1(msg, `created ${worldPath}`);
     }
+
+    // Wire persistence listener for FormaList mutations
+    this.#bus.on('change', (event: FormaListEvent<any>) => {
+      switch (event.type) {
+        case 'add':
+        case 'patch':
+          this.saveEntity(event.entityType, event.item);
+          break;
+        case 'delete':
+          this.delete(event.entityType, event.item.id.base64);
+          break;
+        case 'move':
+          // Move doesn't require persistence (order changes don't persist)
+          break;
+      }
+    });
 
     dbg && cc.ok1(msg, `initialized ${worldPath}`);
   }
@@ -299,6 +321,7 @@ export class World extends Identifiable {
    * List all entities of a given type
    * @param {string} entityType - Entity type (e.g., 'task')
    * @returns {object[]} - Array of parsed entities
+   * @deprecated (see entityList)
    */
   list(entityType: string): any[] {
     const msg = 'world.list';
@@ -367,7 +390,7 @@ export class World extends Identifiable {
     }
 
     dbg && cc.ok1(msg, `loaded ${items.length} ${entityType}(s) as FormaList`);
-    return new FormaList<ReturnType<T['fromJson']>>(items, EntityClass as any);
+    return new FormaList<ReturnType<T['fromJson']>>(items, EntityClass as any, undefined, this);
   }
 
   /**
@@ -387,6 +410,25 @@ export class World extends Identifiable {
 
     fs.unlinkSync(filePath);
     dbg && cc.ok1(msg, `deleted ${filePath}`);
+  }
+
+  /**
+   * Emit event to all registered listeners
+   * @param event - Event name
+   * @param payload - Event payload
+   */
+  emit(event: string, payload: any): boolean {
+    return this.#bus.emit(event, payload);
+  }
+
+  /**
+   * Register event listener
+   * @param event - Event name
+   * @param listener - Listener function
+   */
+  on(event: string, listener: (payload: any) => void): this {
+    this.#bus.on(event, listener);
+    return this;
   }
 
   /**
