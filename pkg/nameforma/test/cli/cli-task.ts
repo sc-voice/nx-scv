@@ -56,33 +56,13 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'create',
+      'add',
       '-n',
       'Test Task',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task created:/);
-    expect(countTasks(tempWorld.worldPath)).toBe(1);
-  });
-
-  it('create task with progress', async () => {
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'create',
-      '-n',
-      'My Task',
-      '-p',
-      '2/5',
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task created:/);
-    expect(output[1]).toMatch(/2\/5/);
+    expect(output[0]).toMatch(/✓ Task added:/);
     expect(countTasks(tempWorld.worldPath)).toBe(1);
   });
 
@@ -93,7 +73,7 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'create',
+      'add',
       '-n',
       'Timed Task',
       '-d',
@@ -101,7 +81,7 @@ describe('CLI: task command', () => {
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task created:/);
+    expect(output[0]).toMatch(/✓ Task added:/);
     expect(output[1]).toMatch(/5\/60/);
     expect(countTasks(tempWorld.worldPath)).toBe(1);
   });
@@ -121,7 +101,7 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'create',
+      'add',
       '-n',
       'Task 1',
     ]);
@@ -144,14 +124,14 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'create',
+      'add',
       '-n',
       'Show Me',
     ]);
 
     // Extract task ID from output
     const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
     const taskId = idMatch ? idMatch[1] : null;
 
     expect(taskId).not.toBeNull();
@@ -166,84 +146,6 @@ describe('CLI: task command', () => {
     expect(output.join('\n')).toMatch(/name: Show Me/);
   });
 
-  it('update task title', async () => {
-    // Create a task
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'create',
-      '-n',
-      'Original Title',
-    ]);
-
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
-
-    expect(taskId).not.toBeNull();
-
-    output.length = 0;
-
-    // Update the task
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'update',
-      taskId,
-      '-t',
-      'Updated Title',
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task updated:/);
-    expect(output[1]).toMatch(/Updated Title/);
-  });
-
-  it('update task progress', async () => {
-    // Create a task
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'create',
-      '-n',
-      'Progress Task',
-      '-p',
-      '0/4',
-    ]);
-
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
-
-    expect(taskId).not.toBeNull();
-
-    output.length = 0;
-
-    // Update progress
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'update',
-      taskId,
-      '-p',
-      '3/4',
-    ]);
-
-    expect(output[1]).toMatch(/3\/4/);
-  });
-
   describe('delete command', () => {
     it('delete task with partial fuzzy ID', async () => {
       // Create a task
@@ -253,13 +155,13 @@ describe('CLI: task command', () => {
         'task',
         '-w',
         tempWorld.worldPath,
-        'create',
+        'add',
         '-n',
         'To Delete',
       ]);
 
       const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
       expect(taskId).not.toBeNull();
@@ -283,13 +185,13 @@ describe('CLI: task command', () => {
         'task',
         '-w',
         tempWorld.worldPath,
-        'create',
+        'add',
         '-n',
         'Exact Delete',
       ]);
 
       const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
       expect(taskId).not.toBeNull();
@@ -312,13 +214,13 @@ describe('CLI: task command', () => {
         'task',
         '-w',
         tempWorld.worldPath,
-        'create',
+        'add',
         '-n',
         'Task to Verify',
       ]);
 
       const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
       output.length = 0;
@@ -342,13 +244,13 @@ describe('CLI: task command', () => {
         'task',
         '-w',
         tempWorld.worldPath,
-        'create',
+        'add',
         '-n',
         'Show After Delete',
       ]);
 
       const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
       output.length = 0;
@@ -375,13 +277,13 @@ describe('CLI: task command', () => {
           'task',
           '-w',
           tempWorld.worldPath,
-          'create',
+          'add',
           '-n',
           `Task ${i}`,
         ]);
 
         const createOutput = output.join('\n');
-        const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+        const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
         taskIds.push(idMatch ? idMatch[1] : null);
         output.length = 0;
       }
@@ -415,13 +317,13 @@ describe('CLI: task command', () => {
           'task',
           '-w',
           tempWorld.worldPath,
-          'create',
+          'add',
           '-n',
           `Ambiguous Task ${i}`,
         ]);
 
         const createOutput = output.join('\n');
-        const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+        const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
         taskIds.push(idMatch ? idMatch[1] : null);
         output.length = 0;
       }
@@ -445,13 +347,13 @@ describe('CLI: task command', () => {
         'task',
         '-w',
         tempWorld.worldPath,
-        'create',
+        'add',
         '-n',
         'ID Output Test',
       ]);
 
       const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task created: ([A-Za-z0-9_-]+)/);
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
       output.length = 0;
@@ -488,8 +390,8 @@ describe('CLI: task command', () => {
         tempWorld.worldPath,
         'update',
         'nonexistent',
-        '-t',
-        'New Title',
+        '-d',
+        '5/60',
       ])
     ).rejects.toThrow(/Task not found/);
   });

@@ -18,16 +18,13 @@ const FORMA = Forma.avroSchema;
  * Task extends Forma with task-specific fields and action management.
  *
  * ## Fields
- * - `title`: Task description (string)
- * - `progress`: Task completion state as Rational (numerator/denominator)
  * - `duration`: Task time estimate as Rational with units (e.g., "2 s")
- * - `actions`: FormaList<Action> for managing task actions
+ * - `actions`: FormaList<Action> for managing task actions (progress derived from action status)
  *
  * ## Usage
  * ```typescript
  * const task = new Task({
- *   title: 'Implement feature',
- *   progress: new Rational(1, 3, 'done'),
+ *   name: 'Implement feature',
  *   duration: new Rational(2, 1, 's'),
  *   actions: [
  *     { status: 'todo' },
@@ -47,14 +44,12 @@ const FORMA = Forma.avroSchema;
  *
  * ## put() vs patch()
  * - `put()`: Replaces all fields including actions (initializes from cfg.actions array)
- * - `patch()`: Updates only title/progress/duration. Throws NotImplementedError if actions field provided.
+ * - `patch()`: Updates only duration. Throws NotImplementedError if actions field provided.
  *   Use task.actions.* methods for action mutations instead.
  */
 export class Task extends Forma {
-  static override readonly patchableFields = [...Forma.patchableFields, 'title', 'progress', 'duration'];
+  static override readonly patchableFields = [...Forma.patchableFields, 'duration'];
 
-  title: string = 'title?';
-  progress: any = new Rational(0, 1, 'done');
   duration: any = new Rational(null, 1, 's');
   rawActions: Array<Action> = [];
 
@@ -64,8 +59,6 @@ export class Task extends Forma {
    * @param cfg Configuration object with optional:
    *   - `id`: UUID64 for deserialized tasks (auto-generated if omitted)
    *   - `name`: Task name (inherited from Forma)
-   *   - `title`: Task description
-   *   - `progress`: Rational or plain object {numerator, denominator, units}
    *   - `duration`: Rational or plain object {numerator, denominator, units}
    *   - `actions`: Array of action configs (auto-constructed via FormaList)
    *
@@ -128,8 +121,6 @@ export class Task extends Forma {
    *
    * Fields:
    * - id, name, summary: Inherited from Forma
-   * - title: Task description
-   * - progress: Task completion state (Rational type)
    * - duration: Time estimate (Rational type with units)
    * - actions: Array of Action items (FormaList<Action>)
    *
@@ -142,8 +133,6 @@ export class Task extends Forma {
       type: 'record',
       fields: [
         ...(FORMA as any).fields,
-        { name: 'title', type: 'string' },
-        { name: 'progress', type: (RATIONAL as any).fullName },
         { name: 'duration', type: (RATIONAL as any).fullName },
         //{ name: 'actions', type: (actionsSchema as any).fullName },
         { name: 'rawActions', type: { type: 'array', items: Action.avroSchema.fullName } },
@@ -164,8 +153,6 @@ export class Task extends Forma {
       id: this.id,
       name: this.name,
       summary: this.summary,
-      title: this.title,
-      progress: this.progress,
       duration: this.duration,
       //actions: this.rawActions.items(),
       rawActions: this.rawActions,
@@ -179,8 +166,6 @@ export class Task extends Forma {
    * Converts progress/duration to Rational instances if needed.
    *
    * @param value Configuration object with properties to set:
-   *   - `title`: Task description
-   *   - `progress`: Rational or {numerator, denominator, units}
    *   - `duration`: Rational or {numerator, denominator, units}
    *   - `rawActions`: Array of Action
    *
@@ -191,18 +176,13 @@ export class Task extends Forma {
     const dbg = T2K.PUT;
     super.patch(value);
     let {
-      title = 'title?',
-      progress = new Rational(0, 1, 'done'),
       duration = new Rational(null, 1, 's'),
       rawActions = [],
     } = value;
     if (!(duration instanceof Rational)) {
       duration = new Rational(duration);
     }
-    if (!(progress instanceof Rational)) {
-      progress = new Rational(progress);
-    }
-    Object.assign(this, { title, progress, duration, rawActions:[...rawActions] });
+    Object.assign(this, { duration, rawActions:[...rawActions] });
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
@@ -210,12 +190,10 @@ export class Task extends Forma {
   /**
    * Update task fields selectively without replacing actions.
    *
-   * Only updates title, progress, duration, etc. fields. 
+   * Only updates duration, etc. fields.
    * Use task.actions.* methods for action mutations instead.
    *
    * @param value Configuration object with fields to update:
-   *   - `title`: Task description
-   *   - `progress`: Rational or {numerator, denominator, units}
    *   - `duration`: Rational or {numerator, denominator, units}
    *
    * Note: Uses patch() from parent Forma class for name/summary fields.
@@ -225,11 +203,9 @@ export class Task extends Forma {
     const dbg = T2K.PATCH;
     super.patch(value);
     let {
-      title = this.title,
-      progress = this.progress,
       duration = this.duration,
     } = value;
-    Object.assign(this, { title, progress, duration });
+    Object.assign(this, { duration });
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
@@ -237,36 +213,21 @@ export class Task extends Forma {
   /**
    * Format task as human-readable string.
    *
-   * Format: `{name}{symbol} {title} ({status}{time})`
+   * Format: `{name} ({time})`
    *
-   * Symbols:
-   * - `.` : Not started (progress < 1)
-   * - `>` : In progress (started flag set)
-   * - `✓` : Done (progress >= 1)
-   *
-   * Status shows numerator/denominator ratio, or denominator+units if done.
    * Time shows duration if not null.
    *
    * @returns Formatted task string
    */
   override toString() {
     const dbg = T2K.TO_STRING;
-    let { name, title, progress, duration } = this as any;
+    let { name, duration } = this as any;
     let time = '';
-    let symbol = '.';
-    let status = progress.toString({ asRange: '/' });
-    let done = progress.value >= 1;
-    if (done) {
-      symbol = UOK;
-      status = '' + progress.denominator + progress.units;
-    } else if ((this as any).started) {
-      symbol = Unicode.RIGHT_GUILLEMET;
-    }
     if (!duration.isNull) {
-      time = ' ' + duration.toString();
+      time = duration.toString();
     }
 
     dbg;
-    return `${name}${symbol} ${title} (${status}${time})`;
+    return time ? `${name} (${time})` : name;
   }
 }

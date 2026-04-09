@@ -1,4 +1,20 @@
 {
+  "focusStack": [
+    {
+      "id": "0Prp5KHN00LG4Y1m9HFjNW",
+      "formaId": "0PrlSoX100LG4Y1m9HFjNW",
+      "formaType": "task",
+      "name": "blueberry muffins",
+      "summary": "a tasty treat"
+    },
+    {
+      "id": "0PrpNal500UH5MLtxLM3dW",
+      "formaId": "0Pro6cxq00UH5MLtxLM3dW",
+      "formaType": "task",
+      "name": "nimble bunny",
+      "summary": "jumps around the lawn"
+    }
+  ],
   "id": "0Pqx0UOp00jfar8gojBAdW",
   "numeronym": {
     "F13n": "FormaCollection",

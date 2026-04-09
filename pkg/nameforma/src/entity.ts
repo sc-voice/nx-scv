@@ -1,4 +1,5 @@
 import { Forma } from './forma.js';
+import { Task } from './task.js';
 
 /**
  * Entity interface - Contract for persistent entities in World
@@ -29,3 +30,8 @@ export function validateEntity(EntityClass: any): EntityClass is EntityConstruct
   }
   return true;
 }
+
+/**
+ * Standard entities registered by default in World
+ */
+export const STANDARD_ENTITIES: EntityConstructor[] = [Task];

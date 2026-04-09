@@ -76,15 +76,17 @@ export class FormaList<T extends IFormaItem> {
   readonly items: T[];
   readonly #ItemClass: IFormaItemClass;
   readonly parentId?: UUID64;
+  readonly keyField: string;
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
   #emitter?: IEventBus;
 
-  constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64, emitter?: IEventBus) {
+  constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64, emitter?: IEventBus, keyField: string = 'id') {
     this.items = items;
     this.#ItemClass = ItemClass;
     this.parentId = parentId;
     this.#emitter = emitter;
+    this.keyField = keyField;
   }
 
   /**
@@ -268,7 +270,7 @@ export class FormaList<T extends IFormaItem> {
    * Invalidated when list contents change.
    */
   #computePrefixSuffixLengths(): void {
-    const timeIds = this.items.map(it => it.id.timeId());
+    const timeIds = this.items.map(it => ((it as any)[this.keyField] as UUID64).timeId());
 
     if (timeIds.length === 0) {
       this.#cachedPrefixLen = 0;
@@ -326,7 +328,7 @@ export class FormaList<T extends IFormaItem> {
 
   /**
    * Return a unique list item identifier for the given item.
-   * The list item id is computed from the timeId of item.id,
+   * The list item id is computed from the timeId of the key field (default item.id),
    * omitting the prefix and suffix in common with the timeIds of
    * the list items. Results are cached until list contents change.
    */
@@ -335,7 +337,7 @@ export class FormaList<T extends IFormaItem> {
       this.#computePrefixSuffixLengths();
     }
 
-    const targetTimeId = item.id.timeId();
+    const targetTimeId = ((item as any)[this.keyField] as UUID64).timeId();
     const endIndex = targetTimeId.length - this.#cachedSuffixLen!;
     return targetTimeId.substring(this.#cachedPrefixLen!, endIndex);
   }
@@ -376,11 +378,11 @@ export class FormaList<T extends IFormaItem> {
   }
 
   /**
-   * Extract ID from item (assumes item has .id property with .base64)
-   * @param item - Item to get ID from
-   * @returns ID string
+   * Extract key field from item (uses keyField property, default 'id')
+   * @param item - Item to get key from
+   * @returns Key string (base64 representation)
    */
   #itemId(item: T): string {
-    return (item as any).id?.base64 || '';
+    return (item as any)[this.keyField]?.base64 || '';
   }
 }

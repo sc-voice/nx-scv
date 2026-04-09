@@ -33,11 +33,10 @@ describe('task', () => {
     let t2k = new Task();
     let { id, name } = t2k;
     expect(t2k.validate({ defaultIdName: true })).toBe(true);
-    expect(t2k).toMatchObject({ title: 'title?' });
-    expect(t2k.progress).toEqual(new Rational(0, 1, 'done'));
+    expect(t2k.name).toBeDefined();
     expect(t2k.duration).toEqual(new Rational(null, 1, 's'));
     expect(id.base64.includes(name)).toBe(true); // name is contained within id
-    expect(t2k.toString()).toMatch(/[A-Za-z0-9]+\. title\? \(0\/1done\)/);
+    expect(t2k.toString()).toBe(name);
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
   });
@@ -45,8 +44,7 @@ describe('task', () => {
     const msg = 'tt2k.avro';
     dbg > 1 && cc.tag(msg, '==============');
 
-    const title = 'avro-title';
-    const progress = new Rational(3, 4, 'tbsp');
+    const name = 'avro-task';
     const duration = new Rational(3, 4, 's');
 
     const { fullName } = Task.avroSchema;
@@ -54,7 +52,7 @@ describe('task', () => {
     let avroType = Task.registerAvro({ avro, registry });
     dbg > 1 && cc.tag(msg, 'schema registered');
 
-    let thing1 = new Task({ title, progress, duration });
+    let thing1 = new Task({ name, duration });
     //let buf = avroType.toBuffer(thing1.toAvroValue());
     let buf = avroType.toBuffer(thing1);
     let parsed = avroType.fromBuffer(buf);
@@ -66,50 +64,40 @@ describe('task', () => {
     const msg = 't2k.put';
     dbg > 1 && cc.tag(msg, '===================');
     let name = 't2k.put.name';
-    let title = 't2k.put.title';
-    let progress = new Rational(0, 1, 'done');
     let duration = new Rational(5, 60, 'hr');
     let units = new Units();
-    let t2k = new Task({ name, title, progress, duration });
-    expect(t2k.toString()).toBe(`${name}. ${title} (0/1done 5/60hr)`);
+    let t2k = new Task({ name, duration });
+    expect(t2k.toString()).toBe(`${name} (5/60hr)`);
 
     t2k.put({
       duration: units.convert(duration).to('min'),
     });
-    expect(t2k.toString()).toBe(`${name}. title? (0/1done 5min)`);
+    expect(t2k.toString()).toBe(`${name} (5min)`);
     dbg && cc.tag1(msg + UOK, 'put with defaults');
   });
   it('patch', () => {
     const msg = 't2k.patch';
     dbg > 1 && cc.tag(msg, '===================');
     let name = 't2k.patch.name';
-    let title = 't2k.patch.title';
-    let progress = new Rational(0, 1, 'done');
     let duration = new Rational(5, 60, 'hr');
     let units = new Units();
-    let t2k = new Task({ name, title, progress, duration });
-    expect(t2k.toString()).toBe(`${name}. ${title} (0/1done 5/60hr)`);
+    let t2k = new Task({ name, duration });
+    expect(t2k.toString()).toBe(`${name} (5/60hr)`);
 
     t2k.patch();
-    expect(t2k.toString()).toBe(`${name}. ${title} (0/1done 5/60hr)`);
+    expect(t2k.toString()).toBe(`${name} (5/60hr)`);
     dbg > 1 && cc.tag(msg, 'empty patch');
 
     let newName = 'new-name';
     let { id } = t2k;
-    t2k.patch({ id: 'ignored', name: newName, title: 'new title' });
+    t2k.patch({ id: 'ignored', name: newName });
     expect(t2k.id).toBe(id); // immutable
-    expect(t2k.toString()).toBe(`${newName}. new title (0/1done 5/60hr)`);
-    dbg > 1 && cc.tag(msg, 'patched title');
-
-    t2k.patch({ progress: new Rational(1, 1, 'done') });
-    expect(t2k.toString()).toBe(
-      `${newName}${UOK} new title (1done 5/60hr)`
-    );
-    dbg > 1 && cc.tag(msg, 'patched progress numerator');
+    expect(t2k.toString()).toBe(`${newName} (5/60hr)`);
+    dbg > 1 && cc.tag(msg, 'patched name');
 
     t2k.patch({ duration: units.convert(duration).to('min') });
     expect(t2k.toString()).toBe(
-      `${newName}${UOK} new title (1done 5min)`
+      `${newName} (5min)`
     );
     dbg && cc.tag1(msg + UOK, 'patched duration unit conversion');
   });
@@ -117,7 +105,7 @@ describe('task', () => {
     const msg = 't2k.actions';
     dbg > 1 && cc.tag(msg, '===================');
 
-    const t2k = new Task({ title: 'test task' });
+    const t2k = new Task({ name: 'test task' });
     const actions = t2k.actions;
 
     // Verify FormaList is returned
@@ -159,7 +147,7 @@ describe('task', () => {
     const msg = 't2k.actions.wrap';
     dbg > 1 && cc.tag(msg, '===================');
 
-    const t2k = new Task({ title: 'test task' });
+    const t2k = new Task({ name: 'test task' });
     const actions = t2k.actions;
 
     // Build up actions array via FormaList

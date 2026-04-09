@@ -1,5 +1,6 @@
 import { Action, ActionStatus } from './action.js';
 import { Clock } from './clock.js';
+import { Focus } from './focus.js';
 import { Forma, type IFormaMatcher, AFormaMatcher, LevenshteinMatcher } from './forma.js';
 import { FormaList, IFormaItemClass, IFormaItem } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
@@ -25,6 +26,7 @@ export const NameForma = {
   AFormaMatcher,
   Clock,
   Consumer,
+  Focus,
   Forma,
   FormaList,
   Identifiable,

@@ -45,9 +45,7 @@ export default class TaskCommand {
       }
     }
 
-    const world = World.fromPath(worldPath);
-    world.registerEntity(Task);
-    return world;
+    return World.fromPath(worldPath);
   }
 
   /**
@@ -56,22 +54,44 @@ export default class TaskCommand {
    */
   static registerCommand(cmd: any) {
     // Add help text for the task command
-    cmd.addHelpText('after', '\nFor detailed subcommand help:\n  $ nameforma task help <subcommand>\n\nSubcommands:\n  create  - Create a new task\n  list    - List all tasks\n  show    - Show task details\n  update  - Update a task\n  delete  - Delete a task');
+    cmd.addHelpText('after', '\nFor detailed subcommand help:\n  $ nameforma task help <subcommand>\n\n  Subcommands:\n  add     - Add a new task\n  list    - List all tasks\n  show    - Show task details\n  update  - Update a task\n  delete  - Delete a task');
 
     // Add global -w/--world option
     cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
 
-    // task create
+    // Default action: list tasks when no subcommand given
+    cmd.action((options: any, cmd: any) => {
+      const world = TaskCommand.getWorld(cmd.optsWithGlobals());
+      const taskList = world.entityList(Task);
+      if (taskList.size === 0) {
+        console.log('No tasks');
+        return;
+      }
+
+      console.log(`Tasks (${taskList.size}):`);
+      let i = 0;
+      for (const task of taskList) {
+        let bullet = (i % 5 === 4) ? Unicode.BULLET : Unicode.BUL_TRIANGLE;
+        let listStr = task.listItemString({
+          itemId: taskList.itemListId(task),
+          bullet,
+        });
+        console.log(listStr);
+        i++;
+      }
+    });
+
+    // task add
     cmd
-      .command('create')
-      .description('Create a new task')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task create -n "My Task"\n  $ nameforma task create -n "Fix bug" -s "Description" -p 1/3 -d 2/8\n  $ nameforma task create -n "Review PR" -p 0/1')
+      .command('add')
+      .description('Add a new task')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task add -n "My Task"\n  $ nameforma task add -n "Fix bug" -s "Description" -d 2/8\n  $ nameforma task add -n "Review PR" -d 1/4')
       .requiredOption('-n, --name <name>', 'Task name')
       .option('-s, --summary <summary>', 'Task summary')
-      .option('-p, --progress <progress>', 'Task progress (e.g., 0/1 or 1/3)', '0/1')
       .option('-d, --duration <duration>', 'Task duration (e.g., 5/60 for 5/60 hours)')
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const f7t = world.entityList(Task);
 
         const taskConfig: any = {
           name: options.name,
@@ -81,13 +101,6 @@ export default class TaskCommand {
           taskConfig.summary = options.summary;
         }
 
-        if (options.progress) {
-          const progress = parseRational(options.progress);
-          if (progress) {
-            taskConfig.progress = progress;
-          }
-        }
-
         if (options.duration) {
           const duration = parseRational(options.duration);
           if (duration) {
@@ -95,10 +108,9 @@ export default class TaskCommand {
           }
         }
 
-        const task = new Task(taskConfig);
-        world.saveEntity('task', task);
+        const task = f7t.addItem(taskConfig);
 
-        console.log(`✓ Task created: ${task.id}`);
+        console.log(`✓ Task added: ${task.id}`);
         console.log(`  ${task.toString()}`);
       });
 
@@ -144,8 +156,6 @@ export default class TaskCommand {
 
         console.log(`Task: ${task.id}`);
         console.log(`  name: ${task.name}`);
-        console.log(`  title: ${task.title}`);
-        console.log(`  progress: ${task.progress.toString()}`);
         if (task.duration) {
           console.log(`  duration: ${task.duration.toString()}`);
         }
@@ -155,12 +165,11 @@ export default class TaskCommand {
     cmd
       .command('update <id>')
       .description('Update a task')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task update abc123def456 -t "Updated title"\n  $ nameforma task update abc123def456 -p 2/3')
-      .option('-t, --title <title>', 'Update task title')
-      .option('-p, --progress <progress>', 'Update progress (e.g., 1/3)')
+      .addHelpText('after', '\nExamples:\n  $ nameforma task update abc123def456 -d 5/60')
       .option('-d, --duration <duration>', 'Update duration')
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const f7t = world.entityList(Task);
 
         const task = world.loadFuzzy(Task, id);
         if (!task) {
@@ -169,17 +178,6 @@ export default class TaskCommand {
 
         const updates: any = {};
 
-        if (options.title) {
-          updates.title = options.title;
-        }
-
-        if (options.progress) {
-          const progress = parseRational(options.progress);
-          if (progress) {
-            updates.progress = progress;
-          }
-        }
-
         if (options.duration) {
           const duration = parseRational(options.duration);
           if (duration) {
@@ -187,11 +185,11 @@ export default class TaskCommand {
           }
         }
 
-        task.patch(updates);
-        world.saveEntity('task', task);
+        f7t.patchItem(task.id.base64, updates);
+        const updated = f7t.getItem(task.id.base64);
 
-        console.log(`✓ Task updated: ${task.id}`);
-        console.log(`  ${task.toString()}`);
+        console.log(`✓ Task updated: ${updated.id}`);
+        console.log(`  ${updated.toString()}`);
       });
 
     // task delete
