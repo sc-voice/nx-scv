@@ -1,12 +1,6 @@
 {
   "id": "0PruGPHr00jM-8ABQ89VNW",
   "name": "Test Primary",
-  "summary": "Task?",
-  "duration": {
-    "numerator": 0,
-    "denominator": 1,
-    "units": "s",
-    "isNull": true
-  },
+  "summary": "primary-summary",
   "rawActions": []
 }

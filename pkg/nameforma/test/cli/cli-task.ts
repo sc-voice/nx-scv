@@ -408,6 +408,58 @@ describe('CLI: task command', () => {
     ).rejects.toThrow(/Task not found/);
   });
 
+  it('update task with name and summary', async () => {
+    // Create a task first
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Original Name',
+    ]);
+
+    output.length = 0;
+
+    // Get the task ID from list
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'list',
+    ]);
+
+    const listOutput = output.join('\n');
+    const idMatch = listOutput.match(/([A-Za-z0-9_-]+)\s+Original Name/);
+    const taskId = idMatch ? idMatch[1] : null;
+    expect(taskId).not.toBeNull();
+
+    output.length = 0;
+
+    // Update name and summary
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'update',
+      taskId,
+      '-n',
+      'Updated Name',
+      '-s',
+      'New Summary',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    expect(output[0]).toMatch(/✓ Task updated:/);
+    expect(output[1]).toMatch(/Updated Name/);
+  });
+
   it('update non-existent task returns error', async () => {
     await expect(
       program.parseAsync([

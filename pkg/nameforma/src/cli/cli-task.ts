@@ -160,7 +160,10 @@ export default class TaskCommand {
         '',
         'Examples:',
         '  $ nameforma task update abc123def456 -n "New name"',
+        '  $ nameforma task update abc123def456 -s "New summary"',
       ].join('\n'))
+      .option('-n, --name <name>', 'Update task name')
+      .option('-s, --summary <summary>', 'Update task summary')
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
@@ -170,7 +173,15 @@ export default class TaskCommand {
           throw new Error(`Task not found: ${id}`);
         }
 
-        f7t.patchItem(task.id.base64, options);
+        const updates: any = {};
+        if (options.name) {
+          updates.name = options.name;
+        }
+        if (options.summary) {
+          updates.summary = options.summary;
+        }
+
+        f7t.patchItem(task.id.base64, updates);
         const updated = f7t.getItem(task.id.base64);
 
         console.log(`✓ Task updated: ${updated.id}`);
