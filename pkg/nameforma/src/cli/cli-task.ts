@@ -86,12 +86,10 @@ export default class TaskCommand {
         '',
         'Examples:',
         '  $ nameforma task add -n "My Task"',
-        '  $ nameforma task add -n "Fix bug" -s "Description" -d 2/8',
-        '  $ nameforma task add -n "Review PR" -d 1/4',
+        '  $ nameforma task add -n "Fix bug" -s "Description"',
       ].join('\n'))
       .requiredOption('-n, --name <name>', 'Task name')
       .option('-s, --summary <summary>', 'Task summary')
-      .option('-d, --duration <duration>', 'Task duration (e.g., 5/60 for 5/60 hours)')
       .option('-r, --related <fuzzy-id>', 'Create task related to another task by ID')
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -103,10 +101,6 @@ export default class TaskCommand {
 
         if (options.summary) {
           taskConfig.summary = options.summary;
-        }
-
-        if (options.duration) {
-          taskConfig.duration = options.duration;
         }
 
         if (options.related) {
@@ -156,9 +150,6 @@ export default class TaskCommand {
 
         console.log(`Task: ${task.id}`);
         console.log(`  name: ${task.name}`);
-        if (task.duration) {
-          console.log(`  duration: ${task.duration.toString()}`);
-        }
       });
 
     // task update
@@ -168,9 +159,8 @@ export default class TaskCommand {
       .addHelpText('after', [
         '',
         'Examples:',
-        '  $ nameforma task update abc123def456 -d 5/60',
+        '  $ nameforma task update abc123def456 -n "New name"',
       ].join('\n'))
-      .option('-d, --duration <duration>', 'Update duration')
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
@@ -180,13 +170,7 @@ export default class TaskCommand {
           throw new Error(`Task not found: ${id}`);
         }
 
-        const updates: any = {};
-
-        if (options.duration) {
-          updates.duration = options.duration;
-        }
-
-        f7t.patchItem(task.id.base64, updates);
+        f7t.patchItem(task.id.base64, options);
         const updated = f7t.getItem(task.id.base64);
 
         console.log(`✓ Task updated: ${updated.id}`);

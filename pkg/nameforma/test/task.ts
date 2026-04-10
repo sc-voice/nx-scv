@@ -34,7 +34,6 @@ describe('task', () => {
     let { id, name } = t2k;
     expect(t2k.validate({ defaultIdName: true })).toBe(true);
     expect(t2k.name).toBeDefined();
-    expect(t2k.duration).toEqual(new Rational(null, 1, 's'));
     expect(id.base64.includes(name)).toBe(true); // name is contained within id
     expect(t2k.toString()).toBe(name);
 
@@ -45,61 +44,19 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '==============');
 
     const name = 'avro-task';
-    const duration = new Rational(3, 4, 's');
 
     const { fullName } = Task.avroSchema;
     const registry = {id: "PrAZmGm"};
     let avroType = Task.registerAvro({ avro, registry });
     dbg > 1 && cc.tag(msg, 'schema registered');
 
-    let thing1 = new Task({ name, duration });
+    let thing1 = new Task({ name });
     //let buf = avroType.toBuffer(thing1.toAvroValue());
     let buf = avroType.toBuffer(thing1);
     let parsed = avroType.fromBuffer(buf);
     let thing2 = new Task(parsed);
     expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Task serialized with avro');
-  });
-  it('put', () => {
-    const msg = 't2k.put';
-    dbg > 1 && cc.tag(msg, '===================');
-    let name = 't2k.put.name';
-    let duration = new Rational(5, 60, 'hr');
-    let units = new Units();
-    let t2k = new Task({ name, duration });
-    expect(t2k.toString()).toBe(`${name} (5/60hr)`);
-
-    t2k.put({
-      duration: units.convert(duration).to('min'),
-    });
-    expect(t2k.toString()).toBe(`${name} (5min)`);
-    dbg && cc.tag1(msg + UOK, 'put with defaults');
-  });
-  it('patch', () => {
-    const msg = 't2k.patch';
-    dbg > 1 && cc.tag(msg, '===================');
-    let name = 't2k.patch.name';
-    let duration = new Rational(5, 60, 'hr');
-    let units = new Units();
-    let t2k = new Task({ name, duration });
-    expect(t2k.toString()).toBe(`${name} (5/60hr)`);
-
-    t2k.patch();
-    expect(t2k.toString()).toBe(`${name} (5/60hr)`);
-    dbg > 1 && cc.tag(msg, 'empty patch');
-
-    let newName = 'new-name';
-    let { id } = t2k;
-    t2k.patch({ id: 'ignored', name: newName });
-    expect(t2k.id).toBe(id); // immutable
-    expect(t2k.toString()).toBe(`${newName} (5/60hr)`);
-    dbg > 1 && cc.tag(msg, 'patched name');
-
-    t2k.patch({ duration: units.convert(duration).to('min') });
-    expect(t2k.toString()).toBe(
-      `${newName} (5min)`
-    );
-    dbg && cc.tag1(msg + UOK, 'patched duration unit conversion');
   });
   it('actions getter returns FormaList', () => {
     const msg = 't2k.actions';

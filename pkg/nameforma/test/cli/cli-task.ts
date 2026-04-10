@@ -66,25 +66,6 @@ describe('CLI: task command', () => {
     expect(countTasks(tempWorld.worldPath)).toBe(1);
   });
 
-  it('create task with duration', async () => {
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      '-n',
-      'Timed Task',
-      '-d',
-      '5/60',
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task added:/);
-    expect(output[1]).toMatch(/5\/60/);
-    expect(countTasks(tempWorld.worldPath)).toBe(1);
-  });
 
   it('create task related to another task', async () => {
     // Create primary task
@@ -427,56 +408,6 @@ describe('CLI: task command', () => {
     ).rejects.toThrow(/Task not found/);
   });
 
-  it('update task with duration', async () => {
-    // Create a task first
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      '-n',
-      'Update Test',
-    ]);
-
-    output.length = 0;
-
-    // Get the task ID from list
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'list',
-    ]);
-
-    const listOutput = output.join('\n');
-    const idMatch = listOutput.match(/([A-Za-z0-9_-]+)\s+Update Test/);
-    const taskId = idMatch ? idMatch[1] : null;
-    expect(taskId).not.toBeNull();
-
-    output.length = 0;
-
-    // Update duration
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'update',
-      taskId,
-      '-d',
-      '2/3hr',
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task updated:/);
-    expect(output[1]).toMatch(/2\/3hr/);
-  });
-
   it('update non-existent task returns error', async () => {
     await expect(
       program.parseAsync([
@@ -487,8 +418,6 @@ describe('CLI: task command', () => {
         tempWorld.worldPath,
         'update',
         'nonexistent',
-        '-d',
-        '5/60',
       ])
     ).rejects.toThrow(/Task not found/);
   });
