@@ -1,0 +1,38 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-04-10T19:25:16Z",
+  "id" : "019D78DB-1311-7000-8D4D-8D0B05A1D286",
+  "name" : "Task.patch() robust duration handling + CLI simplification",
+  "plannedActions" : [
+    {
+      "name" : "Read plan at \/Users\/visakha\/.claude\/plans\/stateless-sprouting-taco.md",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Fix Task.patch(): if value.duration is set, delegate to this.duration.patch(value.duration) instead of assigning directly",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add tests in test\/task.ts: patch({duration:'5\/60hr'}), patch({duration:'cm'}), patch({}) leaves duration unchanged",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Remove parseRational() from cli-task.ts; pass options.duration raw string in both add and update actions",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 0.5,
+      "text" : "Implementation plan",
+      "url" : "\/Users\/visakha\/.claude\/plans\/stateless-sprouting-taco.md"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Fix Task.patch() to coerce duration, then simplify CLI by removing parseRational(). Depends on Rational.parsePatch task.",
+  "updatedAt" : "2026-04-10T19:29:08Z"
+}

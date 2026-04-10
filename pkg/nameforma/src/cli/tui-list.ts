@@ -106,10 +106,10 @@ export class TuiList<T extends Forma> {
       return;
     }
 
-    // Sort: focusOrder asc, then itemListId.localeCompare()
+    // Sort: focusOrder asc, then itemListId descending (most recent first)
     const sorted = items.sort((a, b) => {
       const cmp = this.world.focusOrder(a) - this.world.focusOrder(b);
-      return cmp || this.list.itemListId(a).localeCompare(this.list.itemListId(b));
+      return cmp || this.list.itemListId(b).localeCompare(this.list.itemListId(a));
     });
 
     const { focusColor1, focusColor2, maxRows, maxWidth, maxLinesPerRow, textOverflow } = resolved;

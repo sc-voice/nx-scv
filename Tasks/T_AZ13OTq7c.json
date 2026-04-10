@@ -7,12 +7,7 @@
     {
       "name" : "Create pkg\/nameforma\/test\/cli\/tui-list.ts with comprehensive unit tests using \/tmp worlds: sort order, bullet selection (focused\/unfocused), primary color (focusOrder===0), secondary color (UUID64.isRelated), maxRows\/maxCols truncation, no-primary-focus case (all items render uncolored), edge cases (empty list, single item)",
       "test" : "npm test passes; no-focus case explicitly verified"
-    }
-  ],
-  "createdAt" : "2026-04-10T11:48:52Z",
-  "id" : "019D7739-3ABB-7000-8303-4B1879136C3C",
-  "name" : "TuiList renderer with minimal preferences",
-  "plannedActions" : [
+    },
     {
       "name" : "Replace listTasks() body in cli-task.ts with new TuiList(entityList, world).render()",
       "test" : "update unit tests"
@@ -29,6 +24,12 @@
       "name" : "npm test passes; nameforma task shows focused first in bright green, related tasks in green; nameforma focus shows top in bright green",
       "test" : "manual testing: focus task A, add task B --related A, list tasks to see A in bright green and B in green"
     }
+  ],
+  "createdAt" : "2026-04-10T11:48:52Z",
+  "id" : "019D7739-3ABB-7000-8303-4B1879136C3C",
+  "name" : "TuiList renderer with minimal preferences",
+  "plannedActions" : [
+
   ],
   "references" : [
     {
@@ -64,5 +65,5 @@
 
   ],
   "summary" : "TuiList<T> renders FormaList with primary\/secondary focus colors by UUID64.isRelated(). TuiPreferences: focusColor1 (bright green, top-of-stack), focusColor2 (green, related items), maxRows, maxCols. Add task --related for testing.",
-  "updatedAt" : "2026-04-10T14:17:33Z"
+  "updatedAt" : "2026-04-10T17:35:09Z"
 }

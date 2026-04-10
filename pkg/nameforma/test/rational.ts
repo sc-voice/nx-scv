@@ -6,6 +6,7 @@ import { DBG } from '../src/defines.js';
 const { Rational, Schema, Forma } = NameForma;
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
+import { NotImplementedError } from '../src/errors.js';
 
 const dbg = 0;
 
@@ -257,5 +258,122 @@ describe('Rational', () => {
     dbg > 1 && cc.tag(msg, 'Rational with units');
 
     dbg && cc.tag1(msg + UOK, 'Rational serialized with avro');
+  });
+
+  // parsePatch() tests
+  it('parsePatch: "null"', () => {
+    const result = Rational.parsePatch('null');
+    expect(result).toEqual({ isNull: true });
+  });
+
+  it('parsePatch: "5"', () => {
+    const result = Rational.parsePatch('5');
+    expect(result).toEqual({ numerator: 5 });
+  });
+
+  it('parsePatch: "5/60"', () => {
+    const result = Rational.parsePatch('5/60');
+    expect(result).toEqual({ numerator: 5, denominator: 60 });
+  });
+
+  it('parsePatch: "5/60hr"', () => {
+    const result = Rational.parsePatch('5/60hr');
+    expect(result).toEqual({ numerator: 5, denominator: 60, units: 'hr' });
+  });
+
+  it('parsePatch: "cm"', () => {
+    const result = Rational.parsePatch('cm');
+    expect(result).toEqual({ units: 'cm' });
+  });
+
+  it('parsePatch: negative number', () => {
+    const result = Rational.parsePatch('-123');
+    expect(result).toEqual({ numerator: -123 });
+  });
+
+  it('parsePatch: decimal number', () => {
+    const result = Rational.parsePatch('3.14');
+    expect(result).toEqual({ numerator: 3.14 });
+  });
+
+  it('parsePatch: empty string throws', () => {
+    expect(() => Rational.parsePatch('')).toThrow();
+  });
+
+  it('parsePatch: invalid format throws', () => {
+    expect(() => Rational.parsePatch('bad')).toThrow();
+  });
+
+  // fromString() tests
+  it('fromString: "5/60hr"', () => {
+    const result = Rational.fromString('5/60hr');
+    expect(result.numerator).toBe(5);
+    expect(result.denominator).toBe(60);
+    expect(result.units).toBe('hr');
+  });
+
+  it('fromString: "cm" with null value', () => {
+    const result = Rational.fromString('cm');
+    expect(result.units).toBe('cm');
+    expect(result.isNull).toBe(true);
+  });
+
+  it('fromString: with defaults', () => {
+    const defaults = { numerator: 1, denominator: 1, units: 'in' };
+    const result = Rational.fromString('5', defaults);
+    expect(result.numerator).toBe(5);
+    expect(result.denominator).toBe(1);
+    expect(result.units).toBe('in');
+  });
+
+  // patch() tests
+  it('patch: string "5/60hr"', () => {
+    let r = new Rational(1, 1, 'in');
+    r.patch('5/60hr');
+    expect(r.numerator).toBe(5);
+    expect(r.denominator).toBe(60);
+    expect(r.units).toBe('hr');
+  });
+
+  it('patch: string "cm" updates units only', () => {
+    let r = new Rational(2, 3, 'in');
+    r.patch('cm');
+    expect(r.numerator).toBe(2);
+    expect(r.denominator).toBe(3);
+    expect(r.units).toBe('cm');
+  });
+
+  it('patch: string "null" sets isNull', () => {
+    let r = new Rational(5, 1);
+    r.patch('null');
+    expect(r.isNull).toBe(true);
+  });
+
+  it('patch: number updates numerator and denominator to 1', () => {
+    let r = new Rational(2, 3, 'in');
+    r.patch(5);
+    expect(r.numerator).toBe(5);
+    expect(r.denominator).toBe(1);
+    expect(r.units).toBe('in');
+  });
+
+  it('patch: Rational instance replaces fields', () => {
+    let r = new Rational(1, 2, 'in');
+    let r2 = new Rational(3, 4, 'cm');
+    r.patch(r2);
+    expect(r.numerator).toBe(3);
+    expect(r.denominator).toBe(4);
+    expect(r.units).toBe('cm');
+  });
+
+  it('patch: object throws NotImplementedError', () => {
+    let r = new Rational(1, 2);
+    expect(() => r.patch({ numerator: 5 })).toThrow(NotImplementedError);
+  });
+
+  it('patch: returns this for chaining', () => {
+    let r = new Rational(1, 2);
+    let result = r.patch('5');
+    expect(result).toBe(r);
   });
 });

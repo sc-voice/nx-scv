@@ -75,23 +75,26 @@ describe('TuiList', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should sort by focusOrder ascending, then itemListId', () => {
+    it('should sort by focusOrder ascending, then itemListId descending (most recent first)', () => {
       const entityList = world.entityList(Task);
       const task1 = entityList.addItem({ name: 'Task 1' });
       const task2 = entityList.addItem({ name: 'Task 2' });
       const task3 = entityList.addItem({ name: 'Task 3' });
+      const task4 = entityList.addItem({ name: 'Task 4' });
 
       world.focusForma(task3);  // focusOrder = 1
       world.focusForma(task1);  // focusOrder = 0 (most recent)
+      // task2 and task4 remain unfocused; task4 is more recent
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
       const calls = consoleSpy.mock.calls;
-      expect(calls.length).toBe(4);
+      expect(calls.length).toBe(5);
       expect(calls[1][0]).toContain('Task 1');  // focusOrder=0, most recent
       expect(calls[2][0]).toContain('Task 3');  // focusOrder=1
-      expect(calls[3][0]).toContain('Task 2');  // unfocused
+      expect(calls[3][0]).toContain('Task 4');  // unfocused, more recent
+      expect(calls[4][0]).toContain('Task 2');  // unfocused, older
       consoleSpy.mockRestore();
     });
 

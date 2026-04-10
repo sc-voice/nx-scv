@@ -346,4 +346,106 @@ describe('CLI: focus command', () => {
     const focusItems = Array.from(world2.focusStack);
     expect(focusItems[0].formaId.base64).toBe(task2.id.base64);
   });
+
+  it('should unfocus specified entity in middle of stack, not the top', async () => {
+    // Create and focus multiple tasks
+    const world = World.fromPath(tempWorld.worldPath);
+    world.registerEntity(Task);
+    const taskList = world.entityList(Task);
+    const task1 = taskList.addItem({ name: 'Task 1' });
+    const task2 = taskList.addItem({ name: 'Task 2' });
+    const task3 = taskList.addItem({ name: 'Task 3' });
+
+    world.focusForma(task1);  // [Task 1]
+    world.focusForma(task2);  // [Task 2, Task 1]
+    world.focusForma(task3);  // [Task 3, Task 2, Task 1] - task3 is top
+    world.save();
+
+    expect(world.focusStack.size).toBe(3);
+
+    // Reset output for unfocus command
+    output = [];
+
+    // Unfocus task2 (middle of stack, not the top) using full ID
+    await program.parseAsync([
+      'node',
+      'test',
+      'focus',
+      '-w',
+      tempWorld.worldPath,
+      '-u',
+      task2.id.base64,
+    ]);
+
+    // Load world and verify task2 is removed but task3 (the top) remains
+    const world2 = World.fromPath(tempWorld.worldPath);
+    world2.registerEntity(Task);
+
+    expect(world2.focusStack.size).toBe(2);
+    const focusItems = Array.from(world2.focusStack);
+
+    // Task3 should still be at top (index 0)
+    expect(focusItems[0].formaId.base64).toBe(task3.id.base64);
+
+    // Task1 should be at index 1
+    expect(focusItems[1].formaId.base64).toBe(task1.id.base64);
+
+    // Task2 should NOT be in the list
+    const task2Found = focusItems.some(item => item.formaId.base64 === task2.id.base64);
+    expect(task2Found).toBe(false);
+  });
+
+  it('should unfocus specified entity by itemListId, not unfocus the top', async () => {
+    // Create and focus multiple tasks
+    const world = World.fromPath(tempWorld.worldPath);
+    world.registerEntity(Task);
+    const taskList = world.entityList(Task);
+    const task1 = taskList.addItem({ name: 'Task 1' });
+    const task2 = taskList.addItem({ name: 'Task 2' });
+    const task3 = taskList.addItem({ name: 'Task 3' });
+
+    world.focusForma(task1);  // [Task 1]
+    world.focusForma(task2);  // [Task 2, Task 1]
+    world.focusForma(task3);  // [Task 3, Task 2, Task 1] - task3 is top
+    world.save();
+
+    expect(world.focusStack.size).toBe(3);
+
+    // Get the displayed fuzzy ID for task2 from the focus stack
+    const focusStack = world.focusStack;
+    const task2Focus = Array.from(focusStack).find(f => f.formaId.base64 === task2.id.base64);
+    expect(task2Focus).toBeDefined();
+    const task2FuzzyId = focusStack.itemListId(task2Focus!);
+
+    // Reset output for unfocus command
+    output = [];
+
+    // Unfocus task2 using the fuzzy ID displayed in the list
+    await program.parseAsync([
+      'node',
+      'test',
+      'focus',
+      '-w',
+      tempWorld.worldPath,
+      '-u',
+      task2FuzzyId,
+    ]);
+
+    // Load world and verify task2 is removed but task3 (the top) remains
+    const world2 = World.fromPath(tempWorld.worldPath);
+    world2.registerEntity(Task);
+
+    expect(world2.focusStack.size).toBe(2);
+    const focusItems = Array.from(world2.focusStack);
+
+    // Task3 should still be at top (index 0) - NOT unfocused
+    expect(focusItems[0].formaId.base64).toBe(task3.id.base64);
+
+    // Task1 should be at index 1
+    expect(focusItems[1].formaId.base64).toBe(task1.id.base64);
+
+    // Task2 should NOT be in the list - it should be unfocused
+    const task2Found = focusItems.some(item => item.formaId.base64 === task2.id.base64);
+    expect(task2Found).toBe(false);
+  });
 });

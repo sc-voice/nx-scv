@@ -180,7 +180,15 @@ export class Task extends Forma {
       rawActions = [],
     } = value;
     if (!(duration instanceof Rational)) {
-      duration = new Rational(duration);
+      if (typeof duration === 'string') {
+        // Parse string via patch
+        const defaultDuration = new Rational(null, 1, 's');
+        defaultDuration.patch(duration);
+        duration = defaultDuration;
+      } else {
+        // Construct from config object (JSON deserialization)
+        duration = new Rational(duration);
+      }
     }
     Object.assign(this, { duration, rawActions:[...rawActions] });
 
@@ -202,10 +210,9 @@ export class Task extends Forma {
     const msg = 't2k.patch';
     const dbg = T2K.PATCH;
     super.patch(value);
-    let {
-      duration = this.duration,
-    } = value;
-    Object.assign(this, { duration });
+    if (value.duration !== undefined) {
+      this.duration.patch(value.duration);
+    }
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }

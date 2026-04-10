@@ -33,7 +33,7 @@ import FocusCommand from './cli-focus.js';
 
 // Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
-  const globalOptions = ['-w', '--world', '-d', '--debug'];
+  const globalOptions = ['-w', '--world', '--debug'];
   const helpFlags = ['-h', '--help'];
   const globalArgs: string[] = [];
   const commandArgs: string[] = [];

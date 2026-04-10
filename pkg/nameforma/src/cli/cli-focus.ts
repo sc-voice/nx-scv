@@ -48,31 +48,6 @@ export default class FocusCommand {
   }
 
   /**
-   * Find forma for unfocus by matching focusStack FuzzyId or loading forma
-   * @param {World} world - World instance
-   * @param {string} idOrFuzzyId - Forma ID, FuzzyId from focusStack, or partial match
-   * @returns {object|null} - Forma instance or null
-   */
-  static findFormaForUnfocus(world: World, idOrFuzzyId: string): any {
-    // Try matching against focusStack FuzzyIds first
-    // This handles the common case where user copies the displayed FuzzyId
-    const focusStack = world.focusStack;
-    const filter = Identifiable.idFilter(idOrFuzzyId);
-
-    for (const focus of focusStack) {
-      const listId = focusStack.itemListId(focus);
-      if (filter(listId)) {
-        // Found matching focus by FuzzyId, load the actual forma
-        const forma = world.loadFuzzyForma(focus.formaId.base64);
-        if (forma) return forma;
-      }
-    }
-
-    // Fall back to direct forma lookup
-    return world.loadFuzzyForma(idOrFuzzyId);
-  }
-
-  /**
    * Register focus subcommands
    * @param {Command} cmd - Commander command object
    */
@@ -109,9 +84,7 @@ export default class FocusCommand {
         }
 
         // Otherwise, focus or unfocus the specified forma
-        const forma = opts.unfocus
-          ? FocusCommand.findFormaForUnfocus(world, id)
-          : FocusCommand.findForma(world, id);
+        const forma = FocusCommand.findForma(world, id);
         if (!forma) {
           throw new Error(`Forma not found: ${id}`);
         }

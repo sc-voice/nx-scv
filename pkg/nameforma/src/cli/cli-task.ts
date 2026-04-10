@@ -6,22 +6,10 @@
 import path from 'path';
 import { World } from '../world.js';
 import { Task } from '../task.js';
-import { Rational } from '../rational.js';
 import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
 
 
-/**
- * Parse rational string (e.g., "1/3" or "0/1")
- * @param {string} str - Rational string
- * @returns {Rational|null}
- */
-function parseRational(str: string): any {
-  if (!str) return null;
-  const [num, denom] = str.split('/').map(Number);
-  if (isNaN(num) || isNaN(denom)) return null;
-  return new Rational(num, denom);
-}
 
 
 export default class TaskCommand {
@@ -118,10 +106,7 @@ export default class TaskCommand {
         }
 
         if (options.duration) {
-          const duration = parseRational(options.duration);
-          if (duration) {
-            taskConfig.duration = duration;
-          }
+          taskConfig.duration = options.duration;
         }
 
         if (options.related) {
@@ -198,10 +183,7 @@ export default class TaskCommand {
         const updates: any = {};
 
         if (options.duration) {
-          const duration = parseRational(options.duration);
-          if (duration) {
-            updates.duration = duration;
-          }
+          updates.duration = options.duration;
         }
 
         f7t.patchItem(task.id.base64, updates);

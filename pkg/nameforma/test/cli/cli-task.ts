@@ -86,6 +86,53 @@ describe('CLI: task command', () => {
     expect(countTasks(tempWorld.worldPath)).toBe(1);
   });
 
+  it('create task related to another task', async () => {
+    // Create primary task
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Primary Task',
+    ]);
+
+    const primaryOutput = output.join('\n');
+    const primaryIdMatch = primaryOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const primaryId = primaryIdMatch ? primaryIdMatch[1] : null;
+    expect(primaryId).not.toBeNull();
+
+    output.length = 0;
+
+    // Create related task using partial fuzzy ID
+    const partialId = primaryId?.substring(0, 8);
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Related Task',
+      '--related',
+      partialId,
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    expect(output[0]).toMatch(/✓ Task added:/);
+    expect(countTasks(tempWorld.worldPath)).toBe(2);
+
+    // Verify related task was created with a different ID but related UUID
+    const relatedOutput = output.join('\n');
+    const relatedIdMatch = relatedOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const relatedId = relatedIdMatch ? relatedIdMatch[1] : null;
+    expect(relatedId).not.toBeNull();
+    expect(relatedId).not.toBe(primaryId);
+  });
+
   it('list tasks when empty', async () => {
     await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
 
@@ -378,6 +425,56 @@ describe('CLI: task command', () => {
         'nonexistent',
       ])
     ).rejects.toThrow(/Task not found/);
+  });
+
+  it('update task with duration', async () => {
+    // Create a task first
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Update Test',
+    ]);
+
+    output.length = 0;
+
+    // Get the task ID from list
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'list',
+    ]);
+
+    const listOutput = output.join('\n');
+    const idMatch = listOutput.match(/([A-Za-z0-9_-]+)\s+Update Test/);
+    const taskId = idMatch ? idMatch[1] : null;
+    expect(taskId).not.toBeNull();
+
+    output.length = 0;
+
+    // Update duration
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'update',
+      taskId,
+      '-d',
+      '2/3hr',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    expect(output[0]).toMatch(/✓ Task updated:/);
+    expect(output[1]).toMatch(/2\/3hr/);
   });
 
   it('update non-existent task returns error', async () => {
