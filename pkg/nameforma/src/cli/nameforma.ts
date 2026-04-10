@@ -13,9 +13,9 @@
  *   focus <id>             Set focus on an entity by ID
  *
  * Examples:
- *   nameforma task create --title "My Task" --progress 0/1
+ *   nameforma task add --title "My Task" --progress 0/1
  *   nameforma task list
- *   nameforma forma create --name "my-forma"
+ *   nameforma forma add --name "my-forma"
  *   nameforma schema list
  *   nameforma id FormaList
  *   nameforma id -g 5
@@ -78,7 +78,7 @@ const helpText = [
   'Examples:',
   '  $ nameforma --help',
   '  $ nameforma -h task',
-  '  $ nameforma -h task create',
+  '  $ nameforma -h task add',
 ].join('\n');
 
 program

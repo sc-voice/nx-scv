@@ -6,6 +6,7 @@ import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 import { EntityConstructor, validateEntity, STANDARD_ENTITIES } from './entity.js';
 import { Identifiable } from './identifiable.js';
+import { Forma } from './forma.js';
 import { FormaList, type IFormaItem, type IEventBus, type FormaListEvent } from './forma-list.js';
 import { Focus } from './focus.js';
 
@@ -475,15 +476,20 @@ export class World extends Identifiable implements IEventBus {
 
   /**
    * Get focus order (index in focusStack by forma id, 0 = most recent)
-   * @param {object} ent - Entity with id
+   * @param {Forma} ent - Forma or Focus entity
    * @returns {number} - 0-based index if forma is focused (0=most recent), Number.MAX_SAFE_INTEGER if not
    */
-  focusOrder(ent: { id: UUID64 }): number {
-    const formaIdStr = typeof ent.id === 'string' ? ent.id : ent.id.base64;
+  focusOrder(ent: Forma): number {
+    // For Focus items (which have formaId), lookup by formaId
+    // For regular Forma items (Task, etc.), lookup by id
+    const isFocus = ent instanceof Focus;
+    const lookupId = isFocus ? (ent as any).formaId : ent.id;
+    const lookupIdStr = typeof lookupId === 'string' ? lookupId : lookupId.base64;
+
     const items = Array.from(this.#focusStack);
     // Most recent is at end of FormaList, so iterate backwards
     for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].formaId.base64 === formaIdStr) {
+      if (items[i].formaId.base64 === lookupIdStr) {
         return items.length - 1 - i;  // Position from most recent
       }
     }

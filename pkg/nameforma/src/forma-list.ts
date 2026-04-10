@@ -90,6 +90,14 @@ export class FormaList<T extends IFormaItem> {
   }
 
   /**
+   * Get the ItemClass for this list
+   * @returns IFormaItemClass constructor
+   */
+  get itemClass(): IFormaItemClass {
+    return this.#ItemClass;
+  }
+
+  /**
    * Add new item to list, optionally enforcing parentId relation
    * @param cfg - Item configuration (optional, merged with auto-generated id if parentId provided)
    * @returns New item

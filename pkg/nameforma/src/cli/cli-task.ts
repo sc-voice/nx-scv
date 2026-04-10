@@ -1,13 +1,14 @@
 /**
  * Task command handler for nameforma CLI
- * Supports: create, list, show, update
+ * Supports: add, list, show, update
  */
 
 import path from 'path';
-import { Unicode } from "@sc-voice/tools/text"
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import { Rational } from '../rational.js';
+import UUID64 from '../uuid64.js';
+import { TuiList } from './tui-list.js';
 
 
 /**
@@ -24,6 +25,19 @@ function parseRational(str: string): any {
 
 
 export default class TaskCommand {
+  /**
+   * List tasks, with focused tasks at top and top-of-stack highlighted in bright green
+   * @param {World} world - World instance
+   */
+  static listTasks(world: World): void {
+    const entityList = world.entityList(Task);
+    if (entityList.size === 0) {
+      console.log('No tasks');
+      return;
+    }
+    new TuiList(entityList, world, { title: 'Tasks' }).render();
+  }
+
   /**
    * Get or create world instance, either from -w parameter or auto-discovery
    * @param {object} options - Command options
@@ -54,7 +68,18 @@ export default class TaskCommand {
    */
   static registerCommand(cmd: any) {
     // Add help text for the task command
-    cmd.addHelpText('after', '\nFor detailed subcommand help:\n  $ nameforma task help <subcommand>\n\n  Subcommands:\n  add     - Add a new task\n  list    - List all tasks\n  show    - Show task details\n  update  - Update a task\n  delete  - Delete a task');
+    const helpText = [
+      'For detailed subcommand help:',
+      '  $ nameforma task help <subcommand>',
+      '',
+      '  Subcommands:',
+      '  add     - Add a new task',
+      '  list    - List all tasks',
+      '  show    - Show task details',
+      '  update  - Update a task',
+      '  delete  - Delete a task',
+    ].join('\n');
+    cmd.addHelpText('after', '\n' + helpText);
 
     // Add global -w/--world option
     cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
@@ -62,33 +87,24 @@ export default class TaskCommand {
     // Default action: list tasks when no subcommand given
     cmd.action((options: any, cmd: any) => {
       const world = TaskCommand.getWorld(cmd.optsWithGlobals());
-      const taskList = world.entityList(Task);
-      if (taskList.size === 0) {
-        console.log('No tasks');
-        return;
-      }
-
-      console.log(`Tasks (${taskList.size}):`);
-      let i = 0;
-      for (const task of taskList) {
-        let bullet = (i % 5 === 4) ? Unicode.BULLET : Unicode.BUL_TRIANGLE;
-        let listStr = task.listItemString({
-          itemId: taskList.itemListId(task),
-          bullet,
-        });
-        console.log(listStr);
-        i++;
-      }
+      TaskCommand.listTasks(world);
     });
 
     // task add
     cmd
       .command('add')
       .description('Add a new task')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task add -n "My Task"\n  $ nameforma task add -n "Fix bug" -s "Description" -d 2/8\n  $ nameforma task add -n "Review PR" -d 1/4')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma task add -n "My Task"',
+        '  $ nameforma task add -n "Fix bug" -s "Description" -d 2/8',
+        '  $ nameforma task add -n "Review PR" -d 1/4',
+      ].join('\n'))
       .requiredOption('-n, --name <name>', 'Task name')
       .option('-s, --summary <summary>', 'Task summary')
       .option('-d, --duration <duration>', 'Task duration (e.g., 5/60 for 5/60 hours)')
+      .option('-r, --related <fuzzy-id>', 'Create task related to another task by ID')
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
@@ -108,6 +124,14 @@ export default class TaskCommand {
           }
         }
 
+        if (options.related) {
+          const relatedTask = world.loadFuzzy(Task, options.related);
+          if (!relatedTask) {
+            throw new Error(`Related task not found: ${options.related}`);
+          }
+          taskConfig.id = UUID64.createRelatedId(relatedTask.id);
+        }
+
         const task = f7t.addItem(taskConfig);
 
         console.log(`✓ Task added: ${task.id}`);
@@ -118,34 +142,25 @@ export default class TaskCommand {
     cmd
       .command('list')
       .description('List all tasks')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task list')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma task list',
+      ].join('\n'))
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
-
-        const taskList = world.entityList(Task);
-        if (taskList.size === 0) {
-          console.log('No tasks');
-          return;
-        }
-
-        console.log(`Tasks (${taskList.size}):`);
-        let i = 0;
-        for (const task of taskList) {
-          let bullet = (i % 5 === 4) ? Unicode.BULLET : Unicode.BUL_TRIANGLE;
-          let listStr = task.listItemString({
-            itemId: taskList.itemListId(task),
-            bullet,
-          });
-          console.log(listStr);
-          i++;
-        }
+        TaskCommand.listTasks(world);
       });
 
     // task show
     cmd
       .command('show <id>')
       .description('Show task details')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task show abc123def456')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma task show abc123def456',
+      ].join('\n'))
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
@@ -165,7 +180,11 @@ export default class TaskCommand {
     cmd
       .command('update <id>')
       .description('Update a task')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task update abc123def456 -d 5/60')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma task update abc123def456 -d 5/60',
+      ].join('\n'))
       .option('-d, --duration <duration>', 'Update duration')
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -196,7 +215,11 @@ export default class TaskCommand {
     cmd
       .command('delete <id>')
       .description('Delete a task')
-      .addHelpText('after', '\nExamples:\n  $ nameforma task delete abc123def456')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma task delete abc123def456',
+      ].join('\n'))
       .action((id: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 

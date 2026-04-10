@@ -7,8 +7,9 @@ import path from 'path';
 import { Text } from '@sc-voice/tools';
 import { World } from '../world.js';
 import { Identifiable } from '../identifiable.js';
+import { TuiList } from './tui-list.js';
 
-const { ColorConsole } = Text;
+const { ColorConsole, Unicode } = Text;
 const { cc } = ColorConsole;
 
 export default class FocusCommand {
@@ -84,7 +85,13 @@ export default class FocusCommand {
     cmd
       .argument('[id]', 'Forma ID to focus/unfocus (optional)')
       .description('Set focus on a forma by ID, unfocus with -u, or list focus stack if no ID specified')
-      .addHelpText('after', '\nExamples:\n  $ nameforma focus abc123def456\n  $ nameforma focus -u abc123def456\n  $ nameforma focus')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma focus abc123def456',
+        '  $ nameforma focus -u abc123def456',
+        '  $ nameforma focus',
+      ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = FocusCommand.getWorld(cmd.optsWithGlobals());
         const opts = cmd.optsWithGlobals();
@@ -97,23 +104,7 @@ export default class FocusCommand {
             return;
           }
 
-          console.log(`Focus Stack (${stack.size}):`);
-          let index = 0;
-          for (const focus of stack) {
-            // Use FormaList's built-in formatting
-            const listStr = focus.listItemString({
-              itemId: stack.itemListId(focus),
-              bullet: index === 0 ? '▶' : '•',
-            });
-
-            // Highlight current focus (index 0) in bright green
-            if (index === 0) {
-              console.log(`\x1b[92m${listStr}\x1b[0m`);  // Bright green
-            } else {
-              console.log(listStr);
-            }
-            index++;
-          }
+          new TuiList(stack, world, { title: 'Focus Stack' }).render();
           return;
         }
 

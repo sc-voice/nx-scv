@@ -1,11 +1,5 @@
 {
   "completedActions" : [
-
-  ],
-  "createdAt" : "2026-04-08T17:03:06Z",
-  "id" : "019D6E0C-33E1-7000-A32B-E86DED64C376",
-  "name" : "FormaList persistence callbacks",
-  "plannedActions" : [
     {
       "name" : "Fix FormaList.patchItem() to delegate to item.patch(cfg) instead of Object.assign, so entity field restrictions are enforced",
       "test" : "verify patchItem does NOT overwrite id field"
@@ -35,6 +29,12 @@
       "test" : "npm test passes"
     }
   ],
+  "createdAt" : "2026-04-08T17:03:06Z",
+  "id" : "019D6E0C-33E1-7000-A32B-E86DED64C376",
+  "name" : "FormaList persistence callbacks",
+  "plannedActions" : [
+
+  ],
   "references" : [
     {
       "relevance" : 1,
@@ -47,6 +47,10 @@
     {
       "relevance" : 1,
       "text" : "pkg\/nameforma\/src\/forma-list.ts"
+    },
+    {
+      "relevance" : 1,
+      "text" : "~\/.claude\/plans\/atomic-sparking-forest.md"
     },
     {
       "relevance" : 0.9,
@@ -63,15 +67,11 @@
     {
       "relevance" : 0.8,
       "text" : "pkg\/nameforma\/src\/forma.ts"
-    },
-    {
-      "relevance" : 1,
-      "text" : "~\/.claude\/plans\/atomic-sparking-forest.md"
     }
   ],
   "requiredTasks" : [
 
   ],
   "summary" : "World is the single EventEmitter bus. FormaList accepts an optional emitter param and emits FormaListEvent<T> payloads (add, delete, patch, move) after each mutation. World.entityList() passes 'this' as emitter and wires persistence listeners (saveEntity, delete). patchItem delegates to item.patch() to enforce field restrictions.",
-  "updatedAt" : "2026-04-08T20:23:37Z"
+  "updatedAt" : "2026-04-10T10:31:20Z"
 }
