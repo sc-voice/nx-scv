@@ -16,7 +16,8 @@
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build": "npx tsc",
     "format": "npx biome format --write src test",
-    "test": "npm run build && vitest --config test/vitest.config.mjs run",
+    "test": "npm run test:unit",
+    "test:unit": "npm run build && vitest --config test/vitest.config.mjs run --project=unit",
     "test:test": "npm run build && vitest --config test/vitest.config.mjs watch",
     "test:integration": "npm run tansu:start && npm run build && vitest run --config test/vitest.config.mjs --project=integration",
     "tansu:install": "./scripts/tansu-install",
@@ -46,6 +47,7 @@
     "@sc-voice/vitest": "^4.0.0"
   },
   "dependencies": {
+    "@sc-voice/tools": "*",
     "avro-js": "^1.12.0",
     "commander": "^12.1.0",
     "kafkajs": "^2.2.4",

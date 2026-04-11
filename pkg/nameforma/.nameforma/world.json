@@ -1,8 +1,39 @@
 {
+  "focusStack": [
+    {
+      "id": "0Prp5KHN00LG4Y1m9HFjNW",
+      "formaId": "0PrlSoX100LG4Y1m9HFjNW",
+      "formaType": "task",
+      "name": "blueberry muffins",
+      "summary": "a tasty treat"
+    },
+    {
+      "id": "0PrpNal500UH5MLtxLM3dW",
+      "formaId": "0Pro6cxq00UH5MLtxLM3dW",
+      "formaType": "task",
+      "name": "nimble bunny",
+      "summary": "jumps around the lawn"
+    },
+    {
+      "id": "0PruJ52z00jM-8ABQ89VNW",
+      "formaId": "0PruGPHr00jM-8ABQ89VNW",
+      "formaType": "task",
+      "name": "Test Primary",
+      "summary": "Task?"
+    },
+    {
+      "id": "0PruQvdq00jM-8ABQ89VNW",
+      "formaId": "0PruGy0t00jM-8ABQ89VNW",
+      "formaType": "task",
+      "name": "Test Related",
+      "summary": "Task?"
+    }
+  ],
   "id": "0Pqx0UOp00jfar8gojBAdW",
   "numeronym": {
     "F13n": "FormaCollection",
     "N18r": "NotImplemenetedError",
-    "I10e": "Identifiable"
+    "I10e": "Identifiable",
+    "T13a": "TranslationData"
   }
 }

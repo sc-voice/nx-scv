@@ -1,14 +1,13 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
-import { Text } from '@sc-voice/tools';
-import { Levenshtein } from '@sc-voice/tools/text';
+import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import type { AvroType } from './schema.js';
 
-const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
-const { CHECKMARK: UOK } = Unicode;
+const UOK = Unicode.CHECKMARK;
+const UNA = Unicode.EMPTY_SET;
 const { FORMA: F3A } = DBG;
 
 /**
@@ -31,6 +30,15 @@ export interface IFormaMatcher<T extends Forma> {
    * @returns Positive if b more similar, negative if a more similar, 0 if equal
    */
   compare(a: T, b: T): number;
+}
+
+/**
+ * Configuration for configuring the string representation of a list item
+ */
+export interface ListItemStringCfg {
+  itemId?: string,
+  bullet?: string,
+  separator?: string,
 }
 
 /**
@@ -194,10 +202,6 @@ export class Forma extends Identifiable {
     return true;
   }
 
-  override toString() {
-    return this.name;
-  }
-
   /**
    * Patch (merge) properties on this instance.
    * Only updates mutable fields (name, summary); immutable id is preserved.
@@ -209,7 +213,32 @@ export class Forma extends Identifiable {
     this.name = name;
     this.summary = summary;
   }
-}
+
+  /**
+   * Return the string representation used for lists
+   */
+  listItemString(cfg:ListItemStringCfg={}) : string {
+    const msg = 'f3a.listItemString';
+    let {
+      id, 
+      name = "name?",
+      summary,
+    } = this;
+    let { 
+      itemId = id.timeId(),
+      bullet,
+      separator = " ",
+    } = cfg;
+    let row = [itemId, name]
+    if (bullet != null) {
+      row.unshift(bullet);
+    }
+    if (summary != null) {
+      row.push(summary);
+    }
+    return row.join(" ")
+  }
+} // Forma
 
 /**
  * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
@@ -251,4 +280,4 @@ export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
     const normalizedDistance = Levenshtein.normalizedDistance(s10e, compareStr);
     return 1 - normalizedDistance;
   }
-}
+} // LevenshteinMatcher

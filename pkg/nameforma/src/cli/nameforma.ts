@@ -10,15 +10,17 @@
  *   forma [subcommand]     Manage formas
  *   schema [subcommand]    Manage schemas
  *   id [subcommand]        Convert to numeronym, generate/validate IDs
+ *   focus <id>             Set focus on an entity by ID
  *
  * Examples:
- *   nameforma task create --title "My Task" --progress 0/1
+ *   nameforma task add --title "My Task" --progress 0/1
  *   nameforma task list
- *   nameforma forma create --name "my-forma"
+ *   nameforma forma add --name "my-forma"
  *   nameforma schema list
  *   nameforma id FormaList
  *   nameforma id -g 5
  *   nameforma id -v F13n
+ *   nameforma focus abc123def456
  */
 
 import { Command } from 'commander';
@@ -27,10 +29,11 @@ import TaskCommand from './cli-task.js';
 import FormaCommand from './cli-forma.js';
 import SchemaCommand from './cli-schema.js';
 import IdCommand from './cli-id.js';
+import FocusCommand from './cli-focus.js';
 
 // Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
-  const globalOptions = ['-w', '--world', '-d', '--debug'];
+  const globalOptions = ['-w', '--world', '--debug'];
   const helpFlags = ['-h', '--help'];
   const globalArgs: string[] = [];
   const commandArgs: string[] = [];
@@ -75,7 +78,7 @@ const helpText = [
   'Examples:',
   '  $ nameforma --help',
   '  $ nameforma -h task',
-  '  $ nameforma -h task create',
+  '  $ nameforma -h task add',
 ].join('\n');
 
 program
@@ -120,5 +123,12 @@ const idCmd = program
   .description('Generate/validate numeronym, UUIDv7, UUID64');
 
 IdCommand.registerCommand(idCmd);
+
+// Focus command
+const focusCmd = program
+  .command('focus')
+  .description('Set focus on an entity by ID');
+
+FocusCommand.registerCommand(focusCmd);
 
 program.parse(preprocessArgv(process.argv));

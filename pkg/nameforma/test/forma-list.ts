@@ -15,12 +15,22 @@ const dbg = DBG.FORMA_LIST.TEST
  * Test item class implementing IFormaItem
  */
 class TestItem {
+  static readonly entity = 'test-item';
+
   id: UUID64;
   name: string;
 
   constructor(cfg: any = {}) {
     this.id = cfg.id || new UUID64();
     this.name = cfg.name || this.id.timeId();
+  }
+
+  patch(cfg: any): void {
+    // Guard id field from being overwritten
+    if (cfg.id !== undefined && cfg.id !== this.id) {
+      throw new Error(`Cannot change id field via patch`);
+    }
+    Object.assign(this, cfg);
   }
 }
 
@@ -401,4 +411,106 @@ describe('FormaList', () => {
     expect(item1RandomBytes).toEqual(parentRandomBytes);
     dbg && cc.tag1(msg + UOK, 'items share random bytes with parentId');
   });
+  it('itemListId returns trimmed ID witout common prefix and suffix', () => {
+    // Create two IDs that share a common prefix "0Prek" and common suffix "00"
+    // We use manual construction of UUID64 to ensure exact patterns.
+    // Pattern: [common_prefix][unique_middle][common_suffix]
+    const id1 = UUID64.fromString('0PrekDWc007LykSgQ5TutW');
+    const id2 = UUID64.fromString('0PrejD4s001_58Qc4M8DdW');
+
+    const items: Forma[] = [];
+    const list = new FormaList(items, Forma);
+
+    // Add first item - single item case uses suffix=2, prefix=5
+    // timeId('0PrekDWc00'), result should be middle 3 chars: 'DWc'
+    const forma1 = new Forma({id:id1, name:"name1", summary: "summary1"});
+    list.addItem({id: id1, name:"name1", summary: "summary1"});
+    expect(list.itemListId(forma1)).toBe('DWc');
+
+    // Add second item - now multiple items, common prefix/suffix
+    // timeIds: '0PrekDWc00' and '0PrekI4s00'
+    // Common prefix: '0Prek' (5 chars), common suffix: '00' (2 chars)
+    // Result: 'DWc' and 'I4s'
+    const forma2 = new Forma({id:id2, name:"name2", summary: "summary2"});
+    list.addItem({id: id2, name:"name2", summary: "summary2"});
+    expect(list.itemListId(forma1)).toBe('kDWc');
+    expect(list.itemListId(forma2)).toBe('jD4s');
+
+    // Verify getItem works with trimmed IDs
+    expect(list.getItem("kDWc")).toBe(items[0]);
+    expect(list.getItem("jD4s")).toBe(items[1]);
+    expect(list.getItem("kdwc")).toBe(items[0]);
+    expect(list.getItem("jd4s")).toBe(items[1]);
+  });
+
+  it('FormaList.patchItem guards id field', () => {
+    const msg = 'tfl.patchItem.id-guard';
+    const items: TestItem[] = [];
+    const list = new FormaList<TestItem>(items, TestItem);
+
+    const item = list.addItem({ name: 'original' });
+    const originalId = item.id.base64;
+
+    // Attempt to patch with a different id should throw
+    const newId = new UUID64().base64;
+    expect(() => list.patchItem(item.id.base64, { id: newId })).toThrow();
+
+    // Verify id was not changed
+    expect(item.id.base64).toBe(originalId);
+    dbg && cc.tag1(msg + UOK, 'patchItem prevents id field modification');
+  });
+
+  it('FormaList emits change events', () => {
+    const msg = 'tfl.emitter';
+    const items: TestItem[] = [];
+    const parentId = new UUID64();
+
+    // Create mock EventBus
+    const events: any[] = [];
+    const mockBus = {
+      emit: (event: string, payload: any) => {
+        events.push(payload);
+        return true;
+      },
+      on: () => {},
+    };
+
+    const list = new FormaList<TestItem>(items, TestItem, parentId, mockBus);
+
+    // Add item
+    const item1 = list.addItem({ name: 'item1' });
+    expect(events.length).toBe(1);
+    expect(events[0].type).toBe('add');
+    expect(events[0].item).toBe(item1);
+    expect(events[0].entityType).toBe('test-item');
+    expect(events[0].parentId).toEqual(parentId);
+    dbg && cc.tag1(msg + UOK, 'addItem emits change event');
+
+    // Patch item
+    list.patchItem(item1.id.base64, { name: 'updated' });
+    expect(events.length).toBe(2);
+    expect(events[1].type).toBe('patch');
+    expect(events[1].item).toBe(item1);
+    expect(events[1].entityType).toBe('test-item');
+    dbg && cc.tag1(msg + UOK, 'patchItem emits change event');
+
+    // Delete item
+    list.deleteItem(item1.id.base64);
+    expect(events.length).toBe(3);
+    expect(events[2].type).toBe('delete');
+    expect(events[2].item).toBe(item1);
+    expect(events[2].entityType).toBe('test-item');
+    dbg && cc.tag1(msg + UOK, 'deleteItem emits change event');
+
+    // Move item (add another first)
+    const item2 = list.addItem({ name: 'item2' });
+    events.length = 0; // Reset
+    list.moveItem(item2.id.base64, { before: null });
+    expect(events.length).toBe(1);
+    expect(events[0].type).toBe('move');
+    expect(events[0].item).toBe(item2);
+    expect(events[0].entityType).toBe('test-item');
+    dbg && cc.tag1(msg + UOK, 'moveItem emits change event');
+  });
+
 });

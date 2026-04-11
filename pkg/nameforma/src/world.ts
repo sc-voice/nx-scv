@@ -1,10 +1,14 @@
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'node:events';
 import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
-import { EntityConstructor, validateEntity } from './entity.js';
+import { EntityConstructor, validateEntity, STANDARD_ENTITIES } from './entity.js';
 import { Identifiable } from './identifiable.js';
+import { Forma } from './forma.js';
+import { FormaList, type IFormaItem, type IEventBus, type FormaListEvent } from './forma-list.js';
+import { Focus } from './focus.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -14,13 +18,21 @@ const { WORLD } = DBG;
  * World class manages persistent entity storage in .nameforma/ directory
  * World is a singleton that maintains local preferences and is
  * client-serializable using fromPath() to deserialize.
- * 
+ *
  * Storage structure: .nameforma/{entity}/{id}.json
+ *
+ * Implements IEventBus to receive FormaList mutation events and
+ * automatically persist changes to disk.
  */
-export class World extends Identifiable {
+export class World extends Identifiable implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
+  #focusStack: FormaList<Focus>;
+  #bus: EventEmitter;
+
+  // Export Focus class for use elsewhere
+  static Focus = Focus;
 
   /**
    * Create a World at the given path with optional id
@@ -34,12 +46,35 @@ export class World extends Identifiable {
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
+    this.#focusStack = new FormaList<Focus>([], Focus as any, undefined, undefined, 'formaId');
+    this.#bus = new EventEmitter();
+
+    // Register standard entities
+    for (const EntityClass of STANDARD_ENTITIES) {
+      this.registerEntity(EntityClass);
+    }
 
     // Ensure .nameforma directory exists
     if (!fs.existsSync(worldPath)) {
       fs.mkdirSync(worldPath, { recursive: true });
       dbg && cc.ok1(msg, `created ${worldPath}`);
     }
+
+    // Wire persistence listener for FormaList mutations
+    this.#bus.on('change', (event: FormaListEvent<any>) => {
+      switch (event.type) {
+        case 'add':
+        case 'patch':
+          this.#saveEntity(event.entityType, event.item);
+          break;
+        case 'delete':
+          this.delete(event.entityType, event.item.id.base64);
+          break;
+        case 'move':
+          // Move doesn't require persistence (order changes don't persist)
+          break;
+      }
+    });
 
     dbg && cc.ok1(msg, `initialized ${worldPath}`);
   }
@@ -105,11 +140,11 @@ export class World extends Identifiable {
   }
 
   /**
-   * Save entity to world storage
+   * Save entity to world storage (internal API, use entityList.addItem/patchItem instead)
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {object} entity - Entity with id
    */
-  saveEntity(entityType: string, entity: any): void {
+  #saveEntity(entityType: string, entity: any): void {
     const msg = 'world.save';
     const dbg = WORLD?.SAVE;
 
@@ -229,6 +264,29 @@ export class World extends Identifiable {
   }
 
   /**
+   * Load any forma from world storage using fuzzy id matching
+   * Tries all registered entity types and returns first match
+   * @param {string} match - Partial or fuzzy id string to match
+   * @param {number} levenshtein - Optional fuzzy matching parameter (see Identifiable.idFilter)
+   * @returns {any} - Matching forma instance, or null if not found
+   *
+   * @example
+   * const forma = world.loadFuzzyForma("partial-id"); // Could be Task, Action, etc.
+   */
+  loadFuzzyForma(match: string, levenshtein?: number): any {
+    for (const entityName of this.getEntityNames()) {
+      const EntityClass = this.entityClassOfName(entityName);
+      if (!EntityClass) continue;
+      try {
+        return this.loadFuzzy(EntityClass, match, levenshtein);
+      } catch {
+        // Not found in this type, try next
+      }
+    }
+    return null;
+  }
+
+  /**
    * Load entity from world storage using fuzzy id matching
    * @template T - Entity constructor type
    * @param {T} EntityClass - Entity class constructor
@@ -298,6 +356,7 @@ export class World extends Identifiable {
    * List all entities of a given type
    * @param {string} entityType - Entity type (e.g., 'task')
    * @returns {object[]} - Array of parsed entities
+   * @deprecated (see entityList)
    */
   list(entityType: string): any[] {
     const msg = 'world.list';
@@ -321,6 +380,55 @@ export class World extends Identifiable {
   }
 
   /**
+   * Load entities of a given type as a FormaList for CRUD operations
+   * Reconstructs entity.id as UUID64 POJO and returns typed FormaList
+   * @template T - Entity constructor type
+   * @param {T} EntityClass - Entity class (e.g., Task)
+   * @returns {FormaList<ReturnType<T['fromJson']>>} - FormaList of typed entities
+   *
+   * @example
+   * const taskList = world.entityList(Task);
+   * for (const task of taskList) {
+   *   console.log(task.title);
+   * }
+   */
+  entityList<T extends EntityConstructor>(
+    EntityClass: T
+  ): FormaList<ReturnType<T['fromJson']>> {
+    const msg = 'world.entityList';
+    const dbg = WORLD?.LIST;
+
+    const entityType = EntityClass.entity;
+    const entityDir = path.join(this.#worldPath, entityType);
+    const items: ReturnType<T['fromJson']>[] = [];
+
+    if (fs.existsSync(entityDir)) {
+      const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));
+      for (const file of files) {
+        const filePath = path.join(entityDir, file);
+        const data = fs.readFileSync(filePath, 'utf8');
+        const entity = JSON.parse(data);
+
+        // Reconstruct id as UUID64 POJO (consistent with loadEntity/loadFuzzy)
+        if (entity.id) {
+          try {
+            entity.id = UUID64.fromString(entity.id);
+          } catch (err) {
+            throw new Error(`${filePath}: invalid id "${entity.id}"`);
+          }
+        }
+
+        // Reconstruct as typed instance
+        const typedEntity = EntityClass.fromJson(entity);
+        items.push(typedEntity as ReturnType<T['fromJson']>);
+      }
+    }
+
+    dbg && cc.ok1(msg, `loaded ${items.length} ${entityType}(s) as FormaList`);
+    return new FormaList<ReturnType<T['fromJson']>>(items, EntityClass as any, undefined, this);
+  }
+
+  /**
    * Delete entity from world storage
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {string} id - Entity id
@@ -340,11 +448,110 @@ export class World extends Identifiable {
   }
 
   /**
+   * Emit event to all registered listeners
+   * @param event - Event name
+   * @param payload - Event payload
+   */
+  emit(event: string, payload: any): boolean {
+    return this.#bus.emit(event, payload);
+  }
+
+  /**
+   * Register event listener
+   * @param event - Event name
+   * @param listener - Listener function
+   */
+  on(event: string, listener: (payload: any) => void): this {
+    this.#bus.on(event, listener);
+    return this;
+  }
+
+  /**
    * Get world path
    * @returns {string}
    */
   get worldPath(): string {
     return this.#worldPath;
+  }
+
+  /**
+   * Get focus order (index in focusStack by forma id, 0 = most recent)
+   * @param {Forma} ent - Forma or Focus entity
+   * @returns {number} - 0-based index if forma is focused (0=most recent), Number.MAX_SAFE_INTEGER if not
+   */
+  focusOrder(ent: Forma): number {
+    // For Focus items (which have formaId), lookup by formaId
+    // For regular Forma items (Task, etc.), lookup by id
+    const isFocus = ent instanceof Focus;
+    const lookupId = isFocus ? (ent as any).formaId : ent.id;
+    const lookupIdStr = typeof lookupId === 'string' ? lookupId : lookupId.base64;
+
+    const items = Array.from(this.#focusStack);
+    // Most recent is at end of FormaList, so iterate backwards
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].formaId.base64 === lookupIdStr) {
+        return items.length - 1 - i;  // Position from most recent
+      }
+    }
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  /**
+   * Focus a forma (push to top of stack, move if already focused)
+   * @param {Forma} forma - Forma to focus
+   */
+  focusForma(forma: any): void {
+    const formaIdStr = forma.id.base64;
+
+    // Remove if already in stack (by formaId)
+    try {
+      this.#focusStack.deleteItem(formaIdStr);
+    } catch {
+      // Not in stack, that's fine
+    }
+
+    // Create new Focus entry from entity and add to stack
+    const focus = Focus.fromEntity(forma);
+    this.#focusStack.addItem(focus);
+  }
+
+  /**
+   * Unfocus a forma (remove from stack)
+   * @param {Forma} forma - Forma to unfocus
+   */
+  unfocusForma(forma: any): void {
+    const formaIdStr = forma.id.base64;
+    try {
+      this.#focusStack.deleteItem(formaIdStr);
+    } catch {
+      // Not in stack, that's fine
+    }
+  }
+
+  /**
+   * Get focused forma of a given type (most recent)
+   * @param {string} formaType - Type name (e.g., 'task')
+   * @returns {Focus|null} - Focus entry or null
+   */
+  focusedForma(formaType: string): Focus | null {
+    // Most recent is at end of FormaList, iterate backwards
+    const items = Array.from(this.#focusStack);
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].formaType === formaType) {
+        return items[i];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get focusStack as FormaList, ordered by recency (newest first)
+   * @returns {FormaList<Focus>} - FormaList of focuses in reverse chronological order
+   */
+  get focusStack(): FormaList<Focus> {
+    // Return new FormaList with items reversed (most recent first)
+    const items = Array.from(this.#focusStack).reverse();
+    return new FormaList<Focus>(items, Focus as any, undefined, undefined, 'formaId');
   }
 
   /**
@@ -395,11 +602,18 @@ export class World extends Identifiable {
 
   /**
    * Serialize World to JSON
-   * Only stores enumerable fields 
+   * Only stores enumerable fields
    * @returns {object} - JSON representation
    */
   toJSON(): any {
     return {
+      focusStack: Array.from(this.#focusStack).map(f => ({
+        id: f.id.toString(),
+        formaId: f.formaId.toString(),
+        formaType: f.formaType,
+        name: f.name,
+        summary: f.summary,
+      })),
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
     };
@@ -407,7 +621,7 @@ export class World extends Identifiable {
 
   /**
    * Deserialize World from JSON
-   * @param {object} data - JSON data with id and optional numeronym
+   * @param {object} data - JSON data with id and optional numeronym and focusStack
    * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
    * @returns {World} - World instance with worldPath set to baseDir
    */
@@ -424,6 +638,20 @@ export class World extends Identifiable {
     // Restore numeronym map if present
     if (data.numeronym && typeof data.numeronym === 'object') {
       world.#numeronym = new Map(Object.entries(data.numeronym));
+    }
+
+    // Restore focusStack if present
+    if (data.focusStack && Array.isArray(data.focusStack)) {
+      const focuses = data.focusStack.map((f: any) =>
+        Focus.fromJson({
+          id: f.id,
+          formaId: f.formaId,
+          formaType: f.formaType,
+          name: f.name,
+          summary: f.summary,
+        })
+      );
+      world.#focusStack = new FormaList<Focus>(focuses, Focus as any, undefined, undefined, 'formaId');
     }
 
     return world;

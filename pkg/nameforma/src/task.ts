@@ -1,39 +1,25 @@
 import { Text } from '@sc-voice/tools';
 import { DBG } from './defines.js';
 import { Forma } from './forma.js';
-import { Rational } from './rational.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action } from './action.js';
 import { FormaList } from './forma-list.js';
-import { NotImplementedError } from './errors.js';
 
 const { ColorConsole, Unicode } = Text;
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
-const RATIONAL = Rational.avroSchema;
 const FORMA = Forma.avroSchema;
 
 /**
- * Task extends Forma with task-specific fields and action management.
+ * Task extends Forma with action management.
  *
  * ## Fields
- * - `title`: Task description (string)
- * - `progress`: Task completion state as Rational (numerator/denominator)
- * - `duration`: Task time estimate as Rational with units (e.g., "2 s")
  * - `actions`: FormaList<Action> for managing task actions
  *
  * ## Usage
  * ```typescript
- * const task = new Task({
- *   title: 'Implement feature',
- *   progress: new Rational(1, 3, 'done'),
- *   duration: new Rational(2, 1, 's'),
- *   actions: [
- *     { status: 'todo' },
- *     { status: 'done' }
- *   ]
- * });
+ * const task = new Task({ name: 'Implement feature' });
  *
  * // Access actions via FormaList API
  * task.actions.addItem({ status: 'todo' });
@@ -44,18 +30,8 @@ const FORMA = Forma.avroSchema;
  * ## Serialization
  * Tasks serialize to Avro format with all fields including nested actions array.
  * Empty actions array serializes as `[]`.
- *
- * ## put() vs patch()
- * - `put()`: Replaces all fields including actions (initializes from cfg.actions array)
- * - `patch()`: Updates only title/progress/duration. Throws NotImplementedError if actions field provided.
- *   Use task.actions.* methods for action mutations instead.
  */
 export class Task extends Forma {
-  static override readonly patchableFields = [...Forma.patchableFields, 'title', 'progress', 'duration'];
-
-  title: string = 'title?';
-  progress: any = new Rational(0, 1, 'done');
-  duration: any = new Rational(null, 1, 's');
   rawActions: Array<Action> = [];
 
   /**
@@ -64,9 +40,6 @@ export class Task extends Forma {
    * @param cfg Configuration object with optional:
    *   - `id`: UUID64 for deserialized tasks (auto-generated if omitted)
    *   - `name`: Task name (inherited from Forma)
-   *   - `title`: Task description
-   *   - `progress`: Rational or plain object {numerator, denominator, units}
-   *   - `duration`: Rational or plain object {numerator, denominator, units}
    *   - `actions`: Array of action configs (auto-constructed via FormaList)
    *
    * Calls put() to initialize all fields from cfg.
@@ -93,6 +66,10 @@ export class Task extends Forma {
     return new FormaList(this.rawActions, Action, this.id);
   }
 
+  override toString() {
+    return this.name;
+  }
+
   /**
    * Register Task schema into the avro registry and return AvroType.
    *
@@ -112,7 +89,6 @@ export class Task extends Forma {
 
     dbg>1 && cc.ok(msg, 'dependencies');
     Forma.registerAvro(opts);
-    Rational.registerAvro(opts);
     Action.registerAvro(opts);
 
     dbg && cc.ok(msg, 'task');
@@ -128,12 +104,7 @@ export class Task extends Forma {
    *
    * Fields:
    * - id, name, summary: Inherited from Forma
-   * - title: Task description
-   * - progress: Task completion state (Rational type)
-   * - duration: Time estimate (Rational type with units)
-   * - actions: Array of Action items (FormaList<Action>)
-   *
-   * Empty actions serialize as []. All fields are required.
+   * - rawActions: Array of Action items
    */
   static override get avroSchema(): Schema {
     return new Schema({
@@ -142,10 +113,6 @@ export class Task extends Forma {
       type: 'record',
       fields: [
         ...(FORMA as any).fields,
-        { name: 'title', type: 'string' },
-        { name: 'progress', type: (RATIONAL as any).fullName },
-        { name: 'duration', type: (RATIONAL as any).fullName },
-        //{ name: 'actions', type: (actionsSchema as any).fullName },
         { name: 'rawActions', type: { type: 'array', items: Action.avroSchema.fullName } },
       ],
     });
@@ -164,10 +131,6 @@ export class Task extends Forma {
       id: this.id,
       name: this.name,
       summary: this.summary,
-      title: this.title,
-      progress: this.progress,
-      duration: this.duration,
-      //actions: this.rawActions.items(),
       rawActions: this.rawActions,
     };
   }
@@ -175,13 +138,7 @@ export class Task extends Forma {
   /**
    * Replace all task fields including actions.
    *
-   * Initializes Task from configuration object, replacing existing state entirely.
-   * Converts progress/duration to Rational instances if needed.
-   *
    * @param value Configuration object with properties to set:
-   *   - `title`: Task description
-   *   - `progress`: Rational or {numerator, denominator, units}
-   *   - `duration`: Rational or {numerator, denominator, units}
    *   - `rawActions`: Array of Action
    *
    * Called by constructor to initialize instance. Also used for deserialization.
@@ -190,83 +147,10 @@ export class Task extends Forma {
     const msg = 't2k.put';
     const dbg = T2K.PUT;
     super.patch(value);
-    let {
-      title = 'title?',
-      progress = new Rational(0, 1, 'done'),
-      duration = new Rational(null, 1, 's'),
-      rawActions = [],
-    } = value;
-    if (!(duration instanceof Rational)) {
-      duration = new Rational(duration);
-    }
-    if (!(progress instanceof Rational)) {
-      progress = new Rational(progress);
-    }
-    Object.assign(this, { title, progress, duration, rawActions:[...rawActions] });
+    let { rawActions = [] } = value;
+    Object.assign(this, { rawActions: [...rawActions] });
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
 
-  /**
-   * Update task fields selectively without replacing actions.
-   *
-   * Only updates title, progress, duration, etc. fields. 
-   * Use task.actions.* methods for action mutations instead.
-   *
-   * @param value Configuration object with fields to update:
-   *   - `title`: Task description
-   *   - `progress`: Rational or {numerator, denominator, units}
-   *   - `duration`: Rational or {numerator, denominator, units}
-   *
-   * Note: Uses patch() from parent Forma class for name/summary fields.
-   */
-  override patch(value: any = {}) {
-    const msg = 't2k.patch';
-    const dbg = T2K.PATCH;
-    super.patch(value);
-    let {
-      title = this.title,
-      progress = this.progress,
-      duration = this.duration,
-    } = value;
-    Object.assign(this, { title, progress, duration });
-
-    dbg && cc.ok1(msg, ...cc.props(this));
-  }
-
-  /**
-   * Format task as human-readable string.
-   *
-   * Format: `{name}{symbol} {title} ({status}{time})`
-   *
-   * Symbols:
-   * - `.` : Not started (progress < 1)
-   * - `>` : In progress (started flag set)
-   * - `✓` : Done (progress >= 1)
-   *
-   * Status shows numerator/denominator ratio, or denominator+units if done.
-   * Time shows duration if not null.
-   *
-   * @returns Formatted task string
-   */
-  override toString() {
-    const dbg = T2K.TO_STRING;
-    let { name, title, progress, duration } = this as any;
-    let time = '';
-    let symbol = '.';
-    let status = progress.toString({ asRange: '/' });
-    let done = progress.value >= 1;
-    if (done) {
-      symbol = UOK;
-      status = '' + progress.denominator + progress.units;
-    } else if ((this as any).started) {
-      symbol = Unicode.RIGHT_GUILLEMET;
-    }
-    if (!duration.isNull) {
-      time = ' ' + duration.toString();
-    }
-
-    dbg;
-    return `${name}${symbol} ${title} (${status}${time})`;
-  }
 }

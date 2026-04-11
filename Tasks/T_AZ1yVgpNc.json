@@ -1,0 +1,82 @@
+{
+  "completedActions" : [
+    {
+      "name" : "Add Focus interface to world.ts",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add focusStack property to World",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement focusForma(forma:Forma) method",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement unfocusForma(forma:Forma) method",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement focusOrder(forma:Forma) method",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Update World serialization to include focusStack",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Implement focusedForma(formaTypeName:string) method",
+      "test" : "update unit tests"
+    }
+  ],
+  "createdAt" : "2026-04-09T13:02:14Z",
+  "id" : "019D7256-0A4D-7000-B431-C7C9FB6C5013",
+  "name" : "Update world with focusStack:UUID64",
+  "plannedActions" : [
+
+  ],
+  "references" : [
+    {
+      "relevance" : 1,
+      "text" : "focusForma(forma:Forma): push if not present, move to top if already in stack"
+    },
+    {
+      "relevance" : 1,
+      "text" : "unfocusForma(forma:Forma): remove from stack, no-op if not present"
+    },
+    {
+      "relevance" : 1,
+      "text" : "focusOrder(forma): 0..n in stack, MAX_SAFE_INTEGER if not in stack"
+    },
+    {
+      "relevance" : 1,
+      "text" : "focusStack is serialized\/deserialized with World"
+    },
+    {
+      "relevance" : 1,
+      "text" : "Sort: (a,b) => focusOrder(a) - focusOrder(b) || a.id.base64.localeCompare(b.id.base64)"
+    },
+    {
+      "relevance" : 1,
+      "text" : "focusedForma(formaTypeName:string): Focus | null - return current focused forma of given type"
+    },
+    {
+      "relevance" : 1,
+      "text" : "Focus = { id: UUID64, formaTypeName: string }"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "Test incrementally as features are added (unit tests for each method)"
+    },
+    {
+      "relevance" : 0.5,
+      "text" : "Implementation plan: focusStack for World",
+      "url" : "\/Users\/visakha\/.claude\/plans\/streamed-tinkering-elephant.md"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Add focusStack with Focus { id:UUID64, formaTypeName:string } to represent current interaction context",
+  "updatedAt" : "2026-04-09T15:51:46Z"
+}

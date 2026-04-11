@@ -1,5 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
+import { Forma } from './forma.js';
 
 /**
  * IFormaItem - Instance shape for items managed by FormaList
@@ -8,6 +9,7 @@ import { Identifiable, type FuzzyId } from './identifiable.js';
 export interface IFormaItem extends Identifiable {
   // Instance properties inherited from Identifiable
   // Subclasses can add additional properties
+  patch(cfg: any): void;
 }
 
 /**
@@ -16,6 +18,25 @@ export interface IFormaItem extends Identifiable {
  */
 export interface IFormaItemClass {
   new (cfg?: any): IFormaItem;
+  readonly entity?: string;
+}
+
+/**
+ * FormaListEvent<T> - Discriminated union of FormaList mutation events
+ * Used to notify external systems (e.g., World persistence) of list changes
+ */
+export type FormaListEvent<T extends IFormaItem> =
+  | { type: 'add'; item: T; cfg: any; parentId?: UUID64; entityType: string }
+  | { type: 'patch'; item: T; cfg: any; entityType: string }
+  | { type: 'delete'; item: T; entityType: string }
+  | { type: 'move'; item: T; options: { before?: FuzzyId | null; after?: FuzzyId | null }; entityType: string };
+
+/**
+ * IEventBus - Event emission interface for FormaList listeners
+ */
+export interface IEventBus {
+  emit(event: string, payload: any): void;
+  on(event: string, listener: (payload: any) => void): void;
 }
 
 /**
@@ -50,14 +71,30 @@ export interface IFormaItemClass {
  * Note: FormaList is not Avro serializable (mutator helpers are runtime-only)
  */
 export class FormaList<T extends IFormaItem> {
+  static readonly MIN_LIST_ITEM_ID_LENGTH = 3;
+
   readonly items: T[];
   readonly #ItemClass: IFormaItemClass;
   readonly parentId?: UUID64;
+  readonly keyField: string;
+  #cachedPrefixLen: number | null = null;
+  #cachedSuffixLen: number | null = null;
+  #emitter?: IEventBus;
 
-  constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64) {
+  constructor(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64, emitter?: IEventBus, keyField: string = 'id') {
     this.items = items;
     this.#ItemClass = ItemClass;
     this.parentId = parentId;
+    this.#emitter = emitter;
+    this.keyField = keyField;
+  }
+
+  /**
+   * Get the ItemClass for this list
+   * @returns IFormaItemClass constructor
+   */
+  get itemClass(): IFormaItemClass {
+    return this.#ItemClass;
   }
 
   /**
@@ -79,6 +116,18 @@ export class FormaList<T extends IFormaItem> {
 
     const item = new (this.#ItemClass as any)(cfg) as T;
     this.items.push(item);
+    this.#invalidateCache();
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'add',
+        item,
+        cfg,
+        parentId: this.parentId,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return item;
   }
 
@@ -92,6 +141,16 @@ export class FormaList<T extends IFormaItem> {
     const itemToDelete = this.getItem(id);
     const index = this.items.indexOf(itemToDelete);
     this.items.splice(index, 1);
+    this.#invalidateCache();
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'delete',
+        item: itemToDelete,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return itemToDelete;
   }
 
@@ -127,8 +186,18 @@ export class FormaList<T extends IFormaItem> {
     if (!item) {
       throw new Error(`Item not found: ${id}`);
     }
-    // Apply partial update - merge cfg into item
-    Object.assign(item, cfg);
+    // Delegate to item.patch() to enforce field restrictions
+    item.patch(cfg);
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'patch',
+        item,
+        cfg,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return item;
   }
 
@@ -180,7 +249,105 @@ export class FormaList<T extends IFormaItem> {
 
     // Insert at new position
     this.items.splice(insertIndex, 0, item);
+    this.#invalidateCache();
+
+    if (this.#emitter) {
+      this.#emitter.emit('change', {
+        type: 'move',
+        item,
+        options,
+        entityType: (this.#ItemClass as any).entity,
+      } as FormaListEvent<T>);
+    }
+
     return item;
+  }
+
+  /**
+   * Invalidate cached prefix/suffix lengths when list contents change.
+   */
+  #invalidateCache(): void {
+    this.#cachedPrefixLen = null;
+    this.#cachedSuffixLen = null;
+  }
+
+  /**
+   * Compute and cache common prefix/suffix lengths across all list item timeIds.
+   * Ensures minimum itemListId length of MIN_LIST_ITEM_ID_LENGTH.
+   * Special case: single item uses suffixLen=2 and adjusted prefixLen.
+   * Invalidated when list contents change.
+   */
+  #computePrefixSuffixLengths(): void {
+    const timeIds = this.items.map(it => ((it as any)[this.keyField] as UUID64).timeId());
+
+    if (timeIds.length === 0) {
+      this.#cachedPrefixLen = 0;
+      this.#cachedSuffixLen = 0;
+      return;
+    }
+
+    // Special case: single item in list
+    if (timeIds.length === 1) {
+      const suffixLen = 2;
+      const prefixLen = UUID64.TIME_SEQ_CHARS - FormaList.MIN_LIST_ITEM_ID_LENGTH - suffixLen;
+      this.#cachedPrefixLen = prefixLen;
+      this.#cachedSuffixLen = suffixLen;
+      return;
+    }
+
+    // Find common prefix
+    let prefixLen = 0;
+    for (let i = 0; i < UUID64.TIME_SEQ_CHARS; i++) {
+      const char = timeIds[0][i];
+      if (timeIds.every(id => id[i] === char)) {
+        prefixLen = i + 1;
+      } else {
+        break;
+      }
+    }
+
+    // Find common suffix
+    let suffixLen = 0;
+    for (let i = 1; i <= UUID64.TIME_SEQ_CHARS - prefixLen; i++) {
+      const char = timeIds[0][timeIds[0].length - i];
+      if (timeIds.every(id => id[id.length - i] === char)) {
+        suffixLen = i;
+      } else {
+        break;
+      }
+    }
+
+    // Ensure minimum itemListId length
+    const resultLen = UUID64.TIME_SEQ_CHARS - prefixLen - suffixLen;
+    if (resultLen < FormaList.MIN_LIST_ITEM_ID_LENGTH) {
+      // Need to reduce prefix or suffix to meet minimum length
+      const needed = FormaList.MIN_LIST_ITEM_ID_LENGTH - resultLen;
+      if (suffixLen >= needed) {
+        suffixLen -= needed;
+      } else {
+        prefixLen -= (needed - suffixLen);
+        suffixLen = 0;
+      }
+    }
+
+    this.#cachedPrefixLen = prefixLen;
+    this.#cachedSuffixLen = suffixLen;
+  }
+
+  /**
+   * Return a unique list item identifier for the given item.
+   * The list item id is computed from the timeId of the key field (default item.id),
+   * omitting the prefix and suffix in common with the timeIds of
+   * the list items. Results are cached until list contents change.
+   */
+  itemListId(item:T) : string {
+    if (this.#cachedPrefixLen === null || this.#cachedSuffixLen === null) {
+      this.#computePrefixSuffixLengths();
+    }
+
+    const targetTimeId = ((item as any)[this.keyField] as UUID64).timeId();
+    const endIndex = targetTimeId.length - this.#cachedSuffixLen!;
+    return targetTimeId.substring(this.#cachedPrefixLen!, endIndex);
   }
 
   /**
@@ -219,11 +386,11 @@ export class FormaList<T extends IFormaItem> {
   }
 
   /**
-   * Extract ID from item (assumes item has .id property with .base64)
-   * @param item - Item to get ID from
-   * @returns ID string
+   * Extract key field from item (uses keyField property, default 'id')
+   * @param item - Item to get key from
+   * @returns Key string (base64 representation)
    */
   #itemId(item: T): string {
-    return (item as any).id?.base64 || '';
+    return (item as any)[this.keyField]?.base64 || '';
   }
 }

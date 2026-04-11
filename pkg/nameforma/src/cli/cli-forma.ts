@@ -1,6 +1,6 @@
 /**
  * Forma command handler for nameforma CLI
- * Supports: create, list, show, update
+ * Supports: add, list, show, update
  */
 
 import { NameForma } from '../index.js';
@@ -16,10 +16,10 @@ export default class FormaCommand {
    * @param {Command} cmd - Commander command object
    */
   static registerCommand(cmd: any) {
-    // forma create
+    // forma add
     cmd
-      .command('create')
-      .description('Create a new forma')
+      .command('add')
+      .description('Add a new forma')
       .requiredOption('-n, --name <name>', 'Forma name')
       .option('--prop <key=value>', 'Additional properties (repeatable)', (val: string, acc: any) => {
         const [key, value] = val.split('=');
@@ -35,7 +35,7 @@ export default class FormaCommand {
         const forma = new Forma(config);
         formas.set(forma.id, forma);
 
-        console.log(`✓ Forma created: ${forma.id}`);
+        console.log(`✓ Forma added: ${forma.id}`);
         console.log(`  name: ${forma.name}`);
       });
 

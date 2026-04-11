@@ -474,15 +474,16 @@ class UUID64 {
 
   /**
    * Get the time/sequence prefix of the UUID (first 10 base64 characters).
-   * Contains 48-bit timestamp + 12-bit sequence bits
-   * Useful for time-based partitioning or sorting.
+   * Always returns exactly UUID64.TIME_SEQ_CHARS (10) characters by default.
+   * Contains 48-bit timestamp + 12-bit sequence bits.
+   * Useful for time-based partitioning, sorting, or ID trimming in lists.
    *
-   * The first character changes every ~84 years
-   * The last two characters are associated with the 12-bit millisecond sequence numbers
-   * 
-   * @returns 10-character base64 string prefix
+   * The first character changes every ~84 years.
+   * The last two characters encode the 12-bit millisecond sequence numbers.
+   *
+   * @returns 10-character base64 string prefix (default) - length invariant
    * @param start index of first character (default 0)
-   * @param end index of last character + 1 (default 10)
+   * @param end index of last character + 1 (default 10, use UUID64.TIME_SEQ_CHARS)
    */
   timeId(start:number = 0, end:number = 10): string {
     return this.base64.substring(start, end);

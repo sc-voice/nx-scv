@@ -1,0 +1,42 @@
+{
+  "completedActions" : [
+
+  ],
+  "createdAt" : "2026-04-10T19:25:19Z",
+  "id" : "019D78DB-20F3-7000-B318-9E3F150D1FA5",
+  "name" : "Rational.parsePatch() \/ fromString() \/ patch()",
+  "plannedActions" : [
+    {
+      "name" : "Read plan at \/Users\/visakha\/.claude\/plans\/stateless-sprouting-taco.md",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add Rational.parsePatch(str): string->partial config. 'null'->{isNull:true}, '5'->{numerator:5}, '5\/60'->{num:5,denom:60}, '5\/60hr'->{num:5,denom:60,units:'hr'}, 'cm'->{units:'cm'} where 'cm' is validated via new Units().abbreviation(str) — throws if not a known unit and not a number",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add Rational.fromString(str, defaultUnits?): calls parsePatch(), fills missing fields from defaults, returns Rational",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add Rational.patch(value): if string call parsePatch() and merge with existing fields; if number update numerator; if plain object merge; if Rational replace",
+      "test" : "update unit tests"
+    },
+    {
+      "name" : "Add tests for all parsePatch() input forms, fromString(), and patch() in test\/rational.ts",
+      "test" : "update unit tests"
+    }
+  ],
+  "references" : [
+    {
+      "relevance" : 0.5,
+      "text" : "Implementation plan",
+      "url" : "\/Users\/visakha\/.claude\/plans\/stateless-sprouting-taco.md"
+    }
+  ],
+  "requiredTasks" : [
+
+  ],
+  "summary" : "Add string parsing to Rational. parsePatch(str) returns partial config. fromString() constructs Rational. patch() merges with existing fields. Validates units.",
+  "updatedAt" : "2026-04-10T19:33:37Z"
+}
