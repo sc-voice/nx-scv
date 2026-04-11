@@ -1,0 +1,6 @@
+{
+  "id": "0Pr-S84W00B6llX91ablNW",
+  "name": "Make nf production-ready for pair coordination",
+  "summary": "Extend Action state machine (9 states), implement action/reference CLI subcommands",
+  "rawActions": []
+}
