@@ -3,6 +3,7 @@ import avro from 'avro-js';
 import { NameForma } from '../src/index.js';
 import { ScvMath, Text } from '@sc-voice/tools';
 import { DBG } from '../src/defines.js';
+import { FormaList } from '../src/forma-list.js';
 
 const { Schema, Rational, Task, Forma, Action } = NameForma;
 const { TASK: T2K } = DBG;
@@ -57,6 +58,67 @@ describe('task', () => {
     let thing2 = new Task(parsed);
     expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Task serialized with avro');
+  });
+  it('avro serialization with actions', () => {
+    const msg = 'tt2k.avro.actions';
+    dbg > 1 && cc.tag(msg, '==============');
+
+    const name = 'task-with-actions';
+
+    const { fullName } = Task.avroSchema;
+    const registry = {id: "PrAZmGm"};
+    let avroType = Task.registerAvro({ avro, registry });
+    dbg > 1 && cc.tag(msg, 'schema registered');
+
+    // Create task with actions
+    let thing1 = new Task({ name });
+    thing1.actions.addItem({ name: 'action 1', summary: 'first action' });
+    thing1.actions.addItem({ name: 'action 2', summary: 'second action' });
+    expect(thing1.rawActions).toHaveLength(2);
+    dbg > 1 && cc.tag(msg, 'created task with 2 actions');
+
+    // Serialize
+    let buf = avroType.toBuffer(thing1);
+    let parsed = avroType.fromBuffer(buf);
+    dbg > 1 && cc.tag(msg, 'serialized and deserialized');
+
+    // Verify deserialized task has actions
+    let thing2 = new Task(parsed);
+    expect(thing2.name).toBe(name);
+    expect(thing2.rawActions).toHaveLength(2);
+    expect(thing2.rawActions[0].name).toBe('action 1');
+    expect(thing2.rawActions[0].summary).toBe('first action');
+    expect(thing2.rawActions[1].name).toBe('action 2');
+    expect(thing2.rawActions[1].summary).toBe('second action');
+    dbg && cc.tag1(msg + UOK, 'Task with actions serialized correctly');
+  });
+  it('json serialization with actions', () => {
+    const msg = 'tt2k.json.actions';
+    dbg > 1 && cc.tag(msg, '==============');
+
+    const name = 'task-json-actions';
+
+    // Create task with actions
+    let thing1 = new Task({ name });
+    thing1.actions.addItem({ name: 'action 1', summary: 'first action' });
+    thing1.actions.addItem({ name: 'action 2', summary: 'second action' });
+    expect(thing1.rawActions).toHaveLength(2);
+    dbg > 1 && cc.tag(msg, 'created task with 2 actions');
+
+    // Serialize to JSON
+    const json = JSON.stringify(thing1, null, 2);
+    const parsed = JSON.parse(json);
+    dbg > 1 && cc.tag(msg, 'serialized and deserialized via JSON');
+
+    // Verify deserialized task has actions
+    let thing2 = new Task(parsed);
+    expect(thing2.name).toBe(name);
+    expect(thing2.rawActions).toHaveLength(2);
+    expect(thing2.rawActions[0].name).toBe('action 1');
+    expect(thing2.rawActions[0].summary).toBe('first action');
+    expect(thing2.rawActions[1].name).toBe('action 2');
+    expect(thing2.rawActions[1].summary).toBe('second action');
+    dbg && cc.tag1(msg + UOK, 'Task with actions serialized to JSON correctly');
   });
   it('actions getter returns FormaList', () => {
     const msg = 't2k.actions';
@@ -133,5 +195,39 @@ describe('task', () => {
     expect(t2k.rawActions[0] instanceof Action).toBe(true);
     expect(t2k.rawActions[1] instanceof Action).toBe(true);
     dbg && cc.tag1(msg + UOK, 'deleteItem mutations sync with rawActions as Action instances');
+  });
+
+  it('FormaList emits correct event fields when action added', () => {
+    const msg = 't2k.event.fields';
+    dbg > 1 && cc.tag(msg, '===================');
+
+    // Create a mock IEventBus to capture events
+    const events: any[] = [];
+    const mockBus = {
+      emit: (event: string, payload: any) => {
+        dbg > 1 && cc.tag(msg, `emit: ${event}`, payload);
+        events.push(payload);
+      },
+      on: () => {},
+    };
+
+    // Create a task and wire the mock bus to its actions FormaList
+    const task = new Task({ name: 'test task' });
+    const actionsList = new FormaList(task.rawActions, Action, task, mockBus);
+    dbg > 1 && cc.tag(msg, 'created FormaList with mock bus');
+
+    // Add an action and verify event fields
+    const action = actionsList.addItem({ name: 'action 1', status: 'todo' });
+    dbg > 1 && cc.tag(msg, 'added action, events captured:', events.length);
+
+    expect(events.length).toBeGreaterThan(0);
+    const addEvent = events[0];
+    expect(addEvent.type).toBe('add');
+    expect(addEvent.entityId).toEqual(task.id);
+    expect(addEvent.entityType).toBe('task');
+    expect(addEvent.item).toBe(action);
+    expect(addEvent.item.name).toBe('action 1');
+    expect(addEvent.item.status).toBe('todo');
+    dbg && cc.tag1(msg + UOK, 'FormaList event includes entityId and entityType of parent entity');
   });
 });

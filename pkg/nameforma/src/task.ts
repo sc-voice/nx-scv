@@ -63,7 +63,7 @@ export class Task extends Forma {
    * - items(filter): List all actions
    */
   get actions(): FormaList<Action> {
-    return new FormaList(this.rawActions, Action, this.id);
+    return new FormaList(this.rawActions, Action, this);
   }
 
   override toString() {

@@ -1,8 +1,10 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import UUID64 from '../src/uuid64.js';
 import { NameForma } from '../src/index.js';
+import { World } from '../src/world.js';
 import { Text } from '@sc-voice/tools';
 import { DBG } from '../src/defines.js';
+import { createTempWorld } from './cli/helpers.js';
 
 const { Forma, FormaList } = NameForma;
 const { Unicode, ColorConsole } = Text;
@@ -35,16 +37,18 @@ class TestItem {
 }
 
 describe('FormaList', () => {
-  it('FormaList.constructor with parentId', () => {
+  it('FormaList.constructor with parent', () => {
     const msg = 'tfl.ctor.with-parent';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     expect(list.items).toBe(items);
-    expect(list.parentId).toEqual(parentId);
+    expect(list.parentId).toEqual(world.id);
     expect(list.size).toBe(0);
-    dbg && cc.tag1(msg + UOK, 'constructor with parentId creates empty list');
+    tempWorld.cleanup();
+    dbg && cc.tag1(msg + UOK, 'constructor with parent creates empty list');
   });
 
   it('FormaList.constructor without parentId', () => {
@@ -61,16 +65,18 @@ describe('FormaList', () => {
   it('FormaList.addItem with parentId', () => {
     const msg = 'tfl.addItem.with-parent';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     // Add items
     const item1 = list.addItem({ name: 'item1' });
     expect(item1.name).toBe('item1');
-    expect(item1.id.isRelated(parentId)).toBe(true);
+    // TestItem IS an entity, so IDs should NOT be related to parent (relationship only for non-entities with entity parents)
+    expect(item1.id.isRelated(world.id)).toBe(false);
     expect(list.size).toBe(1);
     expect(items[0]).toBe(item1);
-    dbg && cc.tag1(msg + UOK, 'addItem creates and adds item with related ID');
+    dbg && cc.tag1(msg + UOK, 'addItem creates item without parent relationship (item is entity)');
 
     const item2 = list.addItem({ name: 'item2' });
     const item3 = list.addItem({ name: 'item3' });
@@ -102,24 +108,12 @@ describe('FormaList', () => {
     dbg && cc.ok1(msg + UOK, 'multiple addItem without parentId works');
   });
 
-  it('FormaList.addItem with unrelated ID throws', () => {
-    const msg = 'tfl.addItem.unrelated';
-    const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
-
-    // Create unrelated ID
-    const unrelatedId = new UUID64();
-    expect(() => list.addItem({ id: unrelatedId, name: 'bad' })).toThrow();
-    expect(list.size).toBe(0);
-    dbg && cc.tag1(msg + UOK, 'addItem throws for unrelated ID');
-  });
-
   it('FormaList.getItem', () => {
     const msg = 'tfl.getItem';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -140,8 +134,9 @@ describe('FormaList', () => {
   it('FormaList.deleteItem', () => {
     const msg = 'tfl.deleteItem';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -170,8 +165,9 @@ describe('FormaList', () => {
   it('FormaList.patchItem', () => {
     const msg = 'tfl.patchItem';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'original' });
     const item2 = list.addItem({ name: 'item2' });
@@ -192,8 +188,9 @@ describe('FormaList', () => {
   it('FormaList.moveItem with before anchor', () => {
     const msg = 'tfl.moveItem.before';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -224,8 +221,9 @@ describe('FormaList', () => {
   it('FormaList.moveItem with after anchor', () => {
     const msg = 'tfl.moveItem.after';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -256,8 +254,9 @@ describe('FormaList', () => {
   it('FormaList.moveItem default behavior', () => {
     const msg = 'tfl.moveItem.default';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -274,8 +273,9 @@ describe('FormaList', () => {
   it('FormaList.moveItem error cases', () => {
     const msg = 'tfl.moveItem.errors';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const fakeId = new UUID64().base64;
@@ -296,8 +296,9 @@ describe('FormaList', () => {
   it('FormaList.size getter', () => {
     const msg = 'tfl.size';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     expect(list.size).toBe(0);
     list.addItem({ name: 'item1' });
@@ -312,8 +313,9 @@ describe('FormaList', () => {
   it('FormaList.Symbol.iterator for iterable support', () => {
     const msg = 'tfl.iterator';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -336,8 +338,9 @@ describe('FormaList', () => {
   it('FormaList mutates wrapped array directly', () => {
     const msg = 'tfl.mutate-direct';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -365,8 +368,9 @@ describe('FormaList', () => {
   it('FormaList fuzzy ID matching', () => {
     const msg = 'tfl.fuzzy-id';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
+    const list = new FormaList<TestItem>(items, TestItem, world);
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -389,29 +393,7 @@ describe('FormaList', () => {
     dbg && cc.tag(msg + UOK, 'deleteItem fuzzyId:', fuzzyId);
   });
 
-  it('FormaList related ID validation', () => {
-    const msg = 'tfl.related-ids';
-    const items: TestItem[] = [];
-    const parentId = new UUID64();
-    const list = new FormaList<TestItem>(items, TestItem, parentId);
-
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
-
-    // All items should have IDs related to parentId
-    expect(item1.id.isRelated(parentId)).toBe(true);
-    expect(item2.id.isRelated(parentId)).toBe(true);
-    expect(item3.id.isRelated(parentId)).toBe(true);
-    dbg && cc.tag1(msg + UOK, 'all added items have IDs related to parentId');
-
-    // Items share random bytes with parentId
-    const parentRandomBytes = parentId.base64.substring(10);
-    const item1RandomBytes = item1.id.base64.substring(10);
-    expect(item1RandomBytes).toEqual(parentRandomBytes);
-    dbg && cc.tag1(msg + UOK, 'items share random bytes with parentId');
-  });
-  it('itemListId returns trimmed ID witout common prefix and suffix', () => {
+it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     // Create two IDs that share a common prefix "0Prek" and common suffix "00"
     // We use manual construction of UUID64 to ensure exact patterns.
     // Pattern: [common_prefix][unique_middle][common_suffix]
@@ -463,7 +445,8 @@ describe('FormaList', () => {
   it('FormaList emits change events', () => {
     const msg = 'tfl.emitter';
     const items: TestItem[] = [];
-    const parentId = new UUID64();
+    const tempWorld = createTempWorld();
+    const world = World.fromPath(tempWorld.worldPath);
 
     // Create mock EventBus
     const events: any[] = [];
@@ -475,15 +458,15 @@ describe('FormaList', () => {
       on: () => {},
     };
 
-    const list = new FormaList<TestItem>(items, TestItem, parentId, mockBus);
+    const list = new FormaList<TestItem>(items, TestItem, world, mockBus);
 
     // Add item
     const item1 = list.addItem({ name: 'item1' });
     expect(events.length).toBe(1);
     expect(events[0].type).toBe('add');
     expect(events[0].item).toBe(item1);
+    expect(events[0].entityId).toEqual(item1.id);
     expect(events[0].entityType).toBe('test-item');
-    expect(events[0].parentId).toEqual(parentId);
     dbg && cc.tag1(msg + UOK, 'addItem emits change event');
 
     // Patch item
@@ -511,6 +494,7 @@ describe('FormaList', () => {
     expect(events[0].item).toBe(item2);
     expect(events[0].entityType).toBe('test-item');
     dbg && cc.tag1(msg + UOK, 'moveItem emits change event');
+    tempWorld.cleanup();
   });
 
 });

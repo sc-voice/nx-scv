@@ -162,7 +162,7 @@ export class ColorConsole {
         dateStyle: 'short',
       }),
       precision = 3,
-      write = (...args: any[]) => console.log.call(null, ...args),
+      write = (...args: any[]) => console.error.call(null, ...args),
     } = opts;
 
     this.badColor1 = badColor1;

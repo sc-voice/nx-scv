@@ -30,6 +30,7 @@ import FormaCommand from './cli-forma.js';
 import SchemaCommand from './cli-schema.js';
 import IdCommand from './cli-id.js';
 import FocusCommand from './cli-focus.js';
+import ActionCommand from './cli-action.js';
 
 // Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
@@ -130,5 +131,12 @@ const focusCmd = program
   .description('Set focus on an entity by ID');
 
 FocusCommand.registerCommand(focusCmd);
+
+// Action command
+const actionCmd = program
+  .command('action')
+  .description('List actions for the focused task');
+
+ActionCommand.registerCommand(actionCmd);
 
 program.parse(preprocessArgv(process.argv));
