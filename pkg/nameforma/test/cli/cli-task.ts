@@ -524,12 +524,55 @@ describe('CLI: task command', () => {
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/Task:/);
       expect(output.join('\n')).toMatch(/name: Focused Task/);
+      expect(output.join('\n')).toMatch(/summary:/);
     });
 
     it('show without ID returns error when no task focused', async () => {
       await expect(
         program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show'])
       ).rejects.toThrow(/No task focused|Task not found/);
+    });
+
+    it('show displays all actions in task', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        '-n',
+        'Task With Actions',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+      expect(taskId).not.toBeNull();
+
+      // Add actions to the task
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      expect(task).not.toBeNull();
+
+      // Add some actions
+      task!.actions(world).addItem({ name: 'First action', summary: 'Do this first' });
+      task!.actions(world).addItem({ name: 'Second action' });
+      world.save();
+
+      output.length = 0;
+
+      // Show task - should display all actions
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId]);
+
+      const showOutput = output.join('\n');
+      expect(showOutput).toMatch(/Task:/);
+      expect(showOutput).toMatch(/name: Task With Actions/);
+      expect(showOutput).toMatch(/actions:/);
+      expect(showOutput).toMatch(/\w+:.*todo.*First action/);
+      expect(showOutput).toMatch(/Do this first/);
+      expect(showOutput).toMatch(/\w+:.*todo.*Second action/);
     });
 
     it('update task without ID uses focused task', async () => {

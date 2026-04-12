@@ -215,10 +215,10 @@ export class Forma extends Identifiable {
   }
 
   /**
-   * Return the string representation used for lists
+   * Return array of strings to be presented as a TUI row
    */
-  listItemString(cfg:ListItemStringCfg={}) : string {
-    const msg = 'f3a.listItemString';
+  tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
+    const msg = 'f3a.tuiRowStrings';
     let {
       id, 
       name = "name?",
@@ -236,7 +236,15 @@ export class Forma extends Identifiable {
     if (summary != null) {
       row.push(summary);
     }
-    return row.join(" ")
+    return row;
+  }
+
+  /**
+   * Return the string representation used for lists
+   */
+  listItemString(cfg:ListItemStringCfg={}) : string {
+    const msg = 'f3a.listItemString';
+    return this.tuiRowStrings(cfg).join(" ")
   }
 } // Forma
 

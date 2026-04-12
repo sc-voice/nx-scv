@@ -173,9 +173,19 @@ export default class TaskCommand {
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = TaskCommand.resolveTask(world, id);
+        const actions = task.actions(world);
 
         console.log(`Task: ${task.id}`);
         console.log(`  name: ${task.name}`);
+        console.log(`  summary: ${task.summary}`);
+
+        if (task.rawActions.length > 0) {
+          console.log(`  actions:`);
+          task.rawActions.forEach((action, index) => {
+            let itemId = actions.itemListId(action) + ":";
+            console.log(`   `, action.listItemString({itemId}));
+          });
+        }
       });
 
     // task update

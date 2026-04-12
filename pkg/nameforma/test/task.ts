@@ -87,8 +87,10 @@ describe('task', () => {
     let thing2 = new Task(parsed);
     expect(thing2.name).toBe(name);
     expect(thing2.rawActions).toHaveLength(2);
+    expect(thing2.rawActions[0]).toBeInstanceOf(Action);
     expect(thing2.rawActions[0].name).toBe('action 1');
     expect(thing2.rawActions[0].summary).toBe('first action');
+    expect(thing2.rawActions[1]).toBeInstanceOf(Action);
     expect(thing2.rawActions[1].name).toBe('action 2');
     expect(thing2.rawActions[1].summary).toBe('second action');
     dbg && cc.tag1(msg + UOK, 'Task with actions serialized correctly');

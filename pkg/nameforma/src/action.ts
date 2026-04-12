@@ -97,4 +97,13 @@ export class Action extends Forma {
     this.status = status as ActionStatus;
     dbg && cc.ok1(msg, { status });
   }
+
+  /**
+   * Override tuiRowStrings to prepend status indicator
+   */
+  override tuiRowStrings(cfg: any = {}): string[] {
+    let row = super.tuiRowStrings(cfg);
+    let id = row.shift()!;
+    return [id, this.status, ...row];
+  }
 }

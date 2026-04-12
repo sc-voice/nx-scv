@@ -151,7 +151,7 @@ export class Task extends Forma {
     const dbg = T2K.PUT;
     super.patch(value);
     let { rawActions = [] } = value;
-    Object.assign(this, { rawActions: [...rawActions] });
+    Object.assign(this, { rawActions: rawActions.map((data: any) => new Action(data)) });
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
