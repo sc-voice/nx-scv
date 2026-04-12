@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
+import { World } from '../../src/world.js';
 import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers';
 
 const { Task, Rational } = NameForma;
@@ -175,7 +176,7 @@ describe('CLI: task command', () => {
   });
 
   describe('delete command', () => {
-    it('delete task with partial fuzzy ID', async () => {
+    it('delete task with partial fuzzy ID using --force', async () => {
       // Create a task
       await program.parseAsync([
         'node',
@@ -196,16 +197,16 @@ describe('CLI: task command', () => {
 
       output.length = 0;
 
-      // Delete using partial fuzzy ID (first 8 chars)
+      // Delete using partial fuzzy ID (first 8 chars) with --force
       const partialId = taskId?.substring(0, 8);
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', partialId]);
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', partialId, '--force']);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/✓ Task deleted:/);
       expect(countTasks(tempWorld.worldPath)).toBe(0);
     });
 
-    it('delete task with exact full ID', async () => {
+    it('delete task with exact full ID using --force', async () => {
       // Create a task
       await program.parseAsync([
         'node',
@@ -226,8 +227,8 @@ describe('CLI: task command', () => {
 
       output.length = 0;
 
-      // Delete using exact full ID
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+      // Delete using exact full ID with --force
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/✓ Task deleted:/);
@@ -253,8 +254,8 @@ describe('CLI: task command', () => {
 
       output.length = 0;
 
-      // Delete the task
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+      // Delete the task with --force
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       output.length = 0;
 
@@ -283,8 +284,8 @@ describe('CLI: task command', () => {
 
       output.length = 0;
 
-      // Delete the task
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+      // Delete the task with --force
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       output.length = 0;
 
@@ -318,8 +319,8 @@ describe('CLI: task command', () => {
 
       expect(countTasks(tempWorld.worldPath)).toBe(3);
 
-      // Delete the second task
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskIds[1]]);
+      // Delete the second task with --force
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskIds[1], '--force']);
 
       expect(countTasks(tempWorld.worldPath)).toBe(2);
 
@@ -358,9 +359,9 @@ describe('CLI: task command', () => {
 
       expect(countTasks(tempWorld.worldPath)).toBe(2);
 
-      // Try to delete with very short ID that matches both - should throw ambiguous error
+      // Try to delete with very short ID that matches both - should throw ambiguous error (with --force)
       await expect(
-        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', '0'])
+        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', '0', '--force'])
       ).rejects.toThrow(/ambiguous match/);
 
       // Verify both tasks still exist
@@ -386,8 +387,8 @@ describe('CLI: task command', () => {
 
       output.length = 0;
 
-      // Delete the task
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId]);
+      // Delete the task with --force
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       // Verify output shows the full task ID, not the search string
       expect(output[0]).toContain(`✓ Task deleted: ${taskId}`);
@@ -484,8 +485,137 @@ describe('CLI: task command', () => {
         tempWorld.worldPath,
         'delete',
         'nonexistent',
+        '--force',
       ])
     ).rejects.toThrow(/Task not found/);
+  });
+
+  describe('optional ID with focus fallback', () => {
+    it('show task without ID uses focused task', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        '-n',
+        'Focused Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+      expect(taskId).not.toBeNull();
+
+      // Focus the task by loading world and calling focusForma
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      expect(task).not.toBeNull();
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Show without ID - should use focused task
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show']);
+
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/Task:/);
+      expect(output.join('\n')).toMatch(/name: Focused Task/);
+    });
+
+    it('show without ID returns error when no task focused', async () => {
+      await expect(
+        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show'])
+      ).rejects.toThrow(/No task focused|Task not found/);
+    });
+
+    it('update task without ID uses focused task', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        '-n',
+        'Update Me',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+      expect(taskId).not.toBeNull();
+
+      // Focus the task
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Update without ID - should use focused task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'update',
+        '-n',
+        'Updated Name',
+      ]);
+
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/✓ Task updated:/);
+      expect(output[1]).toMatch(/Updated Name/);
+    });
+
+    it('delete task without ID uses focused task', async () => {
+      // Create a task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        '-n',
+        'Delete Me',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+      expect(taskId).not.toBeNull();
+
+      // Focus the task
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Delete without ID using --force - should use focused task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        '--force',
+      ]);
+
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/✓ Task deleted:/);
+      expect(countTasks(tempWorld.worldPath)).toBe(0);
+    });
   });
 });
 

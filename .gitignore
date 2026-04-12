@@ -27,6 +27,7 @@ node_modules
 
 # misc
 local
+.commit-msg
 /.sass-cache
 /connect.lock
 /coverage

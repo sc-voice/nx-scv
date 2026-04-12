@@ -967,6 +967,51 @@ describe('World - focusStack', () => {
     });
   });
 
+  describe('delete() removes from focusStack', () => {
+    it('should remove focused entity from stack when deleted', () => {
+      const list = world.entityList(MockEntity);
+      const entity = list.addItem({ name: 'test' });
+
+      world.focusForma(entity);
+      expect(world.focusStack.size).toBe(1);
+
+      world.delete('mock', entity.id.base64);
+
+      expect(world.focusStack.size).toBe(0);
+    });
+
+    it('should remove only matching entity from multi-item stack', () => {
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+      const e3 = list.addItem({ name: 'e3' });
+
+      world.focusForma(e1);
+      world.focusForma(e2);
+      world.focusForma(e3);
+
+      expect(world.focusStack.size).toBe(3);
+
+      world.delete('mock', e2.id.base64);
+
+      expect(world.focusStack.size).toBe(2);
+      const focusItems = Array.from(world.focusStack);
+      expect(focusItems[0].formaId.base64).toBe(e3.id.base64);
+      expect(focusItems[1].formaId.base64).toBe(e1.id.base64);
+      expect(focusItems.some(f => f.formaId.base64 === e2.id.base64)).toBe(false);
+    });
+
+    it('should be no-op if entity not in focusStack', () => {
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+
+      world.focusForma(e1);
+      expect(() => world.delete('mock', e2.id.base64)).not.toThrow();
+      expect(world.focusStack.size).toBe(1);
+    });
+  });
+
   describe('sort integration', () => {
     it('should support sort pattern: focusOrder tiebreak with id lexicographic', () => {
       const list = world.entityList(MockEntity);

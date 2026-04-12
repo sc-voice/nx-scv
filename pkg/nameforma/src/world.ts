@@ -448,7 +448,7 @@ export class World extends Identifiable implements IEventBus {
   }
 
   /**
-   * Delete entity from world storage
+   * Delete entity from world storage and remove from focus stack
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {string} id - Entity id
    */
@@ -460,6 +460,13 @@ export class World extends Identifiable implements IEventBus {
     if (!fs.existsSync(filePath)) {
       dbg && cc.ok1(msg, `not found ${filePath}`);
       return;
+    }
+
+    // Remove from focus stack if present
+    try {
+      this.#focusStack.deleteItem(id);
+    } catch {
+      // Not in focus stack, that's fine
     }
 
     fs.unlinkSync(filePath);

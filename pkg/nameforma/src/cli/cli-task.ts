@@ -1,6 +1,6 @@
 /**
  * Task command handler for nameforma CLI
- * Supports: add, list, show, update
+ * Supports: add, list, show, update, delete
  */
 
 import path from 'path';
@@ -8,11 +8,40 @@ import { World } from '../world.js';
 import { Task } from '../task.js';
 import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
+import { confirmDelete } from './confirm.js';
 
 
 
 
 export default class TaskCommand {
+  /**
+   * Resolve task ID, falling back to focused task if id is not provided
+   * @param {World} world - World instance
+   * @param {string} id - Optional task ID
+   * @returns {Task} - Resolved task
+   * @throws {Error} - If task not found or no focus available
+   */
+  static resolveTask(world: World, id?: string): Task {
+    if (id) {
+      const task = world.loadFuzzy(Task, id);
+      if (!task) {
+        throw new Error(`Task not found: ${id}`);
+      }
+      return task;
+    }
+
+    const focus = world.focusedForma('task');
+    if (!focus) {
+      throw new Error('No task focused');
+    }
+
+    const task = world.loadEntity(Task, focus.formaId.base64);
+    if (!task) {
+      throw new Error(`Task not found: ${focus.formaId}`);
+    }
+    return task;
+  }
+
   /**
    * List tasks, with focused tasks at top and top-of-stack highlighted in bright green
    * @param {World} world - World instance
@@ -133,20 +162,17 @@ export default class TaskCommand {
 
     // task show
     cmd
-      .command('show <id>')
+      .command('show [id]')
       .description('Show task details')
       .addHelpText('after', [
         '',
         'Examples:',
         '  $ nameforma task show abc123def456',
+        '  $ nameforma task show  (shows focused task)',
       ].join('\n'))
-      .action((id: string, options: any, cmd: any) => {
+      .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
-
-        const task = world.loadFuzzy(Task, id);
-        if (!task) {
-          throw new Error(`Task not found: ${id}`);
-        }
+        const task = TaskCommand.resolveTask(world, id);
 
         console.log(`Task: ${task.id}`);
         console.log(`  name: ${task.name}`);
@@ -154,24 +180,21 @@ export default class TaskCommand {
 
     // task update
     cmd
-      .command('update <id>')
+      .command('update [id]')
       .description('Update a task')
       .addHelpText('after', [
         '',
         'Examples:',
         '  $ nameforma task update abc123def456 -n "New name"',
-        '  $ nameforma task update abc123def456 -s "New summary"',
+        '  $ nameforma task update -n "New name"  (updates focused task)',
       ].join('\n'))
       .option('-n, --name <name>', 'Update task name')
       .option('-s, --summary <summary>', 'Update task summary')
-      .action((id: string, options: any, cmd: any) => {
+      .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
 
-        const task = world.loadFuzzy(Task, id);
-        if (!task) {
-          throw new Error(`Task not found: ${id}`);
-        }
+        const task = TaskCommand.resolveTask(world, id);
 
         const updates: any = {};
         if (options.name) {
@@ -190,19 +213,28 @@ export default class TaskCommand {
 
     // task delete
     cmd
-      .command('delete <id>')
+      .command('delete [id]')
       .description('Delete a task')
+      .option('-f, --force', 'Skip confirmation prompt')
       .addHelpText('after', [
         '',
         'Examples:',
         '  $ nameforma task delete abc123def456',
+        '  $ nameforma task delete --force  (deletes focused task)',
       ].join('\n'))
-      .action((id: string, options: any, cmd: any) => {
+      .action(async (id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
 
-        const task = world.loadFuzzy(Task, id);
-        if (!task) {
-          throw new Error(`Task not found: ${id}`);
+        const task = TaskCommand.resolveTask(world, id);
+
+        // Prompt for confirmation unless --force is specified
+        if (!options.force) {
+          const confirmed = await confirmDelete(task);
+
+          if (!confirmed) {
+            console.log('Deletion cancelled');
+            return;
+          }
         }
 
         world.delete('task', task.id.toString());
