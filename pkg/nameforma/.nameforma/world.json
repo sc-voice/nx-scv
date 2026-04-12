@@ -27,6 +27,13 @@
       "formaType": "task",
       "name": "blueberry muffins",
       "summary": "a tasty treat"
+    },
+    {
+      "id": "0Ps2pfDT00Tv1zt3yCLAdW",
+      "formaId": "0Ps2pee000Tv1zt3yCLAdW",
+      "formaType": "task",
+      "name": "Restrict ActionStatus to coding-process states",
+      "summary": "Update ActionStatus enum to include states from coding-process.md: Proposal, Plan, Requirement, CodeSource, TestNew, TestOld, Review, Done, Anomaly. Update Avro schema and validation accordingly."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

@@ -10,8 +10,13 @@ const { CHECKMARK: UOK } = Unicode;
 const { ACTION: A6N } = DBG;
 
 export enum ActionStatus {
-  todo = 'todo',
+  plan = 'plan',
+  spec = 'spec',
+  code = 'code',
+  test = 'test',
+  review = 'review',
   done = 'done',
+  stop = 'stop',
 }
 
 /**
@@ -31,7 +36,7 @@ export class Action extends Forma {
     const dbg = (A6N as any)?.CTOR;
     super(cfg);
 
-    let { status = ActionStatus.todo } = cfg;
+    let { status = ActionStatus.plan } = cfg;
     this.status = status;
 
     dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
@@ -72,7 +77,7 @@ export class Action extends Forma {
           type: {
             type: 'enum',
             name: 'ActionStatus',
-            symbols: ['todo', 'done'],
+            symbols: ['plan', 'spec', 'code', 'test', 'review', 'done', 'stop'],
           } as any,
         }, // mutable
       ],

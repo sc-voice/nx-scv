@@ -1,0 +1,6 @@
+{
+  "id": "0Ps2pee000Tv1zt3yCLAdW",
+  "name": "Restrict ActionStatus to coding-process states",
+  "summary": "Update ActionStatus enum to include states from coding-process.md: Proposal, Plan, Requirement, CodeSource, TestNew, TestOld, Review, Done, Anomaly. Update Avro schema and validation accordingly.",
+  "rawActions": []
+}

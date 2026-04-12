@@ -16,7 +16,7 @@ describe('Action', () => {
   it('ctor default', () => {
     const a4n = new Action();
     expect(a4n.id.validate()).toBe(true);
-    expect(a4n.status).toBe('todo'); // default status
+    expect(a4n.status).toBe('plan'); // default status
     expect(a4n.summary).toBe('Action?'); // inherits from Forma
   });
 
@@ -29,16 +29,16 @@ describe('Action', () => {
   it('patch status', () => {
     const msg = 'ta4n.patch';
     const a4n = new Action();
-    expect(a4n.status).toBe('todo');
+    expect(a4n.status).toBe('plan');
 
     const { id } = a4n;
     a4n.patch({ status: 'done' });
     expect(a4n.id).toBe(id);
     expect(a4n.status).toBe(ActionStatus.done);
 
-    a4n.patch({status: ActionStatus.todo})
+    a4n.patch({status: ActionStatus.plan})
     expect(a4n.id).toBe(id);
-    expect(a4n.status).toBe('todo');
+    expect(a4n.status).toBe('plan');
 
     dbg && cc.tag1(msg + UOK, 'status is mutable');
   });
@@ -91,7 +91,7 @@ describe('Action', () => {
 
     // Create test array of Actions
     const action1 = new Action({ status: 'done' });
-    const action2 = new Action({ status: 'todo' });
+    const action2 = new Action({ status: 'plan' });
     const action3 = new Action({ status: 'done' });
     const actions = [action1, action2, action3];
 
@@ -104,7 +104,7 @@ describe('Action', () => {
 
     expect(reconstructed).toHaveLength(3);
     expect(reconstructed[0].status).toBe('done');
-    expect(reconstructed[1].status).toBe('todo');
+    expect(reconstructed[1].status).toBe('plan');
     expect(reconstructed[2].status).toBe('done');
     expect(reconstructed[0].id.base64).toBe(action1.id.base64);
     expect(reconstructed[1].id.base64).toBe(action2.id.base64);
