@@ -3,7 +3,7 @@ import { DBG } from './defines.js';
 import { Forma } from './forma.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action } from './action.js';
-import { FormaList } from './forma-list.js';
+import { FormaList, type IEventBus } from './forma-list.js';
 
 const { ColorConsole, Unicode } = Text;
 const { TASK: T2K } = DBG;
@@ -54,7 +54,7 @@ export class Task extends Forma {
   }
 
   /**
-   * Readonly access to task actions as a FormaList.
+   * Get task actions as a FormaList with event bus integration.
    * Use FormaList API for mutations:
    * - addItem(cfg): Create new action
    * - deleteItem(id): Remove action
@@ -62,8 +62,11 @@ export class Task extends Forma {
    * - getItem(id): Retrieve action
    * - items(filter): List all actions
    */
-  get actions(): FormaList<Action> {
-    return new FormaList(this.rawActions, Action, this);
+  /**
+   * @param bus - Event bus for change notifications and persistence
+   */
+  actions(bus: IEventBus): FormaList<Action> {
+    return new FormaList(this.rawActions, Action, this, bus);
   }
 
   override toString() {

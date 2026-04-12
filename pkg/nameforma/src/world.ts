@@ -62,25 +62,35 @@ export class World extends Identifiable implements IEventBus {
 
     // Wire persistence listener for FormaList mutations
     this.#bus.on('change', (event: FormaListEvent<any>) => {
-      const dbg = WORLD?.EVENT;
+      const dbg = WORLD?.EVENT || WORLD?.ALL;
       const msg = 'w3d.#bus.change'+event.type;
-      const { entityId, entityType, item } = event;
+      const { entity } = event;
+
+      if (!entity) {
+        return; // No entity to persist
+      }
+
+      const entityType = (entity.constructor as any).entity;
+      if (!entityType) {
+        dbg && cc.bad1(`${msg} entity missing entity type`, entity);
+        return;
+      }
 
       switch (event.type) {
         case 'add':
         case 'patch':
-          if (entityId && entityType) {
-            dbg && cc.ok(`${msg} ${entityType}: ${entityId.toString()}`);
-            this.#saveEntity(entityType, item);
-          }
+          dbg && cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
+          this.#saveEntity(entityType, entity);
           break;
         case 'delete':
-          if (entityId && entityType) {
-            this.delete(entityType, entityId.base64);
-          }
+          dbg && cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
+          this.delete(entityType, entity.id.base64);
           break;
         case 'move':
           // Move doesn't require persistence (order changes don't persist)
+          break;
+        default:
+          dbg && cc.bad1(`${msg} unknown event type`, event);
           break;
       }
     });

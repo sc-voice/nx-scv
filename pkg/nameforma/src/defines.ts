@@ -126,11 +126,12 @@ const TIMERS = {
 };
 
 const WORLD = {
+  ALL: 0,
   CTOR: 0,
   FIND_WORLD: 0,
   REGISTER: 0,
-  EVENT: 2,
-  SAVE: 2,
+  EVENT: 0,
+  SAVE: 0,
   LOAD: 0,
   LIST: 0,
   DELETE: 0,

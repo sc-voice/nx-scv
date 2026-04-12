@@ -86,7 +86,7 @@ describe('CLI: action command', () => {
     }
   });
 
-  it.skip('action add to focused task', async () => {
+  it('action add to focused task', async () => {
     // Create a task
     await program.parseAsync([
       'node',
@@ -136,11 +136,11 @@ describe('CLI: action command', () => {
     const world = World.fromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
-    expect(task!.actions.items).toHaveLength(1);
-    expect(task!.actions.items[0].name).toBe('Test Action');
+    expect(task!.actions(world).items).toHaveLength(1);
+    expect(task!.actions(world).items[0].name).toBe('Test Action');
   });
 
-  it.skip('action add with summary', async () => {
+  it('action add with summary', async () => {
     // Create and focus a task
     await program.parseAsync([
       'node',
@@ -187,7 +187,7 @@ describe('CLI: action command', () => {
     const world = World.fromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
-    expect(task!.actions.items).toHaveLength(1);
-    expect(task!.actions.items[0].summary).toBe('This is a summary');
+    expect(task!.actions(world).items).toHaveLength(1);
+    expect(task!.actions(world).items[0].summary).toBe('This is a summary');
   });
 });

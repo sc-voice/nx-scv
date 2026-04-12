@@ -72,8 +72,9 @@ describe('task', () => {
 
     // Create task with actions
     let thing1 = new Task({ name });
-    thing1.actions.addItem({ name: 'action 1', summary: 'first action' });
-    thing1.actions.addItem({ name: 'action 2', summary: 'second action' });
+    const mockBus1 = { emit: () => {}, on: () => {} };
+    thing1.actions(mockBus1).addItem({ name: 'action 1', summary: 'first action' });
+    thing1.actions(mockBus1).addItem({ name: 'action 2', summary: 'second action' });
     expect(thing1.rawActions).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 actions');
 
@@ -100,8 +101,9 @@ describe('task', () => {
 
     // Create task with actions
     let thing1 = new Task({ name });
-    thing1.actions.addItem({ name: 'action 1', summary: 'first action' });
-    thing1.actions.addItem({ name: 'action 2', summary: 'second action' });
+    const mockBus2 = { emit: () => {}, on: () => {} };
+    thing1.actions(mockBus2).addItem({ name: 'action 1', summary: 'first action' });
+    thing1.actions(mockBus2).addItem({ name: 'action 2', summary: 'second action' });
     expect(thing1.rawActions).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 actions');
 
@@ -125,7 +127,8 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '===================');
 
     const t2k = new Task({ name: 'test task' });
-    const actions = t2k.actions;
+    const mockBus = { emit: () => {}, on: () => {} };
+    const actions = t2k.actions(mockBus);
 
     // Verify FormaList is returned
     expect(actions).toBeDefined();
@@ -167,7 +170,8 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '===================');
 
     const t2k = new Task({ name: 'test task' });
-    const actions = t2k.actions;
+    const mockBus = { emit: () => {}, on: () => {} };
+    const actions = t2k.actions(mockBus);
 
     // Build up actions array via FormaList
     const action1 = actions.addItem({ status: 'todo' });
@@ -223,11 +227,10 @@ describe('task', () => {
     expect(events.length).toBeGreaterThan(0);
     const addEvent = events[0];
     expect(addEvent.type).toBe('add');
-    expect(addEvent.entityId).toEqual(task.id);
-    expect(addEvent.entityType).toBe('task');
+    expect(addEvent.entity).toBe(task);
     expect(addEvent.item).toBe(action);
     expect(addEvent.item.name).toBe('action 1');
     expect(addEvent.item.status).toBe('todo');
-    dbg && cc.tag1(msg + UOK, 'FormaList event includes entityId and entityType of parent entity');
+    dbg && cc.tag1(msg + UOK, 'FormaList event includes parent entity to be persisted');
   });
 });

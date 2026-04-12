@@ -2,18 +2,12 @@
   "id": "0PrlSoX100LG4Y1m9HFjNW",
   "name": "blueberry muffins",
   "summary": "a tasty treat",
-  "title": "title?",
-  "progress": {
-    "numerator": 0,
-    "denominator": 1,
-    "units": "",
-    "isNull": false
-  },
-  "duration": {
-    "numerator": 0,
-    "denominator": 1,
-    "units": "s",
-    "isNull": true
-  },
-  "rawActions": []
+  "rawActions": [
+    {
+      "id": "0Ps1hWkx00LG4Y1m9HFjNW",
+      "name": "action-sox",
+      "summary": "action-sum",
+      "status": "todo"
+    }
+  ]
 }

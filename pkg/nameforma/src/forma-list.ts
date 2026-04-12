@@ -25,16 +25,16 @@ export interface IFormaItemClass {
  * FormaListEvent<T> - Discriminated union of FormaList mutation events
  * Used to notify external systems (e.g., World persistence) of list changes
  *
- * entityId and entityType identify which entity to persist:
- * - If item is an entity: entityId = item.id, entityType = ItemClass.entity
- * - If item is not an entity but parent is: entityId = parent.id, entityType = parent's entity
- * - If neither is an entity: entityId and entityType are undefined
+ * entity is the in-memory object to be persisted:
+ * - If item is an entity: entity = item
+ * - If item is not an entity but parent is: entity = parent
+ * - If neither is an entity: entity = undefined
  */
 export type FormaListEvent<T extends IFormaItem> =
-  | { type: 'add'; item: T; cfg: any; entityId?: UUID64; entityType?: string }
-  | { type: 'patch'; item: T; cfg: any; entityId?: UUID64; entityType?: string }
-  | { type: 'delete'; item: T; entityId?: UUID64; entityType?: string }
-  | { type: 'move'; item: T; options: { before?: FuzzyId | null; after?: FuzzyId | null }; entityId?: UUID64; entityType?: string };
+  | { type: 'add'; item: T; cfg: any; entity?: IFormaItem }
+  | { type: 'patch'; item: T; cfg: any; entity?: IFormaItem }
+  | { type: 'delete'; item: T; entity?: IFormaItem }
+  | { type: 'move'; item: T; options: { before?: FuzzyId | null; after?: FuzzyId | null }; entity?: IFormaItem };
 
 /**
  * IEventBus - Event emission interface for FormaList listeners
@@ -113,23 +113,17 @@ export class FormaList<T extends IFormaItem> {
   }
 
   /**
-   * Compute entityId and entityType for an event based on item classification
+   * Compute entity to be persisted for an event based on item classification
    * @param item - The item being mutated
-   * @returns { entityId?, entityType? } for the event
+   * @returns { entity? } - The in-memory entity to be persisted
    */
-  #computeEntityRef(item: T): { entityId?: UUID64; entityType?: string } {
+  #computeEntityInfo(item: T): { entity?: IFormaItem } {
     if (this.#itemIsEntity) {
       // Item itself is an entity
-      return {
-        entityId: (item as any).id as UUID64,
-        entityType: this.#itemEntityType,
-      };
+      return { entity: item };
     } else if (this.#parentIsEntity && this.#parentEntity) {
-      // Item is not an entity, use parent's entity info
-      return {
-        entityId: (this.#parentEntity as any).id as UUID64,
-        entityType: this.#parentEntityType,
-      };
+      // Item is not an entity, use parent entity
+      return { entity: this.#parentEntity };
     }
     return {};
   }
@@ -166,13 +160,12 @@ export class FormaList<T extends IFormaItem> {
     this.#invalidateCache();
 
     if (this.#emitter) {
-      const { entityId, entityType } = this.#computeEntityRef(item);
+      const { entity } = this.#computeEntityInfo(item);
       this.#emitter.emit('change', {
         type: 'add',
         item,
         cfg,
-        entityId,
-        entityType,
+        entity,
       } as FormaListEvent<T>);
     }
 
@@ -192,12 +185,11 @@ export class FormaList<T extends IFormaItem> {
     this.#invalidateCache();
 
     if (this.#emitter) {
-      const { entityId, entityType } = this.#computeEntityRef(itemToDelete);
+      const { entity } = this.#computeEntityInfo(itemToDelete);
       this.#emitter.emit('change', {
         type: 'delete',
         item: itemToDelete,
-        entityId,
-        entityType,
+        entity,
       } as FormaListEvent<T>);
     }
 
@@ -240,13 +232,12 @@ export class FormaList<T extends IFormaItem> {
     item.patch(cfg);
 
     if (this.#emitter) {
-      const { entityId, entityType } = this.#computeEntityRef(item);
+      const { entity } = this.#computeEntityInfo(item);
       this.#emitter.emit('change', {
         type: 'patch',
         item,
         cfg,
-        entityId,
-        entityType,
+        entity,
       } as FormaListEvent<T>);
     }
 
@@ -304,13 +295,12 @@ export class FormaList<T extends IFormaItem> {
     this.#invalidateCache();
 
     if (this.#emitter) {
-      const { entityId, entityType } = this.#computeEntityRef(item);
+      const { entity } = this.#computeEntityInfo(item);
       this.#emitter.emit('change', {
         type: 'move',
         item,
         options,
-        entityId,
-        entityType,
+        entity,
       } as FormaListEvent<T>);
     }
 

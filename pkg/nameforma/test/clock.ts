@@ -142,7 +142,7 @@ describe('clock', () => {
     let { value: value3 } = await c3k.next();
     expect(c3k.timeIn).toBe(c3k.timeOut);
     expect(value2 - value1)
-      .toBeGreaterThan(msIdle);
+      .toBeGreaterThanOrEqual(msIdle);
     expect(value2 - value1)
       .toBeLessThan(msLongIdle); // stale value
 

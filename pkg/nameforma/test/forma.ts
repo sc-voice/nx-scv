@@ -16,7 +16,7 @@ class TestThing extends Forma {
   constructor(cfg = {}) {
     const msg = 't7g.ctor';
     super(cfg);
-    cc.fyi1(msg, ...cc.props(this));
+    dbg && cc.fyi1(msg, ...cc.props(this));
   }
 }
 

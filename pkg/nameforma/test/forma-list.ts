@@ -465,8 +465,7 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     expect(events.length).toBe(1);
     expect(events[0].type).toBe('add');
     expect(events[0].item).toBe(item1);
-    expect(events[0].entityId).toEqual(item1.id);
-    expect(events[0].entityType).toBe('test-item');
+    expect(events[0].entity).toBe(item1);
     dbg && cc.tag1(msg + UOK, 'addItem emits change event');
 
     // Patch item
@@ -474,7 +473,7 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     expect(events.length).toBe(2);
     expect(events[1].type).toBe('patch');
     expect(events[1].item).toBe(item1);
-    expect(events[1].entityType).toBe('test-item');
+    expect(events[1].entity).toBe(item1);
     dbg && cc.tag1(msg + UOK, 'patchItem emits change event');
 
     // Delete item
@@ -482,7 +481,7 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     expect(events.length).toBe(3);
     expect(events[2].type).toBe('delete');
     expect(events[2].item).toBe(item1);
-    expect(events[2].entityType).toBe('test-item');
+    expect(events[2].entity).toBe(item1);
     dbg && cc.tag1(msg + UOK, 'deleteItem emits change event');
 
     // Move item (add another first)
@@ -492,7 +491,7 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     expect(events.length).toBe(1);
     expect(events[0].type).toBe('move');
     expect(events[0].item).toBe(item2);
-    expect(events[0].entityType).toBe('test-item');
+    expect(events[0].entity).toBe(item2);
     dbg && cc.tag1(msg + UOK, 'moveItem emits change event');
     tempWorld.cleanup();
   });

@@ -49,7 +49,7 @@ export default class ActionCommand {
           return;
         }
 
-        const actions = task.actions.items;
+        const actions = task.actions(world).items;
 
         if (actions.length === 0) {
           console.log('No actions');
@@ -82,7 +82,7 @@ export default class ActionCommand {
           actionConfig.summary = options.summary;
         }
 
-        const action = task.actions.addItem(actionConfig);
+        const action = task.actions(world).addItem(actionConfig);
         world.save();
 
         console.log(`✓ Action added`);
