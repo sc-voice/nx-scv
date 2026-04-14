@@ -31,6 +31,7 @@ import SchemaCommand from './cli-schema.js';
 import IdCommand from './cli-id.js';
 import FocusCommand from './cli-focus.js';
 import ActionCommand from './cli-action.js';
+import StatusCommand from './cli-status.js';
 
 // Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
@@ -138,5 +139,12 @@ const actionCmd = program
   .description('List actions for the focused task');
 
 ActionCommand.registerCommand(actionCmd);
+
+// Status command
+const statusCmd = program
+  .command('status')
+  .description('Manage action status');
+
+StatusCommand.registerCommand(statusCmd);
 
 program.parse(preprocessArgv(process.argv));

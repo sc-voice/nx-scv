@@ -14,6 +14,8 @@ const FORMA = Forma.avroSchema;
 /**
  * Task extends Forma with action management.
  *
+ * @see doc/task-action.md
+ *
  * ## Fields
  * - `actions`: FormaList<Action> for managing task actions
  *

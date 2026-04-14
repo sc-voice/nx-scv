@@ -1,0 +1,42 @@
+{
+  "id": "0PsBogvx00-QD8DHqU0pNW",
+  "name": "nf action status update",
+  "summary": "Add CLI command to update action status with transitions constrained by task-action.md state machine",
+  "rawActions": [
+    {
+      "id": "0PsByGU_00-QD8DHqU0pNW",
+      "name": "action.ts: ActionTransitions map + statusNote field",
+      "summary": "Add serializable ActionTransitions map, add statusNote:string field, update Avro schema, enforce transitions in patch()",
+      "status": "manage",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsByGVw00-QD8DHqU0pNW",
+      "name": "src/cli/cli-status.ts: new StatusCommand",
+      "summary": "nf status set --task FID --action FID <new-status> <status-note> (status-note required); resolve task (--task FID or focus), resolve action (--action FID), validate transition, update status+statusNote, save world; log transition as OLDSTATUS->NEWSTATUS STATUSNOTE",
+      "status": "manage",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsByGWm00-QD8DHqU0pNW",
+      "name": "src/cli/nameforma.ts: register status command",
+      "summary": "Action?",
+      "status": "manage",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsByGXb00-QD8DHqU0pNW",
+      "name": "test/action.ts: ActionTransitions, statusNote, invalid transition",
+      "summary": "Action?",
+      "status": "manage",
+      "statusNote": "coded"
+    },
+    {
+      "id": "0PsByGYU00-QD8DHqU0pNW",
+      "name": "test/cli/cli-status.ts: set command happy path and error cases",
+      "summary": "Action?",
+      "status": "manage",
+      "statusNote": "coded"
+    }
+  ]
+}

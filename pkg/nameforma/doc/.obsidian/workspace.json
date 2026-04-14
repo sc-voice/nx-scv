@@ -1,20 +1,24 @@
 {
   "main": {
-    "id": "02f5b37e759f2e0b",
+    "id": "eaabad4562eb6abe",
     "type": "split",
     "children": [
       {
-        "id": "49ba6721e375e8da",
+        "id": "1072d7e6a066b3a3",
         "type": "tabs",
         "children": [
           {
-            "id": "912ebab1507dd797",
+            "id": "4269e57118316bf9",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "task-action.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "task-action"
             }
           }
         ]
@@ -23,15 +27,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "392ae904a278503c",
+    "id": "8ef29ebe794bc81b",
     "type": "split",
     "children": [
       {
-        "id": "17947f3f6ed6a366",
+        "id": "4f0244bbe1866ccc",
         "type": "tabs",
         "children": [
           {
-            "id": "e59b4bde28b29f7c",
+            "id": "3ea23704b1698010",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -44,7 +48,7 @@
             }
           },
           {
-            "id": "edba4bf360497201",
+            "id": "d2e242af24f96542",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -61,7 +65,7 @@
             }
           },
           {
-            "id": "e350456f5f6b01cc",
+            "id": "66255e20e1a1dce7",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -77,19 +81,20 @@
     "width": 300
   },
   "right": {
-    "id": "096b18a85c35bb3d",
+    "id": "598eb642ee4ba215",
     "type": "split",
     "children": [
       {
-        "id": "f6805f7b82857004",
+        "id": "cf17fbdb5f7910c6",
         "type": "tabs",
         "children": [
           {
-            "id": "26991ba14f4855c3",
+            "id": "d47499ca11d8f89c",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
+                "file": "task-action.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,24 +104,25 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for task-action"
             }
           },
           {
-            "id": "b932bf065749b419",
+            "id": "1df70ed8d1ce8a1b",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "task-action.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links"
+              "title": "Outgoing links from task-action"
             }
           },
           {
-            "id": "538ac8371be1eaeb",
+            "id": "6a780b78357364bc",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -131,7 +137,7 @@
             }
           },
           {
-            "id": "ca1e895e7b53525a",
+            "id": "069863f88a73a87f",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -145,17 +151,18 @@
             }
           },
           {
-            "id": "b887c1097df6f7c0",
+            "id": "bb7bffd39730c482",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
+                "file": "task-action.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of task-action"
             }
           }
         ]
@@ -176,8 +183,10 @@
       "bases:Create new base": false
     }
   },
-  "active": "912ebab1507dd797",
+  "active": "4269e57118316bf9",
   "lastOpenFiles": [
-    "coding-process.md"
+    "clock.md",
+    "coding-process.md",
+    "task-action.md"
   ]
 }

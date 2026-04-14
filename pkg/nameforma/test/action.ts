@@ -5,7 +5,7 @@ import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 
-const { Schema, Action, ActionStatus, FormaList } = NameForma;
+const { Schema, Action, ActionStatus, ActionTransitions, FormaList } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -32,13 +32,18 @@ describe('Action', () => {
     expect(a4n.status).toBe('plan');
 
     const { id } = a4n;
-    a4n.patch({ status: 'done' });
+    // Walk valid transitions: plan→spec→work→test→manage→done
+    a4n.patch({ status: ActionStatus.spec, statusNote: 'starting spec' });
     expect(a4n.id).toBe(id);
-    expect(a4n.status).toBe(ActionStatus.done);
+    expect(a4n.status).toBe(ActionStatus.spec);
+    expect(a4n.statusNote).toBe('starting spec');
 
-    a4n.patch({status: ActionStatus.plan})
-    expect(a4n.id).toBe(id);
-    expect(a4n.status).toBe('plan');
+    a4n.patch({ status: ActionStatus.work });
+    a4n.patch({ status: ActionStatus.test });
+    a4n.patch({ status: ActionStatus.manage });
+    a4n.patch({ status: ActionStatus.done, statusNote: 'complete' });
+    expect(a4n.status).toBe(ActionStatus.done);
+    expect(a4n.statusNote).toBe('complete');
 
     dbg && cc.tag1(msg + UOK, 'status is mutable');
   });
@@ -46,6 +51,26 @@ describe('Action', () => {
   it('patch invalid status', () => {
     const a4n = new Action();
     expect(() => a4n.patch({ status: 'invalid' })).toThrow();
+  });
+
+  it('ActionTransitions covers all statuses', () => {
+    const statuses = Object.values(ActionStatus);
+    for (const status of statuses) {
+      expect(ActionTransitions[status]).toBeDefined();
+    }
+  });
+
+  it('ActionTransitions enforces invalid transition', () => {
+    const a4n = new Action(); // status: plan
+    // plan → done is not a valid transition
+    expect(() => a4n.patch({ status: ActionStatus.done })).toThrow(/invalid transition/);
+  });
+
+  it('statusNote stored on action', () => {
+    const a4n = new Action();
+    expect(a4n.statusNote).toBe('');
+    a4n.patch({ status: ActionStatus.spec, statusNote: 'agreed on spec' });
+    expect(a4n.statusNote).toBe('agreed on spec');
   });
 
   it('avro Action', () => {

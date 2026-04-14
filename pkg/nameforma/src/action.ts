@@ -12,32 +12,44 @@ const { ACTION: A6N } = DBG;
 export enum ActionStatus {
   plan = 'plan',
   spec = 'spec',
-  code = 'code',
+  work = 'work',
   test = 'test',
-  review = 'review',
+  manage = 'manage',
   done = 'done',
-  stop = 'stop',
 }
+
+export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
+  [ActionStatus.plan]:   [ActionStatus.spec],
+  [ActionStatus.spec]:   [ActionStatus.work, ActionStatus.test],
+  [ActionStatus.work]:   [ActionStatus.test],
+  [ActionStatus.test]:   [ActionStatus.work, ActionStatus.manage],
+  [ActionStatus.manage]: [ActionStatus.plan, ActionStatus.done],
+  [ActionStatus.done]:   [ActionStatus.manage],
+};
 
 /**
  * Action - A named task or action with status tracking
  *
+ * @see doc/task-action.md
+ *
  * ## Features
- * 1. **Status Tracking**: Tracks action state (todo, done) via mutable status field
- * 2. **Avro Encoding**: Status encoded as enum (0="todo", 1="done") in Avro schema
+ * 1. **Status Tracking**: Tracks action state via mutable status field (see ActionStatus)
+ * 2. **Avro Encoding**: Status encoded as enum in Avro schema
  * 3. **Inheritance**: Extends Forma for unique ID, name, and summary
  * 4. **Mutable Status**: Status can be updated via patch() method with validation
  */
 export class Action extends Forma {
   status: ActionStatus;
+  statusNote: string;
 
   constructor(cfg: any = {}) {
     const msg = 'a6n.ctor';
     const dbg = (A6N as any)?.CTOR;
     super(cfg);
 
-    let { status = ActionStatus.plan } = cfg;
+    let { status = ActionStatus.plan, statusNote = '' } = cfg;
     this.status = status;
+    this.statusNote = statusNote;
 
     dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
   }
@@ -77,8 +89,13 @@ export class Action extends Forma {
           type: {
             type: 'enum',
             name: 'ActionStatus',
-            symbols: ['plan', 'spec', 'code', 'test', 'review', 'done', 'stop'],
+            symbols: ['plan', 'spec', 'work', 'test', 'manage', 'done'],
           } as any,
+        }, // mutable
+        {
+          name: 'statusNote',
+          type: 'string',
+          default: '',
         }, // mutable
       ],
     });
@@ -86,21 +103,24 @@ export class Action extends Forma {
 
   /**
    * Patch (merge) properties on this instance.
-   * Updates mutable fields (name, summary, status); immutable id is preserved.
+   * Updates mutable fields (name, summary, status, statusNote); immutable id is preserved.
    * @param cfg - Configuration object with properties to update
-   * @throws {Error} If status is not 'todo' or 'done'
+   * @throws {Error} If status transition is not permitted by ActionTransitions
    */
   override patch(cfg: any = {}) {
     const msg = 'a6n.patch';
     const dbg = (A6N as any)?.PATCH;
     super.patch(cfg);
-    let { status = this.status } = cfg;
-    const validStatuses = Object.values(ActionStatus);
-    if (!validStatuses.includes(status)) {
-      throw new Error(`${msg} invalid status: ${status}`);
+    let { status = this.status, statusNote = this.statusNote } = cfg;
+    if (status !== this.status) {
+      const allowed = ActionTransitions[this.status as ActionStatus] || [];
+      if (!allowed.includes(status)) {
+        throw new Error(`${msg} invalid transition: ${this.status} → ${status}`);
+      }
     }
     this.status = status as ActionStatus;
-    dbg && cc.ok1(msg, { status });
+    this.statusNote = statusNote;
+    dbg && cc.ok1(msg, { status, statusNote });
   }
 
   /**

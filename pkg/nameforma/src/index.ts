@@ -1,4 +1,4 @@
-import { Action, ActionStatus } from './action.js';
+import { Action, ActionStatus, ActionTransitions } from './action.js';
 import { Clock } from './clock.js';
 import { Focus } from './focus.js';
 import { Forma, type IFormaMatcher, AFormaMatcher, LevenshteinMatcher } from './forma.js';
@@ -22,6 +22,7 @@ import { Task } from './task.js';
 export const NameForma = {
   Action,
   ActionStatus,
+  ActionTransitions,
   Admin,
   AFormaMatcher,
   Clock,
