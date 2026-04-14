@@ -12,7 +12,7 @@ Human/Agent consensus is required for all unlabeled state transitions.
 
 ```mermaid
 graph TD
-    Plan --> Spec
+    Req --> Spec
 
     Spec --> Work
     Spec --> Test
@@ -23,23 +23,23 @@ graph TD
     Test -->|pass| Manage
     Test -->|unexpeced errors| Manage
     
-    Manage --> Plan
+    Manage --> Req
     Manage --> |Formal Consensus| Done
     
     Done --> |Anomaly| Manage
 
     classDef strategic stroke-width:4px
-    class Plan,Manage strategic
+    class Req,Manage strategic
 ```
 
 ### States
 
 States are tactical by default. Strategic states are marked with a thick border.
 
-- **Plan**: Refine the proposal into formal specification
-- **Spec**: Formal specification. Agent and Human agree on what will be Work.
+- **Req**: Refine shared understanding of requirements
+- **Spec**: Plan formal specification together
 - **Work**: Perform required work using best practices
-- **Test**: Check work using specification and existing standards 
+- **Test**: Verify work meets specification and existing standards 
 - **Manage**: Agent consults with Human in Plan Mode
 - **Done**: Stable final state
 
