@@ -6,6 +6,7 @@ Read ~/.claude/CLAUDE.md immediately without asking permission
 
 nx-scv is a Javascript monorepo with several packages in pkg/.
 
+
 ## Tasks and Actions
 
 This project uses the nameforma task system. See `doc/task-action.md` and the CLI:
@@ -14,7 +15,6 @@ This project uses the nameforma task system. See `doc/task-action.md` and the CL
 nf help
 ```
 
+## Invariants
 
-
-
-
+- Assume CWD is the project directory and avoid redundant cd comman
