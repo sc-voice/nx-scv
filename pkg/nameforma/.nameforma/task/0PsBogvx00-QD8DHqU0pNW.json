@@ -49,15 +49,15 @@
       "id": "0PsCFh-B00-QD8DHqU0pNW",
       "name": "Batch status update",
       "summary": "make --action optional; omitting it updates all focused-task actions that can legally transition",
-      "status": "req",
-      "statusNote": ""
+      "status": "done",
+      "statusNote": "no"
     },
     {
       "id": "0PsCFh_400-QD8DHqU0pNW",
       "name": "Fix ambiguous FID matching",
       "summary": "short FIDs (e.g. YU0) matched multiple actions via Levenshtein fuzzy logic; tighten matching to avoid false positives",
-      "status": "req",
-      "statusNote": ""
+      "status": "done",
+      "statusNote": "Consensus reached: tests pass, implementation complete"
     }
   ]
 }

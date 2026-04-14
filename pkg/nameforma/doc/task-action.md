@@ -13,6 +13,7 @@ Human/Agent consensus is required for all unlabeled state transitions.
 ```mermaid
 graph TD
     Req --> Spec
+    Req --> |Declined| Done
 
     Spec --> Work
     Spec --> Test

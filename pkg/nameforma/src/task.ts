@@ -1,8 +1,8 @@
 import { Text } from '@sc-voice/tools';
 import { DBG } from './defines.js';
-import { Forma } from './forma.js';
+import { Forma, type ListItemStringCfg } from './forma.js';
 import { Schema, type AvroType } from './schema.js';
-import { Action } from './action.js';
+import { Action, ActionStatus } from './action.js';
 import { FormaList, type IEventBus } from './forma-list.js';
 
 const { ColorConsole, Unicode } = Text;
@@ -69,6 +69,17 @@ export class Task extends Forma {
    */
   actions(bus: IEventBus): FormaList<Action> {
     return new FormaList(this.rawActions, Action, this, bus);
+  }
+
+  /**
+   * Calculate task progress as the fraction of actions with status 'done'.
+   * @returns Progress metric from 0 (no actions done) to 1 (all actions done)
+   */
+  progress(): number {
+    const total = this.rawActions.length;
+    if (total === 0) return 0;
+    const done = this.rawActions.filter(a => a.status === ActionStatus.done).length;
+    return done / total;
   }
 
   override toString() {
@@ -156,6 +167,18 @@ export class Task extends Forma {
     Object.assign(this, { rawActions: rawActions.map((data: any) => new Action(data)) });
 
     dbg && cc.ok1(msg, ...cc.props(this));
+  }
+
+  /**
+   * Return array of strings to be presented as a TUI row
+   */
+  override tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
+    const msg = 't2k.tuiRowStrings';
+    let row = super.tuiRowStrings(cfg);
+    let [id, ...rest] = row;
+    let progress = this.progress();
+
+    return [id, progress.toFixed(1), ...rest];
   }
 
 }

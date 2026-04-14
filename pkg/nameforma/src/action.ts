@@ -19,7 +19,7 @@ export enum ActionStatus {
 }
 
 export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
-  [ActionStatus.req]:    [ActionStatus.spec],
+  [ActionStatus.req]:    [ActionStatus.spec, ActionStatus.done],
   [ActionStatus.spec]:   [ActionStatus.work, ActionStatus.test],
   [ActionStatus.work]:   [ActionStatus.test],
   [ActionStatus.test]:   [ActionStatus.work, ActionStatus.manage],

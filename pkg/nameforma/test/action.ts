@@ -61,9 +61,9 @@ describe('Action', () => {
   });
 
   it('ActionTransitions enforces invalid transition', () => {
-    const a4n = new Action(); // status: req
-    // req → done is not a valid transition
-    expect(() => a4n.patch({ status: ActionStatus.done })).toThrow(/invalid transition/);
+    const a4n = new Action({ status: ActionStatus.test }); // status: test
+    // test → req is not a valid transition
+    expect(() => a4n.patch({ status: ActionStatus.req })).toThrow(/invalid transition/);
   });
 
   it('statusNote stored on action', () => {

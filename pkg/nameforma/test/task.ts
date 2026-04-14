@@ -235,4 +235,35 @@ describe('task', () => {
     expect(addEvent.item.status).toBe('todo');
     dbg && cc.tag1(msg + UOK, 'FormaList event includes parent entity to be persisted');
   });
+
+  it('progress() returns 0 for empty task', () => {
+    const task = new Task({ name: 'empty task' });
+    expect(task.progress()).toBe(0);
+  });
+
+  it('progress() returns 0 when no actions are done', () => {
+    const task = new Task({ name: 'task' });
+    const mockBus = { emit: () => {}, on: () => {} };
+    task.actions(mockBus).addItem({ status: 'req' });
+    task.actions(mockBus).addItem({ status: 'spec' });
+    task.actions(mockBus).addItem({ status: 'work' });
+    expect(task.progress()).toBe(0);
+  });
+
+  it('progress() returns fraction of done actions', () => {
+    const task = new Task({ name: 'task' });
+    const mockBus = { emit: () => {}, on: () => {} };
+    task.actions(mockBus).addItem({ status: 'done' });
+    task.actions(mockBus).addItem({ status: 'work' });
+    task.actions(mockBus).addItem({ status: 'done' });
+    expect(task.progress()).toBe(2 / 3);
+  });
+
+  it('progress() returns 1 when all actions are done', () => {
+    const task = new Task({ name: 'task' });
+    const mockBus = { emit: () => {}, on: () => {} };
+    task.actions(mockBus).addItem({ status: 'done' });
+    task.actions(mockBus).addItem({ status: 'done' });
+    expect(task.progress()).toBe(1);
+  });
 });

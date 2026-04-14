@@ -98,10 +98,18 @@ describe('CLI: status command', () => {
   it('status set invalid transition throws', async () => {
     const { actionId } = await setupTaskWithAction();
 
+    // First move to spec, then try invalid transition
+    await program.parseAsync([
+      'node', 'test', 'status', '-w', tempWorld.worldPath,
+      'set', '-a', actionId, 'spec', 'move to spec',
+    ]);
+
+    output = [];
     try {
+      // spec → req is not a valid transition
       await program.parseAsync([
         'node', 'test', 'status', '-w', tempWorld.worldPath,
-        'set', '-a', actionId, 'done', 'skip to done',
+        'set', '-a', actionId, 'req', 'invalid backwards transition',
       ]);
       expect.fail('Should have thrown');
     } catch (e: any) {
