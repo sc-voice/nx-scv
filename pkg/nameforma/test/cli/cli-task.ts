@@ -570,9 +570,9 @@ describe('CLI: task command', () => {
       expect(showOutput).toMatch(/Task:/);
       expect(showOutput).toMatch(/name: Task With Actions/);
       expect(showOutput).toMatch(/actions:/);
-      expect(showOutput).toMatch(/\w+:.*plan.*First action/);
+      expect(showOutput).toMatch(/\w+:.*req.*First action/);
       expect(showOutput).toMatch(/Do this first/);
-      expect(showOutput).toMatch(/\w+:.*plan.*Second action/);
+      expect(showOutput).toMatch(/\w+:.*req.*Second action/);
     });
 
     it('update task without ID uses focused task', async () => {

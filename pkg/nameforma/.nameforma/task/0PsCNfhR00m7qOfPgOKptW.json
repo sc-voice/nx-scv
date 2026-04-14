@@ -1,0 +1,6 @@
+{
+  "id": "0PsCNfhR00m7qOfPgOKptW",
+  "name": "world preferences (verbosity)",
+  "summary": "verbosity: >0 verbose, 0 default, <0 terse",
+  "rawActions": []
+}

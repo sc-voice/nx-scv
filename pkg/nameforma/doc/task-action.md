@@ -36,7 +36,7 @@ graph TD
 
 States are tactical by default. Strategic states are marked with a thick border.
 
-- **Req**: Refine shared understanding of requirements
+- **Req**: Enumerate requirements
 - **Spec**: Plan formal specification together
 - **Work**: Perform required work using best practices
 - **Test**: Verify work meets specification and existing standards 

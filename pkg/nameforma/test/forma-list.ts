@@ -403,26 +403,26 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     const items: Forma[] = [];
     const list = new FormaList(items, Forma);
 
-    // Add first item - single item case uses suffix=2, prefix=5
-    // timeId('0PrekDWc00'), result should be middle 3 chars: 'DWc'
+    // Add first item - single item case, MIN_LIST_ITEM_ID_LENGTH=5
+    // timeId('0PrekDWc00'), result should be 5 chars: 'ekDWc'
     const forma1 = new Forma({id:id1, name:"name1", summary: "summary1"});
     list.addItem({id: id1, name:"name1", summary: "summary1"});
-    expect(list.itemListId(forma1)).toBe('DWc');
+    expect(list.itemListId(forma1)).toBe('ekDWc');
 
     // Add second item - now multiple items, common prefix/suffix
-    // timeIds: '0PrekDWc00' and '0PrekI4s00'
-    // Common prefix: '0Prek' (5 chars), common suffix: '00' (2 chars)
-    // Result: 'DWc' and 'I4s'
+    // timeIds: '0PrekDWc00' and '0PrejD4s00'
+    // Common prefix: '0Pre' (4 chars), common suffix: '00' (2 chars)
+    // Result: 'kDWc0' and 'jD4s0' (5 chars to meet MIN_LIST_ITEM_ID_LENGTH)
     const forma2 = new Forma({id:id2, name:"name2", summary: "summary2"});
     list.addItem({id: id2, name:"name2", summary: "summary2"});
-    expect(list.itemListId(forma1)).toBe('kDWc');
-    expect(list.itemListId(forma2)).toBe('jD4s');
+    expect(list.itemListId(forma1)).toBe('kDWc0');
+    expect(list.itemListId(forma2)).toBe('jD4s0');
 
     // Verify getItem works with trimmed IDs
-    expect(list.getItem("kDWc")).toBe(items[0]);
-    expect(list.getItem("jD4s")).toBe(items[1]);
-    expect(list.getItem("kdwc")).toBe(items[0]);
-    expect(list.getItem("jd4s")).toBe(items[1]);
+    expect(list.getItem("kDWc0")).toBe(items[0]);
+    expect(list.getItem("jD4s0")).toBe(items[1]);
+    expect(list.getItem("kdwc0")).toBe(items[0]);
+    expect(list.getItem("jd4s0")).toBe(items[1]);
   });
 
   it('FormaList.patchItem guards id field', () => {

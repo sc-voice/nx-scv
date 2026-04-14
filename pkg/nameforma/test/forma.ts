@@ -25,11 +25,11 @@ describe('Forma', () => {
     let f3a = new Forma();
     expect(f3a.id.validate()).toBe(true);
     expect(f3a.id.base64.includes(f3a.name)).toBe(true); // name is contained within id
-    expect(f3a.summary).toBe('Forma?'); // default summary
+    expect(f3a.summary).toBe(''); // default summary
 
     let t7g = new TestThing();
     expect(t7g.id.base64.includes(t7g.name)).toBe(true); // name is contained within id
-    expect(t7g.summary).toBe('TestThing?'); // default summary uses class name
+    expect(t7g.summary).toBe(''); // default summary is blank
   });
   it('patch', () => {
     const msg = 'tf3a.patch';

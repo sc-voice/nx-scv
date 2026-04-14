@@ -76,7 +76,7 @@ describe('CLI: status command', () => {
       'set', '-a', actionId, 'spec', 'starting spec phase',
     ]);
 
-    expect(output[0]).toMatch(/plan->spec starting spec phase/);
+    expect(output[0]).toMatch(/req->spec starting spec phase/);
   });
 
   it('status set updates statusNote', async () => {

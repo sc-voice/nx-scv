@@ -76,7 +76,7 @@ export interface IEventBus {
  * Note: FormaList is not Avro serializable (mutator helpers are runtime-only)
  */
 export class FormaList<T extends IFormaItem> {
-  static readonly MIN_LIST_ITEM_ID_LENGTH = 3;
+  static readonly MIN_LIST_ITEM_ID_LENGTH = 5;
 
   readonly items: T[];
   readonly #ItemClass: IFormaItemClass;

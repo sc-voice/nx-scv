@@ -10,7 +10,7 @@ const { CHECKMARK: UOK } = Unicode;
 const { ACTION: A6N } = DBG;
 
 export enum ActionStatus {
-  plan = 'plan',
+  req = 'req',
   spec = 'spec',
   work = 'work',
   test = 'test',
@@ -19,11 +19,11 @@ export enum ActionStatus {
 }
 
 export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
-  [ActionStatus.plan]:   [ActionStatus.spec],
+  [ActionStatus.req]:    [ActionStatus.spec],
   [ActionStatus.spec]:   [ActionStatus.work, ActionStatus.test],
   [ActionStatus.work]:   [ActionStatus.test],
   [ActionStatus.test]:   [ActionStatus.work, ActionStatus.manage],
-  [ActionStatus.manage]: [ActionStatus.plan, ActionStatus.done],
+  [ActionStatus.manage]: [ActionStatus.req, ActionStatus.done],
   [ActionStatus.done]:   [ActionStatus.manage],
 };
 
@@ -47,7 +47,11 @@ export class Action extends Forma {
     const dbg = (A6N as any)?.CTOR;
     super(cfg);
 
-    let { status = ActionStatus.plan, statusNote = '' } = cfg;
+    let { status = ActionStatus.req, statusNote = '' } = cfg;
+    // Read-time compat: map legacy 'plan' status to 'req'
+    if (status === 'plan') {
+      status = ActionStatus.req;
+    }
     this.status = status;
     this.statusNote = statusNote;
 
@@ -89,7 +93,7 @@ export class Action extends Forma {
           type: {
             type: 'enum',
             name: 'ActionStatus',
-            symbols: ['plan', 'spec', 'work', 'test', 'manage', 'done'],
+            symbols: ['req', 'spec', 'work', 'test', 'manage', 'done'],
           } as any,
         }, // mutable
         {
@@ -129,6 +133,7 @@ export class Action extends Forma {
   override tuiRowStrings(cfg: any = {}): string[] {
     let row = super.tuiRowStrings(cfg);
     let id = row.shift()!;
-    return [id, this.status, ...row];
+    let statusNote = this.statusNote ? `(${this.statusNote})` : '';
+    return [id, this.status, ...row, statusNote];
   }
 }

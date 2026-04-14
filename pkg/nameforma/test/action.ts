@@ -16,8 +16,8 @@ describe('Action', () => {
   it('ctor default', () => {
     const a4n = new Action();
     expect(a4n.id.validate()).toBe(true);
-    expect(a4n.status).toBe('plan'); // default status
-    expect(a4n.summary).toBe('Action?'); // inherits from Forma
+    expect(a4n.status).toBe('req'); // default status
+    expect(a4n.summary).toBe(''); // inherits from Forma
   });
 
   it('ctor with status', () => {
@@ -29,10 +29,10 @@ describe('Action', () => {
   it('patch status', () => {
     const msg = 'ta4n.patch';
     const a4n = new Action();
-    expect(a4n.status).toBe('plan');
+    expect(a4n.status).toBe('req');
 
     const { id } = a4n;
-    // Walk valid transitions: plan→spec→work→test→manage→done
+    // Walk valid transitions: req→spec→work→test→manage→done
     a4n.patch({ status: ActionStatus.spec, statusNote: 'starting spec' });
     expect(a4n.id).toBe(id);
     expect(a4n.status).toBe(ActionStatus.spec);
@@ -61,8 +61,8 @@ describe('Action', () => {
   });
 
   it('ActionTransitions enforces invalid transition', () => {
-    const a4n = new Action(); // status: plan
-    // plan → done is not a valid transition
+    const a4n = new Action(); // status: req
+    // req → done is not a valid transition
     expect(() => a4n.patch({ status: ActionStatus.done })).toThrow(/invalid transition/);
   });
 
@@ -116,7 +116,7 @@ describe('Action', () => {
 
     // Create test array of Actions
     const action1 = new Action({ status: 'done' });
-    const action2 = new Action({ status: 'plan' });
+    const action2 = new Action({ status: 'req' });
     const action3 = new Action({ status: 'done' });
     const actions = [action1, action2, action3];
 
@@ -129,7 +129,7 @@ describe('Action', () => {
 
     expect(reconstructed).toHaveLength(3);
     expect(reconstructed[0].status).toBe('done');
-    expect(reconstructed[1].status).toBe('plan');
+    expect(reconstructed[1].status).toBe('req');
     expect(reconstructed[2].status).toBe('done');
     expect(reconstructed[0].id.base64).toBe(action1.id.base64);
     expect(reconstructed[1].id.base64).toBe(action2.id.base64);

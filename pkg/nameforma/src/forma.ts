@@ -102,7 +102,7 @@ export class Forma extends Identifiable {
 
     this.name = name;
 
-    let { summary = `${this.constructor.name}?` } = cfg;
+    let { summary = '' } = cfg;
     this.summary = summary;
 
     dbg && cc.ok1(msg + UOK, { id: this.id, name });
