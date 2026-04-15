@@ -241,6 +241,9 @@ export class Unicode {
   static get u_MACRON() {
     return '\u016d'; /* UTF-8 c5ab */
   }
+  static get LIGHT_VERTICAL_BAR() {
+    return '\u2758';
+  }
   static get WHITE_CIRCLE() {
     return '\u25CB';
   }
@@ -426,6 +429,9 @@ export class Unicode {
   }
   get INFINITY() {
     return Unicode.INFINITY;
+  }
+  get LIGHT_VERTICAL_BAR() {
+    return Unicode.LIGHT_VERTICAL_BAR;
   }
   get WHITE_CIRCLE() {
     return Unicode.WHITE_CIRCLE;

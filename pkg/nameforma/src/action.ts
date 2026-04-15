@@ -2,11 +2,11 @@ import UUID64 from './uuid64.js';
 import { Forma } from './forma.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
+import { Unicode, ColorConsole } from '@sc-voice/tools/text';
 
-import { Text } from '@sc-voice/tools';
-const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
+const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const { ACTION: A6N } = DBG;
 
 export enum ActionStatus {
@@ -134,6 +134,6 @@ export class Action extends Forma {
     let row = super.tuiRowStrings(cfg);
     let id = row.shift()!;
     let statusNote = this.statusNote ? `(${this.statusNote})` : '';
-    return [id, this.status, ...row, statusNote];
+    return [id, [this.status,  ...row, statusNote].join(UBAR)];
   }
 }

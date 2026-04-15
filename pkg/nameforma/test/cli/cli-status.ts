@@ -58,7 +58,7 @@ describe('CLI: status command', () => {
 
     // Add action
     output = [];
-    await program.parseAsync(['node', 'test', 'action', '-w', tempWorld.worldPath, 'add', '-n', 'Test Action']);
+    await program.parseAsync(['node', 'test', 'action', '-w', tempWorld.worldPath, 'add', 'Test Action']);
 
     // Get action ID from world
     const world = World.fromPath(tempWorld.worldPath);

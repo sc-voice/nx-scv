@@ -17,6 +17,7 @@ import {
 } from './kafka1.js';
 import { Patch } from './patch.js';
 import { Rational } from './rational.js';
+import { Reference } from './reference.js';
 import { Schema } from './schema.js';
 import { Task } from './task.js';
 export const NameForma = {
@@ -36,6 +37,7 @@ export const NameForma = {
   Patch,
   Producer,
   Rational,
+  Reference,
   Schema,
   Task,
   UUID64,

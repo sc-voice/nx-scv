@@ -409,6 +409,106 @@ describe('CLI: task command', () => {
     ).rejects.toThrow(/Task not found/);
   });
 
+  it('show task displays references', async () => {
+    // Create a task
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Task with References',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch ? idMatch[1] : null;
+
+    output.length = 0;
+
+    // Add references directly to the task
+    const world = World.fromPath(tempWorld.worldPath);
+    const task = world.loadFuzzy(Task, taskId);
+    expect(task).toBeTruthy();
+
+    task!.references(world).addItem({
+      name: 'Reference 1',
+      summary: 'First reference',
+      relevance: 0.9,
+      source: 'src/file.ts',
+    });
+
+    task!.references(world).addItem({
+      name: 'Reference 2',
+      summary: 'Second reference',
+      relevance: 0.7,
+    });
+
+    world.save();
+
+    output.length = 0;
+
+    // Show the task
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'show',
+      taskId,
+    ]);
+
+    const showOutput = output.join('\n');
+
+    // Verify references are displayed
+    expect(showOutput).toMatch(/references \(2\)/);
+    expect(showOutput).toMatch(/Reference 1/);
+    expect(showOutput).toMatch(/First reference/);
+    expect(showOutput).toMatch(/0\.9/);
+    expect(showOutput).toMatch(/Reference 2/);
+    expect(showOutput).toMatch(/Second reference/);
+    expect(showOutput).toMatch(/0\.7/);
+  });
+
+  it('show task with no references does not display references section', async () => {
+    // Create a task without references
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Task without References',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch ? idMatch[1] : null;
+
+    output.length = 0;
+
+    // Show the task
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'show',
+      taskId,
+    ]);
+
+    const showOutput = output.join('\n');
+
+    // Verify references section is not displayed
+    expect(showOutput).not.toMatch(/references/);
+  });
+
   it('update task with name and summary', async () => {
     // Create a task first
     await program.parseAsync([
@@ -435,7 +535,7 @@ describe('CLI: task command', () => {
     ]);
 
     const listOutput = output.join('\n');
-    const idMatch = listOutput.match(/([A-Za-z0-9_-]+)\s+Original Name/);
+    const idMatch = listOutput.match(/([A-Za-z0-9_-]+).*Original/);
     const taskId = idMatch ? idMatch[1] : null;
     expect(taskId).not.toBeNull();
 
@@ -569,7 +669,7 @@ describe('CLI: task command', () => {
       const showOutput = output.join('\n');
       expect(showOutput).toMatch(/Task:/);
       expect(showOutput).toMatch(/name: Task With Actions/);
-      expect(showOutput).toMatch(/actions:/);
+      expect(showOutput).toMatch(/actions \(\d+\):/);
       expect(showOutput).toMatch(/\w+:.*req.*First action/);
       expect(showOutput).toMatch(/Do this first/);
       expect(showOutput).toMatch(/\w+:.*req.*Second action/);

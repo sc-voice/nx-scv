@@ -5,7 +5,7 @@ import { ScvMath, Text } from '@sc-voice/tools';
 import { DBG } from '../src/defines.js';
 import { FormaList } from '../src/forma-list.js';
 
-const { Schema, Rational, Task, Forma, Action } = NameForma;
+const { Schema, Rational, Task, Forma, Action, Reference } = NameForma;
 const { TASK: T2K } = DBG;
 const { Units } = ScvMath;
 const { Unicode, ColorConsole } = Text;
@@ -52,7 +52,6 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'schema registered');
 
     let thing1 = new Task({ name });
-    //let buf = avroType.toBuffer(thing1.toAvroValue());
     let buf = avroType.toBuffer(thing1);
     let parsed = avroType.fromBuffer(buf);
     let thing2 = new Task(parsed);
@@ -265,5 +264,154 @@ describe('task', () => {
     task.actions(mockBus).addItem({ status: 'done' });
     task.actions(mockBus).addItem({ status: 'done' });
     expect(task.progress()).toBe(1);
+  });
+
+  it('references getter returns FormaList', () => {
+    const msg = 't2k.references';
+    dbg > 1 && cc.tag(msg, '===================');
+
+    const t2k = new Task({ name: 'test task' });
+    const mockBus = { emit: () => {}, on: () => {} };
+    const references = t2k.references(mockBus);
+
+    // Verify FormaList is returned
+    expect(references).toBeDefined();
+    expect(references.constructor.name).toBe('FormaList');
+    dbg > 1 && cc.tag(msg, 'references is a FormaList');
+
+    // Verify initially empty
+    expect(references.items).toHaveLength(0);
+    dbg > 1 && cc.tag(msg, 'references initially empty');
+
+    // Verify can add references and creates Reference instance
+    const ref1 = references.addItem({ name: 'Link to docs', relevance: 0.9, source: 'https://example.com/docs' });
+    expect(ref1).toBeDefined();
+    expect(ref1 instanceof Reference).toBe(true);
+    expect(ref1.name).toBe('Link to docs');
+    expect(ref1.relevance).toBe(0.9);
+    expect(references.items).toHaveLength(1);
+    dbg > 1 && cc.tag(msg, 'added first reference as Reference instance');
+
+    // Verify can add multiple references, all as Reference instances
+    const ref2 = references.addItem({ name: 'Related issue', relevance: 0.6 });
+    expect(ref2 instanceof Reference).toBe(true);
+    expect(references.items).toHaveLength(2);
+    expect(references.items[0].name).toBe('Link to docs');
+    expect(references.items[1].name).toBe('Related issue');
+    expect(references.items[0] instanceof Reference).toBe(true);
+    expect(references.items[1] instanceof Reference).toBe(true);
+    dbg > 1 && cc.tag(msg, 'added second reference as Reference instance');
+
+    // Verify references are stored in rawReferences as Reference instances
+    expect(t2k.rawReferences).toHaveLength(2);
+    expect(t2k.rawReferences[0]).toBe(ref1);
+    expect(t2k.rawReferences[1]).toBe(ref2);
+    expect(t2k.rawReferences[0] instanceof Reference).toBe(true);
+    expect(t2k.rawReferences[1] instanceof Reference).toBe(true);
+    dbg && cc.tag1(msg + UOK, 'references backed by rawReferences as Reference instances');
+  });
+
+  it('avro serialization with references', () => {
+    const msg = 'tt2k.avro.references';
+    dbg > 1 && cc.tag(msg, '==============');
+
+    const name = 'task-with-references';
+
+    const { fullName } = Task.avroSchema;
+    const registry = {id: "PrAZmGm"};
+    let avroType = Task.registerAvro({ avro, registry });
+    dbg > 1 && cc.tag(msg, 'schema registered');
+
+    // Create task with references
+    let thing1 = new Task({ name });
+    const mockBus1 = { emit: () => {}, on: () => {} };
+    thing1.references(mockBus1).addItem({ name: 'ref 1', relevance: 0.9, source: 'https://example.com' });
+    thing1.references(mockBus1).addItem({ name: 'ref 2', relevance: 0.5 });
+    expect(thing1.rawReferences).toHaveLength(2);
+    dbg > 1 && cc.tag(msg, 'created task with 2 references');
+
+    // Serialize
+    let buf = avroType.toBuffer(thing1);
+    let parsed = avroType.fromBuffer(buf);
+    dbg > 1 && cc.tag(msg, 'serialized and deserialized');
+
+    // Verify deserialized task has references
+    let thing2 = new Task(parsed);
+    expect(thing2.name).toBe(name);
+    expect(thing2.rawReferences).toHaveLength(2);
+    expect(thing2.rawReferences[0]).toBeInstanceOf(Reference);
+    expect(thing2.rawReferences[0].name).toBe('ref 1');
+    expect(thing2.rawReferences[0].relevance).toBe(0.9);
+    expect(thing2.rawReferences[0].source).toBe('https://example.com');
+    expect(thing2.rawReferences[1]).toBeInstanceOf(Reference);
+    expect(thing2.rawReferences[1].name).toBe('ref 2');
+    expect(thing2.rawReferences[1].relevance).toBe(0.5);
+    dbg && cc.tag1(msg + UOK, 'Task with references serialized correctly');
+  });
+
+  it('json serialization with references', () => {
+    const msg = 'tt2k.json.references';
+    dbg > 1 && cc.tag(msg, '==============');
+
+    const name = 'task-json-references';
+
+    // Create task with references
+    let thing1 = new Task({ name });
+    const mockBus2 = { emit: () => {}, on: () => {} };
+    thing1.references(mockBus2).addItem({ name: 'ref 1', relevance: 0.9, source: 'https://example.com' });
+    thing1.references(mockBus2).addItem({ name: 'ref 2', relevance: 0.5 });
+    expect(thing1.rawReferences).toHaveLength(2);
+    dbg > 1 && cc.tag(msg, 'created task with 2 references');
+
+    // Serialize to JSON
+    const json = JSON.stringify(thing1, null, 2);
+    const parsed = JSON.parse(json);
+    dbg > 1 && cc.tag(msg, 'serialized and deserialized via JSON');
+
+    // Verify deserialized task has references
+    let thing2 = new Task(parsed);
+    expect(thing2.name).toBe(name);
+    expect(thing2.rawReferences).toHaveLength(2);
+    expect(thing2.rawReferences[0].name).toBe('ref 1');
+    expect(thing2.rawReferences[0].relevance).toBe(0.9);
+    expect(thing2.rawReferences[1].name).toBe('ref 2');
+    expect(thing2.rawReferences[1].relevance).toBe(0.5);
+    dbg && cc.tag1(msg + UOK, 'Task with references serialized to JSON correctly');
+  });
+
+  it('references getter wraps rawReferences', () => {
+    const msg = 't2k.references.wrap';
+    dbg > 1 && cc.tag(msg, '===================');
+
+    const t2k = new Task({ name: 'test task' });
+    const mockBus = { emit: () => {}, on: () => {} };
+    const references = t2k.references(mockBus);
+
+    // Build up references array via FormaList
+    const ref1 = references.addItem({ name: 'ref 1', relevance: 0.9 });
+    const ref2 = references.addItem({ name: 'ref 2', relevance: 0.5 });
+    dbg > 1 && cc.tag(msg, 'added initial references');
+
+    // Verify references.items and rawReferences are same array reference
+    expect(references.items).toBe(t2k.rawReferences);
+    expect(t2k.rawReferences).toHaveLength(2);
+    dbg > 1 && cc.tag(msg, 'wrapped same array reference');
+
+    // Add another reference via FormaList
+    const ref3 = references.addItem({ name: 'ref 3', relevance: 0.3 });
+    expect(ref3 instanceof Reference).toBe(true);
+    expect(t2k.rawReferences).toHaveLength(3);
+    expect(t2k.rawReferences[2]).toBe(ref3);
+    expect(t2k.rawReferences[2] instanceof Reference).toBe(true);
+    dbg > 1 && cc.tag(msg, 'addItem creates and syncs Reference instances with rawReferences');
+
+    // Delete reference via FormaList ID
+    references.deleteItem(ref2.id.base64);
+    expect(t2k.rawReferences).toHaveLength(2);
+    expect(t2k.rawReferences[0]).toBe(ref1);
+    expect(t2k.rawReferences[1]).toBe(ref3);
+    expect(t2k.rawReferences[0] instanceof Reference).toBe(true);
+    expect(t2k.rawReferences[1] instanceof Reference).toBe(true);
+    dbg && cc.tag1(msg + UOK, 'deleteItem mutations sync with rawReferences as Reference instances');
   });
 });

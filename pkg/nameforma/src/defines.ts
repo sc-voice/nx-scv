@@ -19,6 +19,11 @@ const ACTION = {
   TEST: 0,
 };
 
+const REFERENCE = {
+  CTOR: 0,
+  TEST: 0,
+};
+
 const FORMA = {
   CTOR: 0,
   TEST: 0,
@@ -155,6 +160,7 @@ export const DBG = {
   PATCH_DEPRECATED,
   PATCHABLE,
   RATIONAL,
+  REFERENCE,
   RUNNER,
   SCHEMA,
   SEQUENCE,

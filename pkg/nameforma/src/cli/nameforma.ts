@@ -31,6 +31,7 @@ import SchemaCommand from './cli-schema.js';
 import IdCommand from './cli-id.js';
 import FocusCommand from './cli-focus.js';
 import ActionCommand from './cli-action.js';
+import ReferenceCommand from './cli-reference.js';
 import StatusCommand from './cli-status.js';
 
 // Preprocess argv to move global options before command and help flags to the end
@@ -139,6 +140,13 @@ const actionCmd = program
   .description('List actions for the focused task');
 
 ActionCommand.registerCommand(actionCmd);
+
+// Reference command
+const referenceCmd = program
+  .command('reference')
+  .description('List references for the focused task');
+
+ReferenceCommand.registerCommand(referenceCmd);
 
 // Status command
 const statusCmd = program

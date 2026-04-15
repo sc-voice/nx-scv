@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "npm run build --workspaces",
-    "clean": "npm run clean --workspaces",
+    "clean": "rm -rf tsconfig.tsbuildinfo && npm run clean --workspaces --if-present",
     "test": "npm run test --workspaces"
   },
   "private": true,

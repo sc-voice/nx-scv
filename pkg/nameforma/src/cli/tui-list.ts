@@ -14,6 +14,7 @@ export interface TuiPreferences {
   maxWidth?: number;               // max line width in characters (default: 80)
   maxLinesPerRow?: number;         // max lines per item (0/undefined=unlimited, 1=single line, 2=wrap 1 extra line, etc.)
   textOverflow?: 'ellipsis' | 'hidden'; // what to do with undisplayable text remainder (default: 'ellipsis')
+  wrapIndent?: number;             // indent continuation lines by this many spaces relative to text start (default: 0)
 }
 
 export interface ResolvedPreferences {
@@ -24,6 +25,7 @@ export interface ResolvedPreferences {
   maxWidth?: number;
   maxLinesPerRow?: number;
   textOverflow: 'ellipsis' | 'hidden';
+  wrapIndent: number;
 }
 
 export const defaultPrefs: TuiPreferences = {
@@ -53,6 +55,7 @@ export class TuiList<T extends Forma> {
       maxWidth = 80,
       maxLinesPerRow,
       textOverflow = 'ellipsis',
+      wrapIndent = 0,
     } = prefs;
 
     // Generate title: use provided title or derive from entity class name
@@ -66,30 +69,89 @@ export class TuiList<T extends Forma> {
       maxWidth,
       maxLinesPerRow,
       textOverflow,
+      wrapIndent,
     };
   }
 
-  private wrapAndTruncate(text: string, maxWidth: number, maxLines?: number, textOverflow?: 'ellipsis' | 'hidden'): string {
-    // Step 1: Wrap exhaustively to meet maxWidth requirement
+  /**
+   * Wrap and optionally truncate text with indentation support.
+   * Public method for reuse in other contexts (e.g., CLI output formatting).
+   * Wraps at word boundaries to avoid splitting words.
+   *
+   * @param text - Text to wrap
+   * @param maxWidth - Maximum line width
+   * @param maxLines - Maximum lines (0/undefined = unlimited)
+   * @param textOverflow - How to mark truncated text ('ellipsis' or 'hidden')
+   * @param wrapIndent - Indent continuation lines by this many spaces relative to content start
+   * @returns Wrapped text with newlines
+   */
+  wrapAndTruncate(text: string, maxWidth: number, maxLines?: number, textOverflow?: 'ellipsis' | 'hidden', wrapIndent: number = 0): string {
+    // Find where content actually starts (first non-space character)
+    const contentStart = text.search(/\S/);
+    const indentPos = contentStart >= 0 ? contentStart + wrapIndent : wrapIndent;
+    const indentStr = ' '.repeat(Math.max(0, indentPos));
+    const continuationWidth = Math.max(1, maxWidth - indentPos);
+
+    // Helper to wrap text at word boundaries
+    const wrapLine = (line: string, width: number): string[] => {
+      const result: string[] = [];
+      let remaining = line;
+
+      while (remaining.length > 0) {
+        if (remaining.length <= width) {
+          result.push(remaining);
+          break;
+        }
+
+        // Find last space within width
+        let breakPoint = width;
+        const lastSpace = remaining.lastIndexOf(' ', width);
+        if (lastSpace > 0) {
+          breakPoint = lastSpace;
+        }
+
+        // Extract line and trim trailing whitespace
+        result.push(remaining.slice(0, breakPoint).trimEnd());
+        // Remove leading whitespace from remaining text
+        remaining = remaining.slice(breakPoint).trimStart();
+      }
+
+      return result;
+    };
+
+    // Step 1: Wrap at word boundaries
     const wrappedLines: string[] = [];
     let remaining = text;
+    let isFirstLine = true;
+
     while (remaining.length > 0) {
-      wrappedLines.push(remaining.slice(0, maxWidth));
-      remaining = remaining.slice(maxWidth);
+      if (isFirstLine) {
+        // First line uses full maxWidth
+        const lines = wrapLine(remaining, maxWidth);
+        wrappedLines.push(lines[0]);
+        remaining = lines.slice(1).join(' ');
+        isFirstLine = false;
+      } else {
+        // Continuation lines: prepend indent
+        const lines = wrapLine(remaining, continuationWidth);
+        wrappedLines.push(indentStr + lines[0]);
+        remaining = lines.slice(1).join(' ');
+      }
     }
 
     // Step 2: Enforce max lines limit (maxLines=0/undefined means no limit)
-    const keptLines = maxLines && maxLines > 0 
-      ? wrappedLines.slice(0, maxLines) 
+    const keptLines = maxLines && maxLines > 0
+      ? wrappedLines.slice(0, maxLines)
       : wrappedLines;
 
     // Step 3: Apply textOverflow to last kept line if text was truncated
     if (keptLines.length < wrappedLines.length) {
       const kLast = keptLines.length - 1;
       const lastLine = keptLines[kLast];
+      const availWidth = kLast === 0 ? maxWidth : maxWidth;
       keptLines[kLast] = (textOverflow === 'ellipsis')
-        ? lastLine.slice(0, maxWidth - 1) + '…'
-        : lastLine.slice(0, maxWidth);
+        ? lastLine.slice(0, availWidth - 1) + '…'
+        : lastLine.slice(0, availWidth);
     }
 
     return keptLines.join('\n');
@@ -112,7 +174,7 @@ export class TuiList<T extends Forma> {
       return cmp || this.list.itemListId(b).localeCompare(this.list.itemListId(a));
     });
 
-    const { focusColor1, focusColor2, maxRows, maxWidth, maxLinesPerRow, textOverflow } = resolved;
+    const { focusColor1, focusColor2, maxRows, maxWidth, maxLinesPerRow, textOverflow, wrapIndent } = resolved;
     const rows = maxRows ? sorted.slice(0, maxRows) : sorted;
 
     // primary focus item (focusOrder===0) used for UUID64 relatedness check
@@ -124,7 +186,7 @@ export class TuiList<T extends Forma> {
       let line = item.listItemString({ itemId: this.list.itemListId(item), bullet });
 
       // Wrap and truncate text based on preferences
-      line = this.wrapAndTruncate(line, maxWidth!, maxLinesPerRow, textOverflow);
+      line = this.wrapAndTruncate(line, maxWidth!, maxLinesPerRow, textOverflow, wrapIndent);
 
       if (focusOrder === 0) {
         console.log(`${focusColor1}${line}${RESET}`);

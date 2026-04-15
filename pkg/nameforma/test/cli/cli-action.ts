@@ -77,7 +77,6 @@ describe('CLI: action command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Test Action',
       ]);
       expect.fail('Should have thrown');
@@ -125,7 +124,6 @@ describe('CLI: action command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Test Action',
     ]);
 
@@ -175,7 +173,6 @@ describe('CLI: action command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Test Action',
       '-s',
       'This is a summary',

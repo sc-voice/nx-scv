@@ -66,10 +66,9 @@ export default class ActionCommand {
 
     // action add
     cmd
-      .command('add')
-      .requiredOption('-n, --name <name>', 'Action name')
+      .command('add <name>')
       .option('-s, --summary <summary>', 'Action summary')
-      .action((options: any, cmd: any) => {
+      .action((name: string, options: any, cmd: any) => {
         const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = ActionCommand.getFocusedTask(world);
 
@@ -77,7 +76,7 @@ export default class ActionCommand {
           throw new Error('No task is currently focused');
         }
 
-        const actionConfig: any = { name: options.name };
+        const actionConfig: any = { name };
         if (options.summary) {
           actionConfig.summary = options.summary;
         }

@@ -174,16 +174,45 @@ export default class TaskCommand {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = TaskCommand.resolveTask(world, id);
         const actions = task.actions(world);
+        const references = task.references(world);
+        const tui = new TuiList(actions, world, {
+          maxWidth: 74,
+        });
 
         console.log(`Task: ${task.id}`);
         console.log(`  name: ${task.name}`);
-        console.log(`  summary: ${task.summary}`);
+
+        // Wrap summary with proper indentation
+        if (task.summary) {
+          const wrappedSummary = tui.wrapAndTruncate(task.summary, 74, undefined, 'ellipsis', 2);
+          const summaryLines = wrappedSummary.split('\n');
+          console.log(`  summary: ${summaryLines[0]}`);
+          summaryLines.slice(1).forEach((line) => {
+            console.log(`    ${line}`);
+          });
+        } else {
+          console.log(`  summary:`);
+        }
 
         if (task.rawActions.length > 0) {
-          console.log(`  actions:`);
-          task.rawActions.forEach((action, index) => {
-            let itemId = actions.itemListId(action) + ":";
-            console.log(`   `, action.listItemString({itemId}));
+          const tui = new TuiList(actions, world, { maxWidth: 74 });
+          console.log(`  actions (${task.rawActions.length}):`);
+          task.rawActions.forEach((action) => {
+            const itemId = actions.itemListId(action) + ':';
+            const line = action.listItemString({ itemId });
+            const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
+            wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
+          });
+        }
+
+        if (task.rawReferences.length > 0) {
+          const tui = new TuiList(references, world, { maxWidth: 74 });
+          console.log(`  references (${task.rawReferences.length}):`);
+          task.rawReferences.forEach((reference) => {
+            const itemId = references.itemListId(reference) + ':';
+            const line = reference.listItemString({ itemId });
+            const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
+            wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
           });
         }
       });

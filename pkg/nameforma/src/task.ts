@@ -3,6 +3,7 @@ import { DBG } from './defines.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus } from './action.js';
+import { Reference } from './reference.js';
 import { FormaList, type IEventBus } from './forma-list.js';
 
 const { ColorConsole, Unicode } = Text;
@@ -12,12 +13,13 @@ const { CHECKMARK: UOK } = Unicode;
 const FORMA = Forma.avroSchema;
 
 /**
- * Task extends Forma with action management.
+ * Task extends Forma with action and reference management.
  *
  * @see doc/task-action.md
  *
  * ## Fields
  * - `actions`: FormaList<Action> for managing task actions
+ * - `references`: FormaList<Reference> for managing task references
  *
  * ## Usage
  * ```typescript
@@ -27,14 +29,19 @@ const FORMA = Forma.avroSchema;
  * task.actions.addItem({ status: 'todo' });
  * task.actions.deleteItem(id);
  * task.actions.patchItem(id, { status: 'done' });
+ *
+ * // Access references via FormaList API
+ * task.references.addItem({ name: 'Related issue', relevance: 0.8 });
+ * task.references.deleteItem(id);
  * ```
  *
  * ## Serialization
- * Tasks serialize to Avro format with all fields including nested actions array.
- * Empty actions array serializes as `[]`.
+ * Tasks serialize to Avro format with all fields including nested actions and references arrays.
+ * Empty arrays serialize as `[]`.
  */
 export class Task extends Forma {
   rawActions: Array<Action> = [];
+  rawReferences: Array<Reference> = [];
 
   /**
    * Create a new Task instance.
@@ -72,6 +79,22 @@ export class Task extends Forma {
   }
 
   /**
+   * Get task references as a FormaList with event bus integration.
+   * Use FormaList API for mutations:
+   * - addItem(cfg): Create new reference
+   * - deleteItem(id): Remove reference
+   * - patchItem(id, cfg): Update reference fields
+   * - getItem(id): Retrieve reference
+   * - items(filter): List all references
+   */
+  /**
+   * @param bus - Event bus for change notifications and persistence
+   */
+  references(bus: IEventBus): FormaList<Reference> {
+    return new FormaList(this.rawReferences, Reference, this, bus);
+  }
+
+  /**
    * Calculate task progress as the fraction of actions with status 'done'.
    * @returns Progress metric from 0 (no actions done) to 1 (all actions done)
    */
@@ -93,7 +116,7 @@ export class Task extends Forma {
    * - Schema.#registry: Prevents duplicate schema registrations
    * - avro registry: The avro-js library's type registry (passed to avro.parse())
    *
-   * Registers dependencies (Forma parent, Rational, Action) first,
+   * Registers dependencies (Forma parent, Action, Reference) first,
    * then registers Task type itself into BOTH registries.
    *
    * @param opts Optional schema registration options (avro instance, registry)
@@ -106,6 +129,7 @@ export class Task extends Forma {
     dbg>1 && cc.ok(msg, 'dependencies');
     Forma.registerAvro(opts);
     Action.registerAvro(opts);
+    Reference.registerAvro(opts);
 
     dbg && cc.ok(msg, 'task');
     let avroType = Schema.registerType(Task, opts);
@@ -121,6 +145,7 @@ export class Task extends Forma {
    * Fields:
    * - id, name, summary: Inherited from Forma
    * - rawActions: Array of Action items
+   * - rawReferences: Array of Reference items
    */
   static override get avroSchema(): Schema {
     return new Schema({
@@ -130,6 +155,7 @@ export class Task extends Forma {
       fields: [
         ...(FORMA as any).fields,
         { name: 'rawActions', type: { type: 'array', items: Action.avroSchema.fullName } },
+        { name: 'rawReferences', type: { type: 'array', items: Reference.avroSchema.fullName } },
       ],
     });
   }
@@ -139,23 +165,11 @@ export class Task extends Forma {
   }
 
   /**
-   * Convert Task to Avro-compatible value for serialization.
-   * Returns plain object with actions serialized as array items.
-   */
-  toAvroValue(): any {
-    return {
-      id: this.id,
-      name: this.name,
-      summary: this.summary,
-      rawActions: this.rawActions,
-    };
-  }
-
-  /**
-   * Replace all task fields including actions.
+   * Replace all task fields including actions and references.
    *
    * @param value Configuration object with properties to set:
    *   - `rawActions`: Array of Action
+   *   - `rawReferences`: Array of Reference
    *
    * Called by constructor to initialize instance. Also used for deserialization.
    */
@@ -163,8 +177,11 @@ export class Task extends Forma {
     const msg = 't2k.put';
     const dbg = T2K.PUT;
     super.patch(value);
-    let { rawActions = [] } = value;
-    Object.assign(this, { rawActions: rawActions.map((data: any) => new Action(data)) });
+    let { rawActions = [], rawReferences = [] } = value;
+    Object.assign(this, {
+      rawActions: rawActions.map((data: any) => new Action(data)),
+      rawReferences: rawReferences.map((data: any) => new Reference(data)),
+    });
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
@@ -174,11 +191,18 @@ export class Task extends Forma {
    */
   override tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
     const msg = 't2k.tuiRowStrings';
-    let row = super.tuiRowStrings(cfg);
-    let [id, ...rest] = row;
+    let { id, name, summary } = this;
     let progress = this.progress();
+    let { 
+      itemId = id.timeId(),
+      bullet,
+    } = cfg;
 
-    return [id, progress.toFixed(1), ...rest];
+    let row = [itemId, progress.toFixed(1), name+":", summary];
+    if (bullet) {
+      row.unshift(bullet);
+    }
+    return row;
   }
 
 }

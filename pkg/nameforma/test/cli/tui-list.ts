@@ -213,5 +213,34 @@ describe('TuiList', () => {
       expect(consoleSpy).toHaveBeenCalledWith('My Tasks (0):');
       consoleSpy.mockRestore();
     });
+
+    it('should apply wrapIndent to continuation lines', () => {
+      const entityList = world.entityList(Task);
+      entityList.addItem({ name: 'A'.repeat(100) });
+
+      const consoleSpy = vi.spyOn(console, 'log');
+      // Render with maxLinesPerRow=2 and wrapIndent=4
+      new TuiList(entityList, world, { maxLinesPerRow: 2, maxWidth: 40, wrapIndent: 4 }).render();
+
+      const calls = consoleSpy.mock.calls;
+      expect(calls.length).toBeGreaterThanOrEqual(2);
+
+      // Get the second call (first item line, may be multi-line due to wrapping)
+      const output = calls[1][0] as string;
+      const cleanOutput = output.replace(/\x1b\[[0-9;]*m/g, ''); // Remove color codes
+      const lines = cleanOutput.split('\n');
+
+      // If there's a second line (wrapped), it should start with spaces (the wrapIndent)
+      if (lines.length > 1) {
+        const secondLine = lines[1];
+        // The second line should be indented (start with spaces)
+        expect(secondLine).toMatch(/^ +/);
+        // Should have at least 4 spaces of indentation
+        const leadingSpaces = secondLine.match(/^ */)?.[0]?.length ?? 0;
+        expect(leadingSpaces).toBeGreaterThanOrEqual(4);
+      }
+
+      consoleSpy.mockRestore();
+    });
   });
 });

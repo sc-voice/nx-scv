@@ -12,7 +12,6 @@
  * 2. **Schema Parsing**: Uses avro-js to parse schema definitions with nested references
  * 3. **JavaScript to Avro Conversion**: `toAvro(jsObj, opts)` converts JS objects to Avro format
  * 4. **Full Name Resolution**: Combines namespace and name (format: namespace.name or just name)
- * 5. **Custom Type Support**: Automatically converts objects with toAvroValue() method
  */
 
 import { Text } from '@sc-voice/tools';

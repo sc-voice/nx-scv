@@ -15,18 +15,32 @@
       "summary": "Task?"
     },
     {
-      "id": "0Pr-SeTW00B6llX91ablNW",
-      "formaId": "0Pr-S84W00B6llX91ablNW",
-      "formaType": "task",
-      "name": "Make nf production-ready for pair coordination",
-      "summary": "Extend Action state machine (9 states), implement action/reference CLI subcommands"
-    },
-    {
       "id": "0Ps1Nh5A00LG4Y1m9HFjNW",
       "formaId": "0PrlSoX100LG4Y1m9HFjNW",
       "formaType": "task",
       "name": "blueberry muffins",
       "summary": "a tasty treat"
+    },
+    {
+      "id": "0PsDM9K600KRlSev9jbr7W",
+      "formaId": "0PsCPK3s00KRlSev9jbr7W",
+      "formaType": "task",
+      "name": "TUI wrap fixes",
+      "summary": "should wrap at word boundaries and indent by N=2"
+    },
+    {
+      "id": "0PsDXyFt00m7qOfPgOKptW",
+      "formaId": "0PsCNfhR00m7qOfPgOKptW",
+      "formaType": "task",
+      "name": "world preferences (verbosity)",
+      "summary": "Implement persistent world preferences system: Create Preferences class (schema/defaults, verbosity default 0), add to World, serialize in world.json, add --verbosity global option (persists), create cli-pref.ts (nf pref list, nf pref reset verbosity, nf pref reset --all), filter task list (hide done unless verbosity>=1)"
+    },
+    {
+      "id": "0PsDZCba00B6llX91ablNW",
+      "formaId": "0Pr-S84W00B6llX91ablNW",
+      "formaType": "task",
+      "name": "Add Reference class",
+      "summary": "A Task can have references"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

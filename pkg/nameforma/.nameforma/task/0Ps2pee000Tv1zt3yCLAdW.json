@@ -1,6 +1,0 @@
-{
-  "id": "0Ps2pee000Tv1zt3yCLAdW",
-  "name": "Restrict ActionStatus to coding-process states",
-  "summary": "Completed: Expanded ActionStatus from (todo, done) to (plan, spec, code, test, review, done, stop). Updated Avro schema, tests, and doc. All 335 tests pass.",
-  "rawActions": []
-}
