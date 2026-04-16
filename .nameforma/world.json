@@ -6,6 +6,13 @@
       "formaType": "task",
       "name": "T2K-0Pq6crZr",
       "summary": ""
+    },
+    {
+      "id": "0PsMdqlD00VOwDbIaMmFdW",
+      "formaId": "0PsMdk-a00VOwDbIaMmFdW",
+      "formaType": "task",
+      "name": "Container for nx-scv development",
+      "summary": "Define a container that developers can use to work with nx-scv monorepo"
     }
   ],
   "id": "0Pr-SSWU009b1NvN2GE4dW",

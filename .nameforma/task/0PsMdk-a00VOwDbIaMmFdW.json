@@ -1,0 +1,7 @@
+{
+  "id": "0PsMdk-a00VOwDbIaMmFdW",
+  "name": "Container for nx-scv development",
+  "summary": "Define a container that developers can use to work with nx-scv monorepo",
+  "rawActions": [],
+  "rawReferences": []
+}

@@ -137,7 +137,7 @@ const WORLD = {
   REGISTER: 0,
   EVENT: 0,
   SAVE: 0,
-  LOAD: 2,
+  LOAD: 0,
   LIST: 0,
   DELETE: 0,
 };
