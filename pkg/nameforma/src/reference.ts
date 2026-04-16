@@ -104,13 +104,13 @@ export class Reference extends Forma {
    */
   override tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
     const msg = 't2k.tuiRowStrings';
-    let { id, name, summary, relevance, source } = this;
+    let { id, name, summary, relevance, source="" } = this;
     let { 
       itemId = id.timeId(),
       bullet,
     } = cfg;
 
-    let row = [itemId, [relevance.toFixed(1), name+":", summary].join(UBAR)];
+    let row = [itemId, [relevance.toFixed(1), name, summary, source].join(UBAR)];
     if (bullet) {
       row.unshift(bullet);
     }
