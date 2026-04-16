@@ -1,15 +1,14 @@
-import { Text } from '@sc-voice/tools';
 import { DBG } from './defines.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus } from './action.js';
 import { Reference } from './reference.js';
 import { FormaList, type IEventBus } from './forma-list.js';
-
-const { ColorConsole, Unicode } = Text;
+import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
+const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const FORMA = Forma.avroSchema;
 
 /**
@@ -198,7 +197,7 @@ export class Task extends Forma {
       bullet,
     } = cfg;
 
-    let row = [itemId, progress.toFixed(1), name+":", summary];
+    let row = [itemId, [progress.toFixed(1), name, summary].join(UBAR)];
     if (bullet) {
       row.unshift(bullet);
     }

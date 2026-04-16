@@ -52,7 +52,7 @@ export default class TaskCommand {
       console.log('No tasks');
       return;
     }
-    new TuiList(entityList, world, { title: 'Tasks' }).render();
+    new TuiList(entityList, world, { title: 'Tasks', wrapIndent: 13 }).render();
   }
 
   /**

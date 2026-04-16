@@ -4,7 +4,7 @@ import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import ActionCommand from '../../src/cli/cli-action.js';
 import FocusCommand from '../../src/cli/cli-focus.js';
-import { createTempWorld } from './helpers';
+import { createTempWorld, createTestCmd } from './helpers.js';
 import { World } from '../../src/world.js';
 
 const { Task } = NameForma;
@@ -13,6 +13,7 @@ describe('CLI: action command', () => {
   let program;
   let taskCmd;
   let actionCmd;
+  let testCmd;
   let output;
   let errors;
   let originalLog;
@@ -48,6 +49,9 @@ describe('CLI: action command', () => {
 
     actionCmd = program.command('action');
     ActionCommand.registerCommand(actionCmd);
+
+    // Create test command runner
+    testCmd = createTestCmd(program, tempWorld.worldPath);
   });
 
   afterEach(() => {
@@ -57,28 +61,14 @@ describe('CLI: action command', () => {
   });
 
   it('action list with no focused task', async () => {
-    await program.parseAsync([
-      'node',
-      'test',
-      'action',
-      '-w',
-      tempWorld.worldPath,
-    ]);
+    await testCmd('action');
 
     expect(output[0]).toBe('No task is currently focused');
   });
 
   it('action add with no focused task', async () => {
     try {
-      await program.parseAsync([
-        'node',
-        'test',
-        'action',
-        '-w',
-        tempWorld.worldPath,
-        'add',
-        'Test Action',
-      ]);
+      await testCmd('action', 'add', 'Test Action');
       expect.fail('Should have thrown');
     } catch (e: any) {
       expect(e.message).toMatch(/No task is currently focused/);
@@ -87,16 +77,7 @@ describe('CLI: action command', () => {
 
   it('action add to focused task', async () => {
     // Create a task
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      '-n',
-      'Test Task',
-    ]);
+    await testCmd('task', 'add', '-n', 'Test Task');
 
     // Extract task ID from output
     const taskAddOutput = output[0];
@@ -106,26 +87,11 @@ describe('CLI: action command', () => {
 
     // Focus the task
     output = [];
-    await program.parseAsync([
-      'node',
-      'test',
-      'focus',
-      '-w',
-      tempWorld.worldPath,
-      taskId,
-    ]);
+    await testCmd('focus', taskId);
 
     // Add an action to the focused task
     output = [];
-    await program.parseAsync([
-      'node',
-      'test',
-      'action',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Test Action',
-    ]);
+    await testCmd('action', 'add', 'Test Action');
 
     expect(output[0]).toMatch(/✓ Action added/);
     expect(output[1]).toMatch(/Test Action/);
@@ -140,43 +106,17 @@ describe('CLI: action command', () => {
 
   it('action add with summary', async () => {
     // Create and focus a task
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      '-n',
-      'Test Task',
-    ]);
+    await testCmd('task', 'add', '-n', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
 
     output = [];
-    await program.parseAsync([
-      'node',
-      'test',
-      'focus',
-      '-w',
-      tempWorld.worldPath,
-      taskId,
-    ]);
+    await testCmd('focus', taskId);
 
     // Add action with summary
     output = [];
-    await program.parseAsync([
-      'node',
-      'test',
-      'action',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Test Action',
-      '-s',
-      'This is a summary',
-    ]);
+    await testCmd('action', 'add', 'Test Action', '-s', 'This is a summary');
 
     expect(output[0]).toMatch(/✓ Action added/);
 
@@ -186,5 +126,184 @@ describe('CLI: action command', () => {
     expect(task).toBeTruthy();
     expect(task!.actions(world).items).toHaveLength(1);
     expect(task!.actions(world).items[0].summary).toBe('This is a summary');
+  });
+
+  it('action list explicit command', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', '-n', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    await testCmd('focus', taskId);
+
+    // Add actions
+    output = [];
+    await testCmd('action', 'add', 'Action 1');
+
+    output = [];
+    await testCmd('action', 'add', 'Action 2');
+
+    // List actions
+    output = [];
+    await testCmd('action', 'list');
+
+    const nonEmptyOutput = output.filter(line => line.trim());
+    expect(nonEmptyOutput[0]).toMatch(/Actions for/);
+    expect(nonEmptyOutput[1]).toMatch(/○ 1\. Action 1/);
+    expect(nonEmptyOutput[2]).toMatch(/○ 2\. Action 2/);
+  });
+
+  it('action show by index', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', '-n', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    await testCmd('focus', taskId);
+
+    // Add an action
+    output = [];
+    await testCmd('action', 'add', 'Test Action', '-s', 'Test summary');
+
+    const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
+    const actionId = actionIdMatch![1];
+
+    // Show action by ID
+    output = [];
+    await testCmd('action', 'show', actionId);
+
+    const nonEmptyOutput = output.filter(line => line.trim());
+    expect(nonEmptyOutput[1]).toMatch(/○ 1\. Test Action/);
+    expect(nonEmptyOutput[2]).toMatch(/Test summary/);
+  });
+
+  it('action update by index', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', '-n', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    await testCmd('focus', taskId);
+
+    // Add an action
+    output = [];
+    await testCmd(
+      'action',
+      'add',
+      'Original Name',
+      '-s',
+      'Original summary',
+    );
+
+    const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
+    const actionId = actionIdMatch![1];
+
+    // Update action by ID
+    output = [];
+    await testCmd(
+      'action',
+      'update',
+      actionId,
+      '-n',
+      'Updated Name',
+      '-s',
+      'Updated summary',
+    );
+
+    expect(output[0]).toMatch(/✓ Action updated/);
+    expect(output[1]).toMatch(/Updated Name/);
+
+    // Verify the update
+    const world = World.fromPath(tempWorld.worldPath);
+    const task = world.loadFuzzy(Task, taskId);
+    const action = task!.actions(world).items[0];
+    expect(action.name).toBe('Updated Name');
+    expect(action.summary).toBe('Updated summary');
+  });
+
+  it('action update with partial fields', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', '-n', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    await testCmd('focus', taskId);
+
+    // Add an action
+    output = [];
+    await testCmd(
+      'action',
+      'add',
+      'Original Name',
+      '-s',
+      'Original summary',
+    );
+
+    const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
+    const actionId = actionIdMatch![1];
+
+    // Update only name
+    output = [];
+    await testCmd('action', 'update', actionId, '-n', 'New Name');
+
+    expect(output[0]).toMatch(/✓ Action updated/);
+
+    // Verify the update (only name changed)
+    const world = World.fromPath(tempWorld.worldPath);
+    const task = world.loadFuzzy(Task, taskId);
+    const action = task!.actions(world).items[0];
+    expect(action.name).toBe('New Name');
+    expect(action.summary).toBe('Original summary');
+  });
+
+  it('action delete by index', async () => {
+    const world = World.fromPath(tempWorld.worldPath);
+
+    // Create and focus a task
+    await testCmd('task', 'add', '-n', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    await testCmd('focus', taskId);
+
+    // Add actions
+    output = [];
+    await testCmd('action', 'add', 'Action 1');
+    let actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
+    const action1Id = actionIdMatch![1];
+
+    output = [];
+    await testCmd('action', 'add', 'Action 2');
+    actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
+    const action2Id = actionIdMatch![1];
+
+    // Delete first action
+    output = [];
+    await testCmd('action', 'delete', action1Id);
+
+    let task = world.loadFuzzy(Task, taskId);
+    expect(task).toBeTruthy();
+    expect(task!.rawActions.length).toBe(1);
+    expect(task.rawActions[0].name).toBe('Action 2');
+
+    const nonEmptyOutput = output.filter(line => line.trim());
+    expect(nonEmptyOutput[0]).toMatch(/✓ Action deleted/);
+    expect(nonEmptyOutput[1]).toMatch(/Action 1/);
+
+    // Verify only one action remains
+    if (task) {
+      expect(task.actions(world).items).toHaveLength(1);
+      expect(task.actions(world).items[0].name).toBe('Action 2');
+    }
   });
 });

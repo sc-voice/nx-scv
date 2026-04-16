@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { Command } from 'commander';
 import { World } from '../../src/world.js';
 
 /**
@@ -62,4 +63,16 @@ export function listTaskFiles(worldPath) {
  */
 export function countTasks(worldPath) {
   return listTaskFiles(worldPath).length;
+}
+
+/**
+ * Create a test command runner that pre-fills world path
+ * @param {Command} program - Commander program instance
+ * @param {string} worldPath - Path to .nameforma directory
+ * @returns {Function} - testCmd(...args) that calls program.parseAsync(['node', 'test', '-w', worldPath, ...args])
+ */
+export function createTestCmd(program: Command, worldPath: string) {
+  program.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+  return (...args: string[]) =>
+    program.parseAsync(['node', 'test', '-w', worldPath, ...args]);
 }

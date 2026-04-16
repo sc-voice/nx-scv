@@ -2,6 +2,7 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import avro from 'avro-js';
 import { NameForma } from '../src/index.js';
 import { ScvMath, Text } from '@sc-voice/tools';
+import { Unicode as TextUnicode} from '@sc-voice/tools/text';
 import { DBG } from '../src/defines.js';
 import { FormaList } from '../src/forma-list.js';
 
@@ -31,6 +32,7 @@ describe('task', () => {
     const msg = 'tctor';
     dbg && cc.tag1(msg, 'START');
 
+    expect(Unicode).toBe(TextUnicode);
     let t2k = new Task();
     let { id, name } = t2k;
     expect(t2k.validate({ defaultIdName: true })).toBe(true);

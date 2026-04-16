@@ -83,8 +83,18 @@ export class World extends Identifiable implements IEventBus {
           this.#saveEntity(entityType, entity);
           break;
         case 'delete':
-          dbg && cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
-          this.delete(entityType, entity.id.base64);
+          // Check if the item being deleted is itself an entity (top-level)
+          // or if it's a nested item (child of entity, like Action of Task)
+          const itemIsEntity = !!(event.item?.constructor as any).entity;
+          if (itemIsEntity) {
+            // Top-level entity deletion: delete the entity file
+            dbg && cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
+            this.delete(entityType, entity.id.base64);
+          } else {
+            // Nested item deletion: save the parent entity with updated children
+            dbg && cc.ok(`${msg} nested item deleted, saving parent ${entityType}: ${entity.id.toString()}`, event);
+            this.#saveEntity(entityType, entity);
+          }
           break;
         case 'move':
           // Move doesn't require persistence (order changes don't persist)

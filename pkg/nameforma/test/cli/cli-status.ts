@@ -23,7 +23,6 @@ describe('CLI: status command', () => {
     originalLog = console.log;
     originalError = console.error;
     console.log = (...args) => output.push(args.join(' '));
-    console.error = (...args) => output.push(args.join(' '));
 
     program = new Command();
     program.exitOverride();
