@@ -2,14 +2,78 @@
   "id": "0PsMdk-a00VOwDbIaMmFdW",
   "name": "Container for nx-scv development",
   "summary": "Define a container that developers can use to work with nx-scv monorepo",
-  "rawActions": [],
+  "rawActions": [
+    {
+      "id": "0PsMikuU00VOwDbIaMmFdW",
+      "name": "Container is based on Node24 Debian/Ubuntu",
+      "summary": "use DockerFile at monorepo root",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsMkNob00VOwDbIaMmFdW",
+      "name": "Create Dockerfile at monorepo root",
+      "summary": "Base image node:24 (Debian bookworm). Copy package manifests first for layer caching, run npm install, then copy source.",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsMkNpV00VOwDbIaMmFdW",
+      "name": "Create .dockerignore",
+      "summary": "Exclude node_modules, dist, local/, *.tsbuildinfo",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsMl4Yk00VOwDbIaMmFdW",
+      "name": "Create scripts/container-build.sh",
+      "summary": "Shell script to build the nx-scv-dev container image: container build -t nx-scv-dev . Make executable with chmod +x.",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsMl4Zb00VOwDbIaMmFdW",
+      "name": "Create scripts/container-shell.sh",
+      "summary": "Shell script for interactive dev shell with workspace mounted: container run -it --rm -v $(pwd):/workspace nx-scv-dev bash. Make executable with chmod +x.",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsMl4aS00VOwDbIaMmFdW",
+      "name": "Create scripts/container-test.sh",
+      "summary": "Shell script to run tests inside container: container run --rm -v $(pwd):/workspace nx-scv-dev npm run test. Make executable with chmod +x.",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PsMl4bL00VOwDbIaMmFdW",
+      "name": "Add npm scripts to package.json",
+      "summary": "Add short npm script entries that delegate to scripts/: container:build, container:shell, container:test",
+      "status": "req",
+      "statusNote": ""
+    }
+  ],
   "rawReferences": [
     {
       "id": "0PsMesFc00VOwDbIaMmFdW",
       "name": "https://github.com/apple/container",
       "summary": "",
-      "relevance": 0,
+      "relevance": 0.8,
       "source": ""
+    },
+    {
+      "id": "0PsMlRJo00VOwDbIaMmFdW",
+      "name": "Apple container command reference",
+      "summary": "",
+      "relevance": 0,
+      "source": "https://github.com/apple/container/blob/main/docs/command-reference.md"
+    },
+    {
+      "id": "0PsMlRKg00VOwDbIaMmFdW",
+      "name": "node:24 Docker Hub",
+      "summary": "",
+      "relevance": 0,
+      "source": "https://hub.docker.com/_/node"
     }
   ]
 }
