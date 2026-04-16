@@ -33,6 +33,7 @@ import FocusCommand from './cli-focus.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import StatusCommand from './cli-status.js';
+import WatchCommand from './cli-watch.js';
 
 // Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
@@ -154,5 +155,12 @@ const statusCmd = program
   .description('Manage action status');
 
 StatusCommand.registerCommand(statusCmd);
+
+// Watch command
+const watchCmd = program
+  .command('watch')
+  .description('Watch focused task file and rerun task show when it changes');
+
+WatchCommand.registerCommand(watchCmd);
 
 program.parse(preprocessArgv(process.argv));

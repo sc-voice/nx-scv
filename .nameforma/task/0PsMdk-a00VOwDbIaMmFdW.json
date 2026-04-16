@@ -3,5 +3,13 @@
   "name": "Container for nx-scv development",
   "summary": "Define a container that developers can use to work with nx-scv monorepo",
   "rawActions": [],
-  "rawReferences": []
+  "rawReferences": [
+    {
+      "id": "0PsMesFc00VOwDbIaMmFdW",
+      "name": "https://github.com/apple/container",
+      "summary": "",
+      "relevance": 0,
+      "source": ""
+    }
+  ]
 }
