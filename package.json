@@ -5,13 +5,16 @@
   "scripts": {
     "build": "npm run build --workspaces",
     "clean": "rm -rf tsconfig.tsbuildinfo && npm run clean --workspaces --if-present",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "container:build": "scripts/container-build.sh",
+    "container:bash": "scripts/container-shell.sh bash",
+    "container:test": "scripts/container-test.sh"
   },
   "private": true,
   "devDependencies": {
     "@nx/js": "^22.6.4",
     "@nx/workspace": "^22.6.4",
-    "@swc-node/register": "~1.9.1",
+    "@swc-node/register": "^1.11.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "nx": "^22.6.4",

@@ -243,17 +243,18 @@ export class ColorConsole {
       let oldStyles = Object.assign({}, styles);
       let oldColors = defaultOptions.colors;
       defaultOptions.colors = true;
-      let valueColor = ColorConsole.utilColor(this.valueColor);
-      styles.bigint = valueColor;
-      styles.boolean = valueColor;
-      styles.date = valueColor;
+      const colorFunc = (str: string) => this.valueColor + str + NO_COLOR;
+      const underlineFunc = (str: string) => '\u001b[4m' + str + '\u001b[24m';
+      styles.bigint = colorFunc;
+      styles.boolean = colorFunc;
+      styles.date = colorFunc;
       //styles.name = textColor;
-      styles.module = 'underline';
-      styles.null = valueColor;
-      styles.number = valueColor;
-      styles.regexp = valueColor;
-      styles.special = valueColor;
-      styles.string = valueColor;
+      styles.module = underlineFunc;
+      styles.null = colorFunc;
+      styles.number = colorFunc;
+      (styles.regexp as any) = colorFunc;
+      styles.special = colorFunc;
+      (styles.string as any) = colorFunc;
       //styles.undefined = valueColor;
 
       this.write(...this.color(color, ...rest));
