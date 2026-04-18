@@ -1,6 +1,36 @@
 # @sc-voice/vitest
 
-Vitest testing utilities for SC-Voice with extensions for migration from Mocha to Vitest.
+Vitest re-export with SC-Voice extensions. Use this instead of importing directly from `vitest`.
+
+## What's Different from Vitest
+
+@sc-voice/vitest adds **two custom matchers** to vitest's expect API:
+
+### 1. Function equality by source code
+
+Functions with identical source code are considered equal (not by reference):
+
+```javascript
+const fn1 = () => 42;
+const fn2 = () => 42;
+expect(fn1).toEqual(fn2); // ✓ passes - same source code
+```
+
+Without this extension, vitest would compare by reference (fails).
+
+### 2. `.properties()` matcher
+
+Check object properties with deep equality:
+
+```javascript
+const user = { name: 'John', age: 30 };
+
+expect(user).properties('name');           // ✓ has 'name'
+expect(user).properties(['name', 'age']);  // ✓ has both
+expect(user).properties({ name: 'John' }); // ✓ name matches
+```
+
+Everything else (describe, it, expect, vi, etc.) is vitest unchanged.
 
 ## Installation
 
@@ -14,27 +44,6 @@ Import from `@sc-voice/vitest` instead of `vitest`:
 
 ```javascript
 import { describe, it, expect } from '@sc-voice/vitest';
-```
-
-## Extensions
-
-### Functions are compared by .toString()
-
-```javascript
-    // Function comparison by source code
-    const fn1 = () => 42;
-    const fn2 = () => 42;
-    expect(fn1).toEqual(fn2); // passes - same source code
-```
-
-### .properties() matcher
-
-Extended assertion for checking object properties with deep equality support.
-
-```javascript
-  expect(obj).properties('name')` // single property
-  expect(obj).properties(['name', 'age'])` // multiple properties
-  expect(obj).properties({ name: 'John', age: 30 })` // property values (deep equal)
 ```
 
 ## Mocha transformations
