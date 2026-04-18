@@ -1,7 +1,7 @@
 {
-  "name": "@sc-voice/nameforma",
-  "version": "3.33.0",
-  "description": "Utilities for SC-Voice",
+  "name": "@sc-voice/nx-nf",
+  "version": "0.1.0",
+  "description": "SC-Voice Agent Task Manager",
   "type": "module",
   "main": "dist/index.js",
   "files": [
@@ -54,6 +54,7 @@
     "uuid": "^11.1.0"
   },
   "bin": {
-    "nameforma": "dist/cli/nameforma.js"
+    "nameforma": "dist/cli/nameforma.js",
+    "nf": "dist/cli/nameforma.js"
   }
 }

@@ -15,6 +15,7 @@ export interface TuiPreferences {
   maxLinesPerRow?: number;         // max lines per item (0/undefined=unlimited, 1=single line, 2=wrap 1 extra line, etc.)
   textOverflow?: 'ellipsis' | 'hidden'; // what to do with undisplayable text remainder (default: 'ellipsis')
   wrapIndent?: number;             // indent continuation lines by this many spaces relative to text start (default: 0)
+  fBullet?: (index: number, item:any) => string | undefined; // compute bullet for line (replaces computed bullet)
 }
 
 export interface ResolvedPreferences {
@@ -26,6 +27,7 @@ export interface ResolvedPreferences {
   maxLinesPerRow?: number;
   textOverflow: 'ellipsis' | 'hidden';
   wrapIndent: number;
+  fBullet: (index: number, item:any) => string | undefined; 
 }
 
 export const defaultPrefs: TuiPreferences = {
@@ -48,6 +50,10 @@ export class TuiList<T extends Forma> {
    * @returns Fully resolved preferences with all required fields
    */
   resolvePreferences(prefs: TuiPreferences): ResolvedPreferences {
+    const DEFAULT_FBULLET = (index:number, item:T) => {
+      // demarcate groups of 5 items 
+      return (index % 5 == 4 ? Unicode.BLACK_CIRCLE : Unicode.BULLET);
+    }
     const {
       focusColor1 = BRIGHT_GREEN,
       focusColor2 = GREEN,
@@ -56,6 +62,7 @@ export class TuiList<T extends Forma> {
       maxLinesPerRow,
       textOverflow = 'ellipsis',
       wrapIndent = 0,
+      fBullet = DEFAULT_FBULLET,
     } = prefs;
 
     // Generate title: use provided title or derive from entity class name
@@ -70,6 +77,7 @@ export class TuiList<T extends Forma> {
       maxLinesPerRow,
       textOverflow,
       wrapIndent,
+      fBullet,
     };
   }
 
@@ -174,20 +182,25 @@ export class TuiList<T extends Forma> {
       return cmp || this.list.itemListId(b).localeCompare(this.list.itemListId(a));
     });
 
-    const { focusColor1, focusColor2, maxRows, maxWidth, maxLinesPerRow, textOverflow, wrapIndent } = resolved;
+    const { 
+      focusColor1, focusColor2, maxRows, maxWidth, maxLinesPerRow, textOverflow, wrapIndent,
+      fBullet,
+    } = resolved;
     const rows = maxRows ? sorted.slice(0, maxRows) : sorted;
 
     // primary focus item (focusOrder===0) used for UUID64 relatedness check
     const primary = sorted.find(item => this.world.focusOrder(item) === 0);
 
-    for (const item of rows) {
-      const focusOrder = this.world.focusOrder(item);
-      const bullet = focusOrder < Number.MAX_SAFE_INTEGER ? Unicode.BULLET : Unicode.HYPHEN;
-      let line = item.listItemString({ itemId: this.list.itemListId(item), bullet });
+    for (let index = 0; index < rows.length; index++) {
+      const item = rows[index];
+      const bullet = fBullet(index, item);
+      const itemId = this.list.itemListId(item);
+      let line = item.listItemString({ itemId, bullet });
 
       // Wrap and truncate text based on preferences
       line = this.wrapAndTruncate(line, maxWidth!, maxLinesPerRow, textOverflow, wrapIndent);
 
+      const focusOrder = this.world.focusOrder(item);
       if (focusOrder === 0) {
         console.log(`${focusColor1}${line}${RESET}`);
       } else if (primary && item.id.isRelated(primary.id)) {

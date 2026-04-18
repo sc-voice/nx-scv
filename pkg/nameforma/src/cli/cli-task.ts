@@ -9,9 +9,7 @@ import { Task } from '../task.js';
 import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
 import { confirmDelete } from './confirm.js';
-
-
-
+import { Unicode } from '@sc-voice/tools/text';
 
 export default class TaskCommand {
   /**
@@ -52,7 +50,15 @@ export default class TaskCommand {
       console.log('No tasks');
       return;
     }
-    new TuiList(entityList, world, { title: 'Tasks', wrapIndent: 13 }).render();
+    const prefs = {
+      title: 'Tasks', 
+      wrapIndent: 13, 
+      fBullet: (index:number, item:any) => {
+        const focusOrder = world.focusOrder(item);
+        return (focusOrder < Number.MAX_SAFE_INTEGER ? Unicode.CIRCLED_BULLET : Unicode.BULLET);
+      }
+    }
+    new TuiList(entityList, world, prefs).render();
   }
 
   /**
@@ -208,7 +214,8 @@ export default class TaskCommand {
         if (task.rawReferences.length > 0) {
           const tui = new TuiList(references, world, { maxWidth: 74 });
           console.log(`  references (${task.rawReferences.length}):`);
-          task.rawReferences.forEach((reference) => {
+          const sortedReferences = [...task.rawReferences].sort((a, b) => b.relevance - a.relevance);
+          sortedReferences.forEach((reference) => {
             const itemId = references.itemListId(reference) + ':';
             const line = reference.listItemString({ itemId });
             const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);

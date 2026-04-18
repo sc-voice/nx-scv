@@ -244,6 +244,9 @@ export class Unicode {
   static get LIGHT_VERTICAL_BAR() {
     return '\u2758';
   }
+  static get BLACK_CIRCLE() {
+    return '\u25CF';
+  }
   static get WHITE_CIRCLE() {
     return '\u25CB';
   }
@@ -261,6 +264,9 @@ export class Unicode {
   }
   static get BULLET() {
     return '\u2022';
+  }
+  static get BUL_FISHEYE() {
+    return '\u25C9';
   }
   static get BUL_TRIANGLE() {
     return '\u2023';
@@ -433,6 +439,9 @@ export class Unicode {
   get LIGHT_VERTICAL_BAR() {
     return Unicode.LIGHT_VERTICAL_BAR;
   }
+  get BLACK_CIRCLE() {
+    return Unicode.BLACK_CIRCLE;
+  }
   get WHITE_CIRCLE() {
     return Unicode.WHITE_CIRCLE;
   }
@@ -450,6 +459,9 @@ export class Unicode {
   }
   get BULLET() {
     return Unicode.BULLET;
+  }
+  get BUL_FISHEYE() {
+    return Unicode.BUL_FISHEYE
   }
   get BUL_TRIANGLE() {
     return Unicode.BUL_TRIANGLE;

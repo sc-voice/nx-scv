@@ -25,7 +25,11 @@
 
 import { Command } from 'commander';
 import { NameForma } from '../index.js';
+import { USER, IS_AGENT } from './env.js';
 import TaskCommand from './cli-task.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import FormaCommand from './cli-forma.js';
 import SchemaCommand from './cli-schema.js';
 import IdCommand from './cli-id.js';
@@ -85,10 +89,14 @@ const helpText = [
   '  $ nameforma -h task add',
 ].join('\n');
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkgJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
+const version = pkgJson.version;
+
 program
   .name('nameforma')
-  .description('NameForma CLI - Manage tasks, formas, and schemas')
-  .version('3.33.0')
+  .description(`NameForma/${USER} CLI - Manage tasks, formas, and schemas`)
+  .version(version)
   .addHelpText('after', '\n' + helpText);
 
 program
@@ -145,6 +153,7 @@ ActionCommand.registerCommand(actionCmd);
 // Reference command
 const referenceCmd = program
   .command('reference')
+  .alias('ref')
   .description('List references for the focused task');
 
 ReferenceCommand.registerCommand(referenceCmd);

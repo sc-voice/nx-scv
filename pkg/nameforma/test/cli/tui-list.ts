@@ -132,20 +132,41 @@ describe('TuiList', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should use BULLET for focused items, HYPHEN for unfocused', () => {
+    it('should use default bullets that demarcate groups of five items', () => {
       const entityList = world.entityList(Task);
-      const focused = entityList.addItem({ name: 'Focused' });
-      const unfocused = entityList.addItem({ name: 'Unfocused' });
-      world.focusForma(focused);
+      for (let i = 0; i < 6; i++) {
+        entityList.addItem({ name: `Task ${i}` });
+      }
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const focusedLine = consoleSpy.mock.calls[1][0] as string;
-      const unfocusedLine = consoleSpy.mock.calls[2][0] as string;
+      // items are sorted by itemListId descending, so render indices match creation order reversed
+      const line1 = consoleSpy.mock.calls[1][0] as string; // render index 0
+      const line5 = consoleSpy.mock.calls[5][0] as string; // render index 4 (should be BLACK_CIRCLE)
+      const line6 = consoleSpy.mock.calls[6][0] as string; // render index 5
 
-      expect(focusedLine).toContain(Unicode.BULLET);
-      expect(unfocusedLine).toContain(Unicode.HYPHEN);
+      expect(line1).toContain(Unicode.BULLET);
+      expect(line5).toContain(Unicode.BLACK_CIRCLE);
+      expect(line6).toContain(Unicode.BULLET);
+      consoleSpy.mockRestore();
+    });
+
+    it('should use custom fBullet when provided', () => {
+      const entityList = world.entityList(Task);
+      entityList.addItem({ name: 'Item 1' });
+      entityList.addItem({ name: 'Item 2' });
+
+      const customBullet = (index: number) => (index === 0 ? '→' : '◦');
+
+      const consoleSpy = vi.spyOn(console, 'log');
+      new TuiList(entityList, world, { fBullet: customBullet }).render();
+
+      const line1 = consoleSpy.mock.calls[1][0] as string;
+      const line2 = consoleSpy.mock.calls[2][0] as string;
+
+      expect(line1).toContain('→');
+      expect(line2).toContain('◦');
       consoleSpy.mockRestore();
     });
 

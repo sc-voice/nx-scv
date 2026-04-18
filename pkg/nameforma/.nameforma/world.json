@@ -34,13 +34,6 @@
       "formaType": "task",
       "name": "world preferences (verbosity)",
       "summary": "Implement persistent world preferences system: Create Preferences class (schema/defaults, verbosity default 0), add to World, serialize in world.json, add --verbosity global option (persists), create cli-pref.ts (nf pref list, nf pref reset verbosity, nf pref reset --all), filter task list (hide done unless verbosity>=1)"
-    },
-    {
-      "id": "0PsDZCba00B6llX91ablNW",
-      "formaId": "0Pr-S84W00B6llX91ablNW",
-      "formaType": "task",
-      "name": "Add Reference class",
-      "summary": "A Task can have references"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

@@ -9,6 +9,7 @@ import path from 'path';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import { Action, ActionStatus, ActionTransitions } from '../action.js';
+import { IS_AGENT } from './env.js';
 
 export default class StatusCommand {
   static getWorld(options: any): World {
@@ -57,7 +58,9 @@ export default class StatusCommand {
 
         const oldStatus = action.status;
         const allowed: ActionStatus[] = ActionTransitions[oldStatus as ActionStatus] || [];
-        if (!allowed.includes(newStatus as ActionStatus)) {
+
+        // TODO: Replace IS_AGENT with role->capability->action validation
+        if (IS_AGENT && !allowed.includes(newStatus as ActionStatus)) {
           throw new Error(
             `invalid transition: ${oldStatus} → ${newStatus}` +
             `\n  allowed: ${allowed.join(', ') || '(none)'}`
