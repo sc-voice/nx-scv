@@ -54,6 +54,7 @@
     "uuid": "^11.1.0"
   },
   "bin": {
-    "nameforma": "dist/cli/nameforma.js"
+    "nameforma": "dist/cli/nameforma.js",
+    "nf": "dist/cli/nameforma.js"
   }
 }

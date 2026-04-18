@@ -7,39 +7,25 @@
       "id": "0PsHBdLL00B6llX91ablNW",
       "name": "Add Reference class",
       "summary": "Tasks can have References just like they have Actions",
-      "status": "req",
-      "statusNote": ""
+      "status": "done",
+      "statusNote": "ok"
     },
     {
       "id": "0PsHzGRa00B6llX91ablNW",
       "name": "nf support for references",
       "summary": "crud similar to cli-action",
-      "status": "req",
-      "statusNote": ""
+      "status": "done",
+      "statusNote": "ok"
     },
     {
       "id": "0PsI09lt00B6llX91ablNW",
       "name": "task show: should show references",
       "summary": "",
-      "status": "req",
-      "statusNote": ""
+      "status": "done",
+      "statusNote": "ok"
     }
   ],
   "rawReferences": [
-    {
-      "id": "0PsH-qA600B6llX91ablNW",
-      "name": "Test Reference",
-      "summary": "",
-      "relevance": 0,
-      "source": ""
-    },
-    {
-      "id": "0PsH-rWX00B6llX91ablNW",
-      "name": "GitHub Issue",
-      "summary": "",
-      "relevance": 0,
-      "source": ""
-    },
     {
       "id": "0PsH_wWg00B6llX91ablNW",
       "name": "Reference class",

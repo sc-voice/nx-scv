@@ -509,6 +509,79 @@ describe('CLI: task command', () => {
     expect(showOutput).not.toMatch(/references/);
   });
 
+  it('show task displays references sorted by relevance descending', async () => {
+    // Create a task
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      '-n',
+      'Task with Sorted References',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch ? idMatch[1] : null;
+
+    output.length = 0;
+
+    // Add references with different relevance in non-sorted order
+    const world = World.fromPath(tempWorld.worldPath);
+    const task = world.loadFuzzy(Task, taskId);
+    expect(task).toBeTruthy();
+
+    task!.references(world).addItem({
+      name: 'Low Relevance',
+      summary: 'Least relevant',
+      relevance: 0.3,
+    });
+
+    task!.references(world).addItem({
+      name: 'High Relevance',
+      summary: 'Most relevant',
+      relevance: 0.9,
+    });
+
+    task!.references(world).addItem({
+      name: 'Medium Relevance',
+      summary: 'Mid relevance',
+      relevance: 0.6,
+    });
+
+    world.save();
+
+    output.length = 0;
+
+    // Show the task
+    await program.parseAsync([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'show',
+      taskId,
+    ]);
+
+    const showOutput = output.join('\n');
+    const lines = showOutput.split('\n');
+
+    // Find indices of each reference in output
+    const highIdx = lines.findIndex(l => l.includes('High Relevance'));
+    const mediumIdx = lines.findIndex(l => l.includes('Medium Relevance'));
+    const lowIdx = lines.findIndex(l => l.includes('Low Relevance'));
+
+    // Verify they appear in descending relevance order
+    expect(highIdx).toBeLessThan(mediumIdx);
+    expect(mediumIdx).toBeLessThan(lowIdx);
+    expect(highIdx).toBeGreaterThan(-1);
+    expect(mediumIdx).toBeGreaterThan(-1);
+    expect(lowIdx).toBeGreaterThan(-1);
+  });
+
   it('update task with name and summary', async () => {
     // Create a task first
     await program.parseAsync([

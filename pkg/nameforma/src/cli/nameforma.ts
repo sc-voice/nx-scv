@@ -25,6 +25,7 @@
 
 import { Command } from 'commander';
 import { NameForma } from '../index.js';
+import { USER, IS_AGENT } from './env.js';
 import TaskCommand from './cli-task.js';
 import FormaCommand from './cli-forma.js';
 import SchemaCommand from './cli-schema.js';
@@ -87,7 +88,7 @@ const helpText = [
 
 program
   .name('nameforma')
-  .description('NameForma CLI - Manage tasks, formas, and schemas')
+  .description(`NameForma/${USER} CLI - Manage tasks, formas, and schemas`)
   .version('3.33.0')
   .addHelpText('after', '\n' + helpText);
 
@@ -145,6 +146,7 @@ ActionCommand.registerCommand(actionCmd);
 // Reference command
 const referenceCmd = program
   .command('reference')
+  .alias('ref')
   .description('List references for the focused task');
 
 ReferenceCommand.registerCommand(referenceCmd);
