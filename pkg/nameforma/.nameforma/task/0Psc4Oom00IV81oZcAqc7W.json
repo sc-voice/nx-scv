@@ -1,0 +1,58 @@
+{
+  "id": "0Psc4Oom00IV81oZcAqc7W",
+  "name": "nf task show colors",
+  "summary": "done: bright green; test: green; manage: bright red; req: magenta; spec: blue\n",
+  "rawActions": [
+    {
+      "id": "0Psc5xoV00IV81oZcAqc7W",
+      "name": "sort references by decreasing relevance in nf reference list and nf task show",
+      "summary": "Implemented FormaList.sort() and applied to cli-reference.ts and cli-task.ts",
+      "status": "done",
+      "statusNote": ""
+    },
+    {
+      "id": "0Psc64IX00IV81oZcAqc7W",
+      "name": "add LINUX_COLOR status map to Action.tuiRowStrings in action.ts",
+      "summary": "",
+      "status": "done",
+      "statusNote": ""
+    },
+    {
+      "id": "0Psc64JQ00IV81oZcAqc7W",
+      "name": "run npm test to verify",
+      "summary": "",
+      "status": "done",
+      "statusNote": ""
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Psc4_GH00IV81oZcAqc7W",
+      "name": "cli-task.ts",
+      "summary": "Action display in task show command",
+      "relevance": 0.5,
+      "source": ""
+    },
+    {
+      "id": "0Psc5VFi00IV81oZcAqc7W",
+      "name": "action.ts",
+      "summary": "tuiRowStrings override - primary implementation file",
+      "relevance": 0.9,
+      "source": ""
+    },
+    {
+      "id": "0Psc5Z_500IV81oZcAqc7W",
+      "name": "unicode.ts",
+      "summary": "Unicode.LINUX_COLOR constants for ANSI color codes",
+      "relevance": 0.7,
+      "source": ""
+    },
+    {
+      "id": "0Psc5gFB00IV81oZcAqc7W",
+      "name": "forma.ts",
+      "summary": "Base tuiRowStrings that Action.tuiRowStrings overrides",
+      "relevance": 0.4,
+      "source": ""
+    }
+  ]
+}

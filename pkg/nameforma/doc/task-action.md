@@ -33,6 +33,25 @@ graph TD
     class Req,Manage strategic
 ```
 
+Examples of valid state transitions with status notes that describe expected workflow:
+
+| State  | Transition | StatusNote |
+|--------|-----------|-------------|
+| req    | spec      | Request ok: spec→work→test→done? |
+| req    | done      | Request declined: done→manage? |
+| spec   | work      | Spec ok: work→test→done? |
+| spec   | test      | Add test for new bug: test→work→done? |
+| work   | test      | Add test for new feature: test→done? |
+| test   | work      | Fix simple errors: work→test→done? |
+| test   | manage    | All tests pass: manage→done? |
+| test   | manage    | Unexpected test fails: manage→req? |
+| manage | req       | Revisit requirements: req→spec? |
+| manage | done      | Consensus: done |
+| manage | done      | Deferred till next release: done->req? |
+| done   | manage    | Revisit requirements: manage→req? |
+
+Note: States req and manage are strategic decision points.
+
 ### States
 
 States are tactical by default. Strategic states are marked with a thick border.
@@ -44,7 +63,22 @@ States are tactical by default. Strategic states are marked with a thick border.
 - **Manage**: Agent consults with Human in Plan Mode
 - **Done**: Stable final state
 
+### Action State/Status
+
+The state of a Task is determined by the status of its Actions.
+Action status transitions are documented in Action.statusNote.
+The statusNote clarifies proposes direction for future state transition:
+
+Example statusNotes:
+
+- **Req**: "req feasible: spec?"
+- **Spec**: "spec approved: work?"
+- **Work**: "implemented: test?"
+- **Test**: "new/old tests pass: done?" - **Test**: "new/old tests fail: manage?"
+- **Manage**: "change code or test: work?"
+- **Done**: "tested:done"
+- **Done**: "req infeasible:done"
+
+
 ### CLI
-`nf help`
-
-
+`nf --help`

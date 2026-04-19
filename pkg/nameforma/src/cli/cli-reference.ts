@@ -63,6 +63,7 @@ export default class ReferenceCommand {
         }
 
         const refList = task.references(world);
+        refList.sort((a, b) => b.relevance - a.relevance);
         const references = refList.items;
 
         if (references.length === 0) {
@@ -91,6 +92,7 @@ export default class ReferenceCommand {
         }
 
         const refList = task.references(world);
+        refList.sort((a, b) => b.relevance - a.relevance);
         const references = refList.items;
 
         if (references.length === 0) {

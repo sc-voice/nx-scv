@@ -60,7 +60,7 @@ export default class StatusCommand {
         const allowed: ActionStatus[] = ActionTransitions[oldStatus as ActionStatus] || [];
 
         // TODO: Replace IS_AGENT with role->capability->action validation
-        if (IS_AGENT && !allowed.includes(newStatus as ActionStatus)) {
+        if (IS_AGENT && oldStatus !== newStatus && !allowed.includes(newStatus as ActionStatus)) {
           throw new Error(
             `invalid transition: ${oldStatus} → ${newStatus}` +
             `\n  allowed: ${allowed.join(', ') || '(none)'}`

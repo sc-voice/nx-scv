@@ -34,6 +34,13 @@
       "formaType": "task",
       "name": "world preferences (verbosity)",
       "summary": "Implement persistent world preferences system: Create Preferences class (schema/defaults, verbosity default 0), add to World, serialize in world.json, add --verbosity global option (persists), create cli-pref.ts (nf pref list, nf pref reset verbosity, nf pref reset --all), filter task list (hide done unless verbosity>=1)"
+    },
+    {
+      "id": "0Psc4_FO00IV81oZcAqc7W",
+      "formaId": "0Psc4Oom00IV81oZcAqc7W",
+      "formaType": "task",
+      "name": "nf task show colors",
+      "summary": "done: bright green; test: green; manage: bright red; req: magenta; spec: blue\n"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

@@ -115,7 +115,7 @@ export default class WatchCommand {
 
         console.log(`🔍 Watching task: ${task.id}`);
         console.log(`📁 File: ${taskFilePath}`);
-        console.log(`Press Ctrl+C to stop\n`);
+        console.log(`Press Ctrl+C, q, or ESC to stop\n`);
 
         // Display initial state
         WatchCommand.displayTask(world, task);
@@ -143,12 +143,29 @@ export default class WatchCommand {
           }
         }, 500);
 
-        // Handle Ctrl+C gracefully
-        process.on('SIGINT', () => {
+        const cleanup = () => {
           clearInterval(watchInterval);
+          if (process.stdin.isTTY) {
+            process.stdin.setRawMode(false);
+            process.stdin.removeAllListeners('data');
+          }
           console.log('\n👋 Watch stopped');
           process.exit(0);
-        });
+        };
+
+        // Handle Ctrl+C
+        process.on('SIGINT', cleanup);
+
+        // Handle q and ESC key presses
+        if (process.stdin.isTTY) {
+          process.stdin.setRawMode(true);
+          process.stdin.on('data', (key: Buffer) => {
+            const char = key.toString();
+            if (char === 'q' || char === 'Q' || key[0] === 27) { // 27 is ESC
+              cleanup();
+            }
+          });
+        }
       });
   }
 }

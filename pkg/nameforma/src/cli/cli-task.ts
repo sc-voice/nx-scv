@@ -214,8 +214,8 @@ export default class TaskCommand {
         if (task.rawReferences.length > 0) {
           const tui = new TuiList(references, world, { maxWidth: 74 });
           console.log(`  references (${task.rawReferences.length}):`);
-          const sortedReferences = [...task.rawReferences].sort((a, b) => b.relevance - a.relevance);
-          sortedReferences.forEach((reference) => {
+          references.sort((a, b) => b.relevance - a.relevance);
+          task.rawReferences.forEach((reference) => {
             const itemId = references.itemListId(reference) + ':';
             const line = reference.listItemString({ itemId });
             const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
