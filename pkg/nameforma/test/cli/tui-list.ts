@@ -209,7 +209,7 @@ describe('TuiList', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should render all items in default color when no primary focus', () => {
+    it('should render all items with progress color when no primary focus', () => {
       const entityList = world.entityList(Task);
       entityList.addItem({ name: 'Task 1' });
       entityList.addItem({ name: 'Task 2' });
@@ -220,8 +220,9 @@ describe('TuiList', () => {
       const line1 = consoleSpy.mock.calls[1][0] as string;
       const line2 = consoleSpy.mock.calls[2][0] as string;
 
-      expect(line1).not.toContain('\x1b');
-      expect(line2).not.toContain('\x1b');
+      // Both tasks have no actions, so progress is 0% in red (ANSI code \x1b[91m)
+      expect(line1).toContain('\x1b[91m0%\x1b[39m');
+      expect(line2).toContain('\x1b[91m0%\x1b[39m');
       consoleSpy.mockRestore();
     });
 

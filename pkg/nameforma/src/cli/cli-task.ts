@@ -41,6 +41,83 @@ export default class TaskCommand {
   }
 
   /**
+   * Format task progress as colored percentage with optional state suffix.
+   * Returns formatted string like "83% manage" or "50%"
+   * @param {Task} task - Task to format progress for
+   * @returns Formatted progress string with colors
+   */
+  static formatProgress(task: Task): string {
+    const pct = Math.round(task.progress() * 100);
+    const { NO_COLOR } = Unicode.LINUX_COLOR;
+    const color = task.progressColor();
+    const coloredPct = `${color}${pct}%${NO_COLOR}`;
+
+    // Append state if all actions have the same status
+    if (task.rawActions.length > 0) {
+      const statuses = task.rawActions.map(a => a.status);
+      const allSame = statuses.every(s => s === statuses[0]);
+      if (allSame) {
+        return `${coloredPct} ${color}${statuses[0]}${NO_COLOR}`;
+      }
+    }
+    return coloredPct;
+  }
+
+  /**
+   * Display task details (ID, name, progress, summary, actions, references)
+   * @param {World} world - World instance
+   * @param {Task} task - Task to display
+   */
+  static displayTask(world: World, task: Task): void {
+    const actions = task.actions(world);
+    const references = task.references(world);
+    const tui = new TuiList(actions, world, {
+      maxWidth: 74,
+    });
+
+    console.log(`Task: ${task.id}`);
+    console.log(`  name: ${task.name}`);
+
+    // Display progress
+    console.log(`  progress: ${TaskCommand.formatProgress(task)}`);
+
+    // Wrap summary with proper indentation
+    if (task.summary) {
+      const wrappedSummary = tui.wrapAndTruncate(task.summary, 74, undefined, 'ellipsis', 2);
+      const summaryLines = wrappedSummary.split('\n');
+      console.log(`  summary: ${summaryLines[0]}`);
+      summaryLines.slice(1).forEach((line) => {
+        console.log(`    ${line}`);
+      });
+    } else {
+      console.log(`  summary:`);
+    }
+
+    if (task.rawActions.length > 0) {
+      const tui = new TuiList(actions, world, { maxWidth: 74 });
+      console.log(`  actions (${task.rawActions.length}):`);
+      task.rawActions.forEach((action) => {
+        const itemId = actions.itemListId(action) + ':';
+        const line = action.listItemString({ itemId });
+        const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
+        wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
+      });
+    }
+
+    if (task.rawReferences.length > 0) {
+      const tui = new TuiList(references, world, { maxWidth: 74 });
+      console.log(`  references (${task.rawReferences.length}):`);
+      references.sort((a, b) => b.relevance - a.relevance);
+      task.rawReferences.forEach((reference) => {
+        const itemId = references.itemListId(reference) + ':';
+        const line = reference.listItemString({ itemId });
+        const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
+        wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
+      });
+    }
+  }
+
+  /**
    * List tasks, with focused tasks at top and top-of-stack highlighted in bright green
    * @param {World} world - World instance
    */
@@ -179,49 +256,7 @@ export default class TaskCommand {
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = TaskCommand.resolveTask(world, id);
-        const actions = task.actions(world);
-        const references = task.references(world);
-        const tui = new TuiList(actions, world, {
-          maxWidth: 74,
-        });
-
-        console.log(`Task: ${task.id}`);
-        console.log(`  name: ${task.name}`);
-
-        // Wrap summary with proper indentation
-        if (task.summary) {
-          const wrappedSummary = tui.wrapAndTruncate(task.summary, 74, undefined, 'ellipsis', 2);
-          const summaryLines = wrappedSummary.split('\n');
-          console.log(`  summary: ${summaryLines[0]}`);
-          summaryLines.slice(1).forEach((line) => {
-            console.log(`    ${line}`);
-          });
-        } else {
-          console.log(`  summary:`);
-        }
-
-        if (task.rawActions.length > 0) {
-          const tui = new TuiList(actions, world, { maxWidth: 74 });
-          console.log(`  actions (${task.rawActions.length}):`);
-          task.rawActions.forEach((action) => {
-            const itemId = actions.itemListId(action) + ':';
-            const line = action.listItemString({ itemId });
-            const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
-            wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
-          });
-        }
-
-        if (task.rawReferences.length > 0) {
-          const tui = new TuiList(references, world, { maxWidth: 74 });
-          console.log(`  references (${task.rawReferences.length}):`);
-          references.sort((a, b) => b.relevance - a.relevance);
-          task.rawReferences.forEach((reference) => {
-            const itemId = references.itemListId(reference) + ':';
-            const line = reference.listItemString({ itemId });
-            const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
-            wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
-          });
-        }
+        TaskCommand.displayTask(world, task);
       });
 
     // task update

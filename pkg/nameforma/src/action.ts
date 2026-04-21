@@ -27,6 +27,15 @@ export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
   [ActionStatus.done]:   [ActionStatus.manage],
 };
 
+export const STATUS_ORDER: Record<ActionStatus, number> = {
+  [ActionStatus.req]: 1,
+  [ActionStatus.spec]: 2,
+  [ActionStatus.work]: 3,
+  [ActionStatus.test]: 4,
+  [ActionStatus.manage]: 5,
+  [ActionStatus.done]: 6,
+};
+
 /**
  * Action - A named task or action with status tracking
  *

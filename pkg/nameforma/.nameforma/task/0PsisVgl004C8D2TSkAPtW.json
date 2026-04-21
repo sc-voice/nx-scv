@@ -1,0 +1,44 @@
+{
+  "id": "0PsisVgl004C8D2TSkAPtW",
+  "name": "ActionStatus comparison",
+  "summary": "Task needs a progress() method returning [0..1] based on action statuses mapped to integers. A shared status-to-integer map enables both progress calculation and action sorting. Action does not need to know about progress.",
+  "rawActions": [
+    {
+      "id": "0PsiwVXQ004C8D2TSkAPtW",
+      "name": "Define STATUS_ORDER map in action.ts",
+      "summary": "Export STATUS_ORDER as Record<ActionStatus, number> mapping req:1, spec:2, work:3, test:4, manage:5, done:6. Zero means no actions. Add unit tests in test/action.ts.",
+      "status": "done",
+      "statusNote": "ok"
+    },
+    {
+      "id": "0PsiwWBj004C8D2TSkAPtW",
+      "name": "Add Task.progress()",
+      "summary": "Returns mean of action STATUS_ORDER values divided by 6, normalized to [0..1]. Returns 0 if no actions. Add unit tests in test/task.ts.",
+      "status": "done",
+      "statusNote": "ok"
+    },
+    {
+      "id": "0PsiwWwY004C8D2TSkAPtW",
+      "name": "Display progress in nf task show and nf task list",
+      "summary": "Show progress as integer percentage (e.g. 87%) with color: red=0 actions or any manage, green=all done, yellow=any work or test, magenta=all req or spec. Add tests in test/cli/cli-task.ts.",
+      "status": "done",
+      "statusNote": "ok"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Psj3BM0004C8D2TSkAPtW",
+      "name": "Unicode.LINUX_COLOR",
+      "summary": "Defines ANSI color constants including YELLOW, BRIGHT_YELLOW, BRIGHT_GREEN, BRIGHT_RED, MAGENTA, NO_COLOR needed for progress color display",
+      "relevance": 0.9,
+      "source": "pkg/tools/src/text/unicode.ts"
+    },
+    {
+      "id": "0Psj3CfL004C8D2TSkAPtW",
+      "name": "Action.tuiRowStrings",
+      "summary": "Existing color-coded status display pattern for actions — shows how LINUX_COLOR constants are imported and applied per status",
+      "relevance": 0.8,
+      "source": "pkg/nameforma/src/action.ts"
+    }
+  ]
+}
