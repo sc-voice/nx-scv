@@ -7,8 +7,8 @@
       "id": "0PsmVPT7000RWJ1GhsRitW",
       "name": "Write doc/nf-task.md documentation",
       "summary": "Create comprehensive guide explaining the nf task/action system, state transitions, CLI usage, and workflows for managing tasks and actions",
-      "status": "manage",
-      "statusNote": "manage: glow output enhanced with entity conversion, bold→magenta, headings→colors"
+      "status": "done",
+      "statusNote": "ok"
     },
     {
       "id": "0PslzQOh000RWJ1GhsRitW",
@@ -21,15 +21,15 @@
       "id": "0PslzQ-R000RWJ1GhsRitW",
       "name": "Remove StatusCommand and cli-status.ts",
       "summary": "Delete pkg/nameforma/src/cli/cli-status.ts; remove StatusCommand import and registerCommand call from pkg/nameforma/src/cli/nameforma.ts",
-      "status": "manage",
-      "statusNote": "manage: StatusCommand deprecated, all tests passing"
+      "status": "done",
+      "statusNote": "ok"
     },
     {
       "id": "0PslzRZa000RWJ1GhsRitW",
       "name": "Migrate cli-status tests to cli-task tests",
       "summary": "Migrate 4 tests from cli-status.ts to cli-action.ts (adapted to new syntax: action set <id>.status <newStatus> <statusNote>); add 3 new tests for action get syntax: get status returns current value, get statusNote returns note, get unknown field throws; delete cli-status.ts test and source files; reuse createTempWorld and createTestCmd from helpers.ts",
-      "status": "test",
-      "statusNote": "test: all tests passing, ready for review"
+      "status": "done",
+      "statusNote": "ok"
     }
   ],
   "rawReferences": [

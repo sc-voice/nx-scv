@@ -48,13 +48,6 @@
       "formaType": "task",
       "name": "cli-actionCRUD",
       "summary": "cli action subcommands for: put, set, delete, patch. where patch/put take JSON strings"
-    },
-    {
-      "id": "0PsmBdGa000RWJ1GhsRitW",
-      "formaId": "0PslzNSN000RWJ1GhsRitW",
-      "formaType": "task",
-      "name": "Deprecate status command",
-      "summary": "Implement action get/set with git-config-style interface (nf action get <id>.<field>, nf action set <id>.<field> <value>); remove StatusCommand"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

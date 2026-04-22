@@ -67,8 +67,9 @@ export default class TaskCommand {
    * Display task details (ID, name, progress, summary, actions, references)
    * @param {World} world - World instance
    * @param {Task} task - Task to display
+   * @param {number} verbosity - Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default)
    */
-  static displayTask(world: World, task: Task): void {
+  static displayTask(world: World, task: Task, verbosity: number = 0): void {
     const actions = task.actions(world);
     const references = task.references(world);
     const tui = new TuiList(actions, world, {
@@ -96,22 +97,27 @@ export default class TaskCommand {
     if (task.rawActions.length > 0) {
       const tui = new TuiList(actions, world, { maxWidth: 74 });
       console.log(`  actions (${task.rawActions.length}):`);
+      // Unified verbosity: 1=full, 0=2-line, <0=1-line
+      const maxActionLines = verbosity === 1 ? undefined : (verbosity === 0 ? 2 : 1);
       task.rawActions.forEach((action) => {
         const itemId = actions.itemListId(action) + ':';
         const line = action.listItemString({ itemId });
-        const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
+        const wrapped = tui.wrapAndTruncate(line, 74, maxActionLines, 'ellipsis', itemId.length + 1);
         wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
       });
     }
 
-    if (task.rawReferences.length > 0) {
+    // Handle references based on unified verbosity level
+    // 1: full (multi-line), 0: single-line, <0: omit
+    if (task.rawReferences.length > 0 && verbosity >= 0) {
       const tui = new TuiList(references, world, { maxWidth: 74 });
       console.log(`  references (${task.rawReferences.length}):`);
       references.sort((a, b) => b.relevance - a.relevance);
       task.rawReferences.forEach((reference) => {
         const itemId = references.itemListId(reference) + ':';
         const line = reference.listItemString({ itemId });
-        const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
+        const maxLines = verbosity === 0 ? 1 : undefined;
+        const wrapped = tui.wrapAndTruncate(line, 74, maxLines, 'ellipsis', itemId.length + 1);
         wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
       });
     }
@@ -188,7 +194,8 @@ export default class TaskCommand {
     cmd.action((options: any, cmd: any) => {
       const world = TaskCommand.getWorld(cmd.optsWithGlobals());
       const task = TaskCommand.resolveTask(world);
-      TaskCommand.displayTask(world, task);
+      const verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
+      TaskCommand.displayTask(world, task, verbosity);
     });
 
     // task add
@@ -257,7 +264,8 @@ export default class TaskCommand {
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = TaskCommand.resolveTask(world, id);
-        TaskCommand.displayTask(world, task);
+        const verbosity = parseInt(cmd.parent.optsWithGlobals().verbose || '0', 10);
+        TaskCommand.displayTask(world, task, verbosity);
       });
 
     // task update

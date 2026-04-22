@@ -102,6 +102,7 @@ program
 program
   .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
   .option('-d, --debug', 'Enable debug output')
+  .option('-v, --verbose <level>', 'Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default)', '0')
   .hook('preAction', (thisCommand: any) => {
     if (thisCommand.optsWithGlobals().debug) {
       process.env.DEBUG = '1';
