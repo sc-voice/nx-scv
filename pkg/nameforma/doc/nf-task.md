@@ -1,0 +1,138 @@
+# NAMEFORMA (NF) TASK & ACTION SYSTEM
+
+This document serves as the single source of truth 
+for the Nameforma task management system, used to 
+coordinate work between Agents and Humans.
+
+## Core Concepts
+
+The unit of joint work is defined by a **Task**.
+- A **Task** represents a high-level goal (e.g., "Deprecate status command").
+- A **Task** consists of one or more **Actions**.
+- An **Action** is a stateful component representing a specific piece of work within the task.
+
+## State Machine
+
+Each Action moves through several states via defined transitions.
+Transitions that are not explicitly labeled require **Human/Agent consensus**.
+
+### State Diagram (Transitions)
+
+| From State | To State | Description |
+| :--- | :--- | :--- |
+| `req` | `spec` | Requirements gathered $\rightarrow$ moving to specification. |
+| `req` | `done` | Request declined. |
+| `spec` | `work` | Specification approved $\rightarrow$ starting implementation. |
+| `spec` | `test` | New bug found/test added $\rightarrow$ needs verification. |
+| `work` | `test` | Implementation complete $\rightarrow$ needs verification. |
+| `test` | `work` | Simple errors found during testing. |
+| `test` | `manage` | Tests pass or unexpected errors occur (requires human input). |
+| `test` | `req` | Unexpected test failure requires revisiting requirements. |
+| `manage` | `req` | Revisit requirements after management review. |
+| `manage` | `done` | Formal Consensus reached; action finalized. |
+| `manage` | `done` | Feature deferred until next release. |
+| `done` | `manage` | Revisit requirements for existing completed tasks. |
+| `done` | `manage` | Anomaly detected in a previously 'done' action. |
+
+### State Definitions
+
+- **Req**: Enumerate and clarify what needs to be done.
+- **Spec**: Plan formal specifications and technical approaches together.
+- **Work**: Perform the required work using best practices.
+- **Test**: Verify that work meets specifications and existing standards.
+- **Manage**: A strategic decision point where the Agent consults with the Human in "Plan Mode".
+- **Done**: The stable, final state for an action.
+
+## CLI Usage
+
+The `nf` command-line interface is used to interact with tasks and actions.
+
+### Task Management
+- `nf task show`: Load and display the current active task.
+
+### Action Management (New Interface)
+Actions are updated using a dot-notation syntax: `<action_id>.<field>`.
+
+#### `nf action get <id>.<field>`
+Retrieves the value of a specific field for an action.
+- **Example**: `nf action get mVPT7.status` returns the current state (e.g., `work`).
+
+#### `nf action set <id>.<field> <value...>`
+Updates a field for an action. The `status` field is unique as it requires two values to ensure atomic updates with context.
+- **Syntax for status**: `nf action set <id>.status <newStatus> <statusNote>`
+- **Example (Atomic Status Update)**: 
+  `  nf action set mVPT7.status work "work: doc"`
+
+### Protocol for Status Updates
+Agents and Humans **must** update the status of any Action immediately after any change that affects its state. Every update **must** include a `statusNote` summarizing the change and proposing the next workflow step (e.g., `spec approved: work?`).
+
+## Workflow Guide for Agents
+
+### Loading a Task
+
+1. Check `.nameforma/world.json` to find the current focused task ID
+2. Load the task JSON from `.nameforma/task/<task_id>.json`
+3. The task contains:
+   - `id`, `name`, `summary` (task metadata)
+   - `rawActions[]` (array of action objects, each with id, name, summary, status, statusNote)
+   - `rawReferences[]` (array of reference objects with source paths and relevance scores)
+
+### Reading an Action
+
+Each action object has:
+- `id`: Unique action identifier (used in nf commands)
+- `name`: Human-readable action title
+- `summary`: Detailed description of what needs to be done
+- `status`: Current state (req, spec, work, test, manage, done)
+- `statusNote`: Context about the current status and suggested next step
+
+### Common Workflows
+
+#### Starting Work on a `req` Action
+1. Read the action summary to understand requirements
+2. Consult `rawReferences` to locate relevant source files (sorted by relevance)
+3. Begin implementation
+4. Update status: `nf action set <id>.status work "work: <brief description>"`
+
+#### Completing Implementation
+1. Implement the feature/fix per the action summary
+2. Update status: `nf action set <id>.status test "test: <what to verify>"`
+3. The action moves to test phase for verification
+
+#### Handling Test Failures
+- Simple bugs found: `nf action set <id>.status work "work: fixing X"`
+- Unexpected errors: `nf action set <id>.status manage "manage: unexpected behavior, needs human review"`
+- Requirements issue: `nf action set <id>.status req "req: clarification needed on Y"`
+
+#### Completing an Action
+After tests pass and human approves:
+- `nf action set <id>.status manage "manage: tests pass, ready for review"`
+- Human reviews in "manage" state and moves to done: `nf action set <id>.status done "done: completed"`
+
+### Interpreting References
+
+References provide context for implementing an action. Each has:
+- `name`: Reference title
+- `summary`: What this reference contains
+- `source`: File path (relative to project root) or `task:<id>` for task references
+- `relevance`: Score 0-1 indicating importance (1.0 = critical)
+
+Read references in order of relevance when understanding requirements.
+
+### State Transition Rules
+
+- **req → spec**: Human gathers requirements and provides specification
+- **spec → work**: Human approves spec, agent begins implementation
+- **work → test**: Agent completes implementation, needs verification
+- **test → manage**: Tests pass or unexpected issues found (requires human decision)
+- **test → work**: Simple bugs found during testing
+- **manage → done**: Human approves after reviewing results
+- **manage → req**: Human determines requirements need revisiting
+
+### Status Update Best Practices
+
+1. **Always update immediately**: As soon as work state changes, update the status
+2. **Include context**: The statusNote should explain what was done or what's needed next
+3. **Be specific**: Instead of "done", write "done: feature working, all tests pass"
+4. **Propose next state**: Help human understand what should happen next
+5. **Atomic status updates**: Use the format `nf action set <id>.status <newStatus> "<note>"` to keep status and note synchronized

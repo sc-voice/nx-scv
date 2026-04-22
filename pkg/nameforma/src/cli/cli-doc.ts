@@ -2,134 +2,54 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { TuiList } from './tui-list.js';
+import { Unicode } from '@sc-voice/tools/text';
 
 export default class DocCommand {
+  static processText(content: string): string {
+    const { BRIGHT_MAGENTA, BRIGHT_BLUE, NO_COLOR } = Unicode.LINUX_COLOR;
+    const { RIGHT_ARROW } = Unicode;
+
+    let result = content;
+
+    // Convert LaTeX/HTML entities to UTF-8
+    result = result.replace(/\$\\rightarrow\$/g, RIGHT_ARROW);
+    result = result.replace(/&amp;/g, '&');
+    result = result.replace(/&lt;/g, '<');
+    result = result.replace(/&gt;/g, '>');
+    result = result.replace(/&quot;/g, '"');
+    result = result.replace(/&apos;/g, "'");
+
+    // Convert **bold text** to bright magenta (including across newlines)
+    result = result.replace(/\*\*(.+?)\*\*/gs, `${BRIGHT_MAGENTA}$1${NO_COLOR}`);
+
+    // Convert all headings to bright blue
+    result = result.replace(/^(\s*#+ .+)$/gm, `${BRIGHT_BLUE}$1${NO_COLOR}`);
+
+    return result;
+  }
+
   static registerCommand(cmd: any) {
     cmd
-      .argument('[doc]', 'Doc name (default: task-action)', 'task-action')
+      .argument('[doc]', 'Doc name (default: nf-task)', 'nf-task')
       .action((doc: string) => {
         try {
-          const docPath = path.join(
+          const docPathGlow = path.join(
             path.dirname(fileURLToPath(import.meta.url)),
-            `../../doc/${doc}.md`
+            `../../doc/${doc}.glow`
           );
+          const docPath = docPathGlow;
           const content = readFileSync(docPath, 'utf8');
-          DocCommand.render(content);
+          const processed = DocCommand.processText(content);
+          const lines = processed.split('\n');
+
+          for (let i = 0; i < lines.length; i++) {
+            console.log(lines[i]);
+          }
+
+          //DocCommand.render(content);
         } catch (err: any) {
           throw new Error(`Doc not found: ${doc}`);
         }
       });
-  }
-
-  static render(content: string) {
-    const lines = content.split('\n');
-    let inCodeBlock = false;
-    let codeBlockType = '';
-    let inMarkdownTable = false;
-    let i = 0;
-
-    while (i < lines.length) {
-      const line = lines[i];
-
-      if (line.startsWith('```')) {
-        if (!inCodeBlock) {
-          inCodeBlock = true;
-          codeBlockType = line.slice(3).trim();
-          if (codeBlockType === 'mermaid') {
-            console.log('\nState Transitions\n');
-            console.log('State    Transition  Description');
-            console.log('───────────────────────────────────────');
-            const transitions = [
-              ['req', 'spec', ''],
-              ['req', 'done', 'Declined'],
-              ['spec', 'work', ''],
-              ['spec', 'test', ''],
-              ['work', 'test', ''],
-              ['test', 'work', 'Expected errors'],
-              ['test', 'manage', 'Pass / Unexpected errors'],
-              ['manage', 'req', ''],
-              ['manage', 'done', 'Formal Consensus'],
-              ['done', 'manage', 'Anomaly'],
-            ];
-            transitions.forEach(([state, trans, desc]) => {
-              const padState = state.padEnd(8);
-              const padTrans = trans.padEnd(11);
-              console.log(`${padState} ${padTrans} ${desc}`);
-            });
-            console.log('');
-            i++;
-            while (i < lines.length && !lines[i].startsWith('```')) {
-              i++;
-            }
-            inCodeBlock = false;
-            i++;
-            continue;
-          }
-        } else if (codeBlockType === 'mermaid') {
-          inCodeBlock = false;
-          i++;
-          continue;
-        } else {
-          inCodeBlock = false;
-          console.log(line);
-        }
-      } else if (inCodeBlock) {
-        console.log(line);
-      } else if (line.startsWith('| ')) {
-        if (!inMarkdownTable) {
-          inMarkdownTable = true;
-          console.log(line);
-        } else {
-          console.log(line);
-        }
-      } else if (line.trim() === '' && inMarkdownTable) {
-        inMarkdownTable = false;
-        console.log('');
-      } else if (line.startsWith('# ')) {
-        console.log('\n' + '='.repeat(40));
-        console.log(line.slice(2).toUpperCase());
-        console.log('='.repeat(40));
-      } else if (line.startsWith('## ')) {
-        console.log('\n' + '-'.repeat(40));
-        console.log(line.slice(3));
-        console.log('-'.repeat(40));
-      } else if (line.startsWith('### ')) {
-        console.log('\n' + line.slice(4));
-      } else if (line.startsWith('- ')) {
-        const bullet = line.slice(2);
-        const wrapped = this.wrapLine(bullet, 78, 2);
-        console.log('• ' + wrapped);
-      } else if (line.trim() === '') {
-        console.log('');
-      } else {
-        const wrapped = this.wrapLine(line, 80, 0);
-        console.log(wrapped);
-      }
-
-      i++;
-    }
-  }
-
-  static wrapLine(text: string, maxWidth: number, indent: number): string {
-    const cleaned = text.replace(/\*\*/g, '');
-    if (cleaned.length <= maxWidth) {
-      return cleaned;
-    }
-
-    const words = cleaned.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-
-    for (const word of words) {
-      if (currentLine.length + word.length + 1 > maxWidth) {
-        if (currentLine) lines.push(currentLine);
-        currentLine = ' '.repeat(indent) + word;
-      } else {
-        currentLine = currentLine ? currentLine + ' ' + word : word;
-      }
-    }
-    if (currentLine) lines.push(currentLine);
-
-    return lines.join('\n');
   }
 }

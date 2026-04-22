@@ -184,10 +184,11 @@ export default class TaskCommand {
     // Add global -w/--world option
     cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
 
-    // Default action: list tasks when no subcommand given
+    // Default action: show focused task when no subcommand given
     cmd.action((options: any, cmd: any) => {
       const world = TaskCommand.getWorld(cmd.optsWithGlobals());
-      TaskCommand.listTasks(world);
+      const task = TaskCommand.resolveTask(world);
+      TaskCommand.displayTask(world, task);
     });
 
     // task add

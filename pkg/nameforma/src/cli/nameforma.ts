@@ -36,7 +36,6 @@ import IdCommand from './cli-id.js';
 import FocusCommand from './cli-focus.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
-import StatusCommand from './cli-status.js';
 import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
 
@@ -158,13 +157,6 @@ const referenceCmd = program
   .description('List references for the focused task');
 
 ReferenceCommand.registerCommand(referenceCmd);
-
-// Status command
-const statusCmd = program
-  .command('status')
-  .description('Manage action status');
-
-StatusCommand.registerCommand(statusCmd);
 
 // Watch command
 const watchCmd = program

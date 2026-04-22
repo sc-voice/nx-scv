@@ -23,16 +23,16 @@ describe('DocCommand', () => {
     console.log = originalLog;
   });
 
-  it('nf doc prints task-action.md by default', async () => {
+  it('nf doc prints nf-task.md by default', async () => {
     await program.parseAsync(['node', 'test', 'doc']);
     const text = output.join('\n');
-    expect(text).toMatch(/TASKS AND ACTIONS/);
+    expect(text).toMatch(/NAMEFORMA \(NF\) TASK & ACTION SYSTEM/);
   });
 
-  it('nf doc task-action prints same output explicitly', async () => {
-    await program.parseAsync(['node', 'test', 'doc', 'task-action']);
+  it('nf doc nf-task prints same output explicitly', async () => {
+    await program.parseAsync(['node', 'test', 'doc', 'nf-task']);
     const text = output.join('\n');
-    expect(text).toMatch(/TASKS AND ACTIONS/);
+    expect(text).toMatch(/NAMEFORMA \(NF\) TASK & ACTION SYSTEM/);
   });
 
   it('nf doc contains State Diagram section with transition table', async () => {
@@ -45,18 +45,20 @@ describe('DocCommand', () => {
     expect(text).toMatch(/Formal Consensus/);
   });
 
-  it('nf doc contains States section with state definitions', async () => {
+  it('nf doc contains State Definition section with state definitions', async () => {
     await program.parseAsync(['node', 'test', 'doc']);
     const text = output.join('\n');
-    expect(text).toMatch(/States/);
-    expect(text).toMatch(/Req:\s+Enumerate requirements/);
-    expect(text).toMatch(/Done:\s+Stable final state/);
+    expect(text).toMatch(/State Definitions/);
+    expect(text).toMatch(/\x1b\[95mReq\x1b\[39m:\s+Enumerate/);
+    expect(text).toMatch(/\x1b\[95mDone\x1b\[39m:\s+The stable/);
   });
 
-  it('nf doc strips bold markers from output', async () => {
+  it('nf doc converts bold markers to bright magenta ANSI codes', async () => {
     await program.parseAsync(['node', 'test', 'doc']);
     const text = output.join('\n');
+    // Bold markers should be converted to bright magenta color codes, not present as **
     expect(text).not.toMatch(/\*\*/);
+    expect(text).toMatch(/\x1b\[95m[\s\S]+?\x1b\[39m/); // bright magenta ... no_color
   });
 
   it('nf doc nonexistent throws error', async () => {
@@ -73,6 +75,8 @@ describe('DocCommand', () => {
     output.forEach((line) => {
       // Allow for ANSI codes and markdown table content
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, '');
+//0PsmmIHG00auPU-q_AgmtW
+      console.error("DEBUG", cleanLine.length, cleanLine);
       expect(cleanLine.length).toBeLessThanOrEqual(100);
     });
   });
