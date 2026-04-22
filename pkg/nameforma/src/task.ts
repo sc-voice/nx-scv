@@ -109,13 +109,13 @@ export class Task extends Forma {
    * Red: 0 actions or any manage. Green: all done. Yellow: any work or test. Magenta: all req or spec.
    */
   progressColor(): string {
-    const { BRIGHT_GREEN, BRIGHT_RED, YELLOW, MAGENTA } = Unicode.LINUX_COLOR;
+    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA } = Unicode.LINUX_COLOR;
     const statuses = this.rawActions.map(a => a.status);
     if (statuses.length === 0) return BRIGHT_RED;
     if (statuses.includes(ActionStatus.manage)) return BRIGHT_RED;
     if (statuses.every(s => s === ActionStatus.done)) return BRIGHT_GREEN;
-    if (statuses.some(s => s === ActionStatus.work || s === ActionStatus.test)) return YELLOW;
-    return MAGENTA;
+    if (statuses.some(s => s === ActionStatus.work || s === ActionStatus.test)) return BRIGHT_CYAN;
+    return BRIGHT_MAGENTA;
   }
 
   override toString() {

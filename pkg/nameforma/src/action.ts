@@ -143,10 +143,10 @@ export class Action extends Forma {
     let row = super.tuiRowStrings(cfg);
     let id = row.shift()!;
     let statusNote = this.statusNote ? `(${this.statusNote})` : '';
-    const { BRIGHT_GREEN, GREEN, BRIGHT_RED, MAGENTA, BLUE, NO_COLOR } = Unicode.LINUX_COLOR;
+    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
     const statusColor: Record<string, string> = {
-      done: BRIGHT_GREEN, test: GREEN, manage: BRIGHT_RED,
-      req: MAGENTA, spec: BLUE,
+      done: BRIGHT_GREEN, test: BRIGHT_CYAN, manage: BRIGHT_RED,
+      req: BRIGHT_MAGENTA, spec: BRIGHT_MAGENTA, work: BRIGHT_CYAN,
     };
     const c = statusColor[this.status] ?? '';
     const coloredStatus = c ? `${c}${this.status}${NO_COLOR}` : this.status;
