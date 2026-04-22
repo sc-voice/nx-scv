@@ -1,7 +1,7 @@
 import { DBG } from './defines.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { Schema, type AvroType } from './schema.js';
-import { Action, ActionStatus } from './action.js';
+import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
 import { FormaList, type IEventBus } from './forma-list.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
@@ -94,14 +94,28 @@ export class Task extends Forma {
   }
 
   /**
-   * Calculate task progress as the fraction of actions with status 'done'.
-   * @returns Progress metric from 0 (no actions done) to 1 (all actions done)
+   * Calculate task progress as the mean of action statuses mapped to integers.
+   * @returns Progress metric from 0 (no actions) to 1 (all actions done), normalized to [0..1]
    */
   progress(): number {
     const total = this.rawActions.length;
     if (total === 0) return 0;
-    const done = this.rawActions.filter(a => a.status === ActionStatus.done).length;
-    return done / total;
+    const sum = this.rawActions.reduce((acc, a) => acc + STATUS_ORDER[a.status], 0);
+    return sum / (total * 6);
+  }
+
+  /**
+   * Determine progress color based on action statuses.
+   * Red: 0 actions or any manage. Green: all done. Yellow: any work or test. Magenta: all req or spec.
+   */
+  progressColor(): string {
+    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA } = Unicode.LINUX_COLOR;
+    const statuses = this.rawActions.map(a => a.status);
+    if (statuses.length === 0) return BRIGHT_RED;
+    if (statuses.includes(ActionStatus.manage)) return BRIGHT_RED;
+    if (statuses.every(s => s === ActionStatus.done)) return BRIGHT_GREEN;
+    if (statuses.some(s => s === ActionStatus.work || s === ActionStatus.test)) return BRIGHT_CYAN;
+    return BRIGHT_MAGENTA;
   }
 
   override toString() {
@@ -191,13 +205,16 @@ export class Task extends Forma {
   override tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
     const msg = 't2k.tuiRowStrings';
     let { id, name, summary } = this;
-    let progress = this.progress();
-    let { 
+    let progressValue = this.progress();
+    let {
       itemId = id.timeId(),
       bullet,
     } = cfg;
 
-    let row = [itemId, [progress.toFixed(1), name, summary].join(UBAR)];
+    const { NO_COLOR } = Unicode.LINUX_COLOR;
+    const pct = Math.round(progressValue * 100);
+    const coloredPct = `${this.progressColor()}${pct}%${NO_COLOR}`;
+    let row = [itemId, [coloredPct, name, summary].join(UBAR)];
     if (bullet) {
       row.unshift(bullet);
     }

@@ -8,7 +8,14 @@
       "summary": ""
     },
     {
-      "id": "0PsMdqlD00VOwDbIaMmFdW",
+      "id": "0PsirxG600rB_hO1uIC9tW",
+      "formaId": "0Psirwhm00rB_hO1uIC9tW",
+      "formaType": "task",
+      "name": "ActionStatus comparison",
+      "summary": "Actions need to be comparable by workflow order so they can be sorted or ranked"
+    },
+    {
+      "id": "0PsmBY3600VOwDbIaMmFdW",
       "formaId": "0PsMdk-a00VOwDbIaMmFdW",
       "formaType": "task",
       "name": "Container for nx-scv development",

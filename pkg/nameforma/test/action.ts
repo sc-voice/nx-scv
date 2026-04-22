@@ -137,4 +137,28 @@ describe('Action', () => {
 
     dbg && cc.tag1(msg + UOK, 'Action[] serialized with avro');
   });
+
+  it('STATUS_ORDER has 6 entries', () => {
+    const { STATUS_ORDER } = NameForma;
+    expect(Object.keys(STATUS_ORDER)).toHaveLength(6);
+  });
+
+  it('STATUS_ORDER values are 1..6', () => {
+    const { STATUS_ORDER } = NameForma;
+    expect(STATUS_ORDER[ActionStatus.req]).toBe(1);
+    expect(STATUS_ORDER[ActionStatus.spec]).toBe(2);
+    expect(STATUS_ORDER[ActionStatus.work]).toBe(3);
+    expect(STATUS_ORDER[ActionStatus.test]).toBe(4);
+    expect(STATUS_ORDER[ActionStatus.manage]).toBe(5);
+    expect(STATUS_ORDER[ActionStatus.done]).toBe(6);
+  });
+
+  it('STATUS_ORDER maintains expected ordering', () => {
+    const { STATUS_ORDER } = NameForma;
+    expect(STATUS_ORDER[ActionStatus.done]).toBeGreaterThan(STATUS_ORDER[ActionStatus.manage]);
+    expect(STATUS_ORDER[ActionStatus.manage]).toBeGreaterThan(STATUS_ORDER[ActionStatus.test]);
+    expect(STATUS_ORDER[ActionStatus.test]).toBeGreaterThan(STATUS_ORDER[ActionStatus.work]);
+    expect(STATUS_ORDER[ActionStatus.work]).toBeGreaterThan(STATUS_ORDER[ActionStatus.spec]);
+    expect(STATUS_ORDER[ActionStatus.spec]).toBeGreaterThan(STATUS_ORDER[ActionStatus.req]);
+  });
 });

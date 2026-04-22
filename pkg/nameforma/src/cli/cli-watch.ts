@@ -36,56 +36,6 @@ export default class WatchCommand {
   }
 
   /**
-   * Display task details
-   * @param {World} world - World instance
-   * @param {Task} task - Task to display
-   */
-  static displayTask(world: World, task: Task): void {
-    const actions = task.actions(world);
-    const references = task.references(world);
-    const tui = new TuiList(actions, world, {
-      maxWidth: 74,
-    });
-
-    console.log(`Task: ${task.id}`);
-    console.log(`  name: ${task.name}`);
-
-    // Wrap summary with proper indentation
-    if (task.summary) {
-      const wrappedSummary = tui.wrapAndTruncate(task.summary, 74, undefined, 'ellipsis', 2);
-      const summaryLines = wrappedSummary.split('\n');
-      console.log(`  summary: ${summaryLines[0]}`);
-      summaryLines.slice(1).forEach((line: string) => {
-        console.log(`    ${line}`);
-      });
-    } else {
-      console.log(`  summary:`);
-    }
-
-    if (task.rawActions.length > 0) {
-      const tui = new TuiList(actions, world, { maxWidth: 74 });
-      console.log(`  actions (${task.rawActions.length}):`);
-      task.rawActions.forEach((action) => {
-        const itemId = actions.itemListId(action) + ':';
-        const line = action.listItemString({ itemId });
-        const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
-        wrapped.split('\n').forEach((l: string) => console.log(`    ${l}`));
-      });
-    }
-
-    if (task.rawReferences.length > 0) {
-      const tui = new TuiList(references, world, { maxWidth: 74 });
-      console.log(`  references (${task.rawReferences.length}):`);
-      task.rawReferences.forEach((reference) => {
-        const itemId = references.itemListId(reference) + ':';
-        const line = reference.listItemString({ itemId });
-        const wrapped = tui.wrapAndTruncate(line, 74, undefined, 'ellipsis', itemId.length + 1);
-        wrapped.split('\n').forEach((l: string) => console.log(`    ${l}`));
-      });
-    }
-  }
-
-  /**
    * Register watch command
    * @param {Command} cmd - Commander command object
    */
@@ -115,10 +65,10 @@ export default class WatchCommand {
 
         console.log(`🔍 Watching task: ${task.id}`);
         console.log(`📁 File: ${taskFilePath}`);
-        console.log(`Press Ctrl+C to stop\n`);
+        console.log(`Press Ctrl+C, q, or ESC to stop\n`);
 
         // Display initial state
-        WatchCommand.displayTask(world, task);
+        TaskCommand.displayTask(world, task);
 
         // Watch file for changes
         let lastMtime = fs.statSync(taskFilePath).mtime.getTime();
@@ -135,7 +85,7 @@ export default class WatchCommand {
               const reloadedTask = world.loadEntity(Task, task.id.base64);
               if (reloadedTask) {
                 console.log('\n━'.repeat(74) + '\n');
-                WatchCommand.displayTask(world, reloadedTask);
+                TaskCommand.displayTask(world, reloadedTask);
               }
             }
           } catch (error) {
@@ -143,12 +93,29 @@ export default class WatchCommand {
           }
         }, 500);
 
-        // Handle Ctrl+C gracefully
-        process.on('SIGINT', () => {
+        const cleanup = () => {
           clearInterval(watchInterval);
+          if (process.stdin.isTTY) {
+            process.stdin.setRawMode(false);
+            process.stdin.removeAllListeners('data');
+          }
           console.log('\n👋 Watch stopped');
           process.exit(0);
-        });
+        };
+
+        // Handle Ctrl+C
+        process.on('SIGINT', cleanup);
+
+        // Handle q and ESC key presses
+        if (process.stdin.isTTY) {
+          process.stdin.setRawMode(true);
+          process.stdin.on('data', (key: Buffer) => {
+            const char = key.toString();
+            if (char === 'q' || char === 'Q' || key[0] === 27) { // 27 is ESC
+              cleanup();
+            }
+          });
+        }
       });
   }
 }

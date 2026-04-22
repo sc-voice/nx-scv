@@ -242,22 +242,21 @@ describe('task', () => {
     expect(task.progress()).toBe(0);
   });
 
-  it('progress() returns 0 when no actions are done', () => {
+  it('progress() returns 1/6 when single action is req', () => {
     const task = new Task({ name: 'task' });
     const mockBus = { emit: () => {}, on: () => {} };
     task.actions(mockBus).addItem({ status: 'req' });
-    task.actions(mockBus).addItem({ status: 'spec' });
-    task.actions(mockBus).addItem({ status: 'work' });
-    expect(task.progress()).toBe(0);
+    expect(task.progress()).toBe(1 / 6);
   });
 
-  it('progress() returns fraction of done actions', () => {
+  it('progress() returns weighted mean of action statuses', () => {
     const task = new Task({ name: 'task' });
     const mockBus = { emit: () => {}, on: () => {} };
-    task.actions(mockBus).addItem({ status: 'done' });
-    task.actions(mockBus).addItem({ status: 'work' });
-    task.actions(mockBus).addItem({ status: 'done' });
-    expect(task.progress()).toBe(2 / 3);
+    task.actions(mockBus).addItem({ status: 'req' });    // 1
+    task.actions(mockBus).addItem({ status: 'work' });   // 3
+    task.actions(mockBus).addItem({ status: 'done' });   // 6
+    // Sum = 10, total = 3, max = 18, progress = 10/18
+    expect(task.progress()).toBeCloseTo(10 / 18);
   });
 
   it('progress() returns 1 when all actions are done', () => {

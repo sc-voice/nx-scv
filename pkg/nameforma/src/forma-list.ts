@@ -395,6 +395,17 @@ export class FormaList<T extends IFormaItem> {
   }
 
   /**
+   * Sort items by comparator function
+   * @param compareFn - Comparator function (a, b) => number
+   * @returns This FormaList for chaining
+   */
+  sort(compareFn: (a: T, b: T) => number): this {
+    this.items.sort(compareFn);
+    this.#invalidateCache();
+    return this;
+  }
+
+  /**
    * Get list size
    */
   get size(): number {

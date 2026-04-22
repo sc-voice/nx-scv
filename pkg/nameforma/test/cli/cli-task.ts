@@ -748,6 +748,69 @@ describe('CLI: task command', () => {
       expect(showOutput).toMatch(/\w+:.*req.*Second action/);
     });
 
+    it('show task displays progress line with percentage', async () => {
+      // Create task with actions
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        '-n',
+        'Progress Test Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+      expect(taskId).not.toBeNull();
+
+      // Add mixed status actions
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      task!.actions(world).addItem({ name: 'Done action', status: 'done' });
+      task!.actions(world).addItem({ name: 'Work action', status: 'work' });
+      world.save();
+
+      output.length = 0;
+
+      // Show task - should display progress
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId]);
+
+      const showOutput = output.join('\n');
+      // Progress line includes ANSI color codes, so use flexible regex
+      expect(showOutput).toMatch(/progress:[\s\x1b\[\d;m]*\d+%/);
+    });
+
+    it('list tasks displays progress percentage', async () => {
+      // Create task
+      await program.parseAsync([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        '-n',
+        'List Progress Task',
+      ]);
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const taskList = world.entityList(Task);
+      const task = Array.from(taskList)[0] as any;
+      task.actions(world).addItem({ name: 'Action 1', status: 'spec' });
+      world.save();
+
+      output.length = 0;
+
+      // List tasks - should show progress percentage
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+
+      const listOutput = output.join('\n');
+      expect(listOutput).toMatch(/\d+%/);
+    });
+
     it('update task without ID uses focused task', async () => {
       // Create a task
       await program.parseAsync([

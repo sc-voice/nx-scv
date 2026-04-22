@@ -207,9 +207,9 @@ describe('CLI: reference command', () => {
     // Filter out empty strings from output array
     const nonEmptyOutput = output.filter(line => line.trim());
     expect(nonEmptyOutput[0]).toMatch(/References for/);
-    expect(nonEmptyOutput[1]).toMatch(/1\. Reference 1/);
-    expect(nonEmptyOutput[2]).toMatch(/0\.5/);
-    expect(nonEmptyOutput[3]).toMatch(/2\. Reference 2/);
+    expect(nonEmptyOutput[1]).toMatch(/1\. Reference 2/);
+    expect(nonEmptyOutput[2]).toMatch(/0\.8/);
+    expect(nonEmptyOutput[3]).toMatch(/2\. Reference 1/);
   });
 
   it('reference show by index', async () => {

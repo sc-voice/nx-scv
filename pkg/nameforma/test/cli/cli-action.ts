@@ -306,4 +306,103 @@ describe('CLI: action command', () => {
       expect(task.actions(world).items[0].name).toBe('Action 2');
     }
   });
+
+  describe('action get and set (dotref interface)', () => {
+    async function setupTaskWithAction() {
+      // Create task
+      await testCmd('task', 'add', '-n', 'Test Task');
+      const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+      const taskId = taskIdMatch![1];
+
+      // Focus task
+      output = [];
+      await testCmd('focus', taskId);
+
+      // Add action
+      output = [];
+      await testCmd('action', 'add', 'Test Action');
+
+      // Get action ID from world
+      const w = World.fromPath(tempWorld.worldPath);
+      const task = w.loadFuzzy(Task, taskId)!;
+      const action = task.actions(w).items[0];
+      return { taskId, actionId: action.id.base64 };
+    }
+
+    it('action get status returns current value', async () => {
+      const { actionId } = await setupTaskWithAction();
+
+      output = [];
+      await testCmd('action', 'get', `${actionId}.status`);
+
+      expect(output[0]).toMatch(/req/);
+    });
+
+    it('action get statusNote returns note', async () => {
+      const { actionId } = await setupTaskWithAction();
+
+      output = [];
+      await testCmd('action', 'get', `${actionId}.statusNote`);
+
+      expect(output[0]).toBe('');
+    });
+
+    it('action get unknown field throws', async () => {
+      const { actionId } = await setupTaskWithAction();
+
+      try {
+        await testCmd('action', 'get', `${actionId}.unknownField`);
+        expect.fail('Should have thrown');
+      } catch (e: any) {
+        expect(e.message).toMatch(/Field not found/);
+      }
+    });
+
+    it('action set valid transition', async () => {
+      const { actionId } = await setupTaskWithAction();
+
+      output = [];
+      await testCmd('action', 'set', `${actionId}.status`, 'spec', 'starting spec phase');
+
+      expect(output[0]).toMatch(/req->spec starting spec phase/);
+    });
+
+    it('action set updates statusNote', async () => {
+      const { actionId, taskId } = await setupTaskWithAction();
+
+      output = [];
+      await testCmd('action', 'set', `${actionId}.status`, 'spec', 'my note');
+
+      const w = World.fromPath(tempWorld.worldPath);
+      const task = w.loadFuzzy(Task, taskId)!;
+      const action = task.actions(w).items[0];
+      expect(action.status).toBe('spec');
+      expect(action.statusNote).toBe('my note');
+    });
+
+    it('action set invalid transition throws', async () => {
+      const { actionId } = await setupTaskWithAction();
+
+      // First move to spec
+      await testCmd('action', 'set', `${actionId}.status`, 'spec', 'move to spec');
+
+      output = [];
+      try {
+        // spec → req is not a valid transition
+        await testCmd('action', 'set', `${actionId}.status`, 'req', 'invalid backwards transition');
+        expect.fail('Should have thrown');
+      } catch (e: any) {
+        expect(e.message).toMatch(/invalid transition/);
+      }
+    });
+
+    it('action set no focused task throws', async () => {
+      try {
+        await testCmd('action', 'set', 'someId.status', 'spec', 'note');
+        expect.fail('Should have thrown');
+      } catch (e: any) {
+        expect(e.message).toMatch(/No task focused/);
+      }
+    });
+  });
 });

@@ -27,6 +27,15 @@ export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
   [ActionStatus.done]:   [ActionStatus.manage],
 };
 
+export const STATUS_ORDER: Record<ActionStatus, number> = {
+  [ActionStatus.req]: 1,
+  [ActionStatus.spec]: 2,
+  [ActionStatus.work]: 3,
+  [ActionStatus.test]: 4,
+  [ActionStatus.manage]: 5,
+  [ActionStatus.done]: 6,
+};
+
 /**
  * Action - A named task or action with status tracking
  *
@@ -128,12 +137,19 @@ export class Action extends Forma {
   }
 
   /**
-   * Override tuiRowStrings to prepend status indicator
+   * Override tuiRowStrings to prepend status indicator with color
    */
   override tuiRowStrings(cfg: any = {}): string[] {
     let row = super.tuiRowStrings(cfg);
     let id = row.shift()!;
     let statusNote = this.statusNote ? `(${this.statusNote})` : '';
-    return [id, [this.status,  ...row, statusNote].join(UBAR)];
+    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
+    const statusColor: Record<string, string> = {
+      done: BRIGHT_GREEN, test: BRIGHT_CYAN, manage: BRIGHT_RED,
+      req: BRIGHT_MAGENTA, spec: BRIGHT_MAGENTA, work: BRIGHT_CYAN,
+    };
+    const c = statusColor[this.status] ?? '';
+    const coloredStatus = c ? `${c}${this.status}${NO_COLOR}` : this.status;
+    return [id, [coloredStatus,  ...row, statusNote].join(UBAR)];
   }
 }

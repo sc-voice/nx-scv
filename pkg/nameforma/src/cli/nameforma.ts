@@ -36,8 +36,8 @@ import IdCommand from './cli-id.js';
 import FocusCommand from './cli-focus.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
-import StatusCommand from './cli-status.js';
 import WatchCommand from './cli-watch.js';
+import DocCommand from './cli-doc.js';
 
 // Preprocess argv to move global options before command and help flags to the end
 function preprocessArgv(argv: string[]): string[] {
@@ -102,6 +102,7 @@ program
 program
   .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
   .option('-d, --debug', 'Enable debug output')
+  .option('-v, --verbose <level>', 'Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default)', '0')
   .hook('preAction', (thisCommand: any) => {
     if (thisCommand.optsWithGlobals().debug) {
       process.env.DEBUG = '1';
@@ -158,18 +159,18 @@ const referenceCmd = program
 
 ReferenceCommand.registerCommand(referenceCmd);
 
-// Status command
-const statusCmd = program
-  .command('status')
-  .description('Manage action status');
-
-StatusCommand.registerCommand(statusCmd);
-
 // Watch command
 const watchCmd = program
   .command('watch')
   .description('Watch focused task file and rerun task show when it changes');
 
 WatchCommand.registerCommand(watchCmd);
+
+// Doc command
+const docCmd = program
+  .command('doc')
+  .description('Display TUI-formatted documentation');
+
+DocCommand.registerCommand(docCmd);
 
 program.parse(preprocessArgv(process.argv));
