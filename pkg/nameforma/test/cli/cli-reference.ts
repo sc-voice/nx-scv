@@ -77,7 +77,7 @@ describe('CLI: reference command', () => {
 
   it('reference add to focused task', async () => {
     // Create a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     // Extract task ID from output
     const taskAddOutput = output[0];
@@ -106,7 +106,7 @@ describe('CLI: reference command', () => {
 
   it('reference add with summary', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -130,7 +130,7 @@ describe('CLI: reference command', () => {
 
   it('reference add with relevance and source', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -165,7 +165,7 @@ describe('CLI: reference command', () => {
 
   it('reference add with invalid relevance', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -185,7 +185,7 @@ describe('CLI: reference command', () => {
 
   it('reference list explicit command', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -214,7 +214,7 @@ describe('CLI: reference command', () => {
 
   it('reference show by index', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -249,7 +249,7 @@ describe('CLI: reference command', () => {
 
   it('reference update by index', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -300,7 +300,7 @@ describe('CLI: reference command', () => {
 
   it('reference update with partial fields', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -340,7 +340,7 @@ describe('CLI: reference command', () => {
 
   it('reference delete by index', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];

@@ -168,44 +168,6 @@ export default class ActionCommand {
         console.log(`  ${action.name}`);
       });
 
-    // action update <id>
-    cmd
-      .command('update <id>')
-      .option('-n, --name <name>', 'Action name')
-      .option('-s, --summary <summary>', 'Action summary')
-      .action((id: string, options: any, cmd: any) => {
-        if (id.length < 3) {
-          throw new Error('ID must be at least 3 characters');
-        }
-
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
-        const task = ActionCommand.getFocusedTask(world);
-
-        if (!task) {
-          throw new Error('No task is currently focused');
-        }
-
-        if (!options.name && !options.summary) {
-          throw new Error('At least one field must be specified (--name or --summary)');
-        }
-
-        const actionList = task.actions(world);
-
-        const updateCfg: any = {};
-        if (options.name) updateCfg.name = options.name;
-        if (options.summary) updateCfg.summary = options.summary;
-
-        try {
-          const action = actionList.patchItem(id, updateCfg);
-          world.save();
-
-          console.log(`✓ Action updated`);
-          console.log(`  ${action.name}`);
-        } catch (err: any) {
-          throw new Error(`Action not found: ${id}`);
-        }
-      });
-
     // action delete <id>
     cmd
       .command('delete <id>')

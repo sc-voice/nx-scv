@@ -181,7 +181,7 @@ export default class TaskCommand {
       '  Subcommands:',
       '  add     - Add a new task',
       '  list    - List all tasks',
-      '  show    - Show task details',
+      '  get     - Get task details',
       '  update  - Update a task',
       '  delete  - Delete a task',
     ].join('\n');
@@ -200,23 +200,22 @@ export default class TaskCommand {
 
     // task add
     cmd
-      .command('add')
+      .command('add <name>')
       .description('Add a new task')
       .addHelpText('after', [
         '',
         'Examples:',
-        '  $ nameforma task add -n "My Task"',
-        '  $ nameforma task add -n "Fix bug" -s "Description"',
+        '  $ nameforma task add "My Task"',
+        '  $ nameforma task add "Fix bug" -s "Description"',
       ].join('\n'))
-      .requiredOption('-n, --name <name>', 'Task name')
       .option('-s, --summary <summary>', 'Task summary')
       .option('-r, --related <fuzzy-id>', 'Create task related to another task by ID')
-      .action((options: any, cmd: any) => {
+      .action((name: string, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
 
         const taskConfig: any = {
-          name: options.name,
+          name: name,
         };
 
         if (options.summary) {
@@ -251,15 +250,15 @@ export default class TaskCommand {
         TaskCommand.listTasks(world);
       });
 
-    // task show
+    // task get
     cmd
-      .command('show [id]')
-      .description('Show task details')
+      .command('get [id]')
+      .description('Get task details')
       .addHelpText('after', [
         '',
         'Examples:',
-        '  $ nameforma task show abc123def456',
-        '  $ nameforma task show  (shows focused task)',
+        '  $ nameforma task get abc123def456',
+        '  $ nameforma task get  (gets focused task)',
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
