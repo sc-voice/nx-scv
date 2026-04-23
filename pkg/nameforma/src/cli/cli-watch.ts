@@ -56,6 +56,7 @@ export default class WatchCommand {
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = WatchCommand.getWorld(cmd.optsWithGlobals());
         const task = TaskCommand.resolveTask(world, id);
+        const verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
         const worldPath = (world as any).worldPath || path.join(process.cwd(), '.nameforma');
         const taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
 
@@ -68,7 +69,7 @@ export default class WatchCommand {
         console.log(`Press Ctrl+C, q, or ESC to stop\n`);
 
         // Display initial state
-        TaskCommand.displayTask(world, task);
+        TaskCommand.displayTask(world, task, verbosity);
 
         // Watch file for changes
         let lastMtime = fs.statSync(taskFilePath).mtime.getTime();
@@ -85,7 +86,7 @@ export default class WatchCommand {
               const reloadedTask = world.loadEntity(Task, task.id.base64);
               if (reloadedTask) {
                 console.log('\n━'.repeat(74) + '\n');
-                TaskCommand.displayTask(world, reloadedTask);
+                TaskCommand.displayTask(world, reloadedTask, verbosity);
               }
             }
           } catch (error) {

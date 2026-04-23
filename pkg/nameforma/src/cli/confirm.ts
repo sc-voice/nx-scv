@@ -1,5 +1,6 @@
 import { createInterface } from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
+import { Unicode } from '@sc-voice/tools/text';
 
 /**
  * Prompt user for yes/no confirmation
@@ -16,12 +17,14 @@ export async function confirm(
     output?: NodeJS.WritableStream;
   }
 ): Promise<boolean> {
+  const { BRIGHT_CYAN, NO_COLOR } = Unicode.LINUX_COLOR;
   const rl = createInterface({
     input: options?.input || input,
     output: options?.output || output,
   });
 
-  const answer = await rl.question(message);
+  const coloredMessage = `${BRIGHT_CYAN}${message}${NO_COLOR}`;
+  const answer = await rl.question(coloredMessage);
   rl.close();
 
   return answer.toLowerCase() === 'yes';
@@ -42,18 +45,16 @@ export async function confirmDelete(
   }
 ): Promise<boolean> {
   const output_stream = options?.output || output;
+  const BORDER = ">>> ";
   const lines: string[] = [
-    `\nEntity: ${entity.id}`,
-    `  name: ${entity.name}`,
+    BORDER+`Entity:  ${entity.id}`,
+    `name:    ${entity.name}`,
   ];
 
   if (entity.summary) {
-    lines.push(`  summary: ${entity.summary}`);
+    lines.push(`summary: ${entity.summary}`);
   }
-
-  lines.forEach(line => {
-    (output_stream as any).write(line + '\n');
-  });
-
-  return confirm('\nDelete this entity? (yes/no) ', options);
+  lines.push('Confirm: DELETE this entity? (no/yes) ');
+  const prompt = lines.join("\n"+BORDER);
+  return confirm(prompt, options);
 }

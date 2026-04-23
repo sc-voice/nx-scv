@@ -58,7 +58,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Test Task',
     ]);
 
@@ -77,7 +76,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Primary Task',
     ]);
 
@@ -97,7 +95,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Related Task',
       '--related',
       partialId,
@@ -131,7 +128,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Task 1',
     ]);
 
@@ -154,7 +150,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Show Me',
     ]);
 
@@ -168,7 +163,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Show the task
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId]);
+    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Task:/);
@@ -185,7 +180,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'To Delete',
       ]);
 
@@ -215,7 +209,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Exact Delete',
       ]);
 
@@ -244,7 +237,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Task to Verify',
       ]);
 
@@ -274,7 +266,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Show After Delete',
       ]);
 
@@ -291,7 +282,7 @@ describe('CLI: task command', () => {
 
       // Try to show deleted task - should fail
       await expect(
-        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId])
+        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId])
       ).rejects.toThrow(/Task not found/);
     });
 
@@ -307,7 +298,6 @@ describe('CLI: task command', () => {
           '-w',
           tempWorld.worldPath,
           'add',
-          '-n',
           `Task ${i}`,
         ]);
 
@@ -347,7 +337,6 @@ describe('CLI: task command', () => {
           '-w',
           tempWorld.worldPath,
           'add',
-          '-n',
           `Ambiguous Task ${i}`,
         ]);
 
@@ -377,7 +366,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'ID Output Test',
       ]);
 
@@ -403,7 +391,7 @@ describe('CLI: task command', () => {
         'task',
         '-w',
         tempWorld.worldPath,
-        'show',
+        'get',
         'nonexistent',
       ])
     ).rejects.toThrow(/Task not found/);
@@ -418,7 +406,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Task with References',
     ]);
 
@@ -457,7 +444,7 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'show',
+      'get',
       taskId,
     ]);
 
@@ -482,7 +469,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Task without References',
     ]);
 
@@ -499,7 +485,7 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'show',
+      'get',
       taskId,
     ]);
 
@@ -518,7 +504,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Task with Sorted References',
     ]);
 
@@ -562,7 +547,7 @@ describe('CLI: task command', () => {
       'task',
       '-w',
       tempWorld.worldPath,
-      'show',
+      'get',
       taskId,
     ]);
 
@@ -591,7 +576,6 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'add',
-      '-n',
       'Original Name',
     ]);
 
@@ -673,7 +657,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Focused Task',
       ]);
 
@@ -692,7 +675,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show without ID - should use focused task
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show']);
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get']);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/Task:/);
@@ -702,7 +685,7 @@ describe('CLI: task command', () => {
 
     it('show without ID returns error when no task focused', async () => {
       await expect(
-        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show'])
+        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get'])
       ).rejects.toThrow(/No task focused|Task not found/);
     });
 
@@ -715,7 +698,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Task With Actions',
       ]);
 
@@ -737,7 +719,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show task - should display all actions
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId]);
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
 
       const showOutput = output.join('\n');
       expect(showOutput).toMatch(/Task:/);
@@ -757,7 +739,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Progress Test Task',
       ]);
 
@@ -776,7 +757,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show task - should display progress
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'show', taskId]);
+      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
 
       const showOutput = output.join('\n');
       // Progress line includes ANSI color codes, so use flexible regex
@@ -792,7 +773,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'List Progress Task',
       ]);
 
@@ -820,7 +800,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Update Me',
       ]);
 
@@ -863,7 +842,6 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'add',
-        '-n',
         'Delete Me',
       ]);
 

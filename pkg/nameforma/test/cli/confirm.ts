@@ -77,9 +77,9 @@ describe('CLI: confirm helpers', () => {
       await confirmDelete(entity, { input, output });
 
       const outputText = outputLines.join('');
-      expect(outputText).toContain('Entity: task-123');
-      expect(outputText).toContain('name: Test Task');
-      expect(outputText).toContain('summary: Test summary');
+      expect(outputText).toContain('>>> Entity:  task-123');
+      expect(outputText).toContain('>>> name:    Test Task');
+      expect(outputText).toContain('>>> summary: Test summary');
     });
 
     it('displays entity without summary if not present', async () => {
@@ -103,9 +103,9 @@ describe('CLI: confirm helpers', () => {
       await confirmDelete(entity, { input, output });
 
       const outputText = outputLines.join('');
-      expect(outputText).toContain('Entity: task-456');
-      expect(outputText).toContain('name: Another Task');
-      expect(outputText).not.toContain('summary:');
+      expect(outputText).toContain('>>> Entity:  task-456');
+      expect(outputText).toContain('>>> name:    Another Task');
+      expect(outputText).not.toContain('>>> summary:');
     });
 
     it('returns true when user confirms deletion', async () => {

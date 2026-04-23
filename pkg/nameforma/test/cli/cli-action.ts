@@ -77,7 +77,7 @@ describe('CLI: action command', () => {
 
   it('action add to focused task', async () => {
     // Create a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     // Extract task ID from output
     const taskAddOutput = output[0];
@@ -106,7 +106,7 @@ describe('CLI: action command', () => {
 
   it('action add with summary', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -130,7 +130,7 @@ describe('CLI: action command', () => {
 
   it('action list explicit command', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -157,7 +157,7 @@ describe('CLI: action command', () => {
 
   it('action show by index', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -181,9 +181,9 @@ describe('CLI: action command', () => {
     expect(nonEmptyOutput[2]).toMatch(/Test summary/);
   });
 
-  it('action update by index', async () => {
+  it('action set name and summary', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -204,22 +204,19 @@ describe('CLI: action command', () => {
     const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const actionId = actionIdMatch![1];
 
-    // Update action by ID
+    // Set name using dotref
     output = [];
-    await testCmd(
-      'action',
-      'update',
-      actionId,
-      '-n',
-      'Updated Name',
-      '-s',
-      'Updated summary',
-    );
+    await testCmd('action', 'set', `${actionId}.name`, 'Updated Name');
 
-    expect(output[0]).toMatch(/✓ Action updated/);
-    expect(output[1]).toMatch(/Updated Name/);
+    expect(output[0]).toMatch(/✓ name updated/);
 
-    // Verify the update
+    // Set summary using dotref
+    output = [];
+    await testCmd('action', 'set', `${actionId}.summary`, 'Updated summary');
+
+    expect(output[0]).toMatch(/✓ summary updated/);
+
+    // Verify the updates
     const world = World.fromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     const action = task!.actions(world).items[0];
@@ -227,9 +224,9 @@ describe('CLI: action command', () => {
     expect(action.summary).toBe('Updated summary');
   });
 
-  it('action update with partial fields', async () => {
+  it('action set preserves other fields', async () => {
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -250,11 +247,11 @@ describe('CLI: action command', () => {
     const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const actionId = actionIdMatch![1];
 
-    // Update only name
+    // Set only name, summary should remain unchanged
     output = [];
-    await testCmd('action', 'update', actionId, '-n', 'New Name');
+    await testCmd('action', 'set', `${actionId}.name`, 'New Name');
 
-    expect(output[0]).toMatch(/✓ Action updated/);
+    expect(output[0]).toMatch(/✓ name updated/);
 
     // Verify the update (only name changed)
     const world = World.fromPath(tempWorld.worldPath);
@@ -268,7 +265,7 @@ describe('CLI: action command', () => {
     const world = World.fromPath(tempWorld.worldPath);
 
     // Create and focus a task
-    await testCmd('task', 'add', '-n', 'Test Task');
+    await testCmd('task', 'add', 'Test Task');
 
     const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
     const taskId = taskIdMatch![1];
@@ -310,7 +307,7 @@ describe('CLI: action command', () => {
   describe('action get and set (dotref interface)', () => {
     async function setupTaskWithAction() {
       // Create task
-      await testCmd('task', 'add', '-n', 'Test Task');
+      await testCmd('task', 'add', 'Test Task');
       const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
       const taskId = taskIdMatch![1];
 
