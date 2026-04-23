@@ -40,6 +40,7 @@
   "homepage": "https://github.com/sc-voice/nx-scv/tree/main/pkg/vitest#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@types/node": "^24.12.2",
     "eslint": "^9.17.0",
     "should": "^13.2.3"
   },

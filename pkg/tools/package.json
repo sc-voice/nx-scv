@@ -42,11 +42,10 @@
   "homepage": "https://github.com/sc-voice/nx-scv/pkg/tools/#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
+    "@sc-voice/vitest": "^4.0.0",
+    "@types/node": "^24.12.2",
     "avro-js": "^1.12.0",
     "eslint": "^9.17.0",
-    "@sc-voice/vitest": "^4.0.0",
     "typescript": "~5.8.2"
-  },
-  "dependencies": {
   }
 }
