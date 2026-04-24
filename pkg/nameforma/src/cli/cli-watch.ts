@@ -1,6 +1,6 @@
 /**
  * Watch command handler for nameforma CLI
- * Watches the focused task file and runs task show whenever it changes
+ * Watches the focused task file and runs task get whenever it changes
  */
 
 import path from 'path';
@@ -46,7 +46,7 @@ export default class WatchCommand {
     // watch [id]
     cmd
       .argument('[id]', 'Task ID to watch (optional, defaults to focused task)')
-      .description('Watch focused task file and rerun task show when it changes')
+      .description('Watch focused task file and rerun task get when it changes')
       .addHelpText('after', [
         '',
         'Examples:',
@@ -54,11 +54,12 @@ export default class WatchCommand {
         '  $ nameforma watch abc123def456',
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = WatchCommand.getWorld(cmd.optsWithGlobals());
-        const task = TaskCommand.resolveTask(world, id);
+        let world = WatchCommand.getWorld(cmd.optsWithGlobals());
+        let task = TaskCommand.resolveTask(world, id);
         const verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
         const worldPath = (world as any).worldPath || path.join(process.cwd(), '.nameforma');
-        const taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+        const worldFilePath = path.join(worldPath, 'world.json');
+        let taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
 
         if (!fs.existsSync(taskFilePath)) {
           throw new Error(`Task file not found: ${taskFilePath}`);
@@ -71,22 +72,64 @@ export default class WatchCommand {
         // Display initial state
         TaskCommand.displayTask(world, task, verbosity);
 
-        // Watch file for changes
-        let lastMtime = fs.statSync(taskFilePath).mtime.getTime();
+        // Track mtimes for both world.json and task file
+        let mtimes = {
+          world: fs.statSync(worldFilePath).mtime.getTime(),
+          task: fs.statSync(taskFilePath).mtime.getTime(),
+        };
 
         const watchInterval = setInterval(() => {
           try {
-            const stats = fs.statSync(taskFilePath);
-            const currentMtime = stats.mtime.getTime();
+            // Check world.json for focus changes
+            if (fs.existsSync(worldFilePath)) {
+              const worldStats = fs.statSync(worldFilePath);
+              const currentWorldMtime = worldStats.mtime.getTime();
 
-            if (currentMtime !== lastMtime) {
-              lastMtime = currentMtime;
+              if (currentWorldMtime !== mtimes.world) {
+                mtimes.world = currentWorldMtime;
 
-              // Reload task from disk
-              const reloadedTask = world.loadEntity(Task, task.id.base64);
-              if (reloadedTask) {
-                console.log('\n━'.repeat(74) + '\n');
-                TaskCommand.displayTask(world, reloadedTask, verbosity);
+                // Reload world to detect focus changes
+                world = World.fromPath(worldPath);
+                const newFocus = world.focusedForma('task');
+
+                // Check if focused task changed
+                if (newFocus && newFocus.formaId.base64 !== task.id.base64) {
+                  const oldTaskId = task.id.base64;
+                  const newTask = world.loadEntity(Task, newFocus.formaId.base64);
+
+                  if (newTask) {
+                    task = newTask;
+                    taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+
+                    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+                    console.log(`📌 Focus changed from ${oldTaskId} to ${task.id.base64}`);
+                    console.log(`📁 New file: ${taskFilePath}\n`);
+
+                    // Reset task file mtime for the new task
+                    if (fs.existsSync(taskFilePath)) {
+                      mtimes.task = fs.statSync(taskFilePath).mtime.getTime();
+                    }
+
+                    TaskCommand.displayTask(world, task, verbosity);
+                  }
+                }
+              }
+            }
+
+            // Check task file for changes
+            if (fs.existsSync(taskFilePath)) {
+              const taskStats = fs.statSync(taskFilePath);
+              const currentTaskMtime = taskStats.mtime.getTime();
+
+              if (currentTaskMtime !== mtimes.task) {
+                mtimes.task = currentTaskMtime;
+
+                // Reload task from disk
+                const reloadedTask = world.loadEntity(Task, task.id.base64);
+                if (reloadedTask) {
+                  console.log('\n━'.repeat(74) + '\n');
+                  TaskCommand.displayTask(world, reloadedTask, verbosity);
+                }
               }
             }
           } catch (error) {

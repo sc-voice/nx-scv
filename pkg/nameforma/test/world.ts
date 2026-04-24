@@ -1035,4 +1035,88 @@ describe('World - focusStack', () => {
       expect(sorted[2].id.base64).toBe(e3.id.base64);
     });
   });
+
+  describe('World — validate()', () => {
+    it('removes stale entries from focusStack', () => {
+      const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
+      try {
+        const world = World.fromPath(worldPath);
+        world.registerEntity(MockEntity);
+
+        // Create 3 mock entities and focus all 3
+        const m1 = world.entityList(MockEntity).addItem({ name: 'mock1' });
+        const m2 = world.entityList(MockEntity).addItem({ name: 'mock2' });
+        const m3 = world.entityList(MockEntity).addItem({ name: 'mock3' });
+
+        world.focusForma(m1);
+        world.focusForma(m2);
+        world.focusForma(m3);
+
+        expect(Array.from(world.focusStack).length).toBe(3);
+
+        // Delete m2's backing file directly (simulating stale entry)
+        const m2FilePath = path.join(worldPath, 'mock', `${m2.id.base64}.json`);
+        fs.unlinkSync(m2FilePath);
+
+        // Call validate and check returns true (entries were removed)
+        expect(world.validate()).toBe(true);
+        expect(Array.from(world.focusStack).length).toBe(2);
+
+        // Call validate again — should return false (no more stale entries)
+        expect(world.validate()).toBe(false);
+      } finally {
+        fs.rmSync(worldPath, { recursive: true, force: true });
+      }
+    });
+
+    it('returns false when focusStack is empty', () => {
+      const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
+      try {
+        const world = World.fromPath(worldPath);
+        expect(world.validate()).toBe(false);
+      } finally {
+        fs.rmSync(worldPath, { recursive: true, force: true });
+      }
+    });
+
+    it('returns false when all entries are valid', () => {
+      const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
+      try {
+        const world = World.fromPath(worldPath);
+        world.registerEntity(MockEntity);
+
+        const m1 = world.entityList(MockEntity).addItem({ name: 'mock1' });
+        world.focusForma(m1);
+
+        expect(world.validate()).toBe(false);
+      } finally {
+        fs.rmSync(worldPath, { recursive: true, force: true });
+      }
+    });
+
+    it('cleans stale entries on toJSON() serialization', () => {
+      const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
+      try {
+        const world = World.fromPath(worldPath);
+        world.registerEntity(MockEntity);
+
+        const m1 = world.entityList(MockEntity).addItem({ name: 'mock1' });
+        const m2 = world.entityList(MockEntity).addItem({ name: 'mock2' });
+
+        world.focusForma(m1);
+        world.focusForma(m2);
+
+        // Delete m1's file
+        const m1FilePath = path.join(worldPath, 'mock', `${m1.id.base64}.json`);
+        fs.unlinkSync(m1FilePath);
+
+        // Serialize — should clean stale entries
+        const json = world.toJSON();
+        expect(json.focusStack.length).toBe(1);
+        expect(json.focusStack[0].formaId).toBe(m2.id.toString());
+      } finally {
+        fs.rmSync(worldPath, { recursive: true, force: true });
+      }
+    });
+  });
 });

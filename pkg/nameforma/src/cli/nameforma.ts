@@ -162,7 +162,7 @@ ReferenceCommand.registerCommand(referenceCmd);
 // Watch command
 const watchCmd = program
   .command('watch')
-  .description('Watch focused task file and rerun task show when it changes');
+  .description('Watch focused task file and rerun task get when it changes');
 
 WatchCommand.registerCommand(watchCmd);
 

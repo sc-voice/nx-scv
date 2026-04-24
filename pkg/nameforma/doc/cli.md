@@ -61,11 +61,11 @@ List all tasks created in current session.
 nameforma task list
 ```
 
-#### task show
+#### task get
 Show details of a specific task.
 
 ```bash
-nameforma task show <task-id>
+nameforma task get <task-id>
 ```
 
 #### task update

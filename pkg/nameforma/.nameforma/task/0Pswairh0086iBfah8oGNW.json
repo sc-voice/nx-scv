@@ -1,0 +1,72 @@
+{
+  "id": "0Pswairh0086iBfah8oGNW",
+  "name": "cli-watch should watch world",
+  "summary": "Watch both world.json (focus changes) and current task file (task updates)",
+  "rawActions": [
+    {
+      "id": "0Pswak7J0086iBfah8oGNW",
+      "name": "Understand watch design: dual file monitoring",
+      "summary": "World storage: .nameforma/{entity}/{id}.json (not single world.json). Task files at .nameforma/task/{id}.json. Focus info in world object loaded from worldPath. Study World.fromPath(), world.focusedForma('task'). Understand that focus changes require reloading world. TEST: None needed, architecture study only.",
+      "status": "done",
+      "statusNote": "done: completed"
+    },
+    {
+      "id": "0Pswakrj0086iBfah8oGNW",
+      "name": "Refactor WatchCommand.action() to track both files",
+      "summary": "In WatchCommand.action() line 56-120: (1) Track both world.json and task file mtimes: const mtimes = { world: 0, task: 0 }; (2) In watchInterval (500ms), stat both files; (3) If world.json changed: reload via World.fromPath(worldPath), get new focus via world.focusedForma('task'), check if focus changed; (4) If task file changed: reload task via world.loadEntity(Task, id), display. TEST: Create /tmp/.nameforma world with test task files. Run watch against /tmp, verify both files' mtime tracked independently.",
+      "status": "done",
+      "statusNote": "done: completed"
+    },
+    {
+      "id": "0PswalS50086iBfah8oGNW",
+      "name": "Detect focus changes from world.json",
+      "summary": "In watchInterval when world.json changes: (1) Reload world = World.fromPath(worldPath); (2) Get newFocus = world.focusedForma('task'); (3) If newFocus.formaId !== oldTaskId: switch watchers - update taskFilePath to .nameforma/task/{newFocus.formaId.base64}.json, reset taskMtime, reload reloadedTask = world.loadEntity(Task, newFocus.formaId), display new task. Handle gracefully if newFocus is null. TEST: Create /tmp world with 2 test tasks. Start watch on task A. Modify /tmp/.nameforma/world.json focusStack to add new Focus for task B. Verify watch switches to task B and displays it.",
+      "status": "done",
+      "statusNote": "done: completed"
+    },
+    {
+      "id": "0Pswam8i0086iBfah8oGNW",
+      "name": "Update cleanup logic for dual watchers",
+      "summary": "Store watchInterval ID. In cleanup function: clearInterval(watchInterval). Ensure called on SIGINT, 'q'/'Q' key, ESC (code 27). TEST: Create /tmp world. Run watch against /tmp, send SIGINT/press q key. Verify clean exit: no error, no orphaned watch process. Run multiple times to verify no accumulating intervals.",
+      "status": "done",
+      "statusNote": "done: completed"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PswanMA0086iBfah8oGNW",
+      "name": "src/cli/cli-watch.ts",
+      "summary": "Current watch implementation. Lines 75-95 watch only task file. Need to expand to also watch world.json and handle focus changes.",
+      "relevance": 1,
+      "source": ""
+    },
+    {
+      "id": "0Pswany80086iBfah8oGNW",
+      "name": "src/world.ts lines 17-26",
+      "summary": "Storage structure: .nameforma/{entity}/{id}.json. World listens to FormaList mutations and persists to disk.",
+      "relevance": 0.9,
+      "source": ""
+    },
+    {
+      "id": "0PswaoYN0086iBfah8oGNW",
+      "name": "TaskCommand.resolveTask()",
+      "summary": "Line 58 of cli-watch.ts shows how to resolve focused task. Use this pattern to reload after focus detection.",
+      "relevance": 0.8,
+      "source": ""
+    },
+    {
+      "id": "0PswdCtf0086iBfah8oGNW",
+      "name": "World.fromPath() and focusedForma()",
+      "summary": "Line 599: World.fromPath(worldPath) loads world.json and returns World with focusStack. Line 572: focusedForma(formaType) returns most recent Focus entry. Line 646-648: toJSON() serializes focusStack to world.json.",
+      "relevance": 1,
+      "source": ""
+    },
+    {
+      "id": "0PswdDdI0086iBfah8oGNW",
+      "name": "Focus class structure",
+      "summary": "focus.ts: Focus has formaId (UUID64 of entity being focused) and formaType (e.g. 'task'). When user changes focus, a new Focus is added to focusStack in world.json.",
+      "relevance": 0.95,
+      "source": ""
+    }
+  ]
+}

@@ -52,27 +52,48 @@ export default class FocusCommand {
    * @param {Command} cmd - Commander command object
    */
   static registerCommand(cmd: any) {
+    const helpText = [
+      'For detailed subcommand help:',
+      '  $ nameforma focus help <subcommand>',
+      '',
+      'Subcommands:',
+      '  get     - List focus stack',
+    ].join('\n');
+    cmd.addHelpText('after', '\n' + helpText);
+
     // Add global -w/--world option
     cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
     cmd.option('-u, --unfocus', 'Remove entity from focus stack instead of adding');
 
-    // focus [id] - with optional id argument
+    // Default action: focus/unfocus with ID or list stack
     cmd
       .argument('[id]', 'Forma ID to focus/unfocus (optional)')
-      .description('Set focus on a forma by ID, unfocus with -u, or list focus stack if no ID specified')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nameforma focus abc123def456',
-        '  $ nameforma focus -u abc123def456',
-        '  $ nameforma focus',
-      ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = FocusCommand.getWorld(cmd.optsWithGlobals());
         const opts = cmd.optsWithGlobals();
 
-        // If no ID provided, list the focus stack
+        // If no ID provided
         if (!id) {
+          // If -u flag is set, unfocus the most recent task
+          if (opts.unfocus) {
+            const stack = world.focusStack;
+            if (stack.size === 0) {
+              console.log('Focus stack is empty');
+              return;
+            }
+
+            const mostRecentFocus = Array.from(stack)[0];
+            world.unfocusForma({ id: mostRecentFocus.formaId });
+            world.save();
+            console.log(`✓ Unfocused: ${mostRecentFocus.formaId}`);
+            if (mostRecentFocus.name) {
+              console.log(`  name: ${mostRecentFocus.name}`);
+            }
+            console.log(`  type: ${mostRecentFocus.formaType}`);
+            return;
+          }
+
+          // Otherwise, list the focus stack
           const stack = world.focusStack;
           if (stack.size === 0) {
             console.log('Focus stack is empty');
@@ -83,7 +104,7 @@ export default class FocusCommand {
           return;
         }
 
-        // Otherwise, focus or unfocus the specified forma
+        // Focus or unfocus the specified forma
         const forma = FocusCommand.findForma(world, id);
         if (!forma) {
           throw new Error(`Forma not found: ${id}`);
@@ -112,6 +133,26 @@ export default class FocusCommand {
           console.log(`  type: ${formaType}`);
           console.log(`  order: 0 (most recent)`);
         }
+      });
+
+    // focus get - list focus stack
+    cmd
+      .command('get')
+      .description('List focus stack')
+      .addHelpText('after', [
+        '',
+        'Examples:',
+        '  $ nameforma focus get',
+      ].join('\n'))
+      .action((options: any, cmd: any) => {
+        const world = FocusCommand.getWorld(cmd.parent.optsWithGlobals());
+        const stack = world.focusStack;
+        if (stack.size === 0) {
+          console.log('Focus stack is empty');
+          return;
+        }
+
+        new TuiList(stack, world, { title: 'Focus Stack' }).render();
       });
   }
 }

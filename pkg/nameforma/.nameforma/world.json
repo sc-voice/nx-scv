@@ -1,27 +1,6 @@
 {
   "focusStack": [
     {
-      "id": "0PrpNal500UH5MLtxLM3dW",
-      "formaId": "0Pro6cxq00UH5MLtxLM3dW",
-      "formaType": "task",
-      "name": "nimble bunny",
-      "summary": "jumps around the lawn"
-    },
-    {
-      "id": "0PruJ52z00jM-8ABQ89VNW",
-      "formaId": "0PruGPHr00jM-8ABQ89VNW",
-      "formaType": "task",
-      "name": "Test Primary",
-      "summary": "Task?"
-    },
-    {
-      "id": "0Ps1Nh5A00LG4Y1m9HFjNW",
-      "formaId": "0PrlSoX100LG4Y1m9HFjNW",
-      "formaType": "task",
-      "name": "blueberry muffins",
-      "summary": "a tasty treat"
-    },
-    {
       "id": "0PsDM9K600KRlSev9jbr7W",
       "formaId": "0PsCPK3s00KRlSev9jbr7W",
       "formaType": "task",
@@ -36,18 +15,18 @@
       "summary": "Implement persistent world preferences system: Create Preferences class (schema/defaults, verbosity default 0), add to World, serialize in world.json, add --verbosity global option (persists), create cli-pref.ts (nf pref list, nf pref reset verbosity, nf pref reset --all), filter task list (hide done unless verbosity>=1)"
     },
     {
-      "id": "0Psc4_FO00IV81oZcAqc7W",
-      "formaId": "0Psc4Oom00IV81oZcAqc7W",
-      "formaType": "task",
-      "name": "nf task show colors",
-      "summary": "done: bright green; test: green; manage: bright red; req: magenta; spec: blue\n"
-    },
-    {
       "id": "0Psl-JV800DeWndaVJR47W",
       "formaId": "0PsCLsy600DeWndaVJR47W",
       "formaType": "task",
       "name": "cli-actionCRUD",
       "summary": "cli action subcommands for: put, set, delete, patch. where patch/put take JSON strings"
+    },
+    {
+      "id": "0PswlcDr00eWafdqOwTsdW",
+      "formaId": "0PswjWQm00eWafdqOwTsdW",
+      "formaType": "task",
+      "name": "Verify unfocus works before claiming done",
+      "summary": ""
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

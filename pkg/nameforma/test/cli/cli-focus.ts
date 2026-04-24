@@ -395,6 +395,75 @@ describe('CLI: focus command', () => {
     expect(task2Found).toBe(false);
   });
 
+  it('focus get: should list focus stack', async () => {
+    const world = World.fromPath(tempWorld.worldPath);
+    world.registerEntity(Task);
+    const taskList = world.entityList(Task);
+    const task1 = taskList.addItem({ name: 'Task Alpha' });
+    const task2 = taskList.addItem({ name: 'Task Beta' });
+
+    world.focusForma(task1);
+    world.focusForma(task2);
+    world.save();
+
+    output = [];
+
+    await program.parseAsync([
+      'node', 'test', 'focus', '-w', tempWorld.worldPath, 'get',
+    ]);
+
+    expect(output[0]).toMatch(/Focus Stack \(\d+\):/);
+    const outputText = output.join('\n');
+    expect(outputText).toContain('Task Alpha');
+    expect(outputText).toContain('Task Beta');
+  });
+
+  it('focus get: should show empty message when stack is empty', async () => {
+    output = [];
+
+    await program.parseAsync([
+      'node', 'test', 'focus', '-w', tempWorld.worldPath, 'get',
+    ]);
+
+    expect(output[0]).toBe('Focus stack is empty');
+  });
+
+  it('focus -u without ID: should unfocus most recent task', async () => {
+    const world = World.fromPath(tempWorld.worldPath);
+    world.registerEntity(Task);
+    const taskList = world.entityList(Task);
+    const task1 = taskList.addItem({ name: 'Task 1' });
+    const task2 = taskList.addItem({ name: 'Task 2' });
+
+    world.focusForma(task2);
+    world.focusForma(task1);
+    world.save();
+
+    output = [];
+
+    await program.parseAsync([
+      'node', 'test', 'focus', '-w', tempWorld.worldPath, '-u',
+    ]);
+
+    expect(output[0]).toMatch(/✓ Unfocused:/);
+
+    const world2 = World.fromPath(tempWorld.worldPath);
+    world2.registerEntity(Task);
+    expect(world2.focusStack.size).toBe(1);
+    const focusItems = Array.from(world2.focusStack);
+    expect(focusItems[0].formaId.base64).toBe(task2.id.base64);
+  });
+
+  it('focus -u without ID: should show empty message when stack is empty', async () => {
+    output = [];
+
+    await program.parseAsync([
+      'node', 'test', 'focus', '-w', tempWorld.worldPath, '-u',
+    ]);
+
+    expect(output[0]).toBe('Focus stack is empty');
+  });
+
   it('should unfocus specified entity by itemListId, not unfocus the top', async () => {
     // Create and focus multiple tasks
     const world = World.fromPath(tempWorld.worldPath);

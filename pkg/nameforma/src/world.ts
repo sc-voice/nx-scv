@@ -591,6 +591,29 @@ export class World extends Identifiable implements IEventBus {
   }
 
   /**
+   * Remove stale entries from focusStack where backing entity no longer exists
+   * @returns {boolean} - true if any entries were removed, false otherwise
+   */
+  validate(): boolean {
+    const before = Array.from(this.#focusStack);
+    const valid = before.filter((focus) => {
+      try {
+        const EntityClass = this.entityClassOfName(focus.formaType);
+        if (!EntityClass) return false;
+        return this.loadEntity(EntityClass, focus.formaId) !== null;
+      } catch {
+        return false;
+      }
+    });
+    if (valid.length === before.length) return false;
+    this.#focusStack = new FormaList<Focus>(valid, Focus as any, undefined, undefined, 'formaId');
+    if (before.length - valid.length > 0) {
+      console.warn(`Cleaned ${before.length - valid.length} stale focus entries`);
+    }
+    return true;
+  }
+
+  /**
    * Load or create World from path
    * Reads .nameforma/world.json if exists, otherwise creates new World
    * @param {string} worldPath - Path to .nameforma/ directory
@@ -642,6 +665,7 @@ export class World extends Identifiable implements IEventBus {
    * @returns {object} - JSON representation
    */
   toJSON(): any {
+    this.validate();
     return {
       focusStack: Array.from(this.#focusStack).map(f => ({
         id: f.id.toString(),
