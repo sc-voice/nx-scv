@@ -67,7 +67,7 @@ export default class TaskCommand {
    * Display task details (ID, name, progress, summary, actions, references)
    * @param {World} world - World instance
    * @param {Task} task - Task to display
-   * @param {number} verbosity - Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default)
+   * @param {number} verbosity - Verbosity level: <0=minimal, 0=moderate, 1=4-line actions, 2=full actions, 3=view all
    */
   static displayTask(world: World, task: Task, verbosity: number = 0): void {
     const actions = task.actions(world);
@@ -97,8 +97,8 @@ export default class TaskCommand {
     if (task.rawActions.length > 0) {
       const tui = new TuiList(actions, world, { maxWidth: 74 });
       console.log(`  actions (${task.rawActions.length}):`);
-      // Unified verbosity: 1=full, 0=2-line, <0=1-line
-      const maxActionLines = verbosity === 1 ? undefined : (verbosity === 0 ? 2 : 1);
+      // verbosity: <0=1-line, 0=2-line, 1=4-line, 2+=full
+      const maxActionLines = verbosity < 0 ? 1 : (verbosity === 0 ? 2 : (verbosity === 1 ? 4 : undefined));
       task.rawActions.forEach((action) => {
         const itemId = actions.itemListId(action) + ':';
         const line = action.listItemString({ itemId });
@@ -107,16 +107,16 @@ export default class TaskCommand {
       });
     }
 
-    // Handle references based on unified verbosity level
-    // 1: full (multi-line), 0: single-line, <0: omit
-    if (task.rawReferences.length > 0 && verbosity >= 0) {
+    // Handle references based on verbosity level
+    // verbosity 3: show all (multi-line); verbosity 1-2: 1-line; <1: omit
+    if (task.rawReferences.length > 0 && verbosity >= 1) {
       const tui = new TuiList(references, world, { maxWidth: 74 });
       console.log(`  references (${task.rawReferences.length}):`);
       references.sort((a, b) => b.relevance - a.relevance);
       task.rawReferences.forEach((reference) => {
         const itemId = references.itemListId(reference) + ':';
         const line = reference.listItemString({ itemId });
-        const maxLines = verbosity === 0 ? 1 : undefined;
+        const maxLines = verbosity === 3 ? undefined : 1;
         const wrapped = tui.wrapAndTruncate(line, 74, maxLines, 'ellipsis', itemId.length + 1);
         wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
       });
@@ -176,14 +176,14 @@ export default class TaskCommand {
     // Add help text for the task command
     const helpText = [
       'For detailed subcommand help:',
-      '  $ nameforma task help <subcommand>',
+      '  $ nameforma --help <subcommand>',
       '',
-      '  Subcommands:',
-      '  add     - Add a new task',
-      '  list    - List all tasks',
-      '  get     - Get task details',
-      '  update  - Update a task',
-      '  delete  - Delete a task',
+      'Subcommands:',
+      '  task add     - Add a new task',
+      '  task list    - List all tasks',
+      '  task get     - Get task details',
+      '  task set     - Set a task field',
+      '  task delete  - Delete a task',
     ].join('\n');
     cmd.addHelpText('after', '\n' + helpText);
 
@@ -200,17 +200,16 @@ export default class TaskCommand {
 
     // task add
     cmd
-      .command('add <name>')
-      .description('Add a new task')
+      .command('add <name> [summary]')
+      .description('Add a new, unfocused task')
       .addHelpText('after', [
         '',
         'Examples:',
         '  $ nameforma task add "My Task"',
-        '  $ nameforma task add "Fix bug" -s "Description"',
+        '  $ nameforma task add "My Task" "Optional description"',
       ].join('\n'))
-      .option('-s, --summary <summary>', 'Task summary')
       .option('-r, --related <fuzzy-id>', 'Create task related to another task by ID')
-      .action((name: string, options: any, cmd: any) => {
+      .action((name: string, summary: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
 
@@ -218,8 +217,8 @@ export default class TaskCommand {
           name: name,
         };
 
-        if (options.summary) {
-          taskConfig.summary = options.summary;
+        if (summary) {
+          taskConfig.summary = summary;
         }
 
         if (options.related) {
@@ -254,45 +253,74 @@ export default class TaskCommand {
     cmd
       .command('get [id]')
       .description('Get task details')
+      .option('--json', 'Output as JSON')
       .addHelpText('after', [
         '',
         'Examples:',
         '  $ nameforma task get abc123def456',
         '  $ nameforma task get  (gets focused task)',
+        '  $ nameforma task get --json (output as JSON)',
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = TaskCommand.resolveTask(world, id);
+
+        if (options.json) {
+          console.log(JSON.stringify(task, null, 2));
+          return;
+        }
+
         const verbosity = parseInt(cmd.parent.optsWithGlobals().verbose || '0', 10);
         TaskCommand.displayTask(world, task, verbosity);
       });
 
-    // task update
+    // task set
     cmd
-      .command('update [id]')
-      .description('Update a task')
+      .command('set <dotref> <value...>')
+      .description('Set a task field')
       .addHelpText('after', [
         '',
         'Examples:',
-        '  $ nameforma task update abc123def456 -n "New name"',
-        '  $ nameforma task update -n "New name"  (updates focused task)',
+        '  $ nameforma task set name "New Task Name"',
+        '  $ nameforma task set summary "New description"',
+        '  $ nameforma task set abc123.name "Specific Task"',
+        '  $ nameforma task set abc123.summary "Task description"',
       ].join('\n'))
-      .option('-n, --name <name>', 'Update task name')
-      .option('-s, --summary <summary>', 'Update task summary')
-      .action((id: string | undefined, options: any, cmd: any) => {
+      .action((dotref: string, values: string[], options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
         const f7t = world.entityList(Task);
 
-        const task = TaskCommand.resolveTask(world, id);
+        // Parse dotref: [<taskId>].field or just field
+        let taskId: string | undefined;
+        let field: string;
 
+        if (dotref.includes('.')) {
+          const parts = dotref.split('.');
+          taskId = parts[0] || undefined;
+          field = parts[1];
+        } else {
+          field = dotref;
+        }
+
+        // Validate field
+        if (!['name', 'summary'].includes(field)) {
+          throw new Error(`Invalid field: ${field}. Allowed: name, summary`);
+        }
+
+        // Get value and strip line breaks
+        const value = values.join(' ').replace(/\n/g, ' ').trim();
+
+        // Validate name field
+        if (field === 'name' && !value) {
+          throw new Error('Task name cannot be blank');
+        }
+
+        // Resolve task
+        const task = TaskCommand.resolveTask(world, taskId);
+
+        // Update task
         const updates: any = {};
-        if (options.name) {
-          updates.name = options.name;
-        }
-        if (options.summary) {
-          updates.summary = options.summary;
-        }
-
+        updates[field] = value;
         f7t.patchItem(task.id.base64, updates);
         const updated = f7t.getItem(task.id.base64);
 

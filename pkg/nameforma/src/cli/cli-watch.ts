@@ -9,6 +9,7 @@ import { World } from '../world.js';
 import { Task } from '../task.js';
 import TaskCommand from './cli-task.js';
 import { TuiList } from './tui-list.js';
+import { Unicode } from '@sc-voice/tools/text';
 
 export default class WatchCommand {
   /**
@@ -35,6 +36,34 @@ export default class WatchCommand {
     return World.fromPath(worldPath);
   }
 
+  static displayStatusLine(verbosity: number): void {
+    const { BRIGHT_CYAN } = Unicode.LINUX_COLOR;
+    const { RESET } = Unicode.LINUX_STYLE;
+    const verbLabel = verbosity === 0 ? 'verbosity' : (verbosity > 0 ? `verbosity+${verbosity}` : `verbosity${verbosity}`);
+    const keys = [
+      'q:quit',
+      'h:help',
+      `+/-:${verbLabel}`
+    ];
+    const statusLine = `[ ${keys.join(' | ')} ]`;
+    const cols = process.stdout.columns || 80;
+    const padding = Math.max(0, cols - statusLine.length);
+    process.stdout.write(`\x1b[${process.stdout.rows};H`); // Move to last line
+    process.stdout.write('\x1b[K'); // Clear line
+    process.stdout.write(`${BRIGHT_CYAN}${statusLine}${RESET}`);
+  }
+
+  static displayHelp(): void {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('Available Keys:');
+    console.log('  q / Q / ESC         Quit watch mode');
+    console.log('  h                   Show this help');
+    console.log('  space               Refresh display');
+    console.log('  + / → (right)       Increase verbosity level');
+    console.log('  - / ← (left)        Decrease verbosity level');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  }
+
   /**
    * Register watch command
    * @param {Command} cmd - Commander command object
@@ -56,7 +85,7 @@ export default class WatchCommand {
       .action((id: string | undefined, options: any, cmd: any) => {
         let world = WatchCommand.getWorld(cmd.optsWithGlobals());
         let task = TaskCommand.resolveTask(world, id);
-        const verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
+        let verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
         const worldPath = (world as any).worldPath || path.join(process.cwd(), '.nameforma');
         const worldFilePath = path.join(worldPath, 'world.json');
         let taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
@@ -67,10 +96,11 @@ export default class WatchCommand {
 
         console.log(`🔍 Watching task: ${task.id}`);
         console.log(`📁 File: ${taskFilePath}`);
-        console.log(`Press Ctrl+C, q, or ESC to stop\n`);
+        console.log(`Press h for help\n`);
 
         // Display initial state
         TaskCommand.displayTask(world, task, verbosity);
+        WatchCommand.displayStatusLine(verbosity);
 
         // Track mtimes for both world.json and task file
         let mtimes = {
@@ -111,6 +141,7 @@ export default class WatchCommand {
                     }
 
                     TaskCommand.displayTask(world, task, verbosity);
+                    WatchCommand.displayStatusLine(verbosity);
                   }
                 }
               }
@@ -127,8 +158,10 @@ export default class WatchCommand {
                 // Reload task from disk
                 const reloadedTask = world.loadEntity(Task, task.id.base64);
                 if (reloadedTask) {
+                  task = reloadedTask;
                   console.log('\n━'.repeat(74) + '\n');
-                  TaskCommand.displayTask(world, reloadedTask, verbosity);
+                  TaskCommand.displayTask(world, task, verbosity);
+                  WatchCommand.displayStatusLine(verbosity);
                 }
               }
             }
@@ -150,13 +183,34 @@ export default class WatchCommand {
         // Handle Ctrl+C
         process.on('SIGINT', cleanup);
 
-        // Handle q and ESC key presses
+        // Handle key presses
         if (process.stdin.isTTY) {
           process.stdin.setRawMode(true);
           process.stdin.on('data', (key: Buffer) => {
             const char = key.toString();
-            if (char === 'q' || char === 'Q' || key[0] === 27) { // 27 is ESC
+            // Check for arrow keys (multi-byte sequences)
+            const isRightArrow = key.length === 3 && key[0] === 27 && key[1] === 91 && key[2] === 67;
+            const isLeftArrow = key.length === 3 && key[0] === 27 && key[1] === 91 && key[2] === 68;
+
+            if (char === 'q' || char === 'Q' || (key[0] === 27 && !isRightArrow && !isLeftArrow)) { // 27 is ESC (but not arrow)
               cleanup();
+            } else if (char === 'h' || char === 'H') {
+              WatchCommand.displayHelp();
+              WatchCommand.displayStatusLine(verbosity);
+            } else if (char === ' ') {
+              console.log('\n━'.repeat(74) + '\n');
+              TaskCommand.displayTask(world, task, verbosity);
+              WatchCommand.displayStatusLine(verbosity);
+            } else if (char === '+' || char === '=' || isRightArrow) {
+              verbosity = Math.min(3, verbosity + 1);
+              console.log('\n━'.repeat(74) + '\n');
+              TaskCommand.displayTask(world, task, verbosity);
+              WatchCommand.displayStatusLine(verbosity);
+            } else if (char === '-' || char === '_' || isLeftArrow) {
+              verbosity = Math.max(0, verbosity - 1);
+              console.log('\n━'.repeat(74) + '\n');
+              TaskCommand.displayTask(world, task, verbosity);
+              WatchCommand.displayStatusLine(verbosity);
             }
           });
         }

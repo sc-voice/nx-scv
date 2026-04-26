@@ -5,14 +5,14 @@ import fs from 'fs';
 import path from 'path';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
+import { CLI } from '../../src/cli/nameforma.js';
 import { World } from '../../src/world.js';
 import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers';
 
 const { Task, Rational } = NameForma;
 
 describe('CLI: task command', () => {
-  let program;
-  let taskCmd;
+  let cli;
   let output;
   let errors;
   let originalLog;
@@ -38,10 +38,8 @@ describe('CLI: task command', () => {
       errors.push(args.join(' '));
     };
 
-    // Setup commander program
-    program = new Command();
-    taskCmd = program.command('task');
-    TaskCommand.registerCommand(taskCmd);
+    // Create CLI instance
+    cli = new CLI();
   });
 
   afterEach(() => {
@@ -51,7 +49,7 @@ describe('CLI: task command', () => {
   });
 
   it('create task with title', async () => {
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -69,7 +67,7 @@ describe('CLI: task command', () => {
 
   it('create task related to another task', async () => {
     // Create primary task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -88,7 +86,7 @@ describe('CLI: task command', () => {
 
     // Create related task using partial fuzzy ID
     const partialId = primaryId?.substring(0, 8);
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -113,7 +111,7 @@ describe('CLI: task command', () => {
   });
 
   it('list tasks when empty', async () => {
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+    await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toBe('No tasks');
@@ -121,7 +119,7 @@ describe('CLI: task command', () => {
 
   it('list tasks after creation', async () => {
     // Create a task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -134,7 +132,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // List tasks
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+    await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Tasks \(\d+\):/);
@@ -143,7 +141,7 @@ describe('CLI: task command', () => {
 
   it('show task details', async () => {
     // Create a task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -163,7 +161,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Show the task
-    await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
+    await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Task:/);
@@ -173,7 +171,7 @@ describe('CLI: task command', () => {
   describe('delete command', () => {
     it('delete task with partial fuzzy ID using --force', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -193,7 +191,7 @@ describe('CLI: task command', () => {
 
       // Delete using partial fuzzy ID (first 8 chars) with --force
       const partialId = taskId?.substring(0, 8);
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', partialId, '--force']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', partialId, '--force']);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/✓ Task deleted:/);
@@ -202,7 +200,7 @@ describe('CLI: task command', () => {
 
     it('delete task with exact full ID using --force', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -221,7 +219,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete using exact full ID with --force
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/✓ Task deleted:/);
@@ -230,7 +228,7 @@ describe('CLI: task command', () => {
 
     it('delete task then verify not in list', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -247,19 +245,19 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete the task with --force
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       output.length = 0;
 
       // List tasks
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
 
       expect(output[0]).toBe('No tasks');
     });
 
     it('delete task then verify cannot show', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -276,13 +274,13 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete the task with --force
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       output.length = 0;
 
       // Try to show deleted task - should fail
       await expect(
-        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId])
+        cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId])
       ).rejects.toThrow(/Task not found/);
     });
 
@@ -291,7 +289,7 @@ describe('CLI: task command', () => {
       const taskIds: (string | null)[] = [];
 
       for (let i = 1; i <= 3; i++) {
-        await program.parseAsync([
+        await cli.parseArgv([
           'node',
           'test',
           'task',
@@ -310,14 +308,14 @@ describe('CLI: task command', () => {
       expect(countTasks(tempWorld.worldPath)).toBe(3);
 
       // Delete the second task with --force
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskIds[1], '--force']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskIds[1], '--force']);
 
       expect(countTasks(tempWorld.worldPath)).toBe(2);
 
       output.length = 0;
 
       // List remaining tasks
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
 
       const listOutput = output.join('\n');
       expect(listOutput).toMatch(/Task 1/);
@@ -330,7 +328,7 @@ describe('CLI: task command', () => {
       const taskIds: (string | null)[] = [];
 
       for (let i = 1; i <= 2; i++) {
-        await program.parseAsync([
+        await cli.parseArgv([
           'node',
           'test',
           'task',
@@ -350,7 +348,7 @@ describe('CLI: task command', () => {
 
       // Try to delete with very short ID that matches both - should throw ambiguous error (with --force)
       await expect(
-        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', '0', '--force'])
+        cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', '0', '--force'])
       ).rejects.toThrow(/ambiguous match/);
 
       // Verify both tasks still exist
@@ -359,7 +357,7 @@ describe('CLI: task command', () => {
 
     it('delete task shows correct ID in output', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -376,7 +374,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete the task with --force
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
 
       // Verify output shows the full task ID, not the search string
       expect(output[0]).toContain(`✓ Task deleted: ${taskId}`);
@@ -385,7 +383,7 @@ describe('CLI: task command', () => {
 
   it('show non-existent task returns error', async () => {
     await expect(
-      program.parseAsync([
+      cli.parseArgv([
         'node',
         'test',
         'task',
@@ -399,7 +397,7 @@ describe('CLI: task command', () => {
 
   it('show task displays references', async () => {
     // Create a task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -438,7 +436,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Show the task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -450,19 +448,15 @@ describe('CLI: task command', () => {
 
     const showOutput = output.join('\n');
 
-    // Verify references are displayed
-    expect(showOutput).toMatch(/references \(2\)/);
-    expect(showOutput).toMatch(/Reference 1/);
-    expect(showOutput).toMatch(/First reference/);
-    expect(showOutput).toMatch(/0\.9/);
-    expect(showOutput).toMatch(/Reference 2/);
-    expect(showOutput).toMatch(/Second reference/);
-    expect(showOutput).toMatch(/0\.7/);
+    // At verbosity 0, references are not displayed
+    expect(showOutput).not.toMatch(/references \(2\)/);
+    // But actions should be displayed
+    expect(showOutput).toMatch(/Task with References/);
   });
 
   it('show task with no references does not display references section', async () => {
     // Create a task without references
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -479,7 +473,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Show the task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -497,7 +491,7 @@ describe('CLI: task command', () => {
 
   it('show task displays references sorted by relevance descending', async () => {
     // Create a task
-    await program.parseAsync([
+    await cli.parseArgv([
       'node',
       'test',
       'task',
@@ -540,10 +534,12 @@ describe('CLI: task command', () => {
 
     output.length = 0;
 
-    // Show the task
-    await program.parseAsync([
+    // Show the task with verbosity 1 to display references
+    await cli.parseArgv([
       'node',
       'test',
+      '-v',
+      '1',
       'task',
       '-w',
       tempWorld.worldPath,
@@ -567,74 +563,10 @@ describe('CLI: task command', () => {
     expect(lowIdx).toBeGreaterThan(-1);
   });
 
-  it('update task with name and summary', async () => {
-    // Create a task first
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Original Name',
-    ]);
-
-    output.length = 0;
-
-    // Get the task ID from list
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'list',
-    ]);
-
-    const listOutput = output.join('\n');
-    const idMatch = listOutput.match(/([A-Za-z0-9_-]+).*Original/);
-    const taskId = idMatch ? idMatch[1] : null;
-    expect(taskId).not.toBeNull();
-
-    output.length = 0;
-
-    // Update name and summary
-    await program.parseAsync([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'update',
-      taskId,
-      '-n',
-      'Updated Name',
-      '-s',
-      'New Summary',
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/✓ Task updated:/);
-    expect(output[1]).toMatch(/Updated Name/);
-  });
-
-  it('update non-existent task returns error', async () => {
-    await expect(
-      program.parseAsync([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'update',
-        'nonexistent',
-      ])
-    ).rejects.toThrow(/Task not found/);
-  });
 
   it('delete non-existent task returns error', async () => {
     await expect(
-      program.parseAsync([
+      cli.parseArgv([
         'node',
         'test',
         'task',
@@ -650,7 +582,7 @@ describe('CLI: task command', () => {
   describe('optional ID with focus fallback', () => {
     it('show task without ID uses focused task', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -675,7 +607,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show without ID - should use focused task
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get']);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/Task:/);
@@ -685,13 +617,13 @@ describe('CLI: task command', () => {
 
     it('show without ID returns error when no task focused', async () => {
       await expect(
-        program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get'])
+        cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get'])
       ).rejects.toThrow(/No task focused|Task not found/);
     });
 
     it('show displays all actions in task', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -719,7 +651,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show task - should display all actions
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
 
       const showOutput = output.join('\n');
       expect(showOutput).toMatch(/Task:/);
@@ -732,7 +664,7 @@ describe('CLI: task command', () => {
 
     it('show task displays progress line with percentage', async () => {
       // Create task with actions
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -757,7 +689,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show task - should display progress
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
 
       const showOutput = output.join('\n');
       // Progress line includes ANSI color codes, so use flexible regex
@@ -766,7 +698,7 @@ describe('CLI: task command', () => {
 
     it('list tasks displays progress percentage', async () => {
       // Create task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -785,57 +717,15 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // List tasks - should show progress percentage
-      await program.parseAsync(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
 
       const listOutput = output.join('\n');
       expect(listOutput).toMatch(/\d+%/);
     });
 
-    it('update task without ID uses focused task', async () => {
-      // Create a task
-      await program.parseAsync([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'add',
-        'Update Me',
-      ]);
-
-      const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-      const taskId = idMatch ? idMatch[1] : null;
-      expect(taskId).not.toBeNull();
-
-      // Focus the task
-      const world = World.fromPath(tempWorld.worldPath);
-      const task = world.loadFuzzy(Task, taskId!);
-      world.focusForma(task!);
-      world.save();
-
-      output.length = 0;
-
-      // Update without ID - should use focused task
-      await program.parseAsync([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'update',
-        '-n',
-        'Updated Name',
-      ]);
-
-      expect(output.length).toBeGreaterThan(0);
-      expect(output[0]).toMatch(/✓ Task updated:/);
-      expect(output[1]).toMatch(/Updated Name/);
-    });
-
     it('delete task without ID uses focused task', async () => {
       // Create a task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -859,7 +749,7 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete without ID using --force - should use focused task
-      await program.parseAsync([
+      await cli.parseArgv([
         'node',
         'test',
         'task',
@@ -872,6 +762,309 @@ describe('CLI: task command', () => {
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/✓ Task deleted:/);
       expect(countTasks(tempWorld.worldPath)).toBe(0);
+    });
+  });
+
+  describe('set command', () => {
+    it('set name on focused task', async () => {
+      // Create and focus a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Original Name',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Set name without taskId
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'set',
+        'name',
+        'Updated Name',
+      ]);
+
+      expect(output[0]).toMatch(/✓ Task updated:/);
+      expect(output[1]).toMatch(/Updated Name/);
+    });
+
+    it('set summary on focused task', async () => {
+      // Create and focus a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Test Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Set summary
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'set',
+        'summary',
+        'New description',
+      ]);
+
+      expect(output[0]).toMatch(/✓ Task updated:/);
+    });
+
+    it('set field on specific task with taskId', async () => {
+      // Create a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Target Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      output.length = 0;
+
+      // Set using dotRef syntax with taskId
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'set',
+        `${taskId}.name`,
+        'Changed Name',
+      ]);
+
+      expect(output[0]).toMatch(/✓ Task updated:/);
+      expect(output[1]).toMatch(/Changed Name/);
+    });
+
+    it('set rejects empty name', async () => {
+      // Create and focus a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Test Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Try to set empty name
+      await expect(
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'set',
+          'name',
+          '',
+        ])
+      ).rejects.toThrow(/Task name cannot be blank/);
+    });
+
+    it('set rejects invalid field', async () => {
+      // Create and focus a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Test Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Try to set invalid field
+      await expect(
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'set',
+          'invalid',
+          'value',
+        ])
+      ).rejects.toThrow(/Invalid field: invalid/);
+    });
+
+    it('set strips line breaks from value', async () => {
+      // Create and focus a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Test Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Set value with line breaks (simulated as separate args which get joined)
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'set',
+        'summary',
+        'Line 1\nLine 2\nLine 3',
+      ]);
+
+      expect(output[0]).toMatch(/✓ Task updated:/);
+
+      // Verify line breaks were stripped
+      const world2 = World.fromPath(tempWorld.worldPath);
+      const updated = world2.loadFuzzy(Task, taskId!);
+      expect(updated?.summary).not.toContain('\n');
+      expect(updated?.summary).toMatch(/Line 1.*Line 2.*Line 3/);
+    });
+
+    it('set allows multi-word values', async () => {
+      // Create and focus a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Test Task',
+      ]);
+
+      const createOutput = output.join('\n');
+      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+      const taskId = idMatch ? idMatch[1] : null;
+
+      const world = World.fromPath(tempWorld.worldPath);
+      const task = world.loadFuzzy(Task, taskId!);
+      world.focusForma(task!);
+      world.save();
+
+      output.length = 0;
+
+      // Set multi-word value
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'set',
+        'name',
+        'This is a multi-word task name',
+      ]);
+
+      expect(output[0]).toMatch(/✓ Task updated:/);
+      expect(output.join('\n')).toMatch(/This is a multi-word task name/);
+    });
+
+    it('set fails without focused task when taskId omitted', async () => {
+      // Don't create or focus any task
+      await expect(
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'set',
+          'name',
+          'value',
+        ])
+      ).rejects.toThrow(/No task focused|Task not found/);
+    });
+
+    it('set fails when taskId not found', async () => {
+      await expect(
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'set',
+          'nonexistent.name',
+          'value',
+        ])
+      ).rejects.toThrow(/Task not found/);
     });
   });
 });

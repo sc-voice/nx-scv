@@ -1,18 +1,25 @@
 {
   "focusStack": [
     {
-      "id": "0PsDM9K600KRlSev9jbr7W",
-      "formaId": "0PsCPK3s00KRlSev9jbr7W",
-      "formaType": "task",
-      "name": "TUI wrap fixes",
-      "summary": "should wrap at word boundaries and indent by N=2"
-    },
-    {
       "id": "0PsDXyFt00m7qOfPgOKptW",
       "formaId": "0PsCNfhR00m7qOfPgOKptW",
       "formaType": "task",
       "name": "world preferences (verbosity)",
       "summary": "Implement persistent world preferences system: Create Preferences class (schema/defaults, verbosity default 0), add to World, serialize in world.json, add --verbosity global option (persists), create cli-pref.ts (nf pref list, nf pref reset verbosity, nf pref reset --all), filter task list (hide done unless verbosity>=1)"
+    },
+    {
+      "id": "0Pt59sNN003YYpLnw6CN7W",
+      "formaId": "0Pt22kbH003YYpLnw6CN7W",
+      "formaType": "task",
+      "name": "Add more interactive commands to cli-watch",
+      "summary": "Enhance cli-watch with additional interactive capabilities (e.g., auto-reload, better formatting) and document/implement TUI keystroke interactions (like 'q' for quit)."
+    },
+    {
+      "id": "0Pt59us90086He8W1bcddW",
+      "formaId": "0Pt56DLY0086He8W1bcddW",
+      "formaType": "task",
+      "name": "Update subcommand help for clarity",
+      "summary": "Enhance help text for subcommands that lack sufficient description or examples"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

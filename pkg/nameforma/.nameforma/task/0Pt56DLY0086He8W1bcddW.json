@@ -1,0 +1,50 @@
+{
+  "id": "0Pt56DLY0086He8W1bcddW",
+  "name": "Updated Test Task",
+  "summary": "Test with newlines",
+  "rawActions": [
+    {
+      "id": "0Pt59ut30086He8W1bcddW",
+      "name": "Remove cli-forma command",
+      "summary": "Delete src/cli/cli-forma.ts and remove FormaCommand registration from nameforma.ts. The forma command is not used and maintains in-memory-only stub implementation.",
+      "status": "test",
+      "statusNote": "In testing phase"
+    },
+    {
+      "id": "0Pt59utx0086He8W1bcddW",
+      "name": "Improve 'reference' command help",
+      "summary": "Help should clarify that references link tasks/actions to external resources. Include examples of adding, listing, and deleting references",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0Pt59uup0086He8W1bcddW",
+      "name": "Improve 'action' command help",
+      "summary": "Help should mention that actions can be added, listed, updated, and deleted. Add examples of status transitions and updating action fields",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0Pt5CaoK0086He8W1bcddW",
+      "name": "Remove cli-schema command",
+      "summary": "Delete src/cli/cli-schema.ts and remove SchemaCommand registration from nameforma.ts. The schema command is not used and provides only informational access to the schema registry.",
+      "status": "done",
+      "statusNote": "ok"
+    },
+    {
+      "id": "0Pt5J5U30086He8W1bcddW",
+      "name": "cli-task: convert summary to positional parm",
+      "summary": "Make summary an optional positional parameter instead of option. Changes: (1) 'add <name>' → 'add <name> [summary]' (2) remove '-s, --summary' option (3) update handler (4) update help text",
+      "status": "done",
+      "statusNote": "Implementation complete and tested"
+    },
+    {
+      "id": "0Pt5RFjo0086He8W1bcddW",
+      "name": "task set: add new subcommand",
+      "summary": "Implement 'task set [<taskId>].FIELD value' where FIELD is name or summary. Requirements: (1) Strip/reject line breaks in values (2) Name field required, cannot be blank (3) Invalid field name error (4) No focused task error (5) Task not found error (6) Add help text with examples (7) Test edge cases: empty name, invalid field, missing args, no focus",
+      "status": "done",
+      "statusNote": "Approved: task set command implemented with 9 passing tests, task update removed"
+    }
+  ],
+  "rawReferences": []
+}

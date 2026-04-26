@@ -7,7 +7,8 @@ import path from 'path';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import { Action, ActionStatus, ActionTransitions } from '../action.js';
-import { IS_AGENT } from './env.js';
+import { settings } from './settings.js';
+import { confirm } from './confirm.js';
 
 export default class ActionCommand {
   static getWorld(options: any): World {
@@ -236,8 +237,22 @@ export default class ActionCommand {
     cmd
       .command('set <dotref> <value...>')
       .description('Set an action field value (format: <id>.<field> <value>)')
+      .addHelpText('after', [
+        '',
+        'Updatable fields:',
+        '  name        Title',
+        '  summary     Detailed summary',
+        '  status      Action status with note (requires: <newStatus> <statusNote>)',
+        '  statusNote  Status change note',
+        '',
+        'Examples:',
+        '  $ nameforma action set abc123.name "New action name"',
+        '  $ nameforma action set abc123.summary "Updated description"',
+        '  $ nameforma action set abc123.status done "Rejected for cost"',
+        '  $ nameforma action set abc123.statusNote "Need PM review"',
+      ].join('\n'))
       .option('-t, --task <fid>', 'Task fuzzy ID (default: focused task)')
-      .action((dotref: string, values: string[], options: any, cmd: any) => {
+      .action(async (dotref: string, values: string[], options: any, cmd: any) => {
         const parts = dotref.split('.');
         if (parts.length !== 2) {
           throw new Error('Format: action set <id>.<field> <value>');
@@ -271,11 +286,21 @@ export default class ActionCommand {
             const oldStatus = action.status;
             const allowed: ActionStatus[] = ActionTransitions[oldStatus as ActionStatus] || [];
 
-            if (IS_AGENT && oldStatus !== newStatus && !allowed.includes(newStatus as ActionStatus)) {
+            if (settings.isAgent && oldStatus !== newStatus && !allowed.includes(newStatus as ActionStatus)) {
               throw new Error(
                 `invalid transition: ${oldStatus} → ${newStatus}` +
                 `\n  allowed: ${allowed.join(', ') || '(none)'}`
               );
+            }
+
+            if (settings.isAgent && (newStatus === 'done')) {
+              const consensusConfirmed = await confirm(
+                `>>> Action: ${action.id}\n>>> name: ${action.name}\n>>> Transition to '${newStatus}': Was team consulted and consensus gained? (no/yes) `
+              );
+              if (!consensusConfirmed) {
+                console.log('Transition cancelled - consensus required');
+                return;
+              }
             }
 
             actionList.patchItem(id, { status: newStatus, statusNote });

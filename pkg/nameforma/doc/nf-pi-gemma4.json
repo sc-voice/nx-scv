@@ -1,0 +1,26 @@
+{
+  "agent_instructions": {
+    "document_purpose": "Nameforma usage instructions for PI agent with Gemma4 LLM",
+    "complementary_docs": ["doc/nf-task.md"],
+    "core_principles": {
+      "focus_model": "Singular Focus (Current Mode). While multi-level focus is architecturally possible, we operate by focusing on a Task to provide context for its Actions and References.",
+      "atomicity": "The Task is the smallest unit of work. An Action or Reference without its parent Task lacks essential goal and context."
+    },
+    "architecture_knowledge": {
+      "entity_hierarchy": {
+        "task": "A first-class Entity (addressable via nf focus). Acts as the container for all work.",
+        "action": "A Forma component of a Task. Represents a stateful step in the task lifecycle.",
+        "reference": "A Forma component of a Task. Links external context to the task."
+      },
+      "identity_system": {
+        "format": "UUID64 (based on UUIDv7) encoded as Order-Preserving Base64 (OPB64).",
+        "relational_logic": "Actions and References inherit the random entropy (bytes 8-15) from their parent Task, creating a mathematical link.",
+        "fuzzy_identifiers": "Using the temporal difference between UUIDs, we can derive short, human-readable 'fuzzy IDs' (e.g., 24SH2).",
+        "search_optimization": "The hierarchical ID structure allows for high-performance SQL lookups using the LIKE operator (e.g., `action_id LIKE 'task_prefix%'`)."
+      }
+    },
+    "workflow_guidelines": [
+      "Identify Work (nf task list) -> Focus (nf focus <ID>) -> Analyze/Contextualize -> Execute (nf action set)"
+    ]
+  }
+}

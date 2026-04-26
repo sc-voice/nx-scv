@@ -1,0 +1,72 @@
+{
+  "id": "0Pt22kbH003YYpLnw6CN7W",
+  "name": "Add more interactive commands to cli-watch",
+  "summary": "Enhance cli-watch with additional interactive capabilities (e.g., auto-reload, better formatting) and document/implement TUI keystroke interactions (like 'q' for quit).",
+  "rawActions": [
+    {
+      "id": "0Pt24SH2003YYpLnw6CN7W",
+      "name": "Add a status line at the bottom of nf watch output showing available keys (e.g., q:quit)",
+      "summary": "Add a compact status line at the bottom of terminal showing available keys and current verbosity level. Implement handlers: q=quit, h=show help (list all commands with descriptions), +/-=increase/decrease verbosity (update display immediately)",
+      "status": "done",
+      "statusNote": "Status line with keyboard handlers: h/help, space/refresh, +/-/arrows for verbosity"
+    },
+    {
+      "id": "0Pt2K-qL003YYpLnw6CN7W",
+      "name": "Implement 'nf task get --json' to return the current task as JSON",
+      "summary": "Implement 'nf task get --json' to return the current task as JSON. Requirements: Output must be valid, unformatted JSON without ANSI escape codes, containing full (untruncated) actions and references. Implementation will involve branching logic in src/cli/cli-task.ts based on the --json flag.",
+      "status": "done",
+      "statusNote": "ok"
+    },
+    {
+      "id": "0Pt2N9MN003YYpLnw6CN7W",
+      "name": "Update cli-action.ts help to enumerate updatable fields",
+      "summary": "",
+      "status": "req",
+      "statusNote": ""
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Pt26Mlk003YYpLnw6CN7W",
+      "name": "Project Structure",
+      "summary": "Overview of the monorepo structure and package locations.",
+      "relevance": 1,
+      "source": "README.md"
+    },
+    {
+      "id": "0Pt26Mmf003YYpLnw6CN7W",
+      "name": "Core Logic",
+      "summary": "The implementation details of World, Task, and Action classes.",
+      "relevance": 1,
+      "source": "pkg/nameforma/src/world.ts"
+    },
+    {
+      "id": "0Pt26MnY003YYpLnw6CN7W",
+      "name": "CLI Architecture",
+      "summary": "How the nf command is structured and how subcommands are handled.",
+      "relevance": 1,
+      "source": "pkg/nameforma/src/cli/cli.ts"
+    },
+    {
+      "id": "0Pt26MoR003YYpLnw6CN7W",
+      "name": "TUI Implementation",
+      "summary": "The code responsible for terminal UI, including nf watch.",
+      "relevance": 1,
+      "source": "pkg/nameforma/src/tui/index.ts"
+    },
+    {
+      "id": "0Pt2LXEs003YYpLnw6CN7W",
+      "name": "cli-task.ts",
+      "summary": "Reference cli-task.ts for implementation details",
+      "relevance": 0,
+      "source": ""
+    },
+    {
+      "id": "0Pt2Mewf003YYpLnw6CN7W",
+      "name": "src/cli/cli-action.ts",
+      "summary": "Use this to understand the available fields and update logic for actions.",
+      "relevance": 0,
+      "source": ""
+    }
+  ]
+}
