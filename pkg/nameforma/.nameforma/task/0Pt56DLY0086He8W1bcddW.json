@@ -44,6 +44,27 @@
       "summary": "Implement 'task set [<taskId>].FIELD value' where FIELD is name or summary. Requirements: (1) Strip/reject line breaks in values (2) Name field required, cannot be blank (3) Invalid field name error (4) No focused task error (5) Task not found error (6) Add help text with examples (7) Test edge cases: empty name, invalid field, missing args, no focus",
       "status": "done",
       "statusNote": "Approved: task set command implemented with 9 passing tests, task update removed"
+    },
+    {
+      "id": "0PtA6AFh0086He8W1bcddW",
+      "name": "Show unfocused task with strikethrough in output",
+      "summary": "After unfocusForma+save(): (1) print strikethrough line using Unicode.LINUX_STYLE.STRIKETHROUGH/NO_STRIKETHROUGH on task.id and task.name; (2) iterate world.focusStack, call displayTask(world, t, -2) for each remaining task. Depends on verbosity -2 action.",
+      "status": "work",
+      "statusNote": "implementing strikethrough + focus stack display"
+    },
+    {
+      "id": "0PtA6AGa0086He8W1bcddW",
+      "name": "Fix STRIKETHROUGH missing from Unicode.LINUX_COLOR type",
+      "summary": "No bug: STRIKETHROUGH is in Unicode.LINUX_STYLE not LINUX_COLOR. No fix needed in tools package.",
+      "status": "done",
+      "statusNote": "no fix needed, STRIKETHROUGH is in LINUX_STYLE not LINUX_COLOR"
+    },
+    {
+      "id": "0PtA9__S0086He8W1bcddW",
+      "name": "Add verbosity -2 to displayTask",
+      "summary": "In cli-task.ts:displayTask, add verbosity < -1 branch: call task.listItemString() to get 'timeId() coloredPct❘name❘summary', truncate with tui.wrapAndTruncate(line, 74, 1, 'ellipsis', 0), console.log and return",
+      "status": "manage",
+      "statusNote": "verified"
     }
   ],
   "rawReferences": []

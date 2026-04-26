@@ -1,0 +1,7 @@
+{
+  "id": "0PtAH7pD00U9iyH7iE1QtW",
+  "name": "nf action should have --task TASK_ID option",
+  "summary": "sometimes the updated task is not focused",
+  "rawActions": [],
+  "rawReferences": []
+}

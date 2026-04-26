@@ -3,7 +3,6 @@ import { Command } from 'commander';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import ReferenceCommand from '../../src/cli/cli-reference.js';
-import FocusCommand from '../../src/cli/cli-focus.js';
 import { createTempWorld, createTestCmd } from './helpers.js';
 import { World } from '../../src/world.js';
 
@@ -43,9 +42,6 @@ describe('CLI: reference command', () => {
     program = new Command();
     taskCmd = program.command('task');
     TaskCommand.registerCommand(taskCmd);
-
-    const focusCmd = program.command('focus');
-    FocusCommand.registerCommand(focusCmd);
 
     referenceCmd = program.command('reference');
     ReferenceCommand.registerCommand(referenceCmd);
@@ -87,7 +83,7 @@ describe('CLI: reference command', () => {
 
     // Focus the task
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add a reference to the focused task
     output = [];
@@ -112,7 +108,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add reference with summary
     output = [];
@@ -136,7 +132,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add reference with relevance and source
     output = [];
@@ -171,7 +167,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Try to add reference with invalid relevance
     try {
@@ -191,7 +187,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add references
     output = [];
@@ -220,7 +216,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add a reference
     output = [];
@@ -255,7 +251,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add a reference
     output = [];
@@ -306,7 +302,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add a reference
     output = [];
@@ -346,7 +342,7 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add references
     output = [];

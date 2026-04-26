@@ -1,0 +1,210 @@
+{
+  "name": "nf",
+  "description": "NameForma CLI - Task and action management for agent-human collaboration",
+  "version": "1.0.0",
+  "globalOptions": {
+    "-w, --world": {
+      "description": "Path to .nameforma directory (auto-discovers if not specified)",
+      "type": "string",
+      "optional": true
+    },
+    "-d, --debug": {
+      "description": "Enable debug output",
+      "type": "boolean",
+      "optional": true
+    },
+    "-v, --verbose": {
+      "description": "Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default), 1+ (more detail)",
+      "type": "string",
+      "optional": true,
+      "default": "0"
+    },
+    "--agent": {
+      "description": "Run as agent (for human verification)",
+      "type": "boolean",
+      "optional": true
+    }
+  },
+  "commands": {
+    "task": {
+      "description": "tasks (default action shows focused task)",
+      "subcommands": {
+        "add": {
+          "description": "Create a new unfocused task",
+          "usage": "nf task add <name> [summary]",
+          "args": {
+            "name": {
+              "type": "string",
+              "required": true,
+              "description": "Task name"
+            },
+            "summary": {
+              "type": "string",
+              "required": false,
+              "description": "Optional task description"
+            }
+          },
+          "options": {
+            "-r, --related": {
+              "type": "string",
+              "description": "Create task related to another task by ID (fuzzy match supported)"
+            }
+          },
+          "example": "nf task add 'Fix authentication bug'"
+        },
+        "list": {
+          "description": "List all tasks in current directory scope",
+          "usage": "nf task list",
+          "example": "nf task list"
+        },
+        "get": {
+          "description": "Show details of a specific task (or focused task if no ID given)",
+          "usage": "nf task get [task-id]",
+          "args": {
+            "task-id": {
+              "type": "string",
+              "required": false,
+              "description": "Task ID (fuzzy match supported, defaults to focused task)"
+            }
+          },
+          "example": "nf task get abc123"
+        },
+        "set": {
+          "description": "Set a task field using dot-reference notation",
+          "usage": "nf task set <dotref> <value...>",
+          "args": {
+            "dotref": {
+              "type": "string",
+              "required": true,
+              "description": "Dot-reference in format 'field' or 'task-id.field' (e.g., 'name', 'abc123.summary')"
+            },
+            "value": {
+              "type": "string",
+              "required": true,
+              "description": "Value to set (multiple words allowed)"
+            }
+          },
+          "example": "nf task set name 'New Task Name'\nnf task set abc123.summary 'Task description'"
+        },
+        "delete": {
+          "description": "Delete a task (human-only, agents cannot delete tasks)",
+          "usage": "nf task delete [task-id]",
+          "args": {
+            "task-id": {
+              "type": "string",
+              "required": false,
+              "description": "Task ID (defaults to focused task)"
+            }
+          },
+          "example": "nf task delete abc123",
+          "restriction": "agents cannot perform this action"
+        }
+      }
+    },
+    "action": {
+      "description": "List actions for the focused task",
+      "usage": "nf action",
+      "example": "nf action"
+    },
+    "focus": {
+      "description": "Manage focus stack",
+      "usage": "nf focus [options] [enttity_id]",
+      "args": {
+        "enttity_id": {
+          "type": "string",
+          "required": true,
+          "description": "ID of entity (e.g., Task) to focus/unfocus"
+        }
+      },
+      "options": {
+        "-u, --unfocus": {
+          "type": "boolean",
+          "description": "Remove entity from focus stack instead of adding"
+        }
+      },
+      "subcommands": {
+        "get": {
+          "description": "List focus stack",
+          "usage": "nf focus get",
+          "example": "nf focus get"
+        }
+      },
+      "examples": [
+        "nf focus abc123 (set focus to abc123)",
+        "nf focus -u abc123 (remove abc123 from focus stack)",
+        "nf focus get (show focus stack)"
+      ]
+    },
+    "reference": {
+      "aliases": ["ref"],
+      "description": "List references for the focused task",
+      "usage": "nf reference (or nf ref)",
+      "example": "nf reference"
+    },
+    "watch": {
+      "description": "Watch focused task file and rerun task display when it changes",
+      "usage": "nf watch",
+      "example": "nf watch"
+    },
+    "doc": {
+      "description": "Display TUI-formatted documentation",
+      "usage": "nf doc",
+      "example": "nf doc"
+    },
+    "id": {
+      "description": "Generate/validate numeronym, UUIDv7, UUID64",
+      "subcommands": {
+        "fuzzy": {
+          "description": "Convert string to numeronym",
+          "usage": "nf id <string>",
+          "example": "nf id FormaList"
+        },
+        "generate": {
+          "description": "Generate UUIDs",
+          "usage": "nf id -g <count>",
+          "options": {
+            "-g": {
+              "type": "number",
+              "description": "Generate N UUIDs"
+            }
+          },
+          "example": "nf id -g 5"
+        },
+        "validate": {
+          "description": "Validate UUID",
+          "usage": "nf id -v <uuid>",
+          "options": {
+            "-v": {
+              "type": "string",
+              "description": "Validate UUID"
+            }
+          },
+          "example": "nf id -v F13n"
+        }
+      }
+    }
+  },
+  "stateTransitions": {
+    "description": "Action state machine for the nf task system",
+    "states": ["req", "spec", "work", "test", "manage", "done"],
+    "transitions": [
+      {"from": "req", "to": "spec", "description": "Requirements gathered → moving to specification"},
+      {"from": "req", "to": "done", "description": "Request declined"},
+      {"from": "spec", "to": "work", "description": "Specification approved → starting implementation"},
+      {"from": "spec", "to": "test", "description": "New bug found/test added → needs verification"},
+      {"from": "work", "to": "test", "description": "Implementation complete → needs verification"},
+      {"from": "test", "to": "work", "description": "Simple errors found during testing"},
+      {"from": "test", "to": "manage", "description": "Tests pass or unexpected errors occur"},
+      {"from": "test", "to": "req", "description": "Unexpected test failure requires revisiting requirements"},
+      {"from": "manage", "to": "req", "description": "Revisit requirements after management review"},
+      {"from": "manage", "to": "done", "description": "Formal consensus reached; action finalized"},
+      {"from": "done", "to": "manage", "description": "Revisit requirements for existing completed tasks"}
+    ]
+  },
+  "notes": {
+    "focus": "All commands with optional <id> default to the focused entity if no ID is provided",
+    "fuzzyMatch": "Task IDs support fuzzy matching - partial IDs are resolved automatically",
+    "worldDiscovery": "Use -w flag to specify .nameforma directory, or it will be auto-discovered from current directory up the tree",
+    "agent": "Use --agent flag when running as an automated agent to enforce consensus requirements"
+  }
+}

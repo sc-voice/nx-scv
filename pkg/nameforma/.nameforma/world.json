@@ -15,11 +15,18 @@
       "summary": "Enhance cli-watch with additional interactive capabilities (e.g., auto-reload, better formatting) and document/implement TUI keystroke interactions (like 'q' for quit)."
     },
     {
-      "id": "0Pt59us90086He8W1bcddW",
+      "id": "0PtACbOe0086He8W1bcddW",
       "formaId": "0Pt56DLY0086He8W1bcddW",
       "formaType": "task",
-      "name": "Update subcommand help for clarity",
-      "summary": "Enhance help text for subcommands that lack sufficient description or examples"
+      "name": "Updated Test Task",
+      "summary": "Test with newlines"
+    },
+    {
+      "id": "0PtAGlIB00BwXtDQeXX6dW",
+      "formaId": "0Pt9dYsF00BwXtDQeXX6dW",
+      "formaType": "task",
+      "name": "Implement task focus subcommand",
+      "summary": "Add focus [id] command to cli-task.ts that pushes a task onto the focus stack. Already updated help text; need to add command registration after delete command with focusForma call and display confirmation."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

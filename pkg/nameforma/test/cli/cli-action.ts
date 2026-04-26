@@ -3,7 +3,6 @@ import { Command } from 'commander';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import ActionCommand from '../../src/cli/cli-action.js';
-import FocusCommand from '../../src/cli/cli-focus.js';
 import { createTempWorld, createTestCmd } from './helpers.js';
 import { World } from '../../src/world.js';
 
@@ -43,9 +42,6 @@ describe('CLI: action command', () => {
     program = new Command();
     taskCmd = program.command('task');
     TaskCommand.registerCommand(taskCmd);
-
-    const focusCmd = program.command('focus');
-    FocusCommand.registerCommand(focusCmd);
 
     actionCmd = program.command('action');
     ActionCommand.registerCommand(actionCmd);
@@ -87,7 +83,7 @@ describe('CLI: action command', () => {
 
     // Focus the task
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add an action to the focused task
     output = [];
@@ -112,7 +108,7 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add action with summary
     output = [];
@@ -136,7 +132,7 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add actions
     output = [];
@@ -163,7 +159,7 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add an action
     output = [];
@@ -189,7 +185,7 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add an action
     output = [];
@@ -232,7 +228,7 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add an action
     output = [];
@@ -271,7 +267,7 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    await testCmd('focus', taskId);
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
     // Add actions
     output = [];
@@ -313,7 +309,7 @@ describe('CLI: action command', () => {
 
       // Focus task
       output = [];
-      await testCmd('focus', taskId);
+      { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
       // Add action
       output = [];

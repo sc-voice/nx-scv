@@ -32,7 +32,6 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import IdCommand from './cli-id.js';
-import FocusCommand from './cli-focus.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
@@ -89,7 +88,6 @@ export class CLI {
     // Register all commands
     TaskCommand.registerCommand(program.command('task').description('Manage tasks'));
     IdCommand.registerCommand(program.command('id').description('Generate/validate numeronym, UUIDv7, UUID64'));
-    FocusCommand.registerCommand(program.command('focus').description('Set focus on an entity by ID'));
     ActionCommand.registerCommand(program.command('action').description('List actions for the focused task'));
 
     const refCmd = program.command('reference').alias('ref').description('List references for the focused task');
