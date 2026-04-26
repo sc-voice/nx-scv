@@ -20,13 +20,6 @@
       "formaType": "task",
       "name": "Updated Test Task",
       "summary": "Test with newlines"
-    },
-    {
-      "id": "0PtAGlIB00BwXtDQeXX6dW",
-      "formaId": "0Pt9dYsF00BwXtDQeXX6dW",
-      "formaType": "task",
-      "name": "Implement task focus subcommand",
-      "summary": "Add focus [id] command to cli-task.ts that pushes a task onto the focus stack. Already updated help text; need to add command registration after delete command with focusForma call and display confirmation."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

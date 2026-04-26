@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
 import { Command } from 'commander';
+import { execSync } from 'child_process';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import ActionCommand from '../../src/cli/cli-action.js';
@@ -397,5 +398,29 @@ describe('CLI: action command', () => {
         expect(e.message).toMatch(/No task focused/);
       }
     });
+  });
+
+  it('action --help shows description and examples', () => {
+    const output = execSync('npm run cli -- action --help', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(output).toMatch(/Manage actions that can be added, listed, updated, and deleted for tasks/);
+    expect(output).toMatch(/nf action list/);
+    expect(output).toMatch(/nf action add/);
+    expect(output).toMatch(/nf action delete/);
+    expect(output).toMatch(/nf action set/);
+  });
+
+  it('action add --help shows description and examples', () => {
+    const output = execSync('npm run cli -- action add --help', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(output).toMatch(/Add an action to the focused task/);
+    expect(output).toMatch(/Implement feature/);
+    expect(output).toMatch(/Write tests/);
   });
 });

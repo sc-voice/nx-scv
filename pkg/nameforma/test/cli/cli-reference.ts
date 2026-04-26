@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
 import { Command } from 'commander';
+import { execSync } from 'child_process';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import ReferenceCommand from '../../src/cli/cli-reference.js';
@@ -373,5 +374,39 @@ describe('CLI: reference command', () => {
       expect(task.references(world).items).toHaveLength(1);
       expect(task.references(world).items[0].name).toBe('Reference 2');
     }
+  });
+
+  it('reference --help shows description and examples', () => {
+    const output = execSync('npm run cli -- reference --help', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(output).toMatch(/Manage references linking tasks\/actions to external resources/);
+    expect(output).toMatch(/nf reference list/);
+    expect(output).toMatch(/nf ref add/);
+    expect(output).toMatch(/nf ref update/);
+    expect(output).toMatch(/nf ref delete/);
+  });
+
+  it('reference add --help shows description and examples', () => {
+    const output = execSync('npm run cli -- reference add --help', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(output).toMatch(/Add a reference to the focused task/);
+    expect(output).toMatch(/External issue/);
+    expect(output).toMatch(/Design doc/);
+  });
+
+  it('reference update --help shows description and examples', () => {
+    const output = execSync('npm run cli -- reference update --help', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(output).toMatch(/Update a reference field/);
+    expect(output).toMatch(/nf ref update/);
   });
 });

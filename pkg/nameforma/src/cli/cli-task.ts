@@ -15,6 +15,38 @@ const { BRIGHT_GREEN, NO_COLOR: UNC } = Unicode.LINUX_COLOR;
 const UOK = BRIGHT_GREEN+GREEN_CHECKBOX+" ";
 
 export default class TaskCommand {
+  static readonly EXAMPLES: Record<string, string[]> = {
+    add: [
+      '$ nf task add "My Task with no summary"',
+      '$ nf task add "My Task" "Optional summary"',
+    ],
+    list: [
+      '$ nf task list # list all tasks',
+    ],
+    get: [
+      '$ nf task get TASK_ID',
+      '$ nf task get  # gets focused task',
+      '$ nf task get --json  # output as JSON',
+    ],
+    set: [
+      '$ nf task set name "New Task Name"',
+      '$ nf task set summary "New summary"',
+      '$ nf task set TASK_ID.name "Renamed Task"',
+    ],
+    delete: [
+      '$ nf task delete TASK_ID # delete with confirmation',
+      '$ nf task delete --force  # deletes focused task',
+    ],
+    focus: [
+      '$ nf task focus TASK_ID # push/move TASK_ID to top of focus stack',
+      '$ nf task focus  # focuses current task',
+    ],
+    unfocus: [
+      '$ nf task unfocus TASK_ID  # remove TASK_ID from focus stack',
+      '$ nf task unfocus  # pop current focus from stack',
+    ],
+  };
+
   /**
    * Resolve task ID, falling back to focused task if id is not provided
    * @param {World} world - World instance
@@ -183,23 +215,8 @@ export default class TaskCommand {
    * @param {Command} cmd - Commander command object
    */
   static registerCommand(cmd: any) {
-    // Add help text for the task command
-    const helpText = [
-      'Examples:',
-      '  $ nf task add "My Task with no summary" ',
-      '  $ nf task add "My Task" "Optional summary"',
-      '  $ nf task list # list all tasks',
-      '  $ nf task get TASK_ID',
-      '  $ nf task get  # gets focused task',
-      '  $ nf task get --json  # output as JSON',
-      '  $ nf task set name "New Task Name"',
-      '  $ nf task set summary "New summary"',
-      '  $ nf task set TASK_ID.name "Renamed Task"',
-      '  $ nf task delete TASK_ID # delete with confirmation',
-      '  $ nf task delete --force  # deletes focused task',
-      '  $ nf task focus TASK_ID # push/move TASK_ID to top of focus stack',
-      '  $ nf task unfocus TASK_ID  # remove TASK_ID from focus stack',
-      '  $ nf task unfocus  # pop current focus from stack',
+    const helpText = ['Examples:',
+      ...Object.values(TaskCommand.EXAMPLES).flat().map(e => `  ${e}`)
     ].join('\n');
     cmd.addHelpText('after', '\n' + helpText);
 
@@ -218,11 +235,8 @@ export default class TaskCommand {
     cmd
       .command('add <name> [summary]')
       .description('Add a new, unfocused task')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nf task add "My Task"',
-        '  $ nf task add "My Task" "Optional description"',
+      .addHelpText('after', ['', 'Examples:',
+        ...TaskCommand.EXAMPLES.add.map(e => `  ${e}`)
       ].join('\n'))
       .option('-r, --related <fuzzy-id>', 'Create task related to another task by ID')
       .action((name: string, summary: string | undefined, options: any, cmd: any) => {
@@ -256,10 +270,8 @@ export default class TaskCommand {
       .command('list')
       .alias('ls')
       .description('List all tasks')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nf task list',
+      .addHelpText('after', ['', 'Examples:',
+        ...TaskCommand.EXAMPLES.list.map(e => `  ${e}`)
       ].join('\n'))
       .action((options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -271,12 +283,8 @@ export default class TaskCommand {
       .command('get [id]')
       .description('Get task details')
       .option('--json', 'Output as JSON')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nf task get TASK_ID',
-        '  $ nf task get  # gets focused task',
-        '  $ nf task get --json  # output as JSON',
+      .addHelpText('after', ['', 'Examples:',
+        ...TaskCommand.EXAMPLES.get.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -295,13 +303,8 @@ export default class TaskCommand {
     cmd
       .command('set <dotref> <value...>')
       .description('Set a task field')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nf task set name "New Task Name"',
-        '  $ nf task set summary "New description"',
-        '  $ nf task set TASK_ID.name "Specific Task"',
-        '  $ nf task set TASK_ID.summary "Task description"',
+      .addHelpText('after', ['', 'Examples:',
+        ...TaskCommand.EXAMPLES.set.map(e => `  ${e}`)
       ].join('\n'))
       .action((dotref: string, values: string[], options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -351,11 +354,8 @@ export default class TaskCommand {
       .alias('rm')
       .description('Delete a task')
       .option('-f, --force', 'Skip confirmation prompt')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nf task delete TASK_ID',
-        '  $ nf task delete --force  # deletes focused task',
+      .addHelpText('after', ['', 'Examples:',
+        ...TaskCommand.EXAMPLES.delete.map(e => `  ${e}`)
       ].join('\n'))
       .action(async (id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -380,13 +380,8 @@ export default class TaskCommand {
     cmd
       .command('focus [id]')
       .description('Push task onto stack as current focus')
-      .addHelpText('after', [
-        '',
-        'If task is already in focus stack, it is moved to the top.',
-        '',
-        'Examples:',
-        '  $ nf task focus TASK_ID',
-        '  $ nf task focus  # focuses current task',
+      .addHelpText('after', ['', 'If task is already in focus stack, it is moved to the top.', '', 'Examples:',
+        ...TaskCommand.EXAMPLES.focus.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
@@ -404,11 +399,8 @@ export default class TaskCommand {
     cmd
       .command('unfocus [id]')
       .description('Remove task from focus stack')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nf task unfocus TASK_ID  # remove TASK_ID from focus stack',
-        '  $ nf task unfocus  # pop current focus from stack',
+      .addHelpText('after', ['', 'Examples:',
+        ...TaskCommand.EXAMPLES.unfocus.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
         const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());

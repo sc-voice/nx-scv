@@ -7,8 +7,8 @@
       "id": "0Pt9dqWF00BwXtDQeXX6dW",
       "name": "Update help text in registerCommand",
       "summary": "Add bash comments to unfocus examples in helpText: '$ nameforma task unfocus abc123def456  # unfocuses task by id' and '$ nameforma task unfocus  # unfocuses top of stack'",
-      "status": "manage",
-      "statusNote": "verified in nf task --help"
+      "status": "done",
+      "statusNote": "Examples DRY refactor complete"
     },
     {
       "id": "0Pt9dqX800BwXtDQeXX6dW",
@@ -21,43 +21,43 @@
       "id": "0Pt9dqXz00BwXtDQeXX6dW",
       "name": "Test task focus command",
       "summary": "Smoke test focus: nf task focus <id> → output '✓ Task focused:'; nf task list → circled bullet on focused task; nf task focus <id> again → focusStack length unchanged",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "work complete"
     },
     {
       "id": "0Pt9e5aS00BwXtDQeXX6dW",
       "name": "Register task unfocus subcommand",
       "summary": "Append after task focus block in cli-task.ts:registerCommand: cmd.command('unfocus [id]').description('Remove task from focus stack').action((id,options,cmd)=>{ world=getWorld(cmd.parent.optsWithGlobals()); task=resolveTask(world,id); world.unfocusForma(task); console.log('✓ Task unfocused: '+task.id); })",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "work complete"
     },
     {
       "id": "0Pt9f9-a00BwXtDQeXX6dW",
       "name": "Add tests for task focus/unfocus",
       "summary": "In test/cli/cli-task.ts: (1) focus new task → focusStack.size === 1 and focusOrder(task) === 0 (top of stack); (2) add two tasks A and B, focus A then B then A again → focusStack.size stays 2 and focusOrder(A) === 0 (A moved to top, no duplicate)",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "work complete"
     },
     {
       "id": "0Pt9sZ8N00BwXtDQeXX6dW",
       "name": "Smoke test unfocus",
       "summary": "nf task unfocus <id> → output '✓ Task unfocused:'; nf task unfocus → output '✓ Task unfocused:' and removes top-of-stack",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "work complete"
     },
     {
       "id": "0Pt9tXw400BwXtDQeXX6dW",
       "name": "Test unfocus in cli-task.ts",
       "summary": "In test/cli/cli-task.ts: (3) unfocus by id → focusStack length decreases; (4) unfocus no id → top-of-stack removed, output matches '✓ Task unfocused:'",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "work complete"
     },
     {
       "id": "0PtAGlJ400BwXtDQeXX6dW",
       "name": "Show unfocused task with strikethrough in output",
       "summary": "After unfocusForma+save(): (1) print strikethrough line using Unicode.LINUX_STYLE.STRIKETHROUGH/NO_STRIKETHROUGH on task.id and task.name; (2) iterate world.focusStack, call displayTask(world, t, -2) for each remaining task. Depends on verbosity -2 action.",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "not supported"
     },
     {
       "id": "0PtAGlJz00BwXtDQeXX6dW",
@@ -70,8 +70,8 @@
       "id": "0PtAGlKp00BwXtDQeXX6dW",
       "name": "Add verbosity -2 to displayTask",
       "summary": "In cli-task.ts:displayTask, add verbosity < -1 branch: call task.listItemString() to get 'timeId() coloredPct❘name❘summary', truncate with tui.wrapAndTruncate(line, 74, 1, 'ellipsis', 0), console.log and return",
-      "status": "manage",
-      "statusNote": "verified"
+      "status": "done",
+      "statusNote": "work complete"
     }
   ],
   "rawReferences": []

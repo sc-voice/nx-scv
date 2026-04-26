@@ -11,6 +11,30 @@ import { settings } from './settings.js';
 import { confirm } from './confirm.js';
 
 export default class ActionCommand {
+  static readonly EXAMPLES: Record<string, string[]> = {
+    list: [
+      '$ nf action list # list actions for focused task',
+    ],
+    show: [
+      '$ nf action show ACTION_ID # show a specific action',
+    ],
+    add: [
+      '$ nf action add "Implement feature" --summary "Add user auth"',
+      '$ nf action add "Write tests" --status req',
+    ],
+    delete: [
+      '$ nf action delete ACTION_ID # delete an action',
+    ],
+    get: [
+      '$ nf action get ACTION_ID.name # get an action field',
+      '$ nf action get ACTION_ID.status',
+    ],
+    set: [
+      '$ nf action set ACTION_ID.status work "in progress"',
+      '$ nf action set ACTION_ID.summary "Updated description"',
+    ],
+  };
+
   static getWorld(options: any): World {
     let worldPath = options.world;
 
@@ -59,11 +83,15 @@ export default class ActionCommand {
 
 
   static registerCommand(cmd: any) {
+    const helpText = ['Examples:',
+      ...Object.values(ActionCommand.EXAMPLES).flat().map(e => `  ${e}`)
+    ].join('\n');
+    cmd.addHelpText('after', '\n' + helpText);
     cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
 
     // Default action: list actions of focused task
     cmd
-      .description('List actions for the focused task')
+      .description('Manage actions that can be added, listed, updated, and deleted for tasks')
       .action((options: any, cmd: any) => {
         const world = ActionCommand.getWorld(cmd.optsWithGlobals());
         const task = ActionCommand.getFocusedTask(world);
@@ -92,6 +120,9 @@ export default class ActionCommand {
     cmd
       .command('list')
       .description('List actions for the focused task')
+      .addHelpText('after', ['', 'Examples:',
+        ...ActionCommand.EXAMPLES.list.map(e => `  ${e}`)
+      ].join('\n'))
       .action((options: any, cmd: any) => {
         const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = ActionCommand.getFocusedTask(world);
@@ -120,6 +151,9 @@ export default class ActionCommand {
     cmd
       .command('show <id>')
       .description('Show a specific action')
+      .addHelpText('after', ['', 'Examples:',
+        ...ActionCommand.EXAMPLES.show.map(e => `  ${e}`)
+      ].join('\n'))
       .action((id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
@@ -148,7 +182,11 @@ export default class ActionCommand {
     // action add
     cmd
       .command('add <name>')
+      .description('Add an action to the focused task')
       .option('-s, --summary <summary>', 'Action summary')
+      .addHelpText('after', ['', 'Examples:',
+        ...ActionCommand.EXAMPLES.add.map(e => `  ${e}`)
+      ].join('\n'))
       .action((name: string, options: any, cmd: any) => {
         const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
         const task = ActionCommand.getFocusedTask(world);
@@ -173,6 +211,9 @@ export default class ActionCommand {
     cmd
       .command('delete <id>')
       .description('Delete an action')
+      .addHelpText('after', ['', 'Examples:',
+        ...ActionCommand.EXAMPLES.delete.map(e => `  ${e}`)
+      ].join('\n'))
       .action((id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
@@ -203,6 +244,9 @@ export default class ActionCommand {
       .command('get <dotref>')
       .description('Get an action field value (format: <id>.<field>)')
       .option('-t, --task <fid>', 'Task fuzzy ID (default: focused task)')
+      .addHelpText('after', ['', 'Examples:',
+        ...ActionCommand.EXAMPLES.get.map(e => `  ${e}`)
+      ].join('\n'))
       .action((dotref: string, options: any, cmd: any) => {
         const parts = dotref.split('.');
         if (parts.length !== 2) {
@@ -237,8 +281,7 @@ export default class ActionCommand {
     cmd
       .command('set <dotref> <value...>')
       .description('Set an action field value (format: <id>.<field> <value>)')
-      .addHelpText('after', [
-        '',
+      .addHelpText('after', ['',
         'Updatable fields:',
         '  name        Title',
         '  summary     Detailed summary',
@@ -246,10 +289,7 @@ export default class ActionCommand {
         '  statusNote  Status change note',
         '',
         'Examples:',
-        '  $ nameforma action set abc123.name "New action name"',
-        '  $ nameforma action set abc123.summary "Updated description"',
-        '  $ nameforma action set abc123.status done "Rejected for cost"',
-        '  $ nameforma action set abc123.statusNote "Need PM review"',
+        ...ActionCommand.EXAMPLES.set.map(e => `  ${e}`),
       ].join('\n'))
       .option('-t, --task <fid>', 'Task fuzzy ID (default: focused task)')
       .action(async (dotref: string, values: string[], options: any, cmd: any) => {
