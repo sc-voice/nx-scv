@@ -8,6 +8,7 @@
       "name": "Add Reference class",
       "summary": "Tasks can have References just like they have Actions",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "ok"
     },
     {
@@ -15,6 +16,7 @@
       "name": "nf support for references",
       "summary": "crud similar to cli-action",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "ok"
     },
     {
@@ -22,6 +24,7 @@
       "name": "task show: should show references",
       "summary": "",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "ok"
     }
   ],

@@ -69,6 +69,24 @@ export class Action extends Forma {
     dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
   }
 
+  put(cfg: any = {}): void {
+    const msg = 'a6n.put';
+    if (cfg.statusDate === undefined) {
+      throw new Error(`${msg}: statusDate is required`);
+    }
+    const date = new Date(cfg.statusDate);
+    if (isNaN(date.getTime())) {
+      throw new Error(`${msg}: statusDate is invalid`);
+    }
+    this.statusDate = date;
+    if (cfg.status !== undefined) {
+      this.status = cfg.status;
+    }
+    if (cfg.statusNote !== undefined) {
+      this.statusNote = cfg.statusNote;
+    }
+  }
+
   /**
    * Register this class's avroSchema into the avro registry and return AvroType.
    *

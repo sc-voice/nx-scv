@@ -8,6 +8,7 @@
       "name": "Create Preferences class",
       "summary": "Schema, defaults (verbosity=0), constructor",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "implementing Preferences class"
     },
     {
@@ -15,6 +16,7 @@
       "name": "Integrate Preferences into World",
       "summary": "Add property, handle serialization in world.json",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -22,6 +24,7 @@
       "name": "Add --verbosity global option",
       "summary": "CLI flag that persists to preferences",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -29,6 +32,7 @@
       "name": "Create cli-pref.ts",
       "summary": "Implement nf pref list, nf pref reset <key>, nf pref reset --all",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -36,6 +40,7 @@
       "name": "Filter task list by verbosity",
       "summary": "Hide done tasks unless verbosity >= 1",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -43,6 +48,7 @@
       "name": "Test the feature",
       "summary": "Verify preferences persist across runs, CLI commands work, filtering applies",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     }
   ]

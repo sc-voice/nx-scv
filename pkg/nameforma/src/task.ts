@@ -192,7 +192,15 @@ export class Task extends Forma {
     super.patch(value);
     let { rawActions = [], rawReferences = [] } = value;
     Object.assign(this, {
-      rawActions: rawActions.map((data: any) => new Action(data)),
+      rawActions: rawActions.map((data: any) => {
+        const action = new Action(data);
+        try {
+          action.put(data);
+        } catch (err: any) {
+          throw new Error(`Task ${this.id.timeId()} action ${data.id || '?'} '${data.name || '?'}': ${err.message}`);
+        }
+        return action;
+      }),
       rawReferences: rawReferences.map((data: any) => new Reference(data)),
     });
 

@@ -1,20 +1,6 @@
 {
   "focusStack": [
     {
-      "id": "0PsDXyFt00m7qOfPgOKptW",
-      "formaId": "0PsCNfhR00m7qOfPgOKptW",
-      "formaType": "task",
-      "name": "world preferences (verbosity)",
-      "summary": "Implement persistent world preferences system: Create Preferences class (schema/defaults, verbosity default 0), add to World, serialize in world.json, add --verbosity global option (persists), create cli-pref.ts (nf pref list, nf pref reset verbosity, nf pref reset --all), filter task list (hide done unless verbosity>=1)"
-    },
-    {
-      "id": "0Pt59sNN003YYpLnw6CN7W",
-      "formaId": "0Pt22kbH003YYpLnw6CN7W",
-      "formaType": "task",
-      "name": "Add more interactive commands to cli-watch",
-      "summary": "Enhance cli-watch with additional interactive capabilities (e.g., auto-reload, better formatting) and document/implement TUI keystroke interactions (like 'q' for quit)."
-    },
-    {
       "id": "0PtG3Sns00pR4YwVEdPhdW",
       "formaId": "0PtG3Rn600pR4YwVEdPhdW",
       "formaType": "task",
@@ -50,11 +36,11 @@
       "summary": ""
     },
     {
-      "id": "0PtG5Bl60086He8W1bcddW",
-      "formaId": "0Pt56DLY0086He8W1bcddW",
+      "id": "0PtGRidJ00JgAf5W3uX9NW",
+      "formaId": "0PtGRi2k00JgAf5W3uX9NW",
       "formaType": "task",
-      "name": "Clean up nf help",
-      "summary": "streamline commands and help for consistency, utility and clairty"
+      "name": "Add nf commit-msg command",
+      "summary": "Scan focused tasks to list actions marked done since last commit, save to .commit-msg file"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

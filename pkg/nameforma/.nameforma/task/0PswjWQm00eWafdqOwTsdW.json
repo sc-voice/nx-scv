@@ -8,6 +8,7 @@
       "name": "Fix focus -u to unfocus current task without requiring ID",
       "summary": "Update FocusCommand.action() to handle 'nf focus -u' (unfocus without ID). Currently requires: nf focus -u <id>. Should become: nf focus -u alone unfocuses the most recent focused task (remove focusStack[0]). Implementation: Check if -u flag is set and no ID provided. If true: pop focusStack[0], save world, display 'Unfocused: <name>'. If -u with ID: existing behavior. Test: Create /tmp world with 2 focused tasks in stack, run 'nf focus -u', verify focusStack[0] removed and correct task now focused.",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "done: completed"
     },
     {
@@ -15,6 +16,7 @@
       "name": "Create world.validate() to clean up focusStack",
       "summary": "Add world.validate() method to World class that: (1) Iterates focusStack; (2) For each Focus entry, attempt world.loadEntity(focus.formaType, focus.formaId) - if it throws/returns null, entry is stale; (3) Filter focusStack to keep only valid entries; (4) Return boolean indicating if any entries were removed. Call world.validate() at start of world.toJSON() before serializing. Edge cases: if all entries removed, focusStack becomes empty (valid state). If focusStack already empty, return false. If validate() removes entries, warn user 'Cleaned X stale focus entries'. Test: Create /tmp world with 3 tasks, delete one, reload world - verify stale entry auto-removed on next focus operation.",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "done: completed"
     },
     {
@@ -22,6 +24,7 @@
       "name": "Add 'focus get' subcommand to list focus stack",
       "summary": "Add explicit 'nf focus get' subcommand to list all focus stack items. This removes ambiguity from current design where 'nf focus' with no args lists the stack. Implementation: register 'get' subcommand on focusCmd in FocusCommand.registerCommand(); action calls TuiList on world.focusStack. Test: create /tmp world with 2 focused tasks, run 'nf focus get', verify both tasks appear in TuiList output. Also test empty stack: run 'nf focus get' with no focused tasks, verify 'Focus stack is empty' message.",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "done: completed"
     },
     {
@@ -29,6 +32,7 @@
       "name": "Remove task show",
       "summary": "Replace 'task show' with 'task get' in 5 locations: (1) nameforma.ts:165 watch desc, (2) cli-watch.ts:3 comment, (3) cli-watch.ts:49 desc, (4) doc/cli.md command docs, (5) .claude/settings.local.json permission string. Context: task show was renamed to task get in b04f3c8",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "done: completed"
     }
   ],

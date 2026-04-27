@@ -36,6 +36,7 @@ import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
+import CommitMsgCommand from './cli-commit-msg.js';
 
 /**
  * CLI Wrapper - Handles command-line argument preprocessing and parsing
@@ -95,6 +96,7 @@ export class CLI {
 
     WatchCommand.registerCommand(program.command('watch').description('Watch focused task file and rerun task get when it changes'));
     DocCommand.registerCommand(program.command('doc').description('Display TUI-formatted documentation'));
+    CommitMsgCommand.registerCommand(program.command('commit-msg').description('List done actions from focused tasks since last commit'));
 
     return program;
   }

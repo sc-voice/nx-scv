@@ -8,6 +8,7 @@
       "name": "-v 0: render actions with max 2 lines",
       "summary": "",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "actions limited to 2 lines at verbosity 0"
     },
     {
@@ -15,6 +16,7 @@
       "name": "-v 1: render all action lines",
       "summary": "",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "actions show all lines at verbosity 1"
     },
     {
@@ -22,6 +24,7 @@
       "name": "-v 0: show single-line refs",
       "summary": "",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "complete"
     },
     {
@@ -29,6 +32,7 @@
       "name": "-v 1: show full refs",
       "summary": "",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "complete"
     },
     {
@@ -36,6 +40,7 @@
       "name": "-v -1: omit references",
       "summary": "",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "complete"
     }
   ],

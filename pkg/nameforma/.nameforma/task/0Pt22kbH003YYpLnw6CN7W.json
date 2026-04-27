@@ -8,6 +8,7 @@
       "name": "Add a status line at the bottom of nf watch output showing available keys (e.g., q:quit)",
       "summary": "Add a compact status line at the bottom of terminal showing available keys and current verbosity level. Implement handlers: q=quit, h=show help (list all commands with descriptions), +/-=increase/decrease verbosity (update display immediately)",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "Status line with keyboard handlers: h/help, space/refresh, +/-/arrows for verbosity"
     },
     {
@@ -15,6 +16,7 @@
       "name": "Implement 'nf task get --json' to return the current task as JSON",
       "summary": "Implement 'nf task get --json' to return the current task as JSON. Requirements: Output must be valid, unformatted JSON without ANSI escape codes, containing full (untruncated) actions and references. Implementation will involve branching logic in src/cli/cli-task.ts based on the --json flag.",
       "status": "done",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": "ok"
     },
     {
@@ -22,6 +24,7 @@
       "name": "Update cli-action.ts help to enumerate updatable fields",
       "summary": "",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     }
   ],
