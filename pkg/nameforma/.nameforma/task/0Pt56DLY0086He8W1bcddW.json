@@ -54,8 +54,29 @@
     },
     {
       "id": "0PtCtPht0086He8W1bcddW",
-      "name": "convert ref add to positional args",
+      "name": "Improve ref add command",
+      "summary": "Change ref add to positional args: ref add <name> [summary]. Silent existence probe on <name> relative to world root — if file found, auto-set source=nf:./<name>; multiple matches do nothing. --source <uri> explicit override, stored as-is. --relevance <n> defaults to 0.5. Mirrors task add pattern.",
+      "status": "done",
+      "statusNote": "accepted"
+    },
+    {
+      "id": "0PtF7Iy50086He8W1bcddW",
+      "name": "Write doc/nf-url.md",
       "summary": "",
+      "status": "done",
+      "statusNote": "accepted after user edits"
+    },
+    {
+      "id": "0PtFKhyJ0086He8W1bcddW",
+      "name": "Add world.resolvePath(hint)",
+      "summary": "",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PtFOpJr0086He8W1bcddW",
+      "name": "Action.statusDate",
+      "summary": "new serialized Action property to record timestamp of any status change",
       "status": "req",
       "statusNote": ""
     }
@@ -74,6 +95,13 @@
       "summary": "local/smoke testing required for all mutative testing — smoke tests must target local/smoke, not production data",
       "relevance": 0.8,
       "source": ""
+    },
+    {
+      "id": "0PtF7HPc0086He8W1bcddW",
+      "name": "doc/nf-url.md",
+      "summary": "nf: URL scheme design — project-local paths, uuid64 absolute references, IANA future compatibility",
+      "relevance": 0.9,
+      "source": "nf:./doc/nf-url.md"
     }
   ]
 }

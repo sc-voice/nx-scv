@@ -4,6 +4,7 @@
  */
 
 import path from 'path';
+import fs from 'fs';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 
@@ -16,8 +17,9 @@ export default class ReferenceCommand {
       '$ nf ref show REF_ID # show a specific reference',
     ],
     add: [
-      '$ nf ref add "External issue" --summary "GitHub issue #123" --relevance 0.9',
-      '$ nf ref add "Design doc" --source "https://example.com/design"',
+      '$ nf ref add "src/cli/cli-task.ts" # auto-sets source=nf:./src/cli/cli-task.ts',
+      '$ nf ref add "Design doc" "Optional summary" --source "https://example.com/design"',
+      '$ nf ref add "External issue" --relevance 0.9',
     ],
     json: [
       '$ nf ref json REF_ID # output single reference as JSON',
@@ -263,16 +265,16 @@ export default class ReferenceCommand {
 
     // reference add
     cmd
-      .command('add <name>')
+      .command('add <name> [summary]')
       .description('Add a reference to the focused task')
-      .option('-s, --summary <summary>', 'Reference summary')
-      .option('-r, --relevance <number>', 'Relevance score (0-1)', '0')
-      .option('--source <url>', 'Source URL or reference')
+      .option('-r, --relevance <number>', 'Relevance score (0-1)', '0.5')
+      .option('--source <uri>', 'Source URI or text hint')
       .addHelpText('after', ['', 'Examples:',
         ...ReferenceCommand.EXAMPLES.add.map(e => `  ${e}`)
       ].join('\n'))
-      .action((name: string, options: any, cmd: any) => {
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+      .action((name: string, summary: string | undefined, options: any, cmd: any) => {
+        const globalOpts = cmd.parent.optsWithGlobals();
+        const world = ReferenceCommand.getWorld(globalOpts);
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -284,12 +286,22 @@ export default class ReferenceCommand {
           throw new Error('Relevance must be a number between 0 and 1');
         }
 
-        const referenceConfig: any = { name, relevance };
-        if (options.summary) {
-          referenceConfig.summary = options.summary;
+        // Silent existence probe: if name resolves to a file, auto-set source
+        let source = options.source;
+        if (!source) {
+          const worldRoot = path.dirname(world.worldPath);
+          const probe = path.join(worldRoot, name);
+          if (fs.existsSync(probe)) {
+            source = `nf:./${name}`;
+          }
         }
-        if (options.source) {
-          referenceConfig.source = options.source;
+
+        const referenceConfig: any = { name, relevance };
+        if (summary) {
+          referenceConfig.summary = summary;
+        }
+        if (source) {
+          referenceConfig.source = source;
         }
 
         const reference = task.references(world).addItem(referenceConfig);

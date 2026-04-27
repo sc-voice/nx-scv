@@ -111,9 +111,9 @@ describe('CLI: reference command', () => {
     output = [];
     { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
 
-    // Add reference with summary
+    // Add reference with summary as positional arg
     output = [];
-    await testCmd('reference', 'add', 'Test Reference', '-s', 'This is a summary');
+    await testCmd('reference', 'add', 'Test Reference', 'This is a summary');
 
     expect(output[0]).toMatch(/✓ Reference added/);
 
@@ -158,6 +158,47 @@ describe('CLI: reference command', () => {
     expect(task!.references(world).items[0].source).toBe(
       'https://github.com/issue/123',
     );
+  });
+
+  it('reference add default relevance is 0.5', async () => {
+    await testCmd('task', 'add', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+
+    output = [];
+    await testCmd('reference', 'add', 'Test Reference');
+
+    const world = World.fromPath(tempWorld.worldPath);
+    const task = world.loadFuzzy(Task, taskId);
+    expect(task!.references(world).items[0].relevance).toBe(0.5);
+  });
+
+  it('reference add with file path auto-sets source', async () => {
+    await testCmd('task', 'add', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+
+    // Create a real file in the temp world root for the probe to find
+    const { mkdirSync, writeFileSync } = await import('fs');
+    mkdirSync(`${tempWorld.tempDir}/src`, { recursive: true });
+    writeFileSync(`${tempWorld.tempDir}/src/myfile.ts`, '');
+
+    output = [];
+    await testCmd('reference', 'add', 'src/myfile.ts');
+
+    const world = World.fromPath(tempWorld.worldPath);
+    const task = world.loadFuzzy(Task, taskId);
+    const ref = task!.references(world).items[0];
+    expect(ref.name).toBe('src/myfile.ts');
+    expect(ref.source).toBe('nf:./src/myfile.ts');
   });
 
   it('reference add with invalid relevance', async () => {
@@ -225,7 +266,6 @@ describe('CLI: reference command', () => {
       'reference',
       'add',
       'Test Reference',
-      '-s',
       'Test summary',
       '-r',
       '0.7',
@@ -260,7 +300,6 @@ describe('CLI: reference command', () => {
       'reference',
       'add',
       'Test Reference',
-      '-s',
       'Test summary',
       '-r',
       '0.7',
