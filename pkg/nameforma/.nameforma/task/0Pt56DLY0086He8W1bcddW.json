@@ -8,77 +8,112 @@
       "name": "Improve 'reference' command help",
       "summary": "Impl: (1) Add EXAMPLES static object with list/add/update/delete/show examples. (2) Update top-level description to 'Manage references linking tasks/actions to external resources'. (3) Add top-level addHelpText pulling from EXAMPLES. (4) Add .description() to add ('Add a reference to the focused task') and update ('Update a reference field'). (5) Add addHelpText with examples to each subcommand. Verify: nf reference --help shows updated description + all examples; nf reference add --help shows description + examples; nf reference update --help shows description + examples.",
       "status": "manage",
-      "statusNote": "reset to manage"
+      "statusNote": "reset to manage",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0Pt59uup0086He8W1bcddW",
       "name": "Improve 'action' command help",
       "summary": "Impl: (1) Add EXAMPLES static object with list/show/add/delete/get/set examples using ACTION_ID. (2) Update top-level description to 'Manage actions that can be added, listed, updated, and deleted for tasks'. (3) Add top-level addHelpText pulling from EXAMPLES. (4) Add .description() to add ('Add an action to the focused task'). (5) Add addHelpText with examples to each subcommand. Verify: nf action --help shows updated description + all examples; nf action add --help shows description + examples.",
       "status": "manage",
-      "statusNote": "reset to manage"
+      "statusNote": "reset to manage",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtB1yFX0086He8W1bcddW",
       "name": "Auto tests for utx00",
       "summary": "In test/cli/cli-reference.ts: use execSync (see cli-task.ts:1149 pattern) to verify --help output. (1) nf reference --help matches updated description and shows examples; (2) nf reference add --help matches description and examples; (3) nf reference update --help matches description and examples. No temp world needed.",
       "status": "manage",
-      "statusNote": "reset to manage"
+      "statusNote": "reset to manage",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtB3qMT0086He8W1bcddW",
       "name": "Auto tests for uup00",
       "summary": "In test/cli/cli-action.ts: verify --help output includes updated description and examples for action and action add commands.",
       "status": "manage",
-      "statusNote": "reset to manage"
+      "statusNote": "reset to manage",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtBEiXO0086He8W1bcddW",
       "name": "Add ref set/json subcommands",
       "summary": "Add ref set and ref json subcommands; ref json [REF_ID] returns full reference JSON for automation; drop ref get which serves neither human nor agent",
       "status": "done",
-      "statusNote": "accepted"
+      "statusNote": "accepted",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtBEkIF0086He8W1bcddW",
       "name": "Remove ref update subcommand",
       "summary": "Delete the 'update' subcommand from cli-reference.ts now that ref set covers that functionality.",
       "status": "done",
-      "statusNote": "update subcommand removed; 18 tests pass"
+      "statusNote": "update subcommand removed; 18 tests pass",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtCpC-Q0086He8W1bcddW",
       "name": "Add task json subcommand",
       "summary": "",
       "status": "req",
-      "statusNote": ""
+      "statusNote": "",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtCtPht0086He8W1bcddW",
       "name": "Improve ref add command",
       "summary": "Change ref add to positional args: ref add <name> [summary]. Silent existence probe on <name> relative to world root — if file found, auto-set source=nf:./<name>; multiple matches do nothing. --source <uri> explicit override, stored as-is. --relevance <n> defaults to 0.5. Mirrors task add pattern.",
       "status": "done",
-      "statusNote": "accepted"
+      "statusNote": "accepted",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtF7Iy50086He8W1bcddW",
       "name": "Write doc/nf-url.md",
       "summary": "",
       "status": "done",
-      "statusNote": "accepted after user edits"
+      "statusNote": "accepted after user edits",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtFKhyJ0086He8W1bcddW",
       "name": "Add world.resolvePath(hint)",
       "summary": "",
       "status": "req",
-      "statusNote": ""
+      "statusNote": "",
+      "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
       "id": "0PtFOpJr0086He8W1bcddW",
       "name": "Action.statusDate",
-      "summary": "new serialized Action property to record timestamp of any status change",
+      "summary": "statusDate:Date field on Action. Constructor: new Date(). Serialized as string in Avro (type:'string',default:''). Schema.#convertDates() handles Date→ISO at toAvro() boundary. patch() sets statusDate=new Date() when status changes, preserves it otherwise. No legacy handling needed.",
+      "status": "manage",
+      "statusNote": "statusDate:Date in memory, ISO string in Avro via toAvro() Date conversion, updated on status change; 53 tests pass",
+      "statusDate": "2026-04-27T15:58:24.973Z"
+    },
+    {
+      "id": "0PtFPnwj0086He8W1bcddW",
+      "name": "Improve action add command",
+      "summary": "Change action add to positional args: action add <name> [summary]. Mirrors ref add and task add patterns. Default relevance 0.5 if applicable.",
       "status": "req",
-      "statusNote": ""
+      "statusNote": "",
+      "statusDate": "2026-04-27T15:54:06.063Z"
+    },
+    {
+      "id": "0PtFfTbl0086He8W1bcddW",
+      "name": "Schema.toBuffer/fromBuffer",
+      "summary": "Add schema.toBuffer(jsObj, opts) and schema.fromBuffer(buf, EntityClass, opts) to encapsulate the toAvro→toBuffer and fromBuffer→new Entity steps. Reduces 4-step avro round-trip to 2 calls.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-27T15:54:06.063Z"
+    },
+    {
+      "id": "0PtFgmsN0086He8W1bcddW",
+      "name": "Display statusDate in action status",
+      "summary": "Append ActionStats.shortDate(statusDate) to action status in tuiRowStrings. Create src/action-stats.ts with static ActionStats class. shortDate(date) algorithm: (1) if date is today, return Intl.DateTimeFormat(undefined,{timeStyle:'short'}).format(date) — locale-aware, respects 24h; (2) else fmt=Intl.DateTimeFormat(undefined,{dateStyle:'short'}); compare fmt(date) vs fmt(new Date(year+4,month,day)); find contiguous spans of differing chars; if exactly 1 span, extend through adjacent digits and separators, strip result; else return full s. In tuiRowStrings: insert shortDate between coloredStatus and row items. Export ActionStats from src/index.ts. Tests in test/action-stats.ts: today→time string; past year→no-year string; leap day→no-year string.",
+      "status": "done",
+      "statusNote": "accepted",
+      "statusDate": "2026-04-27T17:06:53.626Z"
     }
   ],
   "rawReferences": [
@@ -102,6 +137,20 @@
       "summary": "nf: URL scheme design — project-local paths, uuid64 absolute references, IANA future compatibility",
       "relevance": 0.9,
       "source": "nf:./doc/nf-url.md"
+    },
+    {
+      "id": "0PtFRfp-0086He8W1bcddW",
+      "name": "src/reference.ts",
+      "summary": "",
+      "relevance": 0.9,
+      "source": "nf:./src/reference.ts"
+    },
+    {
+      "id": "0PtFRyCS0086He8W1bcddW",
+      "name": "src/action.ts",
+      "summary": "",
+      "relevance": 0.9,
+      "source": "nf:./src/action.ts"
     }
   ]
 }

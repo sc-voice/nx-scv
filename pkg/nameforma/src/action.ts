@@ -5,7 +5,7 @@ import { Schema } from './schema.js';
 import { Unicode, ColorConsole } from '@sc-voice/tools/text';
 
 const { cc } = ColorConsole;
-const { CHECKMARK: UOK } = Unicode;
+const { RIGHT_ARROW:URAR, CHECKMARK: UOK } = Unicode;
 const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const { ACTION: A6N } = DBG;
 
@@ -50,19 +50,21 @@ export const STATUS_ORDER: Record<ActionStatus, number> = {
 export class Action extends Forma {
   status: ActionStatus;
   statusNote: string;
+  statusDate: Date;
 
   constructor(cfg: any = {}) {
     const msg = 'a6n.ctor';
     const dbg = (A6N as any)?.CTOR;
     super(cfg);
 
-    let { status = ActionStatus.req, statusNote = '' } = cfg;
+    let { status = ActionStatus.req, statusNote = '', statusDate } = cfg;
     // Read-time compat: map legacy 'plan' status to 'req'
     if (status === 'plan') {
       status = ActionStatus.req;
     }
     this.status = status;
     this.statusNote = statusNote;
+    this.statusDate = statusDate ? new Date(statusDate) : new Date();
 
     dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
   }
@@ -110,6 +112,11 @@ export class Action extends Forma {
           type: 'string',
           default: '',
         }, // mutable
+        {
+          name: 'statusDate',
+          type: 'string',
+          default: '',
+        }, // mutable
       ],
     });
   }
@@ -130,10 +137,41 @@ export class Action extends Forma {
       if (!allowed.includes(status)) {
         throw new Error(`${msg} invalid transition: ${this.status} → ${status}`);
       }
+      this.statusDate = new Date();
     }
     this.status = status as ActionStatus;
     this.statusNote = statusNote;
     dbg && cc.ok1(msg, { status, statusNote });
+  }
+
+  static shortDate(date: Date): string {
+    const now = new Date();
+    if (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    ) {
+      return Intl.DateTimeFormat(undefined, { timeStyle: 'short', hour12: false }).format(date);
+    }
+    const fmt = Intl.DateTimeFormat(undefined, { dateStyle: 'short' });
+    const s = fmt.format(date);
+    const s4 = fmt.format(new Date(date.getFullYear() + 4, date.getMonth(), date.getDate()));
+    let start = -1, end = -1;
+    for (let i = 0; i < s.length; i++) {
+      if (s[i] !== s4[i]) {
+        if (start === -1) start = i;
+        end = i;
+      } else if (start !== -1) {
+        return s;
+      }
+    }
+    if (start === -1) return s;
+    let ys = start, ye = end;
+    while (ys > 0 && /\w/.test(s[ys - 1])) ys--;
+    while (ye < s.length - 1 && /\w/.test(s[ye + 1])) ye++;
+    if (ys > 0 && !/\w/.test(s[ys - 1])) ys--;
+    else if (ye < s.length - 1 && !/\w/.test(s[ye + 1])) ye++;
+    return s.slice(0, ys) + s.slice(ye + 1);
   }
 
   /**
@@ -149,7 +187,9 @@ export class Action extends Forma {
       req: BRIGHT_MAGENTA, spec: BRIGHT_MAGENTA, work: BRIGHT_CYAN,
     };
     const c = statusColor[this.status] ?? '';
-    const coloredStatus = c ? `${c}${this.status}${NO_COLOR}` : this.status;
-    return [id, [coloredStatus,  ...row, statusNote].join(UBAR)];
+    const dateStr = Action.shortDate(this.statusDate) + URAR;
+    const status = this.status;
+    const coloredStatus = c ? `${c}${status}${NO_COLOR}` : status;
+    return [id, [dateStr + coloredStatus, ...row, statusNote].join(UBAR)];
   }
 }

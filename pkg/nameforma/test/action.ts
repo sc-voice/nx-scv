@@ -73,6 +73,29 @@ describe('Action', () => {
     expect(a4n.statusNote).toBe('agreed on spec');
   });
 
+  it('statusDate set on creation', () => {
+    const before = Date.now();
+    const a4n = new Action();
+    const after = Date.now();
+    expect(a4n.statusDate).toBeInstanceOf(Date);
+    expect(a4n.statusDate.getTime()).toBeGreaterThanOrEqual(before);
+    expect(a4n.statusDate.getTime()).toBeLessThanOrEqual(after);
+  });
+
+  it('statusDate updated on status change', () => {
+    const a4n = new Action();
+    const created = a4n.statusDate.getTime();
+    a4n.patch({ status: ActionStatus.spec, statusNote: 'test' });
+    expect(a4n.statusDate.getTime()).toBeGreaterThanOrEqual(created);
+  });
+
+  it('statusDate preserved when status unchanged', () => {
+    const a4n = new Action();
+    const created = a4n.statusDate.getTime();
+    a4n.patch({ statusNote: 'just a note' });
+    expect(a4n.statusDate.getTime()).toBe(created);
+  });
+
   it('avro Action', () => {
     const msg = 'ta4n.avro';
     dbg > 1 && cc.tag(msg, '===========');
@@ -90,11 +113,13 @@ describe('Action', () => {
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Action({ id, status: 'done' });
-    let buf = avroType.toBuffer(thing1);
+    let buf = avroType.toBuffer(schema.toAvro(thing1, { avro, registry }));
     let parsed = avroType.fromBuffer(buf);
     let thing2 = new Action(parsed);
     expect(thing2.status).toBe('done');
     expect(thing2.id.base64).toBe(thing1.id.base64);
+    expect(thing2.statusDate).toBeInstanceOf(Date);
+    expect(thing2.statusDate.getTime()).toBeCloseTo(thing1.statusDate.getTime(), -2);
     dbg && cc.tag1(msg + UOK, 'Action serialized with avro');
   });
 
@@ -121,7 +146,7 @@ describe('Action', () => {
     const actions = [action1, action2, action3];
 
     dbg > 1 && cc.tag(msg, 'serialize Action array');
-    const buf = arrayType.toBuffer(actions);
+    const buf = arrayType.toBuffer(actions.map(a => Action.avroSchema.toAvro(a, { avro, registry })));
     const parsed = arrayType.fromBuffer(buf);
 
     // Reconstruct Action instances from parsed data
@@ -136,6 +161,23 @@ describe('Action', () => {
     expect(reconstructed[2].id.base64).toBe(action3.id.base64);
 
     dbg && cc.tag1(msg + UOK, 'Action[] serialized with avro');
+  });
+
+  it('shortDate today returns time format (contains :)', () => {
+    const result = Action.shortDate(new Date());
+    expect(result).toMatch(/:/);
+  });
+
+  it('shortDate past year excludes year from output', () => {
+    const pastDate = new Date(2020, 0, 15); // Jan 15, 2020
+    const result = Action.shortDate(pastDate);
+    expect(result).not.toContain('2020');
+  });
+
+  it('shortDate leap day excludes year from output', () => {
+    const leapDay = new Date(2024, 1, 29); // Feb 29, 2024
+    const result = Action.shortDate(leapDay);
+    expect(result).not.toContain('2024');
   });
 
   it('STATUS_ORDER has 6 entries', () => {

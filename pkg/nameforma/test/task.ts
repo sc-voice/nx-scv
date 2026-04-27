@@ -80,7 +80,7 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'created task with 2 actions');
 
     // Serialize
-    let buf = avroType.toBuffer(thing1);
+    let buf = avroType.toBuffer(Task.avroSchema.toAvro(thing1, { avro, registry }));
     let parsed = avroType.fromBuffer(buf);
     dbg > 1 && cc.tag(msg, 'serialized and deserialized');
 

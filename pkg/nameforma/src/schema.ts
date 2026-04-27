@@ -193,6 +193,21 @@ export class Schema {
       throw new Error(eMsg);
     }
 
-    return type.clone(jsObj, { wrapUnions: true });
+    return type.clone(Schema.#convertDates(jsObj), { wrapUnions: true });
+  }
+
+  static #convertDates(obj: any): any {
+    if (obj === null || obj === undefined) return obj;
+    if (obj instanceof Date) return obj.toISOString();
+    if (Buffer.isBuffer(obj)) return obj;
+    if (Array.isArray(obj)) return obj.map(Schema.#convertDates);
+    if (typeof obj === 'object') {
+      const result: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        result[key] = Schema.#convertDates(value);
+      }
+      return result;
+    }
+    return obj;
   }
 }
