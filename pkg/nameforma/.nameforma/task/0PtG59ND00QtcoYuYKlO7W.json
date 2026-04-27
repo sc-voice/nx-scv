@@ -1,0 +1,16 @@
+{
+  "id": "0PtG59ND00QtcoYuYKlO7W",
+  "name": "Add world.resolvePath(hint)",
+  "summary": "",
+  "rawActions": [
+    {
+      "id": "0PtG5ASI00QtcoYuYKlO7W",
+      "name": "Add world.resolvePath(hint)",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-27T17:55:07.666Z"
+    }
+  ],
+  "rawReferences": []
+}

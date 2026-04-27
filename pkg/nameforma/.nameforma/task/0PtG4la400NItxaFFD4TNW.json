@@ -1,0 +1,16 @@
+{
+  "id": "0PtG4la400NItxaFFD4TNW",
+  "name": "Schema.toBuffer/fromBuffer",
+  "summary": "",
+  "rawActions": [
+    {
+      "id": "0PtG4msq00NItxaFFD4TNW",
+      "name": "Add schema.toBuffer/fromBuffer",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-27T17:53:22.868Z"
+    }
+  ],
+  "rawReferences": []
+}

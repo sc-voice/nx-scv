@@ -197,7 +197,7 @@ describe('CLI: reference command', () => {
     const world = World.fromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     const ref = task!.references(world).items[0];
-    expect(ref.name).toBe('src/myfile.ts');
+    expect(ref.name).toBe('myfile.ts');
     expect(ref.source).toBe('nf:./src/myfile.ts');
   });
 

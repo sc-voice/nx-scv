@@ -288,15 +288,17 @@ export default class ReferenceCommand {
 
         // Silent existence probe: if name resolves to a file, auto-set source
         let source = options.source;
+        let refName = name;
         if (!source) {
           const worldRoot = path.dirname(world.worldPath);
           const probe = path.join(worldRoot, name);
           if (fs.existsSync(probe)) {
             source = `nf:./${name}`;
+            refName = path.basename(name);
           }
         }
 
-        const referenceConfig: any = { name, relevance };
+        const referenceConfig: any = { name: refName, relevance };
         if (summary) {
           referenceConfig.summary = summary;
         }

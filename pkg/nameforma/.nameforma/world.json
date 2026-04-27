@@ -15,11 +15,46 @@
       "summary": "Enhance cli-watch with additional interactive capabilities (e.g., auto-reload, better formatting) and document/implement TUI keystroke interactions (like 'q' for quit)."
     },
     {
-      "id": "0PtACbOe0086He8W1bcddW",
+      "id": "0PtG3Sns00pR4YwVEdPhdW",
+      "formaId": "0PtG3Rn600pR4YwVEdPhdW",
+      "formaType": "task",
+      "name": "Improve ID resolution in CLI",
+      "summary": ""
+    },
+    {
+      "id": "0PtG4U0W00djorcB1Zx_tW",
+      "formaId": "0PtG4S7R00djorcB1Zx_tW",
+      "formaType": "task",
+      "name": "Clean up nf action help",
+      "summary": ""
+    },
+    {
+      "id": "0PtG4mrw00NItxaFFD4TNW",
+      "formaId": "0PtG4la400NItxaFFD4TNW",
+      "formaType": "task",
+      "name": "Schema.toBuffer/fromBuffer",
+      "summary": ""
+    },
+    {
+      "id": "0PtG52dS00WB10qCAEI27W",
+      "formaId": "0PtG51ek00WB10qCAEI27W",
+      "formaType": "task",
+      "name": "Add task json subcommand",
+      "summary": ""
+    },
+    {
+      "id": "0PtG5ARP00QtcoYuYKlO7W",
+      "formaId": "0PtG59ND00QtcoYuYKlO7W",
+      "formaType": "task",
+      "name": "Add world.resolvePath(hint)",
+      "summary": ""
+    },
+    {
+      "id": "0PtG5Bl60086He8W1bcddW",
       "formaId": "0Pt56DLY0086He8W1bcddW",
       "formaType": "task",
-      "name": "Updated Test Task",
-      "summary": "Test with newlines"
+      "name": "Clean up nf help",
+      "summary": "streamline commands and help for consistency, utility and clairty"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

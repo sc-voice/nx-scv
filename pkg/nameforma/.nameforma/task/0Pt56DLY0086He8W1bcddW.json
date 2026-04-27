@@ -7,33 +7,17 @@
       "id": "0Pt59utx0086He8W1bcddW",
       "name": "Improve 'reference' command help",
       "summary": "Impl: (1) Add EXAMPLES static object with list/add/update/delete/show examples. (2) Update top-level description to 'Manage references linking tasks/actions to external resources'. (3) Add top-level addHelpText pulling from EXAMPLES. (4) Add .description() to add ('Add a reference to the focused task') and update ('Update a reference field'). (5) Add addHelpText with examples to each subcommand. Verify: nf reference --help shows updated description + all examples; nf reference add --help shows description + examples; nf reference update --help shows description + examples.",
-      "status": "manage",
-      "statusNote": "reset to manage",
-      "statusDate": "2026-04-27T15:54:06.063Z"
-    },
-    {
-      "id": "0Pt59uup0086He8W1bcddW",
-      "name": "Improve 'action' command help",
-      "summary": "Impl: (1) Add EXAMPLES static object with list/show/add/delete/get/set examples using ACTION_ID. (2) Update top-level description to 'Manage actions that can be added, listed, updated, and deleted for tasks'. (3) Add top-level addHelpText pulling from EXAMPLES. (4) Add .description() to add ('Add an action to the focused task'). (5) Add addHelpText with examples to each subcommand. Verify: nf action --help shows updated description + all examples; nf action add --help shows description + examples.",
-      "status": "manage",
-      "statusNote": "reset to manage",
-      "statusDate": "2026-04-27T15:54:06.063Z"
+      "status": "done",
+      "statusNote": "accepted",
+      "statusDate": "2026-04-27T17:36:27.418Z"
     },
     {
       "id": "0PtB1yFX0086He8W1bcddW",
       "name": "Auto tests for utx00",
       "summary": "In test/cli/cli-reference.ts: use execSync (see cli-task.ts:1149 pattern) to verify --help output. (1) nf reference --help matches updated description and shows examples; (2) nf reference add --help matches description and examples; (3) nf reference update --help matches description and examples. No temp world needed.",
-      "status": "manage",
-      "statusNote": "reset to manage",
-      "statusDate": "2026-04-27T15:54:06.063Z"
-    },
-    {
-      "id": "0PtB3qMT0086He8W1bcddW",
-      "name": "Auto tests for uup00",
-      "summary": "In test/cli/cli-action.ts: verify --help output includes updated description and examples for action and action add commands.",
-      "status": "manage",
-      "statusNote": "reset to manage",
-      "statusDate": "2026-04-27T15:54:06.063Z"
+      "status": "done",
+      "statusNote": "accepted",
+      "statusDate": "2026-04-27T17:40:33.786Z"
     },
     {
       "id": "0PtBEiXO0086He8W1bcddW",
@@ -52,20 +36,12 @@
       "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
-      "id": "0PtCpC-Q0086He8W1bcddW",
-      "name": "Add task json subcommand",
-      "summary": "",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-04-27T15:54:06.063Z"
-    },
-    {
       "id": "0PtCtPht0086He8W1bcddW",
       "name": "Improve ref add command",
       "summary": "Change ref add to positional args: ref add <name> [summary]. Silent existence probe on <name> relative to world root — if file found, auto-set source=nf:./<name>; multiple matches do nothing. --source <uri> explicit override, stored as-is. --relevance <n> defaults to 0.5. Mirrors task add pattern.",
       "status": "done",
       "statusNote": "accepted",
-      "statusDate": "2026-04-27T15:54:06.063Z"
+      "statusDate": "2026-04-27T17:34:25.782Z"
     },
     {
       "id": "0PtF7Iy50086He8W1bcddW",
@@ -76,36 +52,12 @@
       "statusDate": "2026-04-27T15:54:06.063Z"
     },
     {
-      "id": "0PtFKhyJ0086He8W1bcddW",
-      "name": "Add world.resolvePath(hint)",
-      "summary": "",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-04-27T15:54:06.063Z"
-    },
-    {
       "id": "0PtFOpJr0086He8W1bcddW",
       "name": "Action.statusDate",
       "summary": "statusDate:Date field on Action. Constructor: new Date(). Serialized as string in Avro (type:'string',default:''). Schema.#convertDates() handles Date→ISO at toAvro() boundary. patch() sets statusDate=new Date() when status changes, preserves it otherwise. No legacy handling needed.",
-      "status": "manage",
-      "statusNote": "statusDate:Date in memory, ISO string in Avro via toAvro() Date conversion, updated on status change; 53 tests pass",
-      "statusDate": "2026-04-27T15:58:24.973Z"
-    },
-    {
-      "id": "0PtFPnwj0086He8W1bcddW",
-      "name": "Improve action add command",
-      "summary": "Change action add to positional args: action add <name> [summary]. Mirrors ref add and task add patterns. Default relevance 0.5 if applicable.",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-04-27T15:54:06.063Z"
-    },
-    {
-      "id": "0PtFfTbl0086He8W1bcddW",
-      "name": "Schema.toBuffer/fromBuffer",
-      "summary": "Add schema.toBuffer(jsObj, opts) and schema.fromBuffer(buf, EntityClass, opts) to encapsulate the toAvro→toBuffer and fromBuffer→new Entity steps. Reduces 4-step avro round-trip to 2 calls.",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-04-27T15:54:06.063Z"
+      "status": "done",
+      "statusNote": "accepted",
+      "statusDate": "2026-04-27T17:23:23.187Z"
     },
     {
       "id": "0PtFgmsN0086He8W1bcddW",
@@ -151,6 +103,13 @@
       "summary": "",
       "relevance": 0.9,
       "source": "nf:./src/action.ts"
+    },
+    {
+      "id": "0PtF-y200086He8W1bcddW",
+      "name": "src/cli/cli-watch.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-watch.ts"
     }
   ]
 }

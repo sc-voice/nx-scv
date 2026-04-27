@@ -1,0 +1,32 @@
+{
+  "id": "0PtG4S7R00djorcB1Zx_tW",
+  "name": "Clean up nf action help",
+  "summary": "",
+  "rawActions": [
+    {
+      "id": "0PtG4U1O00djorcB1Zx_tW",
+      "name": "Improve 'action' command help",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-27T17:52:05.720Z"
+    },
+    {
+      "id": "0PtG4WXf00djorcB1Zx_tW",
+      "name": "Auto tests for action help",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-27T17:52:15.977Z"
+    },
+    {
+      "id": "0PtG4WYY00djorcB1Zx_tW",
+      "name": "Improve action add command",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-27T17:52:16.034Z"
+    }
+  ],
+  "rawReferences": []
+}

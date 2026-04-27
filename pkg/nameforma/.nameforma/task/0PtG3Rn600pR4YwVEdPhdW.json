@@ -1,0 +1,7 @@
+{
+  "id": "0PtG3Rn600pR4YwVEdPhdW",
+  "name": "Improve ID resolution in CLI",
+  "summary": "Investigate extending CLI commands to return all matching UUID64s for shorthand ID references. When user provides partial ID like 'utx00' or '59utx', show all matching actions/tasks/references with their full IDs. Goal: eliminate ambiguity in shorthand references and improve discoverability.",
+  "rawActions": [],
+  "rawReferences": []
+}
