@@ -19,9 +19,15 @@ export default class ReferenceCommand {
       '$ nf ref add "External issue" --summary "GitHub issue #123" --relevance 0.9',
       '$ nf ref add "Design doc" --source "https://example.com/design"',
     ],
-    update: [
-      '$ nf ref update REF_ID --summary "Updated summary"',
-      '$ nf ref update REF_ID --relevance 0.9 # an important reference',
+    json: [
+      '$ nf ref json REF_ID # output single reference as JSON',
+      '$ nf ref json # output all references as JSON array',
+    ],
+    set: [
+      '$ nf ref set REF_ID.name "New name"',
+      '$ nf ref set REF_ID.summary "Updated summary"',
+      '$ nf ref set REF_ID.relevance 0.9 # highly relevant to task',
+      '$ nf ref set REF_ID.source "https://example.com"',
     ],
     delete: [
       '$ nf ref delete REF_ID # delete a reference',
@@ -166,6 +172,95 @@ export default class ReferenceCommand {
         }
       });
 
+    // reference json [id]
+    cmd
+      .command('json [id]')
+      .description('Output reference(s) as JSON')
+      .addHelpText('after', ['', 'Examples:',
+        ...ReferenceCommand.EXAMPLES.json.map(e => `  ${e}`)
+      ].join('\n'))
+      .action((id: string | undefined, options: any, cmd: any) => {
+        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const task = ReferenceCommand.getFocusedTask(world);
+
+        if (!task) {
+          throw new Error('No task is currently focused');
+        }
+
+        const refList = task.references(world);
+
+        if (id) {
+          try {
+            const reference = refList.getItem(id);
+            console.log(JSON.stringify(reference, null, 2));
+          } catch (err: any) {
+            throw new Error(`Reference not found: ${id}`);
+          }
+        } else {
+          console.log(JSON.stringify(refList.items, null, 2));
+        }
+      });
+
+    // reference set <dotref> <value...>
+    cmd
+      .command('set <dotref> <value...>')
+      .description('Set a reference field')
+      .addHelpText('after', ['', 'Examples:',
+        ...ReferenceCommand.EXAMPLES.set.map(e => `  ${e}`)
+      ].join('\n'))
+      .action((dotref: string, values: string[], options: any, cmd: any) => {
+        if (!dotref.includes('.')) {
+          throw new Error('dotref must be in format REF_ID.field');
+        }
+
+        const parts = dotref.split('.');
+        const refId = parts[0];
+        const field = parts[1];
+
+        if (!['name', 'summary', 'relevance', 'source'].includes(field)) {
+          throw new Error(`Invalid field: ${field}. Allowed: name, summary, relevance, source`);
+        }
+
+        const value = values.join(' ').replace(/\n/g, ' ').trim();
+
+        if (field === 'name' && !value) {
+          throw new Error('Reference name cannot be blank');
+        }
+
+        if (field === 'relevance') {
+          const relevance = parseFloat(value);
+          if (isNaN(relevance) || relevance < 0 || relevance > 1) {
+            throw new Error('Relevance must be a number between 0 and 1');
+          }
+        }
+
+        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const task = ReferenceCommand.getFocusedTask(world);
+
+        if (!task) {
+          throw new Error('No task is currently focused');
+        }
+
+        const refList = task.references(world);
+
+        try {
+          const updateCfg: any = {};
+          if (field === 'relevance') {
+            updateCfg[field] = parseFloat(value);
+          } else {
+            updateCfg[field] = value;
+          }
+
+          const reference = refList.patchItem(refId, updateCfg);
+          world.save();
+
+          console.log(`✓ Reference updated`);
+          console.log(`  ${reference.name}`);
+        } catch (err: any) {
+          throw new Error(`Reference not found: ${refId}`);
+        }
+      });
+
     // reference add
     cmd
       .command('add <name>')
@@ -202,58 +297,6 @@ export default class ReferenceCommand {
 
         console.log(`✓ Reference added: ${reference.id.base64}`);
         console.log(`  ${reference.name}`);
-      });
-
-    // reference update <id>
-    cmd
-      .command('update <id>')
-      .description('Update a reference field')
-      .option('-n, --name <name>', 'Reference name')
-      .option('-s, --summary <summary>', 'Reference summary')
-      .option('-r, --relevance <number>', 'Relevance score (0-1)')
-      .option('--source <url>', 'Source URL or reference')
-      .addHelpText('after', ['', 'Examples:',
-        ...ReferenceCommand.EXAMPLES.update.map(e => `  ${e}`)
-      ].join('\n'))
-      .action((id: string, options: any, cmd: any) => {
-        if (id.length < 3) {
-          throw new Error('ID must be at least 3 characters');
-        }
-
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
-        const task = ReferenceCommand.getFocusedTask(world);
-
-        if (!task) {
-          throw new Error('No task is currently focused');
-        }
-
-        if (!options.name && !options.summary && !options.relevance && !options.source) {
-          throw new Error('At least one field must be specified (--name, --summary, --relevance, or --source)');
-        }
-
-        const refList = task.references(world);
-
-        const updateCfg: any = {};
-        if (options.name) updateCfg.name = options.name;
-        if (options.summary) updateCfg.summary = options.summary;
-        if (options.source) updateCfg.source = options.source;
-        if (options.relevance !== undefined) {
-          const relevance = parseFloat(options.relevance);
-          if (isNaN(relevance) || relevance < 0 || relevance > 1) {
-            throw new Error('Relevance must be a number between 0 and 1');
-          }
-          updateCfg.relevance = relevance;
-        }
-
-        try {
-          const reference = refList.patchItem(id, updateCfg);
-          world.save();
-
-          console.log(`✓ Reference updated`);
-          console.log(`  ${reference.name}`);
-        } catch (err: any) {
-          throw new Error(`Reference not found: ${id}`);
-        }
       });
 
     // reference delete <id>

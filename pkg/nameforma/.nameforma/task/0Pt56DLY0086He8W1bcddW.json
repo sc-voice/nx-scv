@@ -1,7 +1,7 @@
 {
   "id": "0Pt56DLY0086He8W1bcddW",
   "name": "Clean up nf help",
-  "summary": "Test with newlines",
+  "summary": "streamline commands and help for consistency, utility and clairty",
   "rawActions": [
     {
       "id": "0Pt59utx0086He8W1bcddW",
@@ -33,15 +33,29 @@
     },
     {
       "id": "0PtBEiXO0086He8W1bcddW",
-      "name": "Add ref get and ref set subcommands",
-      "summary": "Add get/set subcommands to cli-reference.ts mirroring task get/set pattern. ref get <dotref> returns field value; ref set <dotref> <value> updates field. Examples: nf ref get REF_ID.name; nf ref get REF_ID.summary; nf ref get REF_ID.relevance; nf ref get REF_ID.source; nf ref set REF_ID.name \"New name\"; nf ref set REF_ID.summary \"Updated summary\"; nf ref set REF_ID.relevance 0.9; nf ref set REF_ID.source \"https://example.com\"",
-      "status": "req",
-      "statusNote": ""
+      "name": "Add ref set/json subcommands",
+      "summary": "Add ref set and ref json subcommands; ref json [REF_ID] returns full reference JSON for automation; drop ref get which serves neither human nor agent",
+      "status": "done",
+      "statusNote": "accepted"
     },
     {
       "id": "0PtBEkIF0086He8W1bcddW",
       "name": "Remove ref update subcommand",
       "summary": "Delete the 'update' subcommand from cli-reference.ts now that ref set covers that functionality.",
+      "status": "done",
+      "statusNote": "update subcommand removed; 18 tests pass"
+    },
+    {
+      "id": "0PtCpC-Q0086He8W1bcddW",
+      "name": "Add task json subcommand",
+      "summary": "",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "id": "0PtCtPht0086He8W1bcddW",
+      "name": "convert ref add to positional args",
+      "summary": "",
       "status": "req",
       "statusNote": ""
     }

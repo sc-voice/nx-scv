@@ -244,7 +244,7 @@ describe('CLI: reference command', () => {
     expect(nonEmptyOutput[3]).toMatch(/0\.7/);
   });
 
-  it('reference update by index', async () => {
+  it('reference json single reference', async () => {
     // Create and focus a task
     await testCmd('task', 'add', 'Test Task');
 
@@ -259,43 +259,122 @@ describe('CLI: reference command', () => {
     await testCmd(
       'reference',
       'add',
-      'Original Name',
+      'Test Reference',
       '-s',
-      'Original summary',
+      'Test summary',
       '-r',
-      '0.5',
+      '0.7',
+      '--source',
+      'https://example.com',
     );
 
     const referenceIdMatch = output[0].match(/✓ Reference added: (\S+)/);
     const referenceId = referenceIdMatch![1];
 
-    // Update reference by ID
+    // Get single reference as JSON
     output = [];
-    await testCmd(
-      'reference',
-      'update',
-      referenceId,
-      '-n',
-      'Updated Name',
-      '-s',
-      'Updated summary',
-      '-r',
-      '0.9',
-    );
+    await testCmd('reference', 'json', referenceId);
+    const parsed = JSON.parse(output.join('\n'));
+    expect(parsed.name).toBe('Test Reference');
+    expect(parsed.summary).toBe('Test summary');
+    expect(parsed.relevance).toBe(0.7);
+    expect(parsed.source).toBe('https://example.com');
+  });
 
+  it('reference json all references', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+
+    // Add two references
+    output = [];
+    await testCmd('reference', 'add', 'Reference A', '-r', '0.5');
+
+    output = [];
+    await testCmd('reference', 'add', 'Reference B', '-r', '0.8');
+
+    // Get all references as JSON array
+    output = [];
+    await testCmd('reference', 'json');
+    const parsed = JSON.parse(output.join('\n'));
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed).toHaveLength(2);
+    const names = parsed.map((r: any) => r.name);
+    expect(names).toContain('Reference A');
+    expect(names).toContain('Reference B');
+  });
+
+  it('reference set field value', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+
+    // Add a reference
+    output = [];
+    await testCmd('reference', 'add', 'Original Name', '-r', '0.5');
+
+    const referenceIdMatch = output[0].match(/✓ Reference added: (\S+)/);
+    const referenceId = referenceIdMatch![1];
+
+    // Set name
+    output = [];
+    await testCmd('reference', 'set', `${referenceId}.name`, 'Updated Name');
     expect(output[0]).toMatch(/✓ Reference updated/);
-    expect(output[1]).toMatch(/Updated Name/);
 
-    // Verify the update
+    // Set summary
+    output = [];
+    await testCmd('reference', 'set', `${referenceId}.summary`, 'New summary');
+    expect(output[0]).toMatch(/✓ Reference updated/);
+
+    // Set relevance
+    output = [];
+    await testCmd('reference', 'set', `${referenceId}.relevance`, '0.9');
+    expect(output[0]).toMatch(/✓ Reference updated/);
+
+    // Set source
+    output = [];
+    await testCmd('reference', 'set', `${referenceId}.source`, 'https://new-source.com');
+
+    // Verify all updates persisted
     const world = World.fromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     const ref = task!.references(world).items[0];
     expect(ref.name).toBe('Updated Name');
-    expect(ref.summary).toBe('Updated summary');
+    expect(ref.summary).toBe('New summary');
     expect(ref.relevance).toBe(0.9);
+    expect(ref.source).toBe('https://new-source.com');
   });
 
-  it('reference update with partial fields', async () => {
+  it('reference json with unknown id throws error', async () => {
+    // Create and focus a task
+    await testCmd('task', 'add', 'Test Task');
+
+    const taskIdMatch = output[0].match(/✓ Task added: (\S+)/);
+    const taskId = taskIdMatch![1];
+
+    output = [];
+    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+
+    try {
+      output = [];
+      await testCmd('reference', 'json', 'unknownId');
+      expect.fail('Should have thrown');
+    } catch (e: any) {
+      expect(e.message).toMatch(/Reference not found: unknownId/);
+    }
+  });
+
+  it('reference set with invalid relevance', async () => {
     // Create and focus a task
     await testCmd('task', 'add', 'Test Task');
 
@@ -307,32 +386,19 @@ describe('CLI: reference command', () => {
 
     // Add a reference
     output = [];
-    await testCmd(
-      'reference',
-      'add',
-      'Original Name',
-      '-s',
-      'Original summary',
-      '-r',
-      '0.5',
-    );
+    await testCmd('reference', 'add', 'Test Reference');
 
     const referenceIdMatch = output[0].match(/✓ Reference added: (\S+)/);
     const referenceId = referenceIdMatch![1];
 
-    // Update only relevance
-    output = [];
-    await testCmd('reference', 'update', referenceId, '-r', '0.3');
-
-    expect(output[0]).toMatch(/✓ Reference updated/);
-
-    // Verify the update (only relevance changed)
-    const world = World.fromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
-    const ref = task!.references(world).items[0];
-    expect(ref.name).toBe('Original Name');
-    expect(ref.summary).toBe('Original summary');
-    expect(ref.relevance).toBe(0.3);
+    // Try to set invalid relevance
+    try {
+      output = [];
+      await testCmd('reference', 'set', `${referenceId}.relevance`, '1.5');
+      expect.fail('Should have thrown');
+    } catch (e: any) {
+      expect(e.message).toMatch(/Relevance must be a number between 0 and 1/);
+    }
   });
 
   it('reference delete by index', async () => {
@@ -385,7 +451,8 @@ describe('CLI: reference command', () => {
     expect(output).toMatch(/Manage references linking tasks\/actions to external resources/);
     expect(output).toMatch(/nf reference list/);
     expect(output).toMatch(/nf ref add/);
-    expect(output).toMatch(/nf ref update/);
+    expect(output).toMatch(/nf ref json/);
+    expect(output).toMatch(/nf ref set/);
     expect(output).toMatch(/nf ref delete/);
   });
 
@@ -400,13 +467,28 @@ describe('CLI: reference command', () => {
     expect(output).toMatch(/Design doc/);
   });
 
-  it('reference update --help shows description and examples', () => {
-    const output = execSync('npm run cli -- reference update --help', {
+  it('reference json --help shows description and examples', () => {
+    const output = execSync('npm run cli -- reference json --help', {
       cwd: process.cwd(),
       encoding: 'utf8',
     });
 
-    expect(output).toMatch(/Update a reference field/);
-    expect(output).toMatch(/nf ref update/);
+    expect(output).toMatch(/Output reference\(s\) as JSON/);
+    expect(output).toMatch(/nf ref json REF_ID/);
+    expect(output).toMatch(/nf ref json/);
   });
+
+  it('reference set --help shows description and examples', () => {
+    const output = execSync('npm run cli -- reference set --help', {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    });
+
+    expect(output).toMatch(/Set a reference field/);
+    expect(output).toMatch(/nf ref set REF_ID.name/);
+    expect(output).toMatch(/nf ref set REF_ID.summary/);
+    expect(output).toMatch(/nf ref set REF_ID.relevance/);
+    expect(output).toMatch(/nf ref set REF_ID.source/);
+  });
+
 });
