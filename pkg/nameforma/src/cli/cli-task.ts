@@ -63,6 +63,7 @@ export default class TaskCommand {
       return task;
     }
 
+    world.validate();
     const focus = world.focusedForma('task');
     if (!focus) {
       throw new Error('No task focused');
