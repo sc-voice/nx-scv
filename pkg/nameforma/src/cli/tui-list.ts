@@ -1,3 +1,4 @@
+import { nfTui } from './nf-tui.js';
 import { Forma } from '../forma.js';
 import { FormaList } from '../forma-list.js';
 import { World } from '../world.js';
@@ -170,7 +171,7 @@ export class TuiList<T extends Forma> {
     const resolved = this.resolvePreferences(this.prefs);
 
     // Print title with item count
-    console.log(`${resolved.title} (${items.length}):`);
+    nfTui.log(`${resolved.title} (${items.length}):`);
 
     if (items.length === 0) {
       return;
@@ -202,11 +203,11 @@ export class TuiList<T extends Forma> {
 
       const focusOrder = this.world.focusOrder(item);
       if (focusOrder === 0) {
-        console.log(`${focusColor1}${line}${RESET}`);
+        nfTui.log(`${focusColor1}${line}${RESET}`);
       } else if (primary && item.id.isRelated(primary.id)) {
-        console.log(`${focusColor2}${line}${RESET}`);
+        nfTui.log(`${focusColor2}${line}${RESET}`);
       } else {
-        console.log(line);
+        nfTui.log(line);
       }
     }
   }

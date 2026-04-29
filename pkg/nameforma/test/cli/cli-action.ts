@@ -41,14 +41,17 @@ describe('CLI: action command', () => {
 
     // Setup commander program
     program = new Command();
+
+    // Create test command runner and get getGlobalOpts
+    const { testCmd: tc, getGlobalOpts } = createTestCmd(program, tempWorld.worldPath);
+    testCmd = tc;
+
+    // Register commands with getGlobalOpts
     taskCmd = program.command('task');
-    TaskCommand.registerCommand(taskCmd);
+    TaskCommand.registerCommand(taskCmd, getGlobalOpts);
 
     actionCmd = program.command('action');
-    ActionCommand.registerCommand(actionCmd);
-
-    // Create test command runner
-    testCmd = createTestCmd(program, tempWorld.worldPath);
+    ActionCommand.registerCommand(actionCmd, getGlobalOpts);
   });
 
   afterEach(() => {

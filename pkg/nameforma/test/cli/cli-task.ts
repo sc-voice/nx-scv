@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
-import { CLI } from '../../src/cli/nameforma.js';
+import { CLI } from '../../src/cli/nf-cli.js';
 import { World } from '../../src/world.js';
 import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers';
 
@@ -1174,12 +1174,12 @@ describe('CLI: nameforma package script', () => {
     const tempWorld = createTempWorld();
     try {
       // Create symlink to CLI executable in temp directory
-      const cliPath = path.join(process.cwd(), 'dist/cli/nameforma.js');
-      const symlinkPath = path.join(tempWorld.tempDir, 'nameforma.js');
+      const cliPath = path.join(process.cwd(), 'dist/cli/nf-cli.js');
+      const symlinkPath = path.join(tempWorld.tempDir, 'nf-cli.js');
       fs.symlinkSync(cliPath, symlinkPath);
 
       // Run CLI from temp directory without -w option
-      const output = execSync('node nameforma.js task list', {
+      const output = execSync('node nf-cli.js task list', {
         cwd: tempWorld.tempDir,
         encoding: 'utf8',
       });

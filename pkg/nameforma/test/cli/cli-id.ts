@@ -7,6 +7,7 @@ import { validate as validateUUID } from 'uuid';
 import UUID64 from '../../src/uuid64.js';
 import IdCommand from '../../src/cli/cli-id.js';
 import { World } from '../../src/world.js';
+import { createTestProgram } from './helpers.js';
 
 describe('CLI: id command', () => {
   let program: Command;
@@ -15,6 +16,7 @@ describe('CLI: id command', () => {
   let errors: string[];
   let originalLog: any;
   let originalError: any;
+  let tempWorld: string;
 
   beforeEach(() => {
     // Capture console output
@@ -32,15 +34,41 @@ describe('CLI: id command', () => {
       errors.push(args.join(' '));
     };
 
+    // Create a temporary world for testing
+    tempWorld = fs.mkdtempSync(path.join(os.tmpdir(), 'nameforma-id-test'));
+    const worldPath = path.join(tempWorld, '.nameforma');
+
     // Setup commander program
     program = new Command();
+
+    // Setup global options but without -v to avoid conflict with --validate in id command
+    let globalOpts: any = { world: World.fromPath(worldPath), verbosity: 0 };
+    program
+      .option('-w, --world <path>', 'Path to .nameforma directory')
+      .hook('preAction', (thisCommand: any) => {
+        const opts = thisCommand.optsWithGlobals();
+        let resolvedPath = opts.world || worldPath;
+        if (!resolvedPath.endsWith('.nameforma')) {
+          resolvedPath = path.join(resolvedPath, '.nameforma');
+        }
+        globalOpts = {
+          world: World.fromPath(resolvedPath),
+          verbosity: 0,
+        };
+      });
+
+    const getGlobalOpts = () => globalOpts;
+
     idCmd = program.command('id');
-    IdCommand.registerCommand(idCmd);
+    IdCommand.registerCommand(idCmd, getGlobalOpts);
   });
 
   afterEach(() => {
     console.log = originalLog;
     console.error = originalError;
+    if (fs.existsSync(tempWorld)) {
+      fs.rmSync(tempWorld, { recursive: true, force: true });
+    }
   });
 
   describe('numeronym conversion', () => {
@@ -294,11 +322,10 @@ describe('CLI: id command', () => {
       fs.mkdirSync(worldPath, { recursive: true });
 
       try {
-        // Use a new program with -w option support
-        const testProgram = new Command();
-        testProgram.option('-w, --world <path>', 'Path to .nameforma directory');
+        // Use a new program with proper global options support
+        const { program: testProgram, getGlobalOpts } = createTestProgram(tempDir);
         const testIdCmd = testProgram.command('id');
-        IdCommand.registerCommand(testIdCmd);
+        IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
         const testOutput: string[] = [];
         const originalLog = console.log;
@@ -361,10 +388,9 @@ describe('CLI: id command', () => {
 
     it('generates and saves numeronym with -s -n', async () => {
       // Create new program for this test to isolate world directory
-      const testProgram = new Command();
-      testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+      const { program: testProgram, getGlobalOpts } = createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
-      IdCommand.registerCommand(testIdCmd);
+      IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
       const testOutput: string[] = [];
       const originalLog = console.log;
@@ -402,10 +428,9 @@ describe('CLI: id command', () => {
     });
 
     it('uses -w option before command to specify world directory', async () => {
-      const testProgram = new Command();
-      testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+      const { program: testProgram, getGlobalOpts } = createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
-      IdCommand.registerCommand(testIdCmd);
+      IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
       const testOutput: string[] = [];
       const originalLog = console.log;
@@ -438,10 +463,9 @@ describe('CLI: id command', () => {
     });
 
     it('generates and saves numeronym with --save --numeronym', async () => {
-      const testProgram = new Command();
-      testProgram.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+      const { program: testProgram, getGlobalOpts } = createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
-      IdCommand.registerCommand(testIdCmd);
+      IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
       const testOutput: string[] = [];
       const originalLog = console.log;

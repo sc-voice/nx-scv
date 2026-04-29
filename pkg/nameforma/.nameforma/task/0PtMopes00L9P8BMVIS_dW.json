@@ -1,0 +1,126 @@
+{
+  "id": "0PtMopes00L9P8BMVIS_dW",
+  "name": "Generalize nx cli output",
+  "summary": "Replace console.log/error with pi-tui output paths: (1) scrollable area = Text component with array accumulator (push/shift, capped at N lines), setText(lines.join(newline)); (2) fixed footer = bottom-left overlay Text; (3) watch panel = Text below scroll area, hidden via setText('') which returns []. All console args stringify at boundary.",
+  "rawActions": [
+    {
+      "id": "0PtMpW9900L9P8BMVIS_dW",
+      "name": "Research console use in CLI: count calls, which files, arg types beyond strings",
+      "summary": "140 calls total (121 log, 19 error). Two output paths in pi-tui: (1) scrollable content via Text.setText(string) — multi-line strings split by wrapTextWithAnsi; (2) fixed footer via bottom-* anchored overlays composited separately each render. Most console calls are scrollable output. Exceptions passed directly to console: nameforma.ts:190,196 console.error(err); repl.ts:39 console.error(msg, err); repl.ts:76 console.error(err.message||err); cli-action.ts:271 console.log(value) where value is (action as any)[field]. All must be stringified at the output boundary.",
+      "status": "done",
+      "statusNote": "research complete",
+      "statusDate": "2026-04-29T12:05:25.693Z"
+    },
+    {
+      "id": "0PtMsWnx00L9P8BMVIS_dW",
+      "name": "Analyze pi-tui Text.setText() as the output boundary: all console output becomes String(value) fed to setText",
+      "summary": "Text.setText(string) accepts multi-line strings — internally splits via wrapTextWithAnsi. All console output converts to string (String(value) for any types, join newlines for multi-arg calls) and feeds into setText.",
+      "status": "done",
+      "statusNote": "research complete",
+      "statusDate": "2026-04-29T12:05:30.471Z"
+    },
+    {
+      "id": "0PtN1RNg00L9P8BMVIS_dW",
+      "name": "nf --pi-tui-test: scrolling random word per second + current time in fixed bottom overlay, using pi-tui library",
+      "summary": "Spec confirmed wrong: setText(word) overwrites in place. Fix: accumulate words into growing string, setText(accumulated). Scrolling requires newLines.length to grow each render. TUI confirmed: scrollable=growing Text content, fixed footer=bottom-left overlay Text.",
+      "status": "done",
+      "statusNote": "pi-tui test working, scrolling and fixed footer confirmed",
+      "statusDate": "2026-04-29T12:06:46.021Z"
+    },
+    {
+      "id": "0PtOtxQC00L9P8BMVIS_dW",
+      "name": "Create NameformaTui class with log(...args) and logTo(channel,...args) delegating to console; replace all console.log/error in CLI with nfTui.log/logTo calls",
+      "summary": "Create src/cli/nf-tui.ts with NameformaTui class: global singleton nfTui, log(...args) and logTo(channel,...args) joining args with space (matching console.log behavior), delegating to console initially. Replace all console.log/error in CLI files with nfTui.log/nfTui.logTo calls. nf-tui.ts will grow to host TUI-mode behavior.",
+      "status": "done",
+      "statusNote": "nfTui replaces console in all CLI files, tests green",
+      "statusDate": "2026-04-29T12:07:07.489Z"
+    },
+    {
+      "id": "0PtOvozv00L9P8BMVIS_dW",
+      "name": "Rewrite CLI tests to use nfTui.getChannel() for output assertions instead of stdout capture",
+      "summary": "",
+      "status": "done",
+      "statusNote": "deferred",
+      "statusDate": "2026-04-29T12:07:35.919Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PtMqIqR00L9P8BMVIS_dW",
+      "name": "cli-action.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-action.ts"
+    },
+    {
+      "id": "0PtMqIrK00L9P8BMVIS_dW",
+      "name": "cli-id.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-id.ts"
+    },
+    {
+      "id": "0PtMqIsB00L9P8BMVIS_dW",
+      "name": "cli-reference.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-reference.ts"
+    },
+    {
+      "id": "0PtMqIt200L9P8BMVIS_dW",
+      "name": "cli-task.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-task.ts"
+    },
+    {
+      "id": "0PtMqItx00L9P8BMVIS_dW",
+      "name": "cli-watch.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-watch.ts"
+    },
+    {
+      "id": "0PtMqIuq00L9P8BMVIS_dW",
+      "name": "cli-doc.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-doc.ts"
+    },
+    {
+      "id": "0PtMqIvi00L9P8BMVIS_dW",
+      "name": "cli-commit-msg.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/cli-commit-msg.ts"
+    },
+    {
+      "id": "0PtMqIwa00L9P8BMVIS_dW",
+      "name": "tui-list.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/tui-list.ts"
+    },
+    {
+      "id": "0PtMqIxS00L9P8BMVIS_dW",
+      "name": "repl.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/repl.ts"
+    },
+    {
+      "id": "0PtMqIyK00L9P8BMVIS_dW",
+      "name": "nameforma.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/cli/nameforma.ts"
+    },
+    {
+      "id": "0PtMvp6j00L9P8BMVIS_dW",
+      "name": "../pi-mono/packages/tui/src/terminal.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": ""
+    }
+  ]
+}

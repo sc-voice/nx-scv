@@ -41,14 +41,17 @@ describe('CLI: reference command', () => {
 
     // Setup commander program
     program = new Command();
+
+    // Create test command runner and get getGlobalOpts
+    const { testCmd: tc, getGlobalOpts } = createTestCmd(program, tempWorld.worldPath);
+    testCmd = tc;
+
+    // Register commands with getGlobalOpts
     taskCmd = program.command('task');
-    TaskCommand.registerCommand(taskCmd);
+    TaskCommand.registerCommand(taskCmd, getGlobalOpts);
 
     referenceCmd = program.command('reference');
-    ReferenceCommand.registerCommand(referenceCmd);
-
-    // Create test command runner
-    testCmd = createTestCmd(program, tempWorld.worldPath);
+    ReferenceCommand.registerCommand(referenceCmd, getGlobalOpts);
   });
 
   afterEach(() => {

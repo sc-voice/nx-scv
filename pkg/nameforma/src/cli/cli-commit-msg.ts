@@ -3,33 +3,14 @@
  * Scans focused tasks for actions marked done since last commit
  */
 
-import path from 'path';
 import { execSync } from 'child_process';
+import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import { TuiList } from './tui-list.js';
+import type { GlobalOpts } from './nf-cli.js';
 
 export default class CommitMsgCommand {
-  /**
-   * Get or create world instance, either from -w parameter or auto-discovery
-   */
-  static getWorld(options: any): World {
-    let worldPath = options.world;
-
-    if (!worldPath) {
-      worldPath = World.findWorld();
-      if (!worldPath) {
-        worldPath = path.join(process.cwd(), '.nameforma');
-      }
-    } else {
-      if (!worldPath.endsWith('.nameforma')) {
-        worldPath = path.join(worldPath, '.nameforma');
-      }
-    }
-
-    return World.fromPath(worldPath);
-  }
-
   /**
    * Get the date of the last commit on current branch
    * Returns ISO timestamp string
@@ -46,7 +27,7 @@ export default class CommitMsgCommand {
   /**
    * Register commit-msg command
    */
-  static registerCommand(cmd: any) {
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     cmd
       .description('List done actions from focused tasks since last commit')
       .addHelpText('after', [
@@ -56,7 +37,7 @@ export default class CommitMsgCommand {
       ].join('\n'))
       .action((options: any, cmdObj: any) => {
         try {
-          const world = CommitMsgCommand.getWorld(cmdObj.optsWithGlobals());
+          const world = getGlobalOpts().world;
           const lastCommitDate = CommitMsgCommand.getLastCommitDate();
 
           // Get all focused tasks
@@ -99,7 +80,7 @@ export default class CommitMsgCommand {
           }
 
           // Output to stdout
-          console.log(lines.join('\n'));
+          nfTui.log(lines.join('\n'));
         } catch (err: any) {
           throw new Error(`commit-msg: ${err.message}`);
         }

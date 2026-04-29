@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
-    "build": "npx tsc && chmod +x dist/cli/nameforma.js",
+    "build": "npx tsc && chmod +x dist/cli/nf-cli.js",
     "format": "npx biome format --write src test",
     "test": "npm run test:unit",
     "test:unit": "npm run build && vitest --config test/vitest.config.mjs run --project=unit",
@@ -23,7 +23,7 @@
     "tansu:install": "./scripts/tansu-install",
     "tansu:start": "./scripts/tansu-start",
     "tansu:stop": "./scripts/tansu-stop",
-    "cli": "node dist/cli/nameforma.js"
+    "cli": "node dist/cli/nf-cli.js"
   },
   "repository": {
     "type": "git",
@@ -47,6 +47,7 @@
     "eslint": "^9.17.0"
   },
   "dependencies": {
+    "@mariozechner/pi-tui": "^0.70.6",
     "@sc-voice/tools": "*",
     "avro-js": "^1.12.0",
     "bubbly": "^1.1.2",
@@ -55,7 +56,7 @@
     "uuid": "^11.1.0"
   },
   "bin": {
-    "nameforma": "dist/cli/nameforma.js",
-    "nf": "dist/cli/nameforma.js"
+    "nameforma": "dist/cli/nf-cli.js",
+    "nf": "dist/cli/nf-cli.js"
   }
 }

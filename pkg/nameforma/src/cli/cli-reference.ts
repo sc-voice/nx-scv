@@ -5,8 +5,10 @@
 
 import path from 'path';
 import fs from 'fs';
+import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
+import type { GlobalOpts } from './nf-cli.js';
 
 export default class ReferenceCommand {
   static readonly EXAMPLES: Record<string, string[]> = {
@@ -36,23 +38,6 @@ export default class ReferenceCommand {
     ],
   };
 
-  static getWorld(options: any): World {
-    let worldPath = options.world;
-
-    if (!worldPath) {
-      worldPath = World.findWorld();
-      if (!worldPath) {
-        worldPath = path.join(process.cwd(), '.nameforma');
-      }
-    } else {
-      if (!worldPath.endsWith('.nameforma')) {
-        worldPath = path.join(worldPath, '.nameforma');
-      }
-    }
-
-    return World.fromPath(worldPath);
-  }
-
   static getFocusedTask(world: World): Task | null {
     const focus = world.focusedForma('task');
     if (!focus) {
@@ -62,35 +47,34 @@ export default class ReferenceCommand {
   }
 
   static printReference(reference: any, index: number) {
-    console.log(`${index}. ${reference.name}`);
+    nfTui.log(`${index}. ${reference.name}`);
     if (reference.summary) {
-      console.log(`   ${reference.summary}`);
+      nfTui.log(`   ${reference.summary}`);
     }
     if (reference.source) {
-      console.log(`   source: ${reference.source}`);
+      nfTui.log(`   source: ${reference.source}`);
     }
     if (reference.relevance) {
-      console.log(`   relevance: ${reference.relevance}`);
+      nfTui.log(`   relevance: ${reference.relevance}`);
     }
   }
 
 
-  static registerCommand(cmd: any) {
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     const helpText = ['Examples:',
       ...Object.values(ReferenceCommand.EXAMPLES).flat().map(e => `  ${e}`)
     ].join('\n');
     cmd.addHelpText('after', '\n' + helpText);
-    cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
 
     // Default action: list references of focused task
     cmd
       .description('Manage references linking tasks/actions to external resources')
       .action((options: any, cmd: any) => {
-        const world = ReferenceCommand.getWorld(cmd.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
-          console.log('No task is currently focused');
+          nfTui.log('No task is currently focused');
           return;
         }
 
@@ -99,12 +83,12 @@ export default class ReferenceCommand {
         const references = refList.items;
 
         if (references.length === 0) {
-          console.log('No references');
+          nfTui.log('No references');
           return;
         }
 
-        console.log(`References for: ${task.name}`);
-        console.log('');
+        nfTui.log(`References for: ${task.name}`);
+        nfTui.log('');
         references.forEach((reference: any, index: number) => {
           ReferenceCommand.printReference(reference, index + 1);
         });
@@ -118,11 +102,11 @@ export default class ReferenceCommand {
         ...ReferenceCommand.EXAMPLES.list.map(e => `  ${e}`)
       ].join('\n'))
       .action((options: any, cmd: any) => {
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
-          console.log('No task is currently focused');
+          nfTui.log('No task is currently focused');
           return;
         }
 
@@ -131,12 +115,12 @@ export default class ReferenceCommand {
         const references = refList.items;
 
         if (references.length === 0) {
-          console.log('No references');
+          nfTui.log('No references');
           return;
         }
 
-        console.log(`References for: ${task.name}`);
-        console.log('');
+        nfTui.log(`References for: ${task.name}`);
+        nfTui.log('');
         references.forEach((reference: any, index: number) => {
           ReferenceCommand.printReference(reference, index + 1);
         });
@@ -154,7 +138,7 @@ export default class ReferenceCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -165,8 +149,8 @@ export default class ReferenceCommand {
 
         try {
           const reference = refList.getItem(id);
-          console.log(`Reference: ${task.name}`);
-          console.log('');
+          nfTui.log(`Reference: ${task.name}`);
+          nfTui.log('');
           const index = refList.items.indexOf(reference) + 1;
           ReferenceCommand.printReference(reference, index);
         } catch (err: any) {
@@ -182,7 +166,7 @@ export default class ReferenceCommand {
         ...ReferenceCommand.EXAMPLES.json.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -194,12 +178,12 @@ export default class ReferenceCommand {
         if (id) {
           try {
             const reference = refList.getItem(id);
-            console.log(JSON.stringify(reference, null, 2));
+            nfTui.log(JSON.stringify(reference, null, 2));
           } catch (err: any) {
             throw new Error(`Reference not found: ${id}`);
           }
         } else {
-          console.log(JSON.stringify(refList.items, null, 2));
+          nfTui.log(JSON.stringify(refList.items, null, 2));
         }
       });
 
@@ -236,7 +220,7 @@ export default class ReferenceCommand {
           }
         }
 
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -256,8 +240,8 @@ export default class ReferenceCommand {
           const reference = refList.patchItem(refId, updateCfg);
           world.save();
 
-          console.log(`✓ Reference updated`);
-          console.log(`  ${reference.name}`);
+          nfTui.log(`✓ Reference updated`);
+          nfTui.log(`  ${reference.name}`);
         } catch (err: any) {
           throw new Error(`Reference not found: ${refId}`);
         }
@@ -273,8 +257,7 @@ export default class ReferenceCommand {
         ...ReferenceCommand.EXAMPLES.add.map(e => `  ${e}`)
       ].join('\n'))
       .action((name: string, summary: string | undefined, options: any, cmd: any) => {
-        const globalOpts = cmd.parent.optsWithGlobals();
-        const world = ReferenceCommand.getWorld(globalOpts);
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -309,8 +292,8 @@ export default class ReferenceCommand {
         const reference = task.references(world).addItem(referenceConfig);
         world.save();
 
-        console.log(`✓ Reference added: ${reference.id.base64}`);
-        console.log(`  ${reference.name}`);
+        nfTui.log(`✓ Reference added: ${reference.id.base64}`);
+        nfTui.log(`  ${reference.name}`);
       });
 
     // reference delete <id>
@@ -325,7 +308,7 @@ export default class ReferenceCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = ReferenceCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -338,8 +321,8 @@ export default class ReferenceCommand {
           const reference = refList.deleteItem(id);
           world.save();
 
-          console.log(`✓ Reference deleted`);
-          console.log(`  ${reference.name}`);
+          nfTui.log(`✓ Reference deleted`);
+          nfTui.log(`  ${reference.name}`);
         } catch (err: any) {
           throw new Error(`Reference not found: ${id}`);
         }

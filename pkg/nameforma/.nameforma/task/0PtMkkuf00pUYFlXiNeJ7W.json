@@ -1,0 +1,64 @@
+{
+  "id": "0PtMkkuf00pUYFlXiNeJ7W",
+  "name": "build nf-tui from pi-tui",
+  "summary": "Replace console.log/error with pi-tui output paths: (1) scrollable area = Text component with array accumulator (push/shift, capped at N lines), setText(lines.join(newline)); (2) fixed footer = bottom-left overlay Text; (3) watch panel = Text below scroll area, hidden via setText('') which returns []. All console args stringify at boundary.",
+  "rawActions": [
+    {
+      "id": "0PtMm1AH00pUYFlXiNeJ7W",
+      "name": "Add @mariozechner/pi-tui dependency to package.json",
+      "summary": "",
+      "status": "done",
+      "statusNote": "added by task 0PtMopes",
+      "statusDate": "2026-04-29T12:14:28.267Z"
+    },
+    {
+      "id": "0PtMm1BA00pUYFlXiNeJ7W",
+      "name": "Remove duplicate getWorld from WatchCommand, inline World.findWorld(options.world)",
+      "summary": "Rename src/cli/nameforma.ts→nf-cli.ts and test/cli/nameforma.ts→nf-cli.ts. nf-cli.ts owns all global options (-w/--world, --verbosity) and resolves World once. Pass globalOpts object {world, verbosity} to all subcommands via registerCommand(cmd, globalOpts). Remove getWorld() from all subcommands. Update repl.ts import from nameforma.js→nf-cli.js.",
+      "status": "work",
+      "statusNote": "implementing",
+      "statusDate": "2026-04-29T14:30:07.259Z"
+    },
+    {
+      "id": "0PtMm1C400pUYFlXiNeJ7W",
+      "name": "Extract renderTask from WatchCommand to return string[] instead of writing stdout",
+      "summary": "",
+      "status": "done",
+      "statusNote": "superceded by nf view",
+      "statusDate": "2026-04-29T14:17:04.911Z"
+    },
+    {
+      "id": "0PtMm1Cx00pUYFlXiNeJ7W",
+      "name": "Rewrite repl.ts using TUI + Input + watch panel component",
+      "summary": "Implement ReplRenderer for nf-tui.ts and rewrite repl.ts to use it. Layout: log→scrollable Text (top); logTo('watch')→watch Text (initial '(watch...)'); error→error Text (initial '(no errors...)'); input line ('nf> ') at bottom. ReplRenderer owns TUI lifecycle. /quit, /exit, or Ctrl-C exits cleanly. Watch panel uses placeholder — watch updates handled by future cli-view command.",
+      "status": "done",
+      "statusNote": "Manual testing: REPL handles commands, errors, invalid input. Prompt 'nf'. 420 tests pass.",
+      "statusDate": "2026-04-29T13:34:44.465Z"
+    },
+    {
+      "id": "0PtMm1Dn00pUYFlXiNeJ7W",
+      "name": "Build, manual test, unit tests",
+      "summary": "",
+      "status": "done",
+      "statusNote": "built, unit tests pass (420), REPL manually tested",
+      "statusDate": "2026-04-29T14:17:54.384Z"
+    },
+    {
+      "id": "0PtPDgbO00pUYFlXiNeJ7W",
+      "name": "Convert nf-tui.ts to use pi-tui",
+      "summary": "Add IRenderer interface to nf-tui.ts with log/error/logTo methods (output only). Implement CliRenderer (default) delegating to console. NameformaTui.setRenderer() swaps renderer; channel accumulation (getChannel/clearChannel/clearAll) stays on NameformaTui singleton, wrapping all renderer calls.",
+      "status": "done",
+      "statusNote": "approved",
+      "statusDate": "2026-04-29T13:00:38.610Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PtPBi4i00pUYFlXiNeJ7W",
+      "name": "nf-tui.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": ""
+    }
+  ]
+}

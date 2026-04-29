@@ -1,0 +1,137 @@
+{
+  "id": "0PtKNPKL00vJw3pLnPEeNW",
+  "name": "repl bugs",
+  "summary": "Interactive loop where user launches nf session and can type commands without nf prefix",
+  "rawActions": [
+    {
+      "id": "0PtKk11a00vJw3pLnPEeNW",
+      "name": "Establish design requirements",
+      "summary": "REPL launched when nf invoked with no args. Detects tmux via $TMUX. In tmux: 3-pane layout — top:nf watch, middle:last command echo (no prompt prefix, double-click copyable), bottom:nf> repl (input+output). No-tmux fallback: simple readline loop with nf> prompt. Exit via quit/exit/Ctrl+C. Command parsing uses cli.exec().",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T15:34:59.259Z"
+    },
+    {
+      "id": "0PtKoO5h00vJw3pLnPEeNW",
+      "name": "Implement cli.exec() before REPL",
+      "summary": "Add cli.exec(args: string[]) to CLI class in src/cli/nameforma.ts. Takes pre-parsed args array (no [node,script] prefix). Creates new CLI instance per call (avoids Commander.js state issues). Returns promise. REPL calls world.logCommand(cmd) AFTER successful exec only. Errors caught and printed, REPL loop continues.",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T18:10:47.171Z"
+    },
+    {
+      "id": "0PtKqgcF00vJw3pLnPEeNW",
+      "name": "Plan tmux pane management",
+      "summary": "Add history[] (max 10, type: {timestamp, user: agent|human, command}) to World class: private #history field, world.logCommand(cmd) method (appends+trims+saves), add to toJSON() and fromJson(). World obtained via World.findWorld()+World.fromPath() (see cli-task.ts:200 pattern). nf watch displays task then history below; each entry: short-ts|user|cmd. Two panes: tmux split-window -vb starts watch pane above, REPL below. Watch started via tmux send-keys. REPL stores watch pane ID, kills it on exit. --agent flag determines user type.",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T18:12:02.931Z"
+    },
+    {
+      "id": "0PtLBOLx00vJw3pLnPEeNW",
+      "name": "Implement REPL loop",
+      "summary": "Create src/cli/repl.ts: readline loop with nf> prompt. Obtain world via World.findWorld()+World.fromPath(). For each input line: run child_process.exec('nf --args '+userInput) to get shell-parsed args as JSON, then call cli.exec(parsedArgs). Call world.logCommand(cmd) on success only. Errors caught, loop continues. Detect $TMUX: split pane via 'tmux split-window -vb -P -F #{pane_id}', start nf watch via tmux send-keys, store pane ID, kill on exit. On quit/exit/Ctrl+C: kill watch pane if tmux.",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T18:12:24.957Z"
+    },
+    {
+      "id": "0PtLBOMo00vJw3pLnPEeNW",
+      "name": "Wire no-args launch in nameforma.ts",
+      "summary": "In src/cli/nameforma.ts: when process.argv has no command args (length <= 2), launch REPL instead of showing Commander help.",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T18:12:50.151Z"
+    },
+    {
+      "id": "0PtLBONi00vJw3pLnPEeNW",
+      "name": "Tests for REPL, cli.exec(), world.logCommand()",
+      "summary": "Unit tests: cli.exec() creates new CLI instance and routes commands correctly. world.logCommand() appends to history, trims to 10, saves world.json. REPL no-args detection. Error handling continues loop. Tmux-specific pane behavior not unit tested (requires live tmux).",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T18:13:58.929Z"
+    },
+    {
+      "id": "0PtLEjtz00vJw3pLnPEeNW",
+      "name": "Add --args flag to nf CLI",
+      "summary": "Add --args global flag to CLI in src/cli/nameforma.ts. When set, print process.argv (excluding node, script, and --args) as JSON array to stdout and exit. Allows REPL to use shell for arg parsing: child_process.exec('nf --args ' + userInput) returns parsed args as JSON.",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T18:10:10.493Z"
+    },
+    {
+      "id": "0PtLZUaa00vJw3pLnPEeNW",
+      "name": "REPL launches with cursor in watch pane",
+      "summary": "",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-28T19:29:35.941Z"
+    },
+    {
+      "id": "0PtLc_zn00vJw3pLnPEeNW",
+      "name": "Bug: REPL world instance stale after CLI.exec()",
+      "summary": "REPL loads world once at startup. After CLI.exec() modifies world.json (e.g. focus changes), REPL's stale world.logCommand() overwrites those changes on save. Fix: reload world from disk before each logCommand() call.",
+      "status": "manage",
+      "statusNote": "",
+      "statusDate": "2026-04-29T00:23:48.697Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PtKO8l400vJw3pLnPEeNW",
+      "name": "nameforma.ts",
+      "summary": "Main CLI entry point - where REPL mode entry handled",
+      "relevance": 0.9,
+      "source": "nf:./src/cli/nameforma.ts"
+    },
+    {
+      "id": "0PtKO8l-00vJw3pLnPEeNW",
+      "name": "confirm.ts",
+      "summary": "Interactive input pattern with readline/promises",
+      "relevance": 0.8,
+      "source": "nf:./src/cli/confirm.ts"
+    },
+    {
+      "id": "0PtKO8mu00vJw3pLnPEeNW",
+      "name": "cli-task.ts",
+      "summary": "Example command handler using Commander.js",
+      "relevance": 0.85,
+      "source": "nf:./src/cli/cli-task.ts"
+    },
+    {
+      "id": "0PtKO8nn00vJw3pLnPEeNW",
+      "name": "package.json",
+      "summary": "CLI bin entries and dependencies",
+      "relevance": 0.7,
+      "source": "nf:./package.json"
+    },
+    {
+      "id": "0PtKSd7G00vJw3pLnPEeNW",
+      "name": "cli-watch.ts",
+      "summary": "Watch command - may show patterns for persistent focus display",
+      "relevance": 0.75,
+      "source": "nf:./src/cli/cli-watch.ts"
+    },
+    {
+      "id": "0PtKp9uQ00vJw3pLnPEeNW",
+      "name": "task tAJs1Z",
+      "summary": "replace cli.parseArgV() with cli.exec() - update tests",
+      "relevance": 0.8,
+      "source": ""
+    },
+    {
+      "id": "0PtL8RFx00vJw3pLnPEeNW",
+      "name": "world.ts",
+      "summary": "World class - need to understand how world.json is persisted for history[] implementation",
+      "relevance": 0.85,
+      "source": "nf:./src/world.ts"
+    },
+    {
+      "id": "0PtLC5vM00vJw3pLnPEeNW",
+      "name": "src/cli/cli-task.ts:200",
+      "summary": "TaskCommand.getWorld() - pattern for World auto-discovery via World.findWorld() and World.fromPath()",
+      "relevance": 0.85,
+      "source": ""
+    }
+  ]
+}

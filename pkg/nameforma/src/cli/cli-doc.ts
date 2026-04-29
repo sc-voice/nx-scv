@@ -1,8 +1,10 @@
 import { readFileSync } from 'fs';
+import { nfTui } from './nf-tui.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { TuiList } from './tui-list.js';
 import { Unicode } from '@sc-voice/tools/text';
+import type { GlobalOpts } from './nf-cli.js';
 
 export default class DocCommand {
   static processText(content: string): string {
@@ -28,7 +30,7 @@ export default class DocCommand {
     return result;
   }
 
-  static registerCommand(cmd: any) {
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     cmd
       .argument('[doc]', 'Doc name (default: nf-task)', 'nf-task')
       .action((doc: string) => {
@@ -43,7 +45,7 @@ export default class DocCommand {
           const lines = processed.split('\n');
 
           for (let i = 0; i < lines.length; i++) {
-            console.log(lines[i]);
+            nfTui.log(lines[i]);
           }
 
           //DocCommand.render(content);

@@ -489,7 +489,7 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual(['focusStack', 'id', 'numeronym']);  // No worldPath
+      expect(Object.keys(json).sort()).toEqual(['focusStack', 'history', 'id', 'numeronym']);  // No worldPath
     });
 
     it('should preserve World id across save', () => {
@@ -600,7 +600,7 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual(['focusStack', 'id', 'numeronym']);
+      expect(Object.keys(json).sort()).toEqual(['focusStack', 'history', 'id', 'numeronym']);
     });
 
     it('should load existing World if world.json exists', () => {
@@ -632,7 +632,8 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBe(originalId);
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual(['focusStack', 'id', 'numeronym']);
+      expect(json.history).toBeDefined();
+      expect(Object.keys(json).sort()).toEqual(['focusStack', 'history', 'id', 'numeronym']);
     });
   });
 

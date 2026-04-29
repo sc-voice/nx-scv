@@ -24,12 +24,19 @@ const { WORLD } = DBG;
  * Implements IEventBus to receive FormaList mutation events and
  * automatically persist changes to disk.
  */
+interface HistoryEntry {
+  timestamp: string;
+  user: 'agent' | 'human';
+  command: string;
+}
+
 export class World extends Identifiable implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusStack: FormaList<Focus>;
   #bus: EventEmitter;
+  #history: HistoryEntry[] = [];
 
   // Export Focus class for use elsewhere
   static Focus = Focus;
@@ -216,6 +223,34 @@ export class World extends Identifiable implements IEventBus {
     fs.writeFileSync(worldFile, data, 'utf8');
 
     dbg && cc.ok1(msg, `saved ${worldFile}`);
+  }
+
+  /**
+   * Reload mutable state (focusStack, numeronym, history) from world.json.
+   * Used to refresh a long-lived World instance after external writes.
+   */
+  sync(): void {
+    const worldFile = path.join(this.#worldPath, 'world.json');
+    if (!fs.existsSync(worldFile)) return;
+
+    const data = JSON.parse(fs.readFileSync(worldFile, 'utf8'));
+
+    if (data.numeronym && typeof data.numeronym === 'object') {
+      this.#numeronym = new Map(Object.entries(data.numeronym));
+    }
+
+    if (data.focusStack && Array.isArray(data.focusStack)) {
+      const focuses = data.focusStack.map((f: any) =>
+        Focus.fromJson({ id: f.id, formaId: f.formaId, formaType: f.formaType, name: f.name, summary: f.summary })
+      );
+      this.#focusStack = new FormaList<Focus>(focuses, Focus as any, undefined, undefined, 'formaId');
+    }
+
+    if (data.history && Array.isArray(data.history)) {
+      this.#history = data.history.filter((e: any) =>
+        e.timestamp && (e.user === 'agent' || e.user === 'human') && e.command
+      );
+    }
   }
 
   /**
@@ -614,6 +649,31 @@ export class World extends Identifiable implements IEventBus {
   }
 
   /**
+   * Log a command to history (max 10 entries). Called after successful execution.
+   * @param {string} cmd - The command that was executed
+   * @param {string} user - 'agent' or 'human'
+   */
+  logCommand(cmd: string, user: 'agent' | 'human' = 'human'): void {
+    const entry: HistoryEntry = {
+      timestamp: new Date().toISOString(),
+      user,
+      command: cmd,
+    };
+    this.#history.unshift(entry);
+    if (this.#history.length > 10) {
+      this.#history.pop();
+    }
+    this.save();
+  }
+
+  /**
+   * Get command history
+   */
+  get history(): HistoryEntry[] {
+    return [...this.#history];
+  }
+
+  /**
    * Load or create World from path
    * Reads .nameforma/world.json if exists, otherwise creates new World
    * @param {string} worldPath - Path to .nameforma/ directory
@@ -676,6 +736,7 @@ export class World extends Identifiable implements IEventBus {
       })),
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
+      history: this.#history,
     };
   }
 
@@ -712,6 +773,13 @@ export class World extends Identifiable implements IEventBus {
         })
       );
       world.#focusStack = new FormaList<Focus>(focuses, Focus as any, undefined, undefined, 'formaId');
+    }
+
+    // Restore history if present
+    if (data.history && Array.isArray(data.history)) {
+      world.#history = data.history.filter((entry: any) =>
+        entry.timestamp && (entry.user === 'agent' || entry.user === 'human') && entry.command
+      );
     }
 
     return world;

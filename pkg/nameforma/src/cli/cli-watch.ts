@@ -5,37 +5,15 @@
 
 import path from 'path';
 import fs from 'fs';
+import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import TaskCommand from './cli-task.js';
 import { TuiList } from './tui-list.js';
 import { Unicode } from '@sc-voice/tools/text';
+import type { GlobalOpts } from './nf-cli.js';
 
 export default class WatchCommand {
-  /**
-   * Get or create world instance, either from -w parameter or auto-discovery
-   * @param {object} options - Command options
-   * @returns {World} - World instance
-   */
-  static getWorld(options: any): World {
-    let worldPath = options.world;
-
-    if (!worldPath) {
-      worldPath = World.findWorld();
-      if (!worldPath) {
-        // Use .nameforma in current directory as fallback
-        worldPath = path.join(process.cwd(), '.nameforma');
-      }
-    } else {
-      // If -w points to parent directory, append .nameforma
-      if (!worldPath.endsWith('.nameforma')) {
-        worldPath = path.join(worldPath, '.nameforma');
-      }
-    }
-
-    return World.fromPath(worldPath);
-  }
-
   static displayStatusLine(verbosity: number): void {
     const { BRIGHT_CYAN } = Unicode.LINUX_COLOR;
     const { RESET } = Unicode.LINUX_STYLE;
@@ -54,23 +32,22 @@ export default class WatchCommand {
   }
 
   static displayHelp(): void {
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('Available Keys:');
-    console.log('  q / Q / ESC         Quit watch mode');
-    console.log('  h                   Show this help');
-    console.log('  space               Refresh display');
-    console.log('  + / → (right)       Increase verbosity level');
-    console.log('  - / ← (left)        Decrease verbosity level');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    nfTui.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    nfTui.log('Available Keys:');
+    nfTui.log('  q / Q / ESC         Quit watch mode');
+    nfTui.log('  h                   Show this help');
+    nfTui.log('  space               Refresh display');
+    nfTui.log('  + / → (right)       Increase verbosity level');
+    nfTui.log('  - / ← (left)        Decrease verbosity level');
+    nfTui.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 
   /**
    * Register watch command
    * @param {Command} cmd - Commander command object
+   * @param {Function} getGlobalOpts - Closure that returns global options
    */
-  static registerCommand(cmd: any) {
-    // Add global -w/--world option
-    cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
 
     // watch [id]
     cmd
@@ -83,9 +60,8 @@ export default class WatchCommand {
         '  $ nameforma watch abc123def456',
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
-        let world = WatchCommand.getWorld(cmd.optsWithGlobals());
+        let { world, verbosity } = getGlobalOpts();
         let task = TaskCommand.resolveTask(world, id);
-        let verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
         const worldPath = (world as any).worldPath || path.join(process.cwd(), '.nameforma');
         const worldFilePath = path.join(worldPath, 'world.json');
         let taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
@@ -94,9 +70,9 @@ export default class WatchCommand {
           throw new Error(`Task file not found: ${taskFilePath}`);
         }
 
-        console.log(`🔍 Watching task: ${task.id}`);
-        console.log(`📁 File: ${taskFilePath}`);
-        console.log(`Press h for help\n`);
+        nfTui.log(`🔍 Watching task: ${task.id}`);
+        nfTui.log(`📁 File: ${taskFilePath}`);
+        nfTui.log(`Press h for help\n`);
 
         // Display initial state
         TaskCommand.displayTask(world, task, verbosity);
@@ -131,9 +107,9 @@ export default class WatchCommand {
                     task = newTask;
                     taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
 
-                    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
-                    console.log(`📌 Focus changed from ${oldTaskId} to ${task.id.base64}`);
-                    console.log(`📁 New file: ${taskFilePath}\n`);
+                    nfTui.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+                    nfTui.log(`📌 Focus changed from ${oldTaskId} to ${task.id.base64}`);
+                    nfTui.log(`📁 New file: ${taskFilePath}\n`);
 
                     // Reset task file mtime for the new task
                     if (fs.existsSync(taskFilePath)) {
@@ -159,14 +135,14 @@ export default class WatchCommand {
                 const reloadedTask = world.loadEntity(Task, task.id.base64);
                 if (reloadedTask) {
                   task = reloadedTask;
-                  console.log('\n━'.repeat(74) + '\n');
+                  nfTui.log('\n━'.repeat(74) + '\n');
                   TaskCommand.displayTask(world, task, verbosity);
                   WatchCommand.displayStatusLine(verbosity);
                 }
               }
             }
           } catch (error) {
-            console.error(`Error watching file: ${error}`);
+            nfTui.error(`Error watching file: ${error}`);
           }
         }, 500);
 
@@ -176,7 +152,7 @@ export default class WatchCommand {
             process.stdin.setRawMode(false);
             process.stdin.removeAllListeners('data');
           }
-          console.log('\n👋 Watch stopped');
+          nfTui.log('\n👋 Watch stopped');
           process.exit(0);
         };
 
@@ -198,17 +174,17 @@ export default class WatchCommand {
               WatchCommand.displayHelp();
               WatchCommand.displayStatusLine(verbosity);
             } else if (char === ' ') {
-              console.log('\n━'.repeat(74) + '\n');
+              nfTui.log('\n━'.repeat(74) + '\n');
               TaskCommand.displayTask(world, task, verbosity);
               WatchCommand.displayStatusLine(verbosity);
             } else if (char === '+' || char === '=' || isRightArrow) {
-              verbosity = Math.min(3, verbosity + 1);
-              console.log('\n━'.repeat(74) + '\n');
+              verbosity++;
+              nfTui.log('\n━'.repeat(74) + '\n');
               TaskCommand.displayTask(world, task, verbosity);
               WatchCommand.displayStatusLine(verbosity);
             } else if (char === '-' || char === '_' || isLeftArrow) {
-              verbosity = Math.max(0, verbosity - 1);
-              console.log('\n━'.repeat(74) + '\n');
+              verbosity--;
+              nfTui.log('\n━'.repeat(74) + '\n');
               TaskCommand.displayTask(world, task, verbosity);
               WatchCommand.displayStatusLine(verbosity);
             }

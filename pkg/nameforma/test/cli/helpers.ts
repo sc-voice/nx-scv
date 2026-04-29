@@ -3,6 +3,7 @@ import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
 import { World } from '../../src/world.js';
+import type { GlobalOpts } from '../../src/cli/nf-cli.js';
 
 /**
  * Create an isolated temporary world for testing
@@ -69,10 +70,59 @@ export function countTasks(worldPath) {
  * Create a test command runner that pre-fills world path
  * @param {Command} program - Commander program instance
  * @param {string} worldPath - Path to .nameforma directory
- * @returns {Function} - testCmd(...args) that calls program.parseAsync(['node', 'test', '-w', worldPath, ...args])
+ * @returns {object} - { testCmd(...args), getGlobalOpts() }
  */
 export function createTestCmd(program: Command, worldPath: string) {
-  program.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
-  return (...args: string[]) =>
-    program.parseAsync(['node', 'test', '-w', worldPath, ...args]);
+  let globalOpts: GlobalOpts = { world: World.fromPath(worldPath), verbosity: 0 };
+
+  program
+    .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
+    .option('-v, --verbose <level>', 'Verbosity level', '0')
+    .hook('preAction', (thisCommand: any) => {
+      const opts = thisCommand.optsWithGlobals();
+      let resolvedPath = opts.world || worldPath;
+      if (!resolvedPath.endsWith('.nameforma')) {
+        resolvedPath = path.join(resolvedPath, '.nameforma');
+      }
+      globalOpts = {
+        world: World.fromPath(resolvedPath),
+        verbosity: parseInt(opts.verbose || '0', 10),
+      };
+    });
+
+  const getGlobalOpts = () => globalOpts;
+
+  return {
+    testCmd: (...args: string[]) =>
+      program.parseAsync(['node', 'test', '-w', worldPath, ...args]),
+    getGlobalOpts,
+  };
+}
+
+/**
+ * Create a program with global options setup for testing
+ * @param {string} worldPath - Path to .nameforma directory
+ * @returns {object} - { program, getGlobalOpts }
+ */
+export function createTestProgram(worldPath: string) {
+  const program = new Command();
+  let globalOpts: GlobalOpts = { world: World.fromPath(worldPath), verbosity: 0 };
+
+  program
+    .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
+    .hook('preAction', (thisCommand: any) => {
+      const opts = thisCommand.optsWithGlobals();
+      let resolvedPath = opts.world || worldPath;
+      if (!resolvedPath.endsWith('.nameforma')) {
+        resolvedPath = path.join(resolvedPath, '.nameforma');
+      }
+      globalOpts = {
+        world: World.fromPath(resolvedPath),
+        verbosity: 0,
+      };
+    });
+
+  const getGlobalOpts = () => globalOpts;
+
+  return { program, getGlobalOpts };
 }

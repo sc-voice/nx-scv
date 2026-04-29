@@ -5,23 +5,14 @@
  * Validates ID types
  */
 
-import path from 'path';
+import { nfTui } from './nf-tui.js';
 import { validate as validateUUID } from 'uuid';
 import { Identifiable } from '../identifiable.js';
 import { World } from '../world.js';
 import UUID64 from '../uuid64.js';
+import type { GlobalOpts } from './nf-cli.js';
 
 export default class IdCommand {
-  /**
-   * Get or create world instance for saving numeronyms
-   * @param {string} worldPath - Optional path to .nameforma directory
-   * @returns {World} - World instance
-   */
-  static getWorld(worldPath?: string): World {
-    let resolvedPath = worldPath || World.findWorld() || path.join(process.cwd(), '.nameforma');
-    return World.fromPath(resolvedPath);
-  }
-
   /**
    * Validate an ID and return its type
    * @param id - The ID to validate
@@ -55,8 +46,9 @@ export default class IdCommand {
   /**
    * Register id command
    * @param {Command} cmd - Commander command object
+   * @param {Function} getGlobalOpts - Closure that returns global options
    */
-  static registerCommand(cmd: any) {
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     // id [words...]
     cmd
       .argument('[words...]', 'Words to convert to numeronym format')
@@ -68,7 +60,7 @@ export default class IdCommand {
       .option('-s, --save', 'Save numeronym to world')
       .option('-i, --inspect', 'Inspect a numeronym, UUID64 or UUIDv7')
       .action((words: string[], options: any, cmd: any) => {
-        const worldPath = cmd.parent?.optsWithGlobals()?.world;
+        const world = getGlobalOpts().world;
         try {
           // If --inspect flag is set, inspect the ID or generate and inspect new UUID64
           if (options.inspect) {
@@ -77,44 +69,43 @@ export default class IdCommand {
             if (words && words.length > 0) {
               // Inspect provided ID
               if (words.length > 1) {
-                console.error('✗ Error: Single ID expected for inspection');
+                nfTui.error('✗ Error: Single ID expected for inspection');
                 process.exit(1);
               }
 
               // Check if it's a numeronym first
               if (Identifiable.isNumeronym(words[0])) {
-                const world = IdCommand.getWorld(worldPath);
                 const numeronymMap = world.getNumeronym();
                 const word = numeronymMap.get(words[0]);
 
-                console.log(`Type: numeronym`);
-                console.log(`Value: ${words[0]}`);
+                nfTui.log(`Type: numeronym`);
+                nfTui.log(`Value: ${words[0]}`);
                 if (word) {
-                  console.log(`Word: ${word}`);
+                  nfTui.log(`Word: ${word}`);
                 }
               } else {
                 // Try to parse as UUID
                 try {
                   uuid = UUID64.fromString(words[0]);
                   const inputId = words[0];
-                  console.log(`Format:    ${inputId.includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
-                  console.log(`Base64:    ${uuid.base64}`);
-                  console.log(`UUID:      ${uuid.asV7()}`);
-                  console.log(`Timestamp: ${uuid.toDate().toISOString()}`);
-                  console.log(`Sequence:  ${uuid.getSequence()}`);
+                  nfTui.log(`Format:    ${inputId.includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
+                  nfTui.log(`Base64:    ${uuid.base64}`);
+                  nfTui.log(`UUID:      ${uuid.asV7()}`);
+                  nfTui.log(`Timestamp: ${uuid.toDate().toISOString()}`);
+                  nfTui.log(`Sequence:  ${uuid.getSequence()}`);
                 } catch (err: any) {
-                  console.error(`✗ Error: ${err.message}`);
+                  nfTui.error(`✗ Error: ${err.message}`);
                   process.exit(1);
                 }
               }
             } else {
               // Generate new UUID64 and inspect it
               uuid = new UUID64();
-              console.log(`Format:    UUID64 base64`);
-              console.log(`Base64:    ${uuid.base64}`);
-              console.log(`UUID:      ${uuid.asV7()}`);
-              console.log(`Timestamp: ${uuid.toDate().toISOString()}`);
-              console.log(`Sequence:  ${uuid.getSequence()}`);
+              nfTui.log(`Format:    UUID64 base64`);
+              nfTui.log(`Base64:    ${uuid.base64}`);
+              nfTui.log(`UUID:      ${uuid.asV7()}`);
+              nfTui.log(`Timestamp: ${uuid.toDate().toISOString()}`);
+              nfTui.log(`Sequence:  ${uuid.getSequence()}`);
             }
             return;
           }
@@ -122,33 +113,32 @@ export default class IdCommand {
           // If --save flag is set with --numeronym, save and generate numeronym
           if (options.save) {
             if (!options.numeronym) {
-              console.error('✗ Error: -n/--numeronym required with -s/--save');
+              nfTui.error('✗ Error: -n/--numeronym required with -s/--save');
               process.exit(1);
             }
             if (!words || words.length === 0) {
-              console.error('✗ Error: Word required for numeronym generation');
+              nfTui.error('✗ Error: Word required for numeronym generation');
               process.exit(1);
             }
             if (words.length > 1) {
-              console.error('✗ Error: Single word expected for numeronym generation');
+              nfTui.error('✗ Error: Single word expected for numeronym generation');
               process.exit(1);
             }
 
             const word = words[0];
             const numeronym = Identifiable.numeronym(word);
             if (numeronym === undefined) {
-              console.error(`✗ Error: cannot create valid numeronym from "${word}"`);
+              nfTui.error(`✗ Error: cannot create valid numeronym from "${word}"`);
               process.exit(1);
             }
 
             // Save to world
-            const world = IdCommand.getWorld(worldPath);
             const numeronymMap = world.getNumeronym();
             numeronymMap.set(numeronym, word);
             world.setNumeronym(numeronymMap);
             world.save();
 
-            console.log(numeronym);
+            nfTui.log(numeronym);
             return;
           }
 
@@ -156,27 +146,27 @@ export default class IdCommand {
           if (options.generate !== undefined) {
             const count = options.generate === true ? 1 : Number(options.generate);
             if (isNaN(count) || count < 0) {
-              console.error(`✗ Error: invalid count for -g: ${options.generate}`);
+              nfTui.error(`✗ Error: invalid count for -g: ${options.generate}`);
               process.exit(1);
             }
             for (let i = 0; i < count; i++) {
               const uuid = new UUID64();
-              console.log(uuid.base64);
+              nfTui.log(uuid.base64);
             }
             return;
           }
           // If --validate flag is set, validate the ID
           if (options.validate) {
             if (!words || words.length === 0) {
-              console.error('✗ Error: ID required for validation');
+              nfTui.error('✗ Error: ID required for validation');
               process.exit(1);
             }
             if (words.length > 1) {
-              console.error('✗ Error: Single ID expected for validation');
+              nfTui.error('✗ Error: Single ID expected for validation');
               process.exit(1);
             }
             const idType = IdCommand.validateId(words[0]);
-            console.log(idType);
+            nfTui.log(idType);
             return;
           }
 
@@ -185,24 +175,24 @@ export default class IdCommand {
             if (words && words.length > 0) {
               // Validate and show details of the provided UUID64
               if (words.length > 1) {
-                console.error('✗ Error: Single UUID64 expected');
+                nfTui.error('✗ Error: Single UUID64 expected');
                 process.exit(1);
               }
               try {
                 const uuid = UUID64.fromString(words[0]);
-                console.log(`Format:    ${words[0].includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
-                console.log(`Base64:    ${uuid.base64}`);
-                console.log(`UUID:      ${uuid.asV7()}`);
-                console.log(`Timestamp: ${uuid.toDate().toISOString()}`);
-                console.log(`Sequence:  ${uuid.getSequence()}`);
+                nfTui.log(`Format:    ${words[0].includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
+                nfTui.log(`Base64:    ${uuid.base64}`);
+                nfTui.log(`UUID:      ${uuid.asV7()}`);
+                nfTui.log(`Timestamp: ${uuid.toDate().toISOString()}`);
+                nfTui.log(`Sequence:  ${uuid.getSequence()}`);
               } catch (err: any) {
-                console.error(`✗ Error: ${err.message}`);
+                nfTui.error(`✗ Error: ${err.message}`);
                 process.exit(1);
               }
             } else {
               // Generate new UUID64
               const uuid = new UUID64();
-              console.log(uuid.base64);
+              nfTui.log(uuid.base64);
             }
             return;
           }
@@ -210,7 +200,7 @@ export default class IdCommand {
           // If --uuidv7 flag is set, generate a new UUIDv7
           if (options.uuidv7) {
             const uuid = new UUID64();
-            console.log(uuid.asV7());
+            nfTui.log(uuid.asV7());
             return;
           }
 
@@ -218,7 +208,7 @@ export default class IdCommand {
           if (!words || words.length === 0) {
             // Default: generate UUID64
             const uuid = new UUID64();
-            console.log(uuid.base64);
+            nfTui.log(uuid.base64);
             return;
           }
 
@@ -231,36 +221,36 @@ export default class IdCommand {
               }
               return numeronym;
             });
-            console.log(numeronyms.join(' '));
+            nfTui.log(numeronyms.join(' '));
           } else {
             // Default: single word conversion or return numeronym as-is
             if (words.length > 1) {
-              console.error('✗ Error: Single word expected. Use --numeronym to convert multiple words');
+              nfTui.error('✗ Error: Single word expected. Use --numeronym to convert multiple words');
               process.exit(1);
             }
 
             // Try to identify if it's a numeronym
             if (Identifiable.isNumeronym(words[0])) {
               // It's a numeronym - return it as-is
-              console.log(words[0]);
+              nfTui.log(words[0]);
             } else {
               // Try to convert to numeronym
               try {
                 const numeronym = Identifiable.numeronym(words[0]);
                 if (numeronym === undefined) {
                   // Result is not a valid numeronym, just echo back the input
-                  console.log(words[0]);
+                  nfTui.log(words[0]);
                 } else {
-                  console.log(numeronym);
+                  nfTui.log(numeronym);
                 }
               } catch (err: any) {
                 // If conversion fails, just echo back the input
-                console.log(words[0]);
+                nfTui.log(words[0]);
               }
             }
           }
         } catch (err: any) {
-          console.error(`✗ Error: ${err.message}`);
+          nfTui.error(`✗ Error: ${err.message}`);
           process.exit(1);
         }
       });

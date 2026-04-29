@@ -3,13 +3,14 @@
  * Supports: add, list, show, update, delete
  */
 
-import path from 'path';
+import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
 import { confirmDelete } from './confirm.js';
 import { Unicode } from '@sc-voice/tools/text';
+import type { GlobalOpts } from './nf-cli.js';
 const { GREEN_CHECKBOX } = Unicode;
 const { BRIGHT_GREEN, NO_COLOR: UNC } = Unicode.LINUX_COLOR;
 const UOK = BRIGHT_GREEN+GREEN_CHECKBOX+" ";
@@ -109,7 +110,7 @@ export default class TaskCommand {
     if (verbosity < -1) {
       const tui = new TuiList(task.actions(world), world, { maxWidth: 74 });
       const line = task.listItemString();
-      console.log(tui.wrapAndTruncate(line, 74, 1, 'ellipsis', 0));
+      nfTui.log(tui.wrapAndTruncate(line, 74, 1, 'ellipsis', 0));
       return;
     }
 
@@ -119,34 +120,39 @@ export default class TaskCommand {
       maxWidth: 74,
     });
 
-    console.log(`Task: ${task.id}`);
-    console.log(`  name: ${task.name}`);
+    nfTui.log(`Task: ${task.id}`);
+    nfTui.log(`  name: ${task.name}`);
 
     // Display progress
-    console.log(`  progress: ${TaskCommand.formatProgress(task)}`);
+    nfTui.log(`  progress: ${TaskCommand.formatProgress(task)}`);
 
     // Wrap summary with proper indentation
     if (task.summary) {
       const wrappedSummary = tui.wrapAndTruncate(task.summary, 74, undefined, 'ellipsis', 2);
       const summaryLines = wrappedSummary.split('\n');
-      console.log(`  summary: ${summaryLines[0]}`);
+      nfTui.log(`  summary: ${summaryLines[0]}`);
       summaryLines.slice(1).forEach((line) => {
-        console.log(`    ${line}`);
+        nfTui.log(`    ${line}`);
       });
     } else {
-      console.log(`  summary:`);
+      nfTui.log(`  summary:`);
     }
 
     if (task.rawActions.length > 0) {
       const tui = new TuiList(actions, world, { maxWidth: 74 });
-      console.log(`  actions (${task.rawActions.length}):`);
+      nfTui.log(`  actions (${task.rawActions.length}):`);
       // verbosity: <0=1-line, 0=2-line, 1=4-line, 2+=full
-      const maxActionLines = verbosity < 0 ? 1 : (verbosity === 0 ? 2 : (verbosity === 1 ? 4 : undefined));
+      const ACTION_BASE = 0;
+      const actionVerbosity = verbosity - ACTION_BASE;
+      let maxActionLines:number | undefined; // default: show all lines
+      if (actionVerbosity <= 4) {
+        maxActionLines = Math.max(1, actionVerbosity+2);
+      }
       task.rawActions.forEach((action) => {
         const itemId = actions.itemListId(action) + ':';
         const line = action.listItemString({ itemId });
         const wrapped = tui.wrapAndTruncate(line, 74, maxActionLines, 'ellipsis', itemId.length + 1);
-        wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
+        wrapped.split('\n').forEach((l) => nfTui.log(`    ${l}`));
       });
     }
 
@@ -154,14 +160,14 @@ export default class TaskCommand {
     // verbosity 3: show all (multi-line); verbosity 1-2: 1-line; <1: omit
     if (task.rawReferences.length > 0 && verbosity >= 1) {
       const tui = new TuiList(references, world, { maxWidth: 74 });
-      console.log(`  references (${task.rawReferences.length}):`);
+      nfTui.log(`  references (${task.rawReferences.length}):`);
       references.sort((a, b) => b.relevance - a.relevance);
       task.rawReferences.forEach((reference) => {
         const itemId = references.itemListId(reference) + ':';
         const line = reference.listItemString({ itemId });
         const maxLines = verbosity === 3 ? undefined : 1;
         const wrapped = tui.wrapAndTruncate(line, 74, maxLines, 'ellipsis', itemId.length + 1);
-        wrapped.split('\n').forEach((l) => console.log(`    ${l}`));
+        wrapped.split('\n').forEach((l) => nfTui.log(`    ${l}`));
       });
     }
   }
@@ -173,7 +179,7 @@ export default class TaskCommand {
   static listTasks(world: World): void {
     const entityList = world.entityList(Task);
     if (entityList.size === 0) {
-      console.log('No tasks');
+      nfTui.log('No tasks');
       return;
     }
     const prefs = {
@@ -188,47 +194,20 @@ export default class TaskCommand {
   }
 
   /**
-   * Get or create world instance, either from -w parameter or auto-discovery
-   * @param {object} options - Command options
-   * @returns {World} - World instance
-   */
-  static getWorld(options: any): World {
-    let worldPath = options.world;
-
-    if (!worldPath) {
-      worldPath = World.findWorld();
-      if (!worldPath) {
-        // Use .nameforma in current directory as fallback
-        worldPath = path.join(process.cwd(), '.nameforma');
-      }
-    } else {
-      // If -w points to parent directory, append .nameforma
-      if (!worldPath.endsWith('.nameforma')) {
-        worldPath = path.join(worldPath, '.nameforma');
-      }
-    }
-
-    return World.fromPath(worldPath);
-  }
-
-  /**
    * Register task subcommands
    * @param {Command} cmd - Commander command object
+   * @param {Function} getGlobalOpts - Closure that returns global options
    */
-  static registerCommand(cmd: any) {
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     const helpText = ['Examples:',
       ...Object.values(TaskCommand.EXAMPLES).flat().map(e => `  ${e}`)
     ].join('\n');
     cmd.addHelpText('after', '\n' + helpText);
 
-    // Add global -w/--world option
-    cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
-
     // Default action: show focused task when no subcommand given
     cmd.action((options: any, cmd: any) => {
-      const world = TaskCommand.getWorld(cmd.optsWithGlobals());
+      const { world, verbosity } = getGlobalOpts();
       const task = TaskCommand.resolveTask(world);
-      const verbosity = parseInt(cmd.optsWithGlobals().verbose || '0', 10);
       TaskCommand.displayTask(world, task, verbosity);
     });
 
@@ -241,7 +220,7 @@ export default class TaskCommand {
       ].join('\n'))
       .option('-r, --related <fuzzy-id>', 'Create task related to another task by ID')
       .action((name: string, summary: string | undefined, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const f7t = world.entityList(Task);
 
         const taskConfig: any = {
@@ -262,8 +241,8 @@ export default class TaskCommand {
 
         const task = f7t.addItem(taskConfig);
 
-        console.log(`✓ Task added: ${task.id}`);
-        console.log(`  ${task.toString()}`);
+        nfTui.log(`✓ Task added: ${task.id}`);
+        nfTui.log(`  ${task.toString()}`);
       });
 
     // task list
@@ -275,7 +254,7 @@ export default class TaskCommand {
         ...TaskCommand.EXAMPLES.list.map(e => `  ${e}`)
       ].join('\n'))
       .action((options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         TaskCommand.listTasks(world);
       });
 
@@ -288,15 +267,14 @@ export default class TaskCommand {
         ...TaskCommand.EXAMPLES.get.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const { world, verbosity } = getGlobalOpts();
         const task = TaskCommand.resolveTask(world, id);
 
         if (options.json) {
-          console.log(JSON.stringify(task, null, 2));
+          nfTui.log(JSON.stringify(task, null, 2));
           return;
         }
 
-        const verbosity = parseInt(cmd.parent.optsWithGlobals().verbose || '0', 10);
         TaskCommand.displayTask(world, task, verbosity);
       });
 
@@ -308,7 +286,7 @@ export default class TaskCommand {
         ...TaskCommand.EXAMPLES.set.map(e => `  ${e}`)
       ].join('\n'))
       .action((dotref: string, values: string[], options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const f7t = world.entityList(Task);
 
         // Parse dotref: [<taskId>].field or just field
@@ -345,8 +323,8 @@ export default class TaskCommand {
         f7t.patchItem(task.id.base64, updates);
         const updated = f7t.getItem(task.id.base64);
 
-        console.log(`✓ Task updated: ${updated.id}`);
-        console.log(`  ${updated.toString()}`);
+        nfTui.log(`✓ Task updated: ${updated.id}`);
+        nfTui.log(`  ${updated.toString()}`);
       });
 
     // task delete
@@ -359,7 +337,7 @@ export default class TaskCommand {
         ...TaskCommand.EXAMPLES.delete.map(e => `  ${e}`)
       ].join('\n'))
       .action(async (id: string | undefined, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
 
         const task = TaskCommand.resolveTask(world, id);
 
@@ -368,13 +346,13 @@ export default class TaskCommand {
           const confirmed = await confirmDelete(task);
 
           if (!confirmed) {
-            console.log('Deletion cancelled');
+            nfTui.log('Deletion cancelled');
             return;
           }
         }
 
         world.delete('task', task.id.toString());
-        console.log(`✓ Task deleted: ${task.id}`);
+        nfTui.log(`✓ Task deleted: ${task.id}`);
       });
 
     // task focus
@@ -385,14 +363,13 @@ export default class TaskCommand {
         ...TaskCommand.EXAMPLES.focus.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const { world, verbosity } = getGlobalOpts();
         const task = TaskCommand.resolveTask(world, id);
 
         world.focusForma(task);
         world.save();
 
-        console.log(UOK+`Task focused:`+UNC, task.listItemString());
-        const verbosity = parseInt(cmd.parent.optsWithGlobals().verbose || '0', 10);
+        nfTui.log(UOK+`Task focused:`+UNC, task.listItemString());
         TaskCommand.displayTask(world, task, verbosity);
       });
 
@@ -404,15 +381,15 @@ export default class TaskCommand {
         ...TaskCommand.EXAMPLES.unfocus.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = TaskCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = TaskCommand.resolveTask(world, id);
 
         world.unfocusForma(task);
         world.save();
 
-        console.log(UOK+`Task unfocused:`+UNC, task.listItemString());
+        nfTui.log(UOK+`Task unfocused:`+UNC, task.listItemString());
         const stack = Array.from(world.focusStack);
-        console.log(`Focus stack (${stack.length}):`);
+        nfTui.log(`Focus stack (${stack.length}):`);
         if (stack.length > 0) {
           for (const focus of stack) {
             const t = world.loadEntity(Task, focus.formaId.base64);

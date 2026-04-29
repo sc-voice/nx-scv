@@ -3,8 +3,9 @@
  * Lists actions for the currently focused task
  */
 
-import path from 'path';
+import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import type { GlobalOpts } from './nf-cli.js';
 import { Task } from '../task.js';
 import { Action, ActionStatus, ActionTransitions } from '../action.js';
 import { settings } from './settings.js';
@@ -35,23 +36,6 @@ export default class ActionCommand {
     ],
   };
 
-  static getWorld(options: any): World {
-    let worldPath = options.world;
-
-    if (!worldPath) {
-      worldPath = World.findWorld();
-      if (!worldPath) {
-        worldPath = path.join(process.cwd(), '.nameforma');
-      }
-    } else {
-      if (!worldPath.endsWith('.nameforma')) {
-        worldPath = path.join(worldPath, '.nameforma');
-      }
-    }
-
-    return World.fromPath(worldPath);
-  }
-
   static getFocusedTask(world: World): Task | null {
     const focus = world.focusedForma('task');
     if (!focus) {
@@ -75,29 +59,28 @@ export default class ActionCommand {
 
   static printAction(action: any, index: number) {
     const status = action.status === ActionStatus.done ? '✓' : '○';
-    console.log(`${status} ${index}. ${action.name}`);
+    nfTui.log(`${status} ${index}. ${action.name}`);
     if (action.summary) {
-      console.log(`   ${action.summary}`);
+      nfTui.log(`   ${action.summary}`);
     }
   }
 
 
-  static registerCommand(cmd: any) {
+  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     const helpText = ['Examples:',
       ...Object.values(ActionCommand.EXAMPLES).flat().map(e => `  ${e}`)
     ].join('\n');
     cmd.addHelpText('after', '\n' + helpText);
-    cmd.option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)');
 
     // Default action: list actions of focused task
     cmd
       .description('Manage actions that can be added, listed, updated, and deleted for tasks')
       .action((options: any, cmd: any) => {
-        const world = ActionCommand.getWorld(cmd.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
-          console.log('No task is currently focused');
+          nfTui.log('No task is currently focused');
           return;
         }
 
@@ -105,12 +88,12 @@ export default class ActionCommand {
         const actions = actionList.items;
 
         if (actions.length === 0) {
-          console.log('No actions');
+          nfTui.log('No actions');
           return;
         }
 
-        console.log(`Actions for: ${task.name}`);
-        console.log('');
+        nfTui.log(`Actions for: ${task.name}`);
+        nfTui.log('');
         actions.forEach((action: any, index: number) => {
           ActionCommand.printAction(action, index + 1);
         });
@@ -124,11 +107,11 @@ export default class ActionCommand {
         ...ActionCommand.EXAMPLES.list.map(e => `  ${e}`)
       ].join('\n'))
       .action((options: any, cmd: any) => {
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
-          console.log('No task is currently focused');
+          nfTui.log('No task is currently focused');
           return;
         }
 
@@ -136,12 +119,12 @@ export default class ActionCommand {
         const actions = actionList.items;
 
         if (actions.length === 0) {
-          console.log('No actions');
+          nfTui.log('No actions');
           return;
         }
 
-        console.log(`Actions for: ${task.name}`);
-        console.log('');
+        nfTui.log(`Actions for: ${task.name}`);
+        nfTui.log('');
         actions.forEach((action: any, index: number) => {
           ActionCommand.printAction(action, index + 1);
         });
@@ -159,7 +142,7 @@ export default class ActionCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -170,8 +153,8 @@ export default class ActionCommand {
 
         try {
           const action = actionList.getItem(id);
-          console.log(`Action: ${task.name}`);
-          console.log('');
+          nfTui.log(`Action: ${task.name}`);
+          nfTui.log('');
           const index = actionList.items.indexOf(action) + 1;
           ActionCommand.printAction(action, index);
         } catch (err: any) {
@@ -188,7 +171,7 @@ export default class ActionCommand {
         ...ActionCommand.EXAMPLES.add.map(e => `  ${e}`)
       ].join('\n'))
       .action((name: string, options: any, cmd: any) => {
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -203,8 +186,8 @@ export default class ActionCommand {
         const action = task.actions(world).addItem(actionConfig);
         world.save();
 
-        console.log(`✓ Action added: ${action.id.base64}`);
-        console.log(`  ${action.name}`);
+        nfTui.log(`✓ Action added: ${action.id.base64}`);
+        nfTui.log(`  ${action.name}`);
       });
 
     // action delete <id>
@@ -219,7 +202,7 @@ export default class ActionCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -232,8 +215,8 @@ export default class ActionCommand {
           const action = actionList.deleteItem(id);
           world.save();
 
-          console.log(`✓ Action deleted`);
-          console.log(`  ${action.name}`);
+          nfTui.log(`✓ Action deleted`);
+          nfTui.log(`  ${action.name}`);
         } catch (err: any) {
           throw new Error(`Action not found: ${id}`);
         }
@@ -258,7 +241,7 @@ export default class ActionCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.resolveTask(world, options.task);
         const actionList = task.actions(world);
 
@@ -268,7 +251,7 @@ export default class ActionCommand {
           if (value === undefined) {
             throw new Error(`Field not found: ${field}`);
           }
-          console.log(value);
+          nfTui.log(value);
         } catch (err: any) {
           if (err.message.includes('Field not found')) {
             throw err;
@@ -314,7 +297,7 @@ export default class ActionCommand {
           }
         }
 
-        const world = ActionCommand.getWorld(cmd.parent.optsWithGlobals());
+        const world = getGlobalOpts().world;
         const task = ActionCommand.resolveTask(world, options.task);
         const actionList = task.actions(world);
 
@@ -338,20 +321,20 @@ export default class ActionCommand {
                 `>>> Action: ${action.id}\n>>> name: ${action.name}\n>>> Transition to '${newStatus}': Was team consulted and consensus gained? (no/yes) `
               );
               if (!consensusConfirmed) {
-                console.log('Transition cancelled - consensus required');
+                nfTui.log('Transition cancelled - consensus required');
                 return;
               }
             }
 
             actionList.patchItem(id, { status: newStatus, statusNote });
             world.save();
-            console.log(`✓ ${oldStatus}->${newStatus} ${statusNote}`);
+            nfTui.log(`✓ ${oldStatus}->${newStatus} ${statusNote}`);
           } else {
             const updateCfg: any = {};
             updateCfg[field] = values[0];
             actionList.patchItem(id, updateCfg);
             world.save();
-            console.log(`✓ ${field} updated`);
+            nfTui.log(`✓ ${field} updated`);
           }
         } catch (err: any) {
           if (err.message.includes('invalid transition')) {
