@@ -8,6 +8,7 @@
       "name": "Container is based on Node24 Debian/Ubuntu",
       "summary": "use DockerFile at monorepo root",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -15,6 +16,7 @@
       "name": "Create Dockerfile at monorepo root",
       "summary": "Base image node:24 (Debian bookworm). Copy package manifests first for layer caching, run npm install, then copy source.",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -22,6 +24,7 @@
       "name": "Create .dockerignore",
       "summary": "Exclude node_modules, dist, local/, *.tsbuildinfo",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -29,6 +32,7 @@
       "name": "Create scripts/container-build.sh",
       "summary": "Shell script to build the nx-scv-dev container image: container build -t nx-scv-dev . Make executable with chmod +x.",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -36,6 +40,7 @@
       "name": "Create scripts/container-shell.sh",
       "summary": "Shell script for interactive dev shell with workspace mounted: container run -it --rm -v $(pwd):/workspace nx-scv-dev bash. Make executable with chmod +x.",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -43,6 +48,7 @@
       "name": "Create scripts/container-test.sh",
       "summary": "Shell script to run tests inside container: container run --rm -v $(pwd):/workspace nx-scv-dev npm run test. Make executable with chmod +x.",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     },
     {
@@ -50,6 +56,7 @@
       "name": "Add npm scripts to package.json",
       "summary": "Add short npm script entries that delegate to scripts/: container:build, container:shell, container:test",
       "status": "req",
+      "statusDate": "2026-04-01T00:00:00Z",
       "statusNote": ""
     }
   ],

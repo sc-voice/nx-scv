@@ -1,20 +1,6 @@
 {
   "focusStack": [
     {
-      "id": "0PsJXOLR002CEFdyS6U_7W",
-      "formaId": "0Pq6crZrS02CEFdyS6U_7W",
-      "formaType": "task",
-      "name": "T2K-0Pq6crZr",
-      "summary": ""
-    },
-    {
-      "id": "0PsirxG600rB_hO1uIC9tW",
-      "formaId": "0Psirwhm00rB_hO1uIC9tW",
-      "formaType": "task",
-      "name": "ActionStatus comparison",
-      "summary": "Actions need to be comparable by workflow order so they can be sorted or ranked"
-    },
-    {
       "id": "0PsmBY3600VOwDbIaMmFdW",
       "formaId": "0PsMdk-a00VOwDbIaMmFdW",
       "formaType": "task",
@@ -23,5 +9,22 @@
     }
   ],
   "id": "0Pr-SSWU009b1NvN2GE4dW",
-  "numeronym": {}
+  "numeronym": {},
+  "history": [
+    {
+      "timestamp": "2026-04-29T20:40:20.081Z",
+      "user": "human",
+      "command": "task get -v 3"
+    },
+    {
+      "timestamp": "2026-04-29T20:40:09.932Z",
+      "user": "human",
+      "command": "task get"
+    },
+    {
+      "timestamp": "2026-04-29T20:39:52.960Z",
+      "user": "human",
+      "command": "task list"
+    }
+  ]
 }
