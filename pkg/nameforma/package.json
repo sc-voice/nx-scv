@@ -55,7 +55,7 @@
     "bubbly": "^1.1.2",
     "commander": "^12.1.0",
     "kafkajs": "^2.2.4",
-    "uuid": "^11.1.0"
+    "uuid": "^14.0.0"
   },
   "bin": {
     "nameforma": "dist/cli/nf-cli.js",
