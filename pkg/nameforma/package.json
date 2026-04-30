@@ -14,7 +14,9 @@
   ],
   "scripts": {
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
-    "build": "npx tsc && chmod +x dist/cli/nf-cli.js",
+    "build": "npm run build:ts && npm run build:doc",
+    "build:ts": "npx tsc && chmod +x dist/cli/nf-cli.js",
+    "build:doc": "./scripts/build-doc.sh",
     "format": "npx biome format --write src test",
     "test": "npm run test:unit",
     "test:unit": "npm run build && vitest --config test/vitest.config.mjs run --project=unit",

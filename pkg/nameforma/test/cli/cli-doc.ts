@@ -23,32 +23,28 @@ describe('DocCommand', () => {
     console.log = originalLog;
   });
 
-  it('nf doc prints nf-task.md by default', async () => {
+  it('nf doc prints nf-ref.md by default', async () => {
     await program.parseAsync(['node', 'test', 'doc']);
     const text = output.join('\n');
     expect(text).toMatch(/NAMEFORMA \(NF\) TASK & ACTION SYSTEM/);
   });
 
-  it('nf doc nf-task prints same output explicitly', async () => {
-    await program.parseAsync(['node', 'test', 'doc', 'nf-task']);
+  it('nf doc nf-ref prints same output explicitly', async () => {
+    await program.parseAsync(['node', 'test', 'doc', 'nf-ref']);
     const text = output.join('\n');
     expect(text).toMatch(/NAMEFORMA \(NF\) TASK & ACTION SYSTEM/);
   });
 
-  it('nf doc contains State Diagram section with transition table', async () => {
+  it('nf doc contains action state transitions', async () => {
     await program.parseAsync(['node', 'test', 'doc']);
     const text = output.join('\n');
-    expect(text).toMatch(/State Diagram/);
-    expect(text).toMatch(/req/);
-    expect(text).toMatch(/spec/);
-    expect(text).toMatch(/manage/);
+    expect(text).toMatch(/req.*spec.*work.*test.*manage.*done/s);
     expect(text).toMatch(/Formal Consensus/);
   });
 
-  it('nf doc contains State Definition section with state definitions', async () => {
+  it('nf doc contains action state definitions', async () => {
     await program.parseAsync(['node', 'test', 'doc']);
     const text = output.join('\n');
-    expect(text).toMatch(/State Definitions/);
     expect(text).toMatch(/\x1b\[95mReq\x1b\[39m:\s+Enumerate/);
     expect(text).toMatch(/\x1b\[95mDone\x1b\[39m:\s+The stable/);
   });

@@ -1,0 +1,55 @@
+{
+  "id": "0PtUp0wV001PSb8voCO77W",
+  "name": "Define nf-watch component for pi",
+  "summary": "Allows pi users to watch the nf task system when using pi",
+  "rawActions": [
+    {
+      "id": "0PtU-46t001PSb8voCO77W",
+      "name": "Phase 1: Implement NfService and data models",
+      "summary": "Implement the data layer including NfTask interfaces, NfService for polling nf CLI, and error handling.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-30T15:18:24.951Z"
+    },
+    {
+      "id": "0PtU-9e5001PSb8voCO77W",
+      "name": "Phase 2: Refactor WatchComponent for Reactive UI",
+      "summary": "Refactor component to use NfService, implement reactive rendering via invalidate(), and add ANSI styling.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-30T15:18:47.557Z"
+    },
+    {
+      "id": "0PtU-AAG001PSb8voCO77W",
+      "name": "Phase 3: Infrastructure & Lifecycle Management",
+      "summary": "Implement proper cleanup (intervals, processes) and terminal resize support (SIGWINCH).",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-30T15:18:49.744Z"
+    },
+    {
+      "id": "0PtU-Aaf001PSb8voCO77W",
+      "name": "Phase 4: Validation & Testing",
+      "summary": "Implement unit tests for NfService and an integration demo of the polished component.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-04-30T15:18:51.433Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PtUs_kj001PSb8voCO77W",
+      "name": "@src/pi/nf-watch.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": ""
+    },
+    {
+      "id": "0PtV41g0001PSb8voCO77W",
+      "name": "nf-watch.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/pi/nf-watch.ts"
+    }
+  ]
+}

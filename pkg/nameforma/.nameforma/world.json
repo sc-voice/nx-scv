@@ -48,6 +48,13 @@
       "formaType": "task",
       "name": "build nx-tui from pi-tui",
       "summary": ""
+    },
+    {
+      "id": "0PtUpAux001PSb8voCO77W",
+      "formaId": "0PtUp0wV001PSb8voCO77W",
+      "formaType": "task",
+      "name": "Define nf-watch component for pi",
+      "summary": "Allows pi users to watch the nf task system when using pi"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",
@@ -58,6 +65,26 @@
     "T13a": "TranslationData"
   },
   "history": [
+    {
+      "timestamp": "2026-04-30T14:30:49.148Z",
+      "user": "human",
+      "command": "task focus tUp0wV"
+    },
+    {
+      "timestamp": "2026-04-30T14:30:26.874Z",
+      "user": "human",
+      "command": "task list"
+    },
+    {
+      "timestamp": "2026-04-30T14:30:21.057Z",
+      "user": "human",
+      "command": "watch"
+    },
+    {
+      "timestamp": "2026-04-30T14:30:08.289Z",
+      "user": "human",
+      "command": "task add \"Define nf-watch component for pi\" \"Allows pi users to watch the nf task system when using pi\""
+    },
     {
       "timestamp": "2026-04-29T20:38:05.535Z",
       "user": "human",
@@ -87,26 +114,6 @@
       "timestamp": "2026-04-29T20:33:21.766Z",
       "user": "human",
       "command": "/qtui"
-    },
-    {
-      "timestamp": "2026-04-29T20:32:31.270Z",
-      "user": "human",
-      "command": "task list"
-    },
-    {
-      "timestamp": "2026-04-29T18:50:30.691Z",
-      "user": "human",
-      "command": "/qtui"
-    },
-    {
-      "timestamp": "2026-04-29T18:50:30.690Z",
-      "user": "human",
-      "command": "/qtui"
-    },
-    {
-      "timestamp": "2026-04-29T18:50:07.699Z",
-      "user": "human",
-      "command": "quit"
     }
   ]
 }

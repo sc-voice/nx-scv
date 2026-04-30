@@ -6,11 +6,13 @@ The `nf:` scheme is a private URI namespace for nameforma references. It is synt
 
 ### Project-local path
 ```
-nf:./relative/path
+nf:./relative/path    # formal schema
+@relative/path        # informal "agent path" shorthand
 ```
 Resolved relative to the active world root (the directory containing `.nameforma`). When worlds are nested, an active child world takes priority over its parent.
 
 Example: `nf:./src/cli/cli-task.ts`
+Example: `@src/cli/cli-task.ts`
 
 ### Absolute entity reference
 ```

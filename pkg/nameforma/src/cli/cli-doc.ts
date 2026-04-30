@@ -32,14 +32,20 @@ export default class DocCommand {
 
   static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     cmd
-      .argument('[doc]', 'Doc name (default: nf-task)', 'nf-task')
+      .argument('[doc]', 'Doc name (default: nf-ref)', 'nf-ref')
+      .addHelpText('after', ['', 'Examples:',
+        '  nf doc nf-ref # overview',
+        '  nf doc nf-url # nf URI schema',
+        '  nf doc uuid64 # base64 time-based uri',
+      ].join('\n'))
       .action((doc: string) => {
+        const __dirname = path.dirname(fileURLToPath(import.meta.url));
+        const docPath = path.join(
+          __dirname,
+          '../../dist/doc/nf',
+          `${doc}.md`
+        );
         try {
-          const docPathGlow = path.join(
-            path.dirname(fileURLToPath(import.meta.url)),
-            `../../doc/${doc}.glow`
-          );
-          const docPath = docPathGlow;
           const content = readFileSync(docPath, 'utf8');
           const processed = DocCommand.processText(content);
           const lines = processed.split('\n');
@@ -50,7 +56,7 @@ export default class DocCommand {
 
           //DocCommand.render(content);
         } catch (err: any) {
-          throw new Error(`Doc not found: ${doc}`);
+          throw new Error(`Doc not found: ${docPath}`);
         }
       });
   }

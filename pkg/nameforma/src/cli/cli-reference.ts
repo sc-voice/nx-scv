@@ -274,10 +274,15 @@ export default class ReferenceCommand {
         let refName = name;
         if (!source) {
           const worldRoot = path.dirname(world.worldPath);
-          const probe = path.join(worldRoot, name);
+          let probePath = name;
+          // Handle agent paths: @src/... → src/...
+          if (name.startsWith('@')) {
+            probePath = name.slice(1);
+          }
+          const probe = path.join(worldRoot, probePath);
           if (fs.existsSync(probe)) {
-            source = `nf:./${name}`;
-            refName = path.basename(name);
+            source = `nf:./${probePath}`;
+            refName = path.basename(probePath);
           }
         }
 
