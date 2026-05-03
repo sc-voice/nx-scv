@@ -1,5 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
+import { RenderData, RenderDetail, IRenderable } from './renderable.js';
 import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
@@ -65,6 +66,49 @@ export abstract class AFormaMatcher<T extends Forma> implements IFormaMatcher<T>
 }
 
 /**
+ * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
+ * Returns similarity score (0-1) where 1 = exact match, 0 = completely different
+ */
+export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
+  /**
+   * Create a Levenshtein matcher
+   * @param searchValue - The id value to search for
+   * @param ignoreCase - If true (default), comparison is case-insensitive
+   */
+  constructor(
+    private searchValue: string,
+    private ignoreCase: boolean = true
+  ) {
+    super();
+  }
+
+  /**
+   * Calculate similarity score between searchValue and item id
+   * @param item - Item to compare
+   * @returns Similarity: 1 = exact match, 0 = no similarity
+   */
+  similarity(item: T): number {
+    const msg = "f3a.simlarity";
+    const s10e = this.ignoreCase ? this.searchValue.toLowerCase() : this.searchValue;
+
+    const itemId = item.id;
+    let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
+    itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
+
+    // Compare against prefix of same length as search
+    const compareStr = (s10e.length <= UUID64.TIME_SEQ_CHARS) 
+      ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
+      : itemIdStr;
+    //cc.tag1(msg, "TESTTAG1")
+
+    // Use normalized distance (0-1), convert to similarity (1-0)
+    const normalizedDistance = Levenshtein.normalizedDistance(s10e, compareStr);
+    return 1 - normalizedDistance;
+  }
+
+} // LevenshteinMatcher
+
+/**
  * Forma - Base class for identifiable named objects
  *
  * ## Features
@@ -75,7 +119,7 @@ export abstract class AFormaMatcher<T extends Forma> implements IFormaMatcher<T>
  * 3. **Patching**: `patch(cfg)` method merges properties, only updates mutable fields (name)
  * 4. **Validation**: `validate(opts)` checks UUID v7 format and optional name prefix validation
  */
-export class Forma extends Identifiable {
+export class Forma extends Identifiable implements IRenderable {
   static #instances: Record<string, number> = {};
   static patchableFields = ['name', 'summary'];
   #prefix: string = '';
@@ -246,46 +290,23 @@ export class Forma extends Identifiable {
     const msg = 'f3a.listItemString';
     return this.tuiRowStrings(cfg).join(" ")
   }
+
+  asRenderData(
+    detail: RenderDetail | number = RenderDetail.Row,
+    pivot?: Forma,
+  ): RenderData {
+    const { id, name, summary } = this;
+    const timeId = id.timeId();
+    if (detail > RenderDetail.Row) {
+      return [ {id}, {name}, {summary} ]
+    } else if (detail === RenderDetail.Row) {
+      return [{timeId, name}];
+    } if (detail > RenderDetail.Cell) {
+      return id;
+    } else {
+      return id.timeId();
+    }
+  }
+
 } // Forma
 
-/**
- * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
- * Returns similarity score (0-1) where 1 = exact match, 0 = completely different
- */
-export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
-  /**
-   * Create a Levenshtein matcher
-   * @param searchValue - The id value to search for
-   * @param ignoreCase - If true (default), comparison is case-insensitive
-   */
-  constructor(
-    private searchValue: string,
-    private ignoreCase: boolean = true
-  ) {
-    super();
-  }
-
-  /**
-   * Calculate similarity score between searchValue and item id
-   * @param item - Item to compare
-   * @returns Similarity: 1 = exact match, 0 = no similarity
-   */
-  similarity(item: T): number {
-    const msg = "f3a.simlarity";
-    const s10e = this.ignoreCase ? this.searchValue.toLowerCase() : this.searchValue;
-
-    const itemId = item.id;
-    let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
-    itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
-
-    // Compare against prefix of same length as search
-    const compareStr = (s10e.length <= UUID64.TIME_SEQ_CHARS) 
-      ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
-      : itemIdStr;
-    //cc.tag1(msg, "TESTTAG1")
-
-    // Use normalized distance (0-1), convert to similarity (1-0)
-    const normalizedDistance = Levenshtein.normalizedDistance(s10e, compareStr);
-    return 1 - normalizedDistance;
-  }
-} // LevenshteinMatcher

@@ -1,0 +1,77 @@
+{
+  "id": "0Ptjfn5f009Sc8zRw_LbtW",
+  "name": "Create pi-nameforma extension",
+  "summary": "Build rudimentary pi extension showing pi-nameforma CURRENT-TIME in overlay component",
+  "rawActions": [
+    {
+      "id": "0PtjgFJh009Sc8zRw_LbtW",
+      "name": "Study pi extension API",
+      "summary": "Review extensions.md focusing on custom UI components, event hooks, and status/widget display. Reference doom-overlay template and example extensions (status-line, overlay-test, model-status). Document key API calls needed for displaying pi-nameforma CURRENT-TIME in overlay/status component.",
+      "status": "spec",
+      "statusNote": "Needs specification for output format and file structure",
+      "statusDate": "2026-05-03T12:52:13.971Z"
+    },
+    {
+      "id": "0PtjgFKq009Sc8zRw_LbtW",
+      "name": "Set up pi-nameforma extension skeleton",
+      "summary": "Set up src/pi/nameforma/ directory with TypeScript extension skeleton: index.ts entry point and supporting modules",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T11:46:06.260Z"
+    },
+    {
+      "id": "0PtjgFLz009Sc8zRw_LbtW",
+      "name": "Implement time-display overlay component",
+      "summary": "Build custom TUI component showing pi-nameforma CURRENT-TIME",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T11:46:06.333Z"
+    },
+    {
+      "id": "0PtjgFN6009Sc8zRw_LbtW",
+      "name": "Register extension command/entry point",
+      "summary": "Wire extension to pi with command handler",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T11:46:06.406Z"
+    },
+    {
+      "id": "0PtjgFOF009Sc8zRw_LbtW",
+      "name": "Test extension in pi",
+      "summary": "Manual testing of overlay display and time updates",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T11:46:06.479Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PtjssMp009Sc8zRw_LbtW",
+      "name": "src/pi/nameforma",
+      "summary": "Source folder for pi extension implementation",
+      "relevance": 0.5,
+      "source": "nf:../../../src/pi/nameforma"
+    },
+    {
+      "id": "0PtjtGEB009Sc8zRw_LbtW",
+      "name": "pi extensions documentation",
+      "summary": "Complete API reference for building pi extensions",
+      "relevance": 0.5,
+      "source": "nf:../../../pi-mono/packages/coding-agent/docs/extensions.md"
+    },
+    {
+      "id": "0PtjtxGc009Sc8zRw_LbtW",
+      "name": "pi coding agent codebase",
+      "summary": "Complete pi-coding-agent source code and examples",
+      "relevance": 0.5,
+      "source": "nf:../../../pi-mono/packages/coding-agent"
+    },
+    {
+      "id": "0PtjuTXT009Sc8zRw_LbtW",
+      "name": "doom overlay",
+      "summary": "Extension template for pi TUI",
+      "relevance": 0.5,
+      "source": "nf:../../../pi-mono/packages/coding-agent/examples/extensions/doom-overlay"
+    }
+  ]
+}

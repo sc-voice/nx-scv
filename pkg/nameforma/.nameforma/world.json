@@ -50,11 +50,11 @@
       "summary": ""
     },
     {
-      "id": "0PtUpAux001PSb8voCO77W",
-      "formaId": "0PtUp0wV001PSb8voCO77W",
+      "id": "0PtjfnrG009Sc8zRw_LbtW",
+      "formaId": "0Ptjfn5f009Sc8zRw_LbtW",
       "formaType": "task",
-      "name": "Define nf-watch component for pi",
-      "summary": "Allows pi users to watch the nf task system when using pi"
+      "name": "Create pi-nameforma extension",
+      "summary": "Build rudimentary pi extension showing pi-nameforma CURRENT-TIME in overlay component"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",
@@ -65,6 +65,16 @@
     "T13a": "TranslationData"
   },
   "history": [
+    {
+      "timestamp": "2026-05-02T11:43:17.170Z",
+      "user": "human",
+      "command": "task"
+    },
+    {
+      "timestamp": "2026-05-02T11:43:10.083Z",
+      "user": "human",
+      "command": "tssk"
+    },
     {
       "timestamp": "2026-04-30T14:30:49.148Z",
       "user": "human",
@@ -104,16 +114,6 @@
       "timestamp": "2026-04-29T20:34:18.224Z",
       "user": "human",
       "command": "\\quit"
-    },
-    {
-      "timestamp": "2026-04-29T20:34:02.512Z",
-      "user": "human",
-      "command": "task list"
-    },
-    {
-      "timestamp": "2026-04-29T20:33:21.766Z",
-      "user": "human",
-      "command": "/qtui"
     }
   ]
 }

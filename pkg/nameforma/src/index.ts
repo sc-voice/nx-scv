@@ -4,6 +4,7 @@ import { Focus } from './focus.js';
 import { Forma, type IFormaMatcher, AFormaMatcher, LevenshteinMatcher } from './forma.js';
 import { FormaList, IFormaItemClass, IFormaItem } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
+import { RenderDetail } from './renderable.js';
 import UUID64 from './uuid64.js';
 export type { IFormaMatcher, IFormaItem, IFormaItemClass, FuzzyId };
 import {
@@ -43,4 +44,5 @@ export const NameForma = {
   Task,
   UUID64,
   _Runner,
+  RenderDetail,
 };

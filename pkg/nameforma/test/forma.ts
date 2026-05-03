@@ -5,7 +5,7 @@ import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 
-const { Schema, Forma } = NameForma;
+const { Schema, Forma, RenderDetail } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -80,6 +80,30 @@ describe('Forma', () => {
     expect(thing2).toEqual(thing1);
     dbg && cc.tag1(msg + UOK, 'Forma serialized with avro');
   });
+
+  it('asRenderData', () => {
+    const f = new Forma({ name: 'test-forma', summary: 'A test forma for verification' });
+
+    // Test All level - returns array of objects with id, name, summary
+    const dataAll = f.asRenderData(RenderDetail.All);
+    expect(Array.isArray(dataAll)).toBe(true);
+    expect(dataAll).toHaveLength(3);
+    expect(dataAll[0]).toEqual({ id: f.id });
+    expect(dataAll[1]).toEqual({ name: 'test-forma' });
+    expect(dataAll[2]).toEqual({ summary: 'A test forma for verification' });
+
+    // Test Row level - returns array with timeId and name
+    const dataRow = f.asRenderData(RenderDetail.Row);
+    expect(Array.isArray(dataRow)).toBe(true);
+    expect(dataRow).toHaveLength(1);
+    expect(dataRow[0]).toEqual({ timeId: f.id.timeId(), name: 'test-forma' });
+
+    // Test Cell level - returns just timeId string
+    const dataCell = f.asRenderData(RenderDetail.Cell);
+    expect(typeof dataCell).toBe('string');
+    expect(dataCell).toBe(f.id.timeId());
+  });
+
   it('classes', () => {
     const msg = 'tc5s';
     class ClassA {

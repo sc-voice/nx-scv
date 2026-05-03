@@ -15,8 +15,8 @@ export default class ReferenceCommand {
     list: [
       '$ nf reference list # list references for focused task',
     ],
-    show: [
-      '$ nf ref show REF_ID # show a specific reference',
+    get: [
+      '$ nf ref get REF_ID # get a specific reference',
     ],
     add: [
       '$ nf ref add "src/cli/cli-task.ts" # auto-sets source=nf:./src/cli/cli-task.ts',
@@ -44,6 +44,24 @@ export default class ReferenceCommand {
       return null;
     }
     return world.loadFuzzy(Task, focus.formaId.toString()) || null;
+  }
+
+  static probeSource(name: string, world: World, explicitSource?: string): { refName: string; source?: string } {
+    let source = explicitSource;
+    let refName = name;
+    if (!source) {
+      const worldRoot = path.dirname(world.worldPath);
+      let probePath = name;
+      if (name.startsWith('@')) {
+        probePath = name.slice(1);
+      }
+      const probe = path.join(worldRoot, probePath);
+      if (fs.existsSync(probe)) {
+        source = `nf:./${probePath}`;
+        refName = path.basename(probePath);
+      }
+    }
+    return { refName, source };
   }
 
   static printReference(reference: any, index: number) {
@@ -126,12 +144,12 @@ export default class ReferenceCommand {
         });
       });
 
-    // reference show <id>
+    // reference get <id>
     cmd
-      .command('show <id>')
-      .description('Show a specific reference')
+      .command('get <id>')
+      .description('Get a specific reference')
       .addHelpText('after', ['', 'Examples:',
-        ...ReferenceCommand.EXAMPLES.show.map(e => `  ${e}`)
+        ...ReferenceCommand.EXAMPLES.get.map(e => `  ${e}`)
       ].join('\n'))
       .action((id: string, options: any, cmd: any) => {
         if (id.length < 3) {
@@ -233,6 +251,12 @@ export default class ReferenceCommand {
           const updateCfg: any = {};
           if (field === 'relevance') {
             updateCfg[field] = parseFloat(value);
+          } else if (field === 'name') {
+            const { refName, source } = ReferenceCommand.probeSource(value, world);
+            updateCfg.name = refName;
+            if (source) {
+              updateCfg.source = source;
+            }
           } else {
             updateCfg[field] = value;
           }
@@ -269,22 +293,7 @@ export default class ReferenceCommand {
           throw new Error('Relevance must be a number between 0 and 1');
         }
 
-        // Silent existence probe: if name resolves to a file, auto-set source
-        let source = options.source;
-        let refName = name;
-        if (!source) {
-          const worldRoot = path.dirname(world.worldPath);
-          let probePath = name;
-          // Handle agent paths: @src/... → src/...
-          if (name.startsWith('@')) {
-            probePath = name.slice(1);
-          }
-          const probe = path.join(worldRoot, probePath);
-          if (fs.existsSync(probe)) {
-            source = `nf:./${probePath}`;
-            refName = path.basename(probePath);
-          }
-        }
+        const { refName, source } = ReferenceCommand.probeSource(name, world, options.source);
 
         const referenceConfig: any = { name: refName, relevance };
         if (summary) {

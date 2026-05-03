@@ -1,0 +1,64 @@
+import { RenderData, RenderDetail, IRenderable, IView } from './renderable.js';
+import { Identifiable } from './identifiable.js';
+import { Forma } from './forma.js';
+import { World } from './world.js';
+import { nfTui } from './cli/nf-tui.js';
+
+/**
+ * A simple implementation of IView for prototyping.
+ */
+export class WorldWatcher implements IView {
+  readonly world: World;
+  readonly channel: string;
+
+  constructor(world: World, channel: string = "watch") {
+    this.world = world;
+    this.channel = channel;
+    this._detail = RenderDetail.Row;
+  }
+
+  private _anchor: IRenderable | null = null;
+  get anchor(): IRenderable {
+    return this._anchor!;
+  }
+  private set anchor(value: IRenderable | null) {
+    this._anchor = value;
+  }
+
+  private _pivot: Forma | null = null;
+  get pivot(): Forma {
+    return this._pivot!;
+  }
+  private set pivot(value: Forma | null) {
+    this._pivot = value;
+  }
+
+  private _detail: RenderDetail | number = 0;
+  get detail(): number {
+    return this._detail;
+  }
+  private set detail(value: RenderDetail | number) {
+    this._detail = value;
+  }
+
+  setAnchor(value: IRenderable): void {
+    this.anchor = value;
+    this.pivot = null;
+  }
+
+  setPivot(value: Forma): void {
+    if (!this.anchor) throw new Error("No anchor set!");
+    this.pivot = value;
+  }
+
+  zoom(delta: number): void {
+    this._detail += delta;
+  }
+
+  observe(): void {
+    setInterval(() => {
+      nfTui.logTo(this.channel, "WorldWatcher.observe: TBD", new Date);
+    }, 1000);
+  }
+}
+
