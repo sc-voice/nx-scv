@@ -7,7 +7,7 @@ import { nfTui } from './cli/nf-tui.js';
 /**
  * A simple implementation of IView for prototyping.
  */
-export class WorldWatcher implements IView {
+export class WorldView implements IView {
   readonly world: World;
   readonly channel: string;
 
@@ -57,7 +57,7 @@ export class WorldWatcher implements IView {
 
   observe(): void {
     setInterval(() => {
-      nfTui.logTo(this.channel, "WorldWatcher.observe: TBD", new Date);
+      nfTui.logTo(this.channel, "WorldView.observe: TBD", new Date);
     }, 1000);
   }
 }

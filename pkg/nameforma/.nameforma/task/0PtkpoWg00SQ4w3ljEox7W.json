@@ -1,0 +1,128 @@
+{
+  "id": "0PtkpoWg00SQ4w3ljEox7W",
+  "name": "render nf watch content within nf-widget",
+  "summary": "The nf-pi extension must maintain persistent detail:RenderDetail state that controls the rendering detail level displayed in the nf-widget IView. This detail level is adjustable (e.g., via keyboard input in watch mode) and determines how much information is shown: Cell (-1), Row (0), or All (1).",
+  "rawActions": [
+    {
+      "id": "0PtkquJ300SQ4w3ljEox7W",
+      "name": "Study IRenderable/IView pattern for widget integration",
+      "summary": "Understand how IRenderable/IView pattern enables nf-widget to receive and render watch content from the nameforma package while remaining self-contained",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T17:12:12.739Z"
+    },
+    {
+      "id": "0PtkquSN00SQ4w3ljEox7W",
+      "name": "Analyze cli-watch.ts display logic",
+      "summary": "Understand what content and formatting cli-watch currently displays that needs to be rendered",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T17:12:13.335Z"
+    },
+    {
+      "id": "0Ptkqubz00SQ4w3ljEox7W",
+      "name": "Design watch content rendering",
+      "summary": "Plan how to map cli-watch content into nf-widget display. Display current detail level as number with 1 decimal place precision after the current time on the first line of the widget.",
+      "status": "manage",
+      "statusNote": "Need to implement detail subscription in nf-widget",
+      "statusDate": "2026-05-03T17:31:03.054Z"
+    },
+    {
+      "id": "0PtkqulZ00SQ4w3ljEox7W",
+      "name": "Implement watch content display",
+      "summary": "Wire nf-widget to render the watch task/status content",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T17:12:14.563Z"
+    },
+    {
+      "id": "0PtkquvE00SQ4w3ljEox7W",
+      "name": "Test watch rendering",
+      "summary": "Verify watch content displays correctly in nf-widget",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T17:12:15.182Z"
+    },
+    {
+      "id": "0PtktXIr00SQ4w3ljEox7W",
+      "name": "Implement detail state management",
+      "summary": "Store and update persistent RenderDetail level in nf-pi extension. Support incrementing/decrementing detail (e.g., via +/- keys in watch mode) and ensure detail changes propagate to nf-widget rendering",
+      "status": "manage",
+      "statusNote": "Updated requirement: nf-widget should auto-load world and set focused Task as anchor if null",
+      "statusDate": "2026-05-03T18:23:47.077Z"
+    },
+    {
+      "id": "0PtkuyEy00SQ4w3ljEox7W",
+      "name": "Create nf-zoom command",
+      "summary": "Implement CLI command to update the persistent detail value. Command should accept increment/decrement or absolute values to adjust rendering detail level.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-03T17:29:57.436Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Ptkpzwu00SQ4w3ljEox7W",
+      "name": "nf-pi",
+      "summary": "PI extension widget implementation for nameforma watch",
+      "relevance": 0.9,
+      "source": "nf:./src/pi/nf-pi"
+    },
+    {
+      "id": "0Ptkp-4V00SQ4w3ljEox7W",
+      "name": "cli-watch.ts",
+      "summary": "Watch command handler showing watch content to render",
+      "relevance": 0.9,
+      "source": "nf:./src/cli/cli-watch.ts"
+    },
+    {
+      "id": "0PtkqLL000SQ4w3ljEox7W",
+      "name": "pi extensions documentation",
+      "summary": "Complete API reference for building pi extensions",
+      "relevance": 0.5,
+      "source": "nf:../../../pi-mono/packages/coding-agent/docs/extensions.md"
+    },
+    {
+      "id": "0PtkqLUw00SQ4w3ljEox7W",
+      "name": "pi coding agent codebase",
+      "summary": "Complete pi-coding-agent source code and examples",
+      "relevance": 0.5,
+      "source": "nf:../../../pi-mono/packages/coding-agent"
+    },
+    {
+      "id": "0PtkqLeO00SQ4w3ljEox7W",
+      "name": "doom overlay",
+      "summary": "Extension template for pi TUI",
+      "relevance": 0.2,
+      "source": "nf:../../../pi-mono/packages/coding-agent/examples/extensions/doom-overlay"
+    },
+    {
+      "id": "0PtkqLo800SQ4w3ljEox7W",
+      "name": "pi TUI documentation",
+      "summary": "Overlay options, components, and custom UI patterns",
+      "relevance": 0.5,
+      "source": "nf:../../../pi-mono/packages/coding-agent/docs/tui.md"
+    },
+    {
+      "id": "0Ptkr1tz00SQ4w3ljEox7W",
+      "name": "renderable.ts",
+      "summary": "IRenderable and IView interfaces for observation pattern",
+      "relevance": 0.9,
+      "source": "nf:./src/renderable.ts"
+    },
+    {
+      "id": "0PtksF1P00SQ4w3ljEox7W",
+      "name": "forma.ts",
+      "summary": "Base class implementing IRenderable with asRenderData() providing default rendering behavior",
+      "relevance": 0.9,
+      "source": "nf:./src/forma.ts"
+    },
+    {
+      "id": "0Ptkycrv00SQ4w3ljEox7W",
+      "name": "world-view.ts",
+      "summary": "WorldView - reference implementation of IView for prototyping",
+      "relevance": 0.9,
+      "source": "nf:./src/world-view.ts"
+    }
+  ]
+}

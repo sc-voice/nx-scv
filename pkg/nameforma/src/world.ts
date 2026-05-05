@@ -30,7 +30,7 @@ interface HistoryEntry {
   command: string;
 }
 
-export class World extends Identifiable implements IEventBus {
+export class World extends Forma implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
@@ -47,7 +47,9 @@ export class World extends Identifiable implements IEventBus {
    * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
   constructor(worldPath: string, id?: UUID64 | string) {
-    super(id);
+    const name = worldPath.split('/').at(-1);
+    super({id, name, summary:worldPath});
+    //super({id, name:worldPath.split("/").at(-1), summary:worldPath});
 
     const msg = 'world.ctor';
     const dbg = WORLD?.CTOR;
@@ -629,7 +631,10 @@ export class World extends Identifiable implements IEventBus {
    * Remove stale entries from focusStack where backing entity no longer exists
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
-  validate(): boolean {
+  override validate(opts:any = {}): boolean {
+    let result = super.validate(opts);
+
+    const msg = "w3d.validate";
     const before = Array.from(this.#focusStack);
     const valid = before.filter((focus) => {
       try {
@@ -645,7 +650,7 @@ export class World extends Identifiable implements IEventBus {
     if (before.length - valid.length > 0) {
       console.warn(`Cleaned ${before.length - valid.length} stale focus entries`);
     }
-    return true;
+    return result;
   }
 
   /**

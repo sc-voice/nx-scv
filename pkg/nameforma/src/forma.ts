@@ -189,23 +189,14 @@ export class Forma extends Identifiable implements IRenderable {
   }
 
   /**
-   * Abbreviate class name to prefix format: first + length-2 + last character.
-   * Example: "Task" (4 chars) → "T2K" (first='T', length-2=2, last='K')
-   * @param name - Class name to abbreviate
-   * @returns Abbreviated prefix string
-   */
-  static abbreviateName(name: string) {
-    let length = name.length;
-    return [name[0], length - 2, name[length - 1]].join('');
-  }
-
-  /**
    * Get the instance prefix based on class name abbreviation.
    * Used for tracking instances and generating default names.
    * @returns Uppercase abbreviated prefix (e.g., "T2K" for Task)
    */
   #defaultPrefix() {
-    return Forma.abbreviateName(this.constructor.name).toUpperCase();
+    const { name } = this.constructor;
+    const prefix = Identifiable.numeronym(name) || name;
+    return prefix.toUpperCase();
   }
 
   /**
@@ -215,7 +206,7 @@ export class Forma extends Identifiable implements IRenderable {
    *   - defaultName: Check name starts with class prefix (default: false)
    * @returns true if valid, Error object if invalid
    */
-  validate(opts: any = {}) {
+  validate(opts: any = {}) : boolean {
     const msg = 'f3a.validate';
     const dbg = (DBG as any).FORMA.VALIDATE;
     const {
@@ -238,8 +229,9 @@ export class Forma extends Identifiable implements IRenderable {
     }
 
     if (err) {
+      // This should never happen
       dbg && cc.bad1(err.message);
-      return err;
+      throw err;
     }
 
     dbg && cc.ok1(msg + UOK, { id, name });

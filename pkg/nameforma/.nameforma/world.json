@@ -55,6 +55,20 @@
       "formaType": "task",
       "name": "Create pi-nameforma extension",
       "summary": "Build rudimentary pi extension showing pi-nameforma CURRENT-TIME in overlay component"
+    },
+    {
+      "id": "0PtkpznZ00SQ4w3ljEox7W",
+      "formaId": "0PtkpoWg00SQ4w3ljEox7W",
+      "formaType": "task",
+      "name": "render nf watch content within nf-widget",
+      "summary": ""
+    },
+    {
+      "id": "0Ptq_tqw00Xq89ZHfVBntW",
+      "formaId": "0Ptq_qb400Xq89ZHfVBntW",
+      "formaType": "task",
+      "name": "Implement nf-visual: vi-inspired modal for nameforma mutations",
+      "summary": ""
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

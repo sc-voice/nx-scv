@@ -1,0 +1,55 @@
+{
+  "id": "0Ptq_qb400Xq89ZHfVBntW",
+  "name": "Implement nf-visual: vi-inspired modal for nameforma mutations",
+  "summary": "Vi-inspired modal interface for browsing and mutating nameforma entities. Navigation: j/k moves cursor up/down through entity list, zo/zc zooms detail level in/out, / searches forward, ? searches backward. Each line represents a uuid64-identified entity. Mutations: edit, delete, create, link commands (keybindings TBD).",
+  "rawActions": [
+    {
+      "id": "0Ptr16hN00Xq89ZHfVBntW",
+      "name": "Define IViNavigable interface",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-04T22:03:20.663Z"
+    },
+    {
+      "id": "0Ptr16qs00Xq89ZHfVBntW",
+      "name": "Implement TaskListNavigable",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-04T22:03:21.270Z"
+    },
+    {
+      "id": "0PtuytLG00Xq89ZHfVBntW",
+      "name": "Add ZenoStep, ZenoCoord, ZenoDetail, ZenoLines to renderable.ts",
+      "summary": "Define in src/renderable.ts:\n(1) ZenoStep branded type (integer >= 0) with zenoStep(n) validated constructor\n(2) ZenoDetail const table [18 entries] — detail = 1-(8/13)^n (see navigable.md)\n(3) ZenoLines const table [18 entries] — Fibonacci(n+2) line budget (see navigable.md)\n(4) ZenoCoord class — value object holding anchor:ZenoStep and pivot:ZenoStep",
+      "status": "done",
+      "statusNote": "implemented & tested",
+      "statusDate": "2026-05-05T19:22:04.442Z"
+    },
+    {
+      "id": "0Ptv46J800Xq89ZHfVBntW",
+      "name": "Define ZenoCoord anchor+pivot combination formula",
+      "summary": "",
+      "status": "done",
+      "statusNote": "tested",
+      "statusDate": "2026-05-05T23:36:52.966Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Ptv4olk00Xq89ZHfVBntW",
+      "name": "renderable.ts",
+      "summary": "Target file for ZenoStep, ZenoCoord, ZenoDetail, ZenoLines",
+      "relevance": 0.5,
+      "source": "nf:./src/renderable.ts"
+    },
+    {
+      "id": "0Ptv4omr00Xq89ZHfVBntW",
+      "name": "navigable.md",
+      "summary": "Design doc: ZenoStep spec, phi approximation, table values",
+      "relevance": 0.5,
+      "source": "nf:./doc/navigable.md"
+    }
+  ]
+}
