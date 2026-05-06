@@ -1,4 +1,4 @@
-import { RenderData, RenderDetail, IRenderable, IView } from './renderable.js';
+import { RenderData, RenderDetail, IRenderable, IView } from './navigable-view.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { World } from './world.js';

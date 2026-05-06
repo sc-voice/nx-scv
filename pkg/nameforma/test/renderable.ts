@@ -6,7 +6,7 @@ import {
   zenoStepToDetail,
   detailToZenoStep,
   zenoStepToLines,
-} from '../src/renderable.js';
+} from '../src/navigable-view.js';
 
 const MAX = ZenoCoord.MAX_ZENO_STEP;
 

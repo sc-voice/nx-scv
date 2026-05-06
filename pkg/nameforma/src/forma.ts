@@ -1,6 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
-import { RenderData, RenderDetail, IRenderable } from './renderable.js';
+import { RenderData, RenderDetail, IRenderable } from './navigable-view.js';
 import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';

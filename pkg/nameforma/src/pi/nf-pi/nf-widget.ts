@@ -1,5 +1,5 @@
 import type { Theme } from "@mariozechner/pi-coding-agent";
-import type { IView, IRenderable, RenderDetail, RenderData } from '../../renderable.js';
+import type { IView, IRenderable, RenderDetail, RenderData } from '../../navigable-view.js';
 import type { Forma } from '../../forma.js';
 import type { World } from '../../world.js';
 import { Task } from '../../task.js';

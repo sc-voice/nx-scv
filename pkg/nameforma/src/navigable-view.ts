@@ -3,10 +3,22 @@ import { Forma } from './forma.js';
 import UUID64 from './uuid64.js';
 
 /**
+ * Spatial Navigation Engine for a fractal space of Forma objects.
+ *
+ * The system projects high-dimensional data into a 2D viewport, where the resolution
+ * is controlled by RenderDetail. Navigation logic remains constant while the density
+ * and resolution of projected data changes—this is the "fractal" principle.
+ *
+ * Two complementary concerns:
+ * - IView (the Lens): maintains Anchor, Pivot, and RenderDetail — defines HOW to view
+ * - INavigable (the Navigator): maintains Cursor position — defines WHERE we are
+ */
+
+/**
  * Rendering detail can be specified continously over the range [-1..1].
- * Values between Cell (-1) and Row (0) provide a continous range of 
+ * Values between Cell (-1) and Row (0) provide a continous range of
  * increasing detail (e.g., -0.5) while remaining "cells".
- * Values between Row and All provide a continuous range of 
+ * Values between Row and All provide a continuous range of
  * increasing detail (e.g., 0.5) while remaining "row/rows".
  */
 export const RenderDetail = {
@@ -67,8 +79,19 @@ const ZenoLines: readonly number[] = Object.freeze(
 );
 
 /**
- * ZenoCoord: value object combining anchor and pivot ZenoSteps
- * to describe a 2D coordinate in the fractal detail space.
+ * The ZenoCoord system controls view detail in two dimensions. 
+ * ZenoCoord/RenderDetail are related as a 2D → 1D bijection 
+ * manipulable by a single end-user control (RenderDetail) or
+ * dual controls (anchorDetail, pivotDetail). 
+ * ZenoCoord also controls the number of lines presented in a view,
+ * which eliminates the need for scrolling in most use cases.
+ *
+ * Anchor sets macro detail level (0-17), pivot adjusts within that level (0-1).
+ * Combined detail = detail[anchor] + pivot * (detail[anchor+1] - detail[anchor])
+ *
+ * Examples:
+ *   anchor=0, pivot=0.5 → detail ≈ 0.1875
+ *   anchor=1, pivot=0.5 → detail ≈ 0.5625
  */
 export class ZenoCoord {
   readonly anchor: ZenoStep;
@@ -139,14 +162,63 @@ export interface IRenderable extends Identifiable {
   ): RenderData;
 }
 
+export type CursorTarget = 'current' | 'top' | 'bottom' | 'middle' | 'first' | 'last';
+export type CursorType = 'Forma' | 'Field';
+
+/** Semantic address within the Forma sequence. Decoupled from presentation (IView). */
+export interface ICursor {
+  type: CursorType;
+  forma: Forma;         // primary axis: which Forma
+  field: string | null; // secondary axis: which field within Forma
+  formaIndex: number;   // position in sequence
+  fieldIndex: number;   // position within fields
+}
+
+/**
+ * Navigation state machine over an ordered Forma sequence.
+ * Three axes: primary (Forma order), secondary (field order), tertiary transient (search results).
+ * Does not handle presentation—that is IView's concern.
+ * "next/prev" are semantic, not directional; presentation interprets the cursor.
+ */
+export interface INavigable {
+  // Primary axis: traverse the ordered Forma sequence
+  nextForma(): ICursor | null;
+  prevForma(): ICursor | null;
+
+  // Secondary axis: traverse fields within the current Forma
+  nextField(): ICursor | null;
+  prevField(): ICursor | null;
+
+  // Tertiary axis: traverse ephemeral search matches
+  nextMatch(): ICursor | null;
+  prevMatch(): ICursor | null;
+
+  // Semantic direct access: jump to a known cursor position
+  moveTo(cursor: ICursor): void;
+
+  // Structural zoom: expands/contracts field visibility within Forma
+  zoomIn(): void;
+  zoomOut(): void;
+
+  // Populate tertiary axis with pattern matches
+  search(pattern: string): ICursor[];
+  clearSearch(): void;
+
+  // TODO: Dispatch operations on the current Forma/Field
+  executeAction(action: 'edit' | '...' | 'link', payload?: any): void;
+
+  // Sample cursor at semantic landmarks (current position, boundaries, viewport center)
+  getCursor(at?: CursorTarget): ICursor;
+}
+
 /**
  * The observer/controller.
- * Mantains the context of the observation and manages the lifecycle.
+ * Maintains the context of observation and manages the lifecycle.
  */
 export interface IView {
   readonly anchor: IRenderable;
   readonly pivot: Forma;
-  readonly detail: RenderDetail | number;
+  readonly detail: number;
 
   /**
    * Sets the primary subject of observation.
@@ -165,4 +237,3 @@ export interface IView {
    */
   observe(): void;
 }
-
