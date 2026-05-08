@@ -1,0 +1,31 @@
+{
+  "id": "0Pu2EokB00mb5K15dvOfNW",
+  "name": "Create LineRenderer",
+  "summary": "A class that converts RenderData into an array of string[]",
+  "rawActions": [
+    {
+      "id": "0Pu2GO9l00mb5K15dvOfNW",
+      "name": "Create line-renderer.ts",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-07T11:45:08.208Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Pu2FPww00mb5K15dvOfNW",
+      "name": "RenderData Source",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "@src/navigable-view.ts"
+    },
+    {
+      "id": "0Pu2G7yr00mb5K15dvOfNW",
+      "name": "RenderData String Conversion Example",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "@src/pi/nf-pi/nf-widget.ts"
+    }
+  ]
+}

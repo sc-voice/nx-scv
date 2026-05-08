@@ -20,10 +20,10 @@ export enum ActionStatus {
 
 export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
   [ActionStatus.req]:    [ActionStatus.spec, ActionStatus.done, ActionStatus.manage],
-  [ActionStatus.spec]:   [ActionStatus.work, ActionStatus.test, ActionStatus.manage],
-  [ActionStatus.work]:   [ActionStatus.test, ActionStatus.manage],
-  [ActionStatus.test]:   [ActionStatus.work, ActionStatus.manage],
-  [ActionStatus.manage]: [ActionStatus.req, ActionStatus.done],
+  [ActionStatus.spec]:   [ActionStatus.work, ActionStatus.test, ActionStatus.manage, ActionStatus.req],
+  [ActionStatus.work]:   [ActionStatus.test, ActionStatus.manage, ActionStatus.spec],
+  [ActionStatus.test]:   [ActionStatus.work, ActionStatus.manage, ActionStatus.work],
+  [ActionStatus.manage]: [ActionStatus.req, ActionStatus.done, ActionStatus.manage],
   [ActionStatus.done]:   [ActionStatus.manage],
 };
 

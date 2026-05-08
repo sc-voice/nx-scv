@@ -2,9 +2,10 @@ import { Action, ActionStatus, ActionTransitions, STATUS_ORDER } from './action.
 import { Clock } from './clock.js';
 import { Focus } from './focus.js';
 import { Forma, type IFormaMatcher, AFormaMatcher, LevenshteinMatcher } from './forma.js';
+import { FormaField } from './forma-field.js';
 import { FormaList, IFormaItemClass, IFormaItem } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
-import { RenderDetail } from './navigable-view.js';
+import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import UUID64 from './uuid64.js';
 export type { IFormaMatcher, IFormaItem, IFormaItemClass, FuzzyId };
 import {
@@ -32,6 +33,7 @@ export const NameForma = {
   Consumer,
   Focus,
   Forma,
+  FormaField,
   FormaList,
   Identifiable,
   Kafka1,
@@ -45,4 +47,5 @@ export const NameForma = {
   UUID64,
   _Runner,
   RenderDetail,
+  ZenoCoord,
 };

@@ -1,5 +1,6 @@
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
+import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 
 /**
@@ -29,13 +30,21 @@ export const RenderDetail = {
 
 export type RenderDetail = typeof RenderDetail[keyof typeof RenderDetail];
 
-export type RenderData =
+export type RenderCell = 
   | string
   | number
   | boolean
   | UUID64
-  | RenderData[]
-  | { [key: string]: RenderData };
+  | FormaField;
+
+export type RenderRow = 
+  | RenderCell
+  | RenderCell[]
+  | { [key: string]: RenderRow };
+
+export type RenderData =
+  | RenderRow
+  | RenderRow[];
 
 const MAX_ZENO_STEP = 17;
 
@@ -86,28 +95,29 @@ const ZenoLines: readonly number[] = Object.freeze(
  * ZenoCoord also controls the number of lines presented in a view,
  * which eliminates the need for scrolling in most use cases.
  *
- * Anchor sets macro detail level (0-17), pivot adjusts within that level (0-1).
- * Combined detail = detail[anchor] + pivot * (detail[anchor+1] - detail[anchor])
+ * AnchorStep sets macro detail level (0-17), pivot adjusts within that level (0-1).
+ * Combined detail = 
+ *   detail[anchorStep] + pivotStep * (detail[anchorStep+1] - detail[anchorStep])
  *
  * Examples:
  *   anchor=0, pivot=0.5 → detail ≈ 0.1875
  *   anchor=1, pivot=0.5 → detail ≈ 0.5625
  */
 export class ZenoCoord {
-  readonly anchor: ZenoStep;
-  readonly pivot: ZenoStep;
+  readonly anchorStep: ZenoStep;
+  readonly pivotStep: ZenoStep;
 
   static readonly MAX_ZENO_STEP = 17;
 
-  constructor(anchor: ZenoStep, pivot: ZenoStep) {
-    this.anchor = anchor;
-    this.pivot = pivot;
+  constructor(anchorStep: ZenoStep, pivotStep: ZenoStep) {
+    this.anchorStep = anchorStep;
+    this.pivotStep = pivotStep;
   }
 
   toRenderDetail(): number {
-    const anchorDetail = zenoStepToDetail(this.anchor);
-    const pivotDetail = zenoStepToDetail(this.pivot);
-    const anchorDelta = ZenoDetail[this.anchor + 1] - anchorDetail;
+    const anchorDetail = zenoStepToDetail(this.anchorStep);
+    const pivotDetail = zenoStepToDetail(this.pivotStep);
+    const anchorDelta = ZenoDetail[this.anchorStep + 1] - anchorDetail;
     return anchorDetail + pivotDetail * anchorDelta;
   }
 
@@ -182,8 +192,9 @@ export interface ICursor {
  */
 export interface INavigable {
   // Primary axis: traverse the ordered Forma sequence
-  nextForma(): ICursor | null;
-  prevForma(): ICursor | null;
+  // Returns true if cursor moved, false if at boundary (facilitates UI beep/warn)
+  nextForma(): boolean;
+  prevForma(): boolean;
 
   // Secondary axis: traverse fields within the current Forma
   nextField(): ICursor | null;

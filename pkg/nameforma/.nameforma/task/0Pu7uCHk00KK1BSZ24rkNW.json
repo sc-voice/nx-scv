@@ -1,0 +1,76 @@
+{
+  "id": "0Pu7uCHk00KK1BSZ24rkNW",
+  "name": "NfContext for nf-pi extension",
+  "summary": "Implement NfContext for the nf-pi extension to handle context management.",
+  "rawActions": [
+    {
+      "id": "0Pu7vRNO00KK1BSZ24rkNW",
+      "name": "Refactor NfContext to manage EventEmitter, World, and focused task lookup",
+      "summary": "Refactor NfContext (singleton) to bridge World events (e.g., 'change') to its own event bus; NfContext.init() must establish this link to the pre-resolved World and maintain a synchronized 'focusedTask: Task | null' property. Simultaneously, refactor NfOverlay and NfWidget to remove duplicate 'loadFocusedTaskAsAnchor' logic and strip their constructors of the World dependency, delegating all focus tracking to NfContext.",
+      "status": "spec",
+      "statusNote": "requirements clear",
+      "statusDate": "2026-05-08T20:33:29.361Z"
+    },
+    {
+      "id": "0Pu7vROZ00KK1BSZ24rkNW",
+      "name": "Refactor index.ts to use NfContext singleton",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-08T14:02:35.427Z"
+    },
+    {
+      "id": "0Pu7vRPk00KK1BSZ24rkNW",
+      "name": "Refactor NfOverlay to consume NfContext and remove duplicate logic",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-08T14:02:35.502Z"
+    },
+    {
+      "id": "0Pu7vRQw00KK1BSZ24rkNW",
+      "name": "Refactor NfWidget to consume NfContext and remove duplicate logic",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-08T14:02:35.578Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Pu7vwSM00KK1BSZ24rkNW",
+      "name": "index.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/pi/nf-pi/index.ts"
+    },
+    {
+      "id": "0Pu7vwTW00KK1BSZ24rkNW",
+      "name": "nf-context.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/pi/nf-pi/nf-context.ts"
+    },
+    {
+      "id": "0Pu7vwUd00KK1BSZ24rkNW",
+      "name": "nf-overlay.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/pi/nf-pi/nf-overlay.ts"
+    },
+    {
+      "id": "0Pu7vwVn00KK1BSZ24rkNW",
+      "name": "nf-widget.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/pi/nf-pi/nf-widget.ts"
+    },
+    {
+      "id": "0Pu8SnMy00KK1BSZ24rkNW",
+      "name": "world.ts",
+      "summary": "Defines world state, including focused task",
+      "relevance": 0.8,
+      "source": "nf:./src/world.ts"
+    }
+  ]
+}

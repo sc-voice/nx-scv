@@ -74,7 +74,18 @@ export default class ActionCommand {
 
     // Default action: list actions of focused task
     cmd
-      .description('Manage actions that can be added, listed, updated, and deleted for tasks')
+      .description([
+        'Manage actions (status: req → spec → work → test → manage → done)',
+        'that can be added, listed, updated, and deleted for tasks',
+        '',
+        'Statuses:',
+        '  req    - Requirements defined',
+        '  spec   - Specification written',
+        '  work   - In progress',
+        '  test   - Testing/Verification',
+        '  manage - Review/Management',
+        '  done   - Completed'
+      ].join('\n'))
       .action((options: any, cmd: any) => {
         const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);

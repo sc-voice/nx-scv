@@ -1,6 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
-import { RenderData, RenderDetail, IRenderable } from './navigable-view.js';
+import { RenderData, RenderDetail, IRenderable, ZenoCoord } from './navigable-view.js';
+import { FormaField } from './forma-field.js';
 import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
@@ -288,15 +289,28 @@ export class Forma extends Identifiable implements IRenderable {
     pivot?: Forma,
   ): RenderData {
     const { id, name, summary } = this;
-    const timeId = id.timeId();
-    if (detail > RenderDetail.Row) {
-      return [ {id}, {name}, {summary} ]
-    } else if (detail === RenderDetail.Row) {
-      return [{timeId, name}];
-    } if (detail > RenderDetail.Cell) {
-      return id;
+    const cls = this.constructor.name;
+    const shortId = id.timeId();
+
+    if (detail < RenderDetail.Row) {
+      return new FormaField('id', false, `${cls}.id`, id.timeId());
+    }
+
+    const coord = ZenoCoord.fromRenderDetail(detail);
+
+    if (coord.anchorStep >= 2) {
+      return [
+        new FormaField('id', false, `${cls}.id`, id.toString()),
+        new FormaField('name', true, `${cls}.name`, name),
+        new FormaField('summary', true, `${cls}.summary`, summary),
+      ];
+    } else if (coord.anchorStep === 1) {
+      return [
+        new FormaField('id', false, `${cls}.id`, shortId),
+        new FormaField('name', true, `${cls}.name`, name),
+      ];
     } else {
-      return id.timeId();
+      return `${shortId}: ${name}`;
     }
   }
 

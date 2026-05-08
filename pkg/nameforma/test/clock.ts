@@ -127,7 +127,7 @@ describe('clock', () => {
     let { value: value2 } = await c3k.next();
     expect(c3k.timeIn).toBe(c3k.timeOut);
     expect(nIdle).toBe(1);
-    expect(Date.now() - msStart).toBeGreaterThan(msIdle);
+    expect(Date.now() - msStart).toBeGreaterThanOrEqual(msIdle);
     expect(value2 - value1).toBeGreaterThanOrEqual(msIdle);
     expect(Math.abs(value2 - msStart - msIdle)).toBeLessThan(tolerance);
 

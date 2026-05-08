@@ -138,9 +138,9 @@ export default class TaskCommand {
       nfTui.log(`  summary:`);
     }
 
+    nfTui.log(`  actions[${task.rawActions.length}]:`);
     if (task.rawActions.length > 0) {
       const tui = new TuiList(actions, world, { maxWidth: 74 });
-      nfTui.log(`  actions (${task.rawActions.length}):`);
       // verbosity: <0=1-line, 0=2-line, 1=4-line, 2+=full
       const ACTION_BASE = 0;
       const actionVerbosity = verbosity - ACTION_BASE;
@@ -157,15 +157,14 @@ export default class TaskCommand {
     }
 
     // Handle references based on verbosity level
-    // verbosity 3: show all (multi-line); verbosity 1-2: 1-line; <1: omit
-    if (task.rawReferences.length > 0 && verbosity >= 1) {
+    nfTui.log(`  references[${task.rawReferences.length}]:`);
+    if (task.rawReferences.length > 0 && verbosity >= 0) {
       const tui = new TuiList(references, world, { maxWidth: 74 });
-      nfTui.log(`  references (${task.rawReferences.length}):`);
       references.sort((a, b) => b.relevance - a.relevance);
       task.rawReferences.forEach((reference) => {
         const itemId = references.itemListId(reference) + ':';
         const line = reference.listItemString({ itemId });
-        const maxLines = verbosity === 3 ? undefined : 1;
+        const maxLines = verbosity > 1 ? verbosity+1 : 1;
         const wrapped = tui.wrapAndTruncate(line, 74, maxLines, 'ellipsis', itemId.length + 1);
         wrapped.split('\n').forEach((l) => nfTui.log(`    ${l}`));
       });

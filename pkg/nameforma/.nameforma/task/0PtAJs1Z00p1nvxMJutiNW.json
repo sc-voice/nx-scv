@@ -1,7 +1,0 @@
-{
-  "id": "0PtAJs1Z00p1nvxMJutiNW",
-  "name": "replace cli.parseArgV() with cli.exec()",
-  "summary": "exec() takes an array of args without the [node,test] elements",
-  "rawActions": [],
-  "rawReferences": []
-}

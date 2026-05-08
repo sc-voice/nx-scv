@@ -50,13 +50,6 @@
       "summary": ""
     },
     {
-      "id": "0PtjfnrG009Sc8zRw_LbtW",
-      "formaId": "0Ptjfn5f009Sc8zRw_LbtW",
-      "formaType": "task",
-      "name": "Create pi-nameforma extension",
-      "summary": "Build rudimentary pi extension showing pi-nameforma CURRENT-TIME in overlay component"
-    },
-    {
       "id": "0PtkpznZ00SQ4w3ljEox7W",
       "formaId": "0PtkpoWg00SQ4w3ljEox7W",
       "formaType": "task",
@@ -64,10 +57,31 @@
       "summary": ""
     },
     {
-      "id": "0Ptq_tqw00Xq89ZHfVBntW",
+      "id": "0PtzaN1E00Xq89ZHfVBntW",
       "formaId": "0Ptq_qb400Xq89ZHfVBntW",
       "formaType": "task",
       "name": "Implement nf-visual: vi-inspired modal for nameforma mutations",
+      "summary": "Vi-inspired modal interface for browsing and mutating nameforma entities. Navigation: j/k moves cursor up/down through entity list, zo/zc zooms detail level in/out, / searches forward, ? searches backward. Each line represents a uuid64-identified entity. Mutations: edit, delete, create, link commands (keybindings TBD)."
+    },
+    {
+      "id": "0Pu2FPUt00mb5K15dvOfNW",
+      "formaId": "0Pu2EokB00mb5K15dvOfNW",
+      "formaType": "task",
+      "name": "Create LineRenderer",
+      "summary": "A class that converts RenderData into an array of string[]"
+    },
+    {
+      "id": "0Pu8S7QS00KK1BSZ24rkNW",
+      "formaId": "0Pu7uCHk00KK1BSZ24rkNW",
+      "formaType": "task",
+      "name": "NfContext for nf-pi extension",
+      "summary": "Implement NfContext for the nf-pi extension to handle context management."
+    },
+    {
+      "id": "0Pu9b0el00ZhEi7FuO2StW",
+      "formaId": "0Pu9ayyC00ZhEi7FuO2StW",
+      "formaType": "task",
+      "name": "test",
       "summary": ""
     }
   ],

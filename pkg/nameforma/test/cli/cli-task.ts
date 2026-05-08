@@ -485,8 +485,8 @@ describe('CLI: task command', () => {
 
     const showOutput = output.join('\n');
 
-    // Verify references section is not displayed
-    expect(showOutput).not.toMatch(/references/);
+    // Verify references header shows but with no content
+    expect(showOutput).toMatch(/references\[0\]:/);
   });
 
   it('show task displays references sorted by relevance descending', async () => {
@@ -656,7 +656,7 @@ describe('CLI: task command', () => {
       const showOutput = output.join('\n');
       expect(showOutput).toMatch(/Task:/);
       expect(showOutput).toMatch(/name: Task With Actions/);
-      expect(showOutput).toMatch(/actions \(\d+\):/);
+      expect(showOutput).toMatch(/actions\[\d+\]:/);
       expect(showOutput).toMatch(/\w+:.*req.*First action/);
       expect(showOutput).toMatch(/Do this first/);
       expect(showOutput).toMatch(/\w+:.*req.*Second action/);

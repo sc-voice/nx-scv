@@ -385,8 +385,8 @@ describe('CLI: action command', () => {
 
       output = [];
       try {
-        // spec → req is not a valid transition
-        await testCmd('action', 'set', `${actionId}.status`, 'req', 'invalid backwards transition');
+        // spec → done is not a valid transition
+        await testCmd('action', 'set', `${actionId}.status`, 'done', 'invalid transition');
         expect.fail('Should have thrown');
       } catch (e: any) {
         expect(e.message).toMatch(/invalid transition/);
@@ -409,7 +409,8 @@ describe('CLI: action command', () => {
       encoding: 'utf8',
     });
 
-    expect(output).toMatch(/Manage actions that can be added, listed, updated, and deleted for tasks/);
+    expect(output).toMatch(/Manage actions.*req.*spec.*work.*test.*manage.*done/s);
+    expect(output).toMatch(/that can be added, listed, updated, and deleted for tasks/);
     expect(output).toMatch(/nf action list/);
     expect(output).toMatch(/nf action add/);
     expect(output).toMatch(/nf action delete/);

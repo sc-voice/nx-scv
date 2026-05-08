@@ -1,20 +1,34 @@
 import type { Theme } from "@mariozechner/pi-coding-agent";
-import type { IView, IRenderable, RenderDetail, RenderData } from '../../navigable-view.js';
+import { LineRenderer } from '../../line-renderer.js';
+import type {
+  IView, IRenderable, RenderDetail, RenderData
+} from '../../navigable-view.js';
 import type { Forma } from '../../forma.js';
 import type { World } from '../../world.js';
-import { Task } from '../../task.js';
 
-export class NfWidget implements IView {
+import { ZenoCoord } from '../../navigable-view.js';
+import { Task } from '../../task.js';
+import { EventEmitter } from "events";
+
+export class NfWidget {
 	private lines: string[] = [];
-	private intervalId: NodeJS.Timeout | null = null;
+	private renderer = new LineRenderer();
 	public anchor: IRenderable | null = null;
 	public pivot: Forma | null = null;
 	public detail: RenderDetail | number = 0;
 
-	constructor(private theme: Theme, private key: string, private onInvalidate: () => void, private world?: World) {
+	constructor(
+		private theme: Theme,
+		private key: string,
+		private onInvalidate: () => void,
+		private events: EventEmitter,
+		private world?: World,
+		initialDetail: RenderDetail | number = 0
+	) {
+		this.detail = initialDetail;
 		this.loadFocusedTaskAsAnchor();
 		this.update();
-		this.startTimer();
+		this.events.on('tick', this.update);
 	}
 
 	private loadFocusedTaskAsAnchor(): void {
@@ -33,24 +47,26 @@ export class NfWidget implements IView {
 		}
 	}
 
-	private update() {
-		const now = new Date();
-		const timeStr = now.toLocaleTimeString();
-		const detailStr = (this.detail as number).toFixed(1);
-		const header = this.theme.fg("accent", `nf-widget ${timeStr} detail:${detailStr}`);
-
-		const contentLines = this.renderContent();
-		this.lines = [header, ...contentLines];
-	}
-
 	private renderContent(): string[] {
 		if (!this.anchor) {
 			return ['(no anchor)'];
 		}
 
 		const renderData = this.anchor.asRenderData(this.detail, this.pivot ?? undefined);
-		return this.renderDataToLines(renderData);
+		return this.renderer.render(renderData);
 	}
+
+	private update = () => {
+		const now = new Date();
+		const timeStr = now.toLocaleTimeString();
+		const detailStr = (this.detail as number).toFixed(1);
+		const zeno = ZenoCoord.fromRenderDetail(this.detail);
+		const zenoStr = 'detail@' + zeno.anchorStep + '/' + zeno.pivotStep;
+		const header = this.theme.fg("accent", `nf-widget ${timeStr} ${zenoStr}`);
+		const contentLines = this.renderContent();
+		this.lines = [header, ...contentLines];
+		this.onInvalidate();
+	};
 
 	private renderDataToLines(data: RenderData, indent: string = ''): string[] {
 		const lines: string[] = [];
@@ -88,13 +104,6 @@ export class NfWidget implements IView {
 		return String(value);
 	}
 
-	private startTimer() {
-		this.intervalId = setInterval(() => {
-			this.update();
-			this.onInvalidate();
-		}, 1000);
-	}
-
 	getContent(): string[] {
 		return this.lines.map((line, index) => {
 			if (index === 0) {
@@ -126,13 +135,10 @@ export class NfWidget implements IView {
 	}
 
 	observe(): void {
-		// Widget is already observing via the timer
+		// Widget is already observing via the tick event
 	}
 
 	dispose(): void {
-		if (this.intervalId) {
-			clearInterval(this.intervalId);
-			this.intervalId = null;
-		}
+		this.events.off('tick', this.update);
 	}
 }

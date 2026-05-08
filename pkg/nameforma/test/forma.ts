@@ -82,26 +82,31 @@ describe('Forma', () => {
   });
 
   it('asRenderData', () => {
+    const { FormaField } = NameForma;
     const f = new Forma({ name: 'test-forma', summary: 'A test forma for verification' });
 
-    // Test All level - returns array of objects with id, name, summary
+    // All (anchor>=2): 3 FormaFields with full id, name, summary
     const dataAll = f.asRenderData(RenderDetail.All);
     expect(Array.isArray(dataAll)).toBe(true);
     expect(dataAll).toHaveLength(3);
-    expect(dataAll[0]).toEqual({ id: f.id });
-    expect(dataAll[1]).toEqual({ name: 'test-forma' });
-    expect(dataAll[2]).toEqual({ summary: 'A test forma for verification' });
+    expect(dataAll[0]).toBeInstanceOf(FormaField);
+    expect(dataAll[0].name).toBe('id');
+    expect(dataAll[0].mutable).toBe(false);
+    expect(dataAll[1].name).toBe('name');
+    expect(dataAll[1].value).toBe('test-forma');
+    expect(dataAll[2].name).toBe('summary');
+    expect(dataAll[2].value).toBe('A test forma for verification');
 
-    // Test Row level - returns array with timeId and name
+    // Row (anchor=0): compact string "timeId: name"
     const dataRow = f.asRenderData(RenderDetail.Row);
-    expect(Array.isArray(dataRow)).toBe(true);
-    expect(dataRow).toHaveLength(1);
-    expect(dataRow[0]).toEqual({ timeId: f.id.timeId(), name: 'test-forma' });
+    expect(typeof dataRow).toBe('string');
+    expect(dataRow).toBe(`${f.id.timeId()}: test-forma`);
 
-    // Test Cell level - returns just timeId string
+    // Cell (detail<0): single FormaField with id timeId
     const dataCell = f.asRenderData(RenderDetail.Cell);
-    expect(typeof dataCell).toBe('string');
-    expect(dataCell).toBe(f.id.timeId());
+    expect(dataCell).toBeInstanceOf(FormaField);
+    expect(dataCell.name).toBe('id');
+    expect(dataCell.value).toBe(f.id.timeId());
   });
 
   it('classes', () => {
@@ -132,4 +137,5 @@ describe('Forma', () => {
     expect(ClassB.register()).toBe('CLASSB' + ClassB.avroSchema);
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
+
 });

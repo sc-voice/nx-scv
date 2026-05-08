@@ -38,8 +38,8 @@ describe('renderable', () => {
   describe('ZenoCoord', () => {
     it('holds anchor and pivot ZenoSteps', () => {
       const coord = new ZenoCoord(zenoStep(3), zenoStep(7));
-      expect(coord.anchor).toBe(3);
-      expect(coord.pivot).toBe(7);
+      expect(coord.anchorStep).toBe(3);
+      expect(coord.pivotStep).toBe(7);
     });
 
     it('toRenderDetail at (0,0) returns 0', () => {
@@ -82,8 +82,8 @@ describe('renderable', () => {
 
     it('fromRenderDetail at 0 returns (0,0)', () => {
       const coord = ZenoCoord.fromRenderDetail(0);
-      expect(coord.anchor).toBe(0);
-      expect(coord.pivot).toBe(0);
+      expect(coord.anchorStep).toBe(0);
+      expect(coord.pivotStep).toBe(0);
     });
 
     it('fromRenderDetail recovers anchor and pivot exactly for all (a,p) pairs', () => {
@@ -91,22 +91,22 @@ describe('renderable', () => {
         for (let p = 0; p <= MAX; p++) {
           const detail = new ZenoCoord(zenoStep(a), zenoStep(p)).toRenderDetail();
           const coord = ZenoCoord.fromRenderDetail(detail);
-          expect(coord.anchor).toBe(a);
-          expect(coord.pivot).toBe(p);
+          expect(coord.anchorStep).toBe(a);
+          expect(coord.pivotStep).toBe(p);
         }
       }
     });
 
     it('fromRenderDetail clamps detail < 0 to (0,0)', () => {
       const coord = ZenoCoord.fromRenderDetail(-0.5);
-      expect(coord.anchor).toBe(0);
-      expect(coord.pivot).toBe(0);
+      expect(coord.anchorStep).toBe(0);
+      expect(coord.pivotStep).toBe(0);
     });
 
     it('fromRenderDetail clamps detail >= 1 to (MAX,MAX)', () => {
       const coord = ZenoCoord.fromRenderDetail(1.5);
-      expect(coord.anchor).toBe(MAX);
-      expect(coord.pivot).toBe(MAX);
+      expect(coord.anchorStep).toBe(MAX);
+      expect(coord.pivotStep).toBe(MAX);
     });
   });
 
@@ -178,4 +178,5 @@ describe('renderable', () => {
       expect(() => zenoStepToLines(-1 as ZenoStep)).toThrow(RangeError);
     });
   });
+
 });
