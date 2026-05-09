@@ -18,6 +18,7 @@ import {
   type FormaListEvent,
 } from './forma-list.js';
 import { Focus } from './focus.js';
+import { NfUrl } from './nf-url.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -56,7 +57,9 @@ export class World extends Forma implements IEventBus {
    * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
   constructor(worldPath: string, id?: UUID64 | string) {
-    const name = worldPath.split('/').at(-1);
+    const worldRoot = path.dirname(worldPath);
+    const nfUrl = new NfUrl(worldRoot, '~');
+    const name = nfUrl.uri;
     super({ id, name, summary: worldPath });
     //super({id, name:worldPath.split("/").at(-1), summary:worldPath});
 

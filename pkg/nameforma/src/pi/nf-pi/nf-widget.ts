@@ -7,17 +7,14 @@ import type {
   RenderData,
 } from '../../navigable-view.js';
 import type { Forma } from '../../forma.js';
-import type { World } from '../../world.js';
 
 import { ZenoCoord } from '../../navigable-view.js';
-import { Task } from '../../task.js';
 import { EventEmitter } from 'events';
+import { NfSession } from './nf-session.js';
 
 export class NfWidget {
   private lines: string[] = [];
   private renderer = new LineRenderer();
-  public anchor: IRenderable | null = null;
-  public pivot: Forma | null = null;
   public detail: RenderDetail | number = 0;
 
   constructor(
@@ -25,32 +22,19 @@ export class NfWidget {
     private key: string,
     private onInvalidate: () => void,
     private events: EventEmitter,
-    private world?: World,
     initialDetail: RenderDetail | number = 0,
   ) {
     this.detail = initialDetail;
-    this.loadFocusedTaskAsAnchor();
     this.update();
     this.events.on('tick', this.update);
   }
 
-  private loadFocusedTaskAsAnchor(): void {
-    if (this.anchor || !this.world) return;
+  get anchor(): IRenderable | null {
+    return NfSession.shared.anchor;
+  }
 
-    try {
-      const focusedForma = this.world.focusedForma('task');
-      if (focusedForma) {
-        const task = this.world.loadEntity(
-          Task,
-          focusedForma.formaId.base64,
-        );
-        if (task) {
-          this.anchor = task;
-        }
-      }
-    } catch (error) {
-      // World not available or no focused task
-    }
+  get pivot(): Forma | null {
+    return NfSession.shared.pivot;
   }
 
   private renderContent(): string[] {
@@ -67,13 +51,15 @@ export class NfWidget {
 
   private update = () => {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString();
+    const timeStr = now.toLocaleTimeString(undefined, { hour12: false });
     const detailStr = (this.detail as number).toFixed(1);
     const zeno = ZenoCoord.fromRenderDetail(this.detail);
-    const zenoStr = 'detail@' + zeno.anchorStep + '/' + zeno.pivotStep;
+    const zenoStr = zeno.anchorStep + '/' + zeno.pivotStep;
+    const worldName = NfSession.shared.world?.name || 'nameforma';
+    const worldId = NfSession.shared.world?.id.timeId() || '';
     const header = this.theme.fg(
       'accent',
-      `nf-widget ${timeStr} ${zenoStr}`,
+      `${worldName} ${worldId}▸${zenoStr} ${timeStr}`,
     );
     const contentLines = this.renderContent();
     this.lines = [header, ...contentLines];
@@ -129,18 +115,6 @@ export class NfWidget {
         return `│ ${line}`;
       }
     });
-  }
-
-  setAnchor(value: IRenderable): void {
-    this.anchor = value;
-    this.update();
-    this.onInvalidate();
-  }
-
-  setPivot(value: Forma): void {
-    this.pivot = value;
-    this.update();
-    this.onInvalidate();
   }
 
   zoom(detailIncrement: number): void {

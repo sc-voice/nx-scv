@@ -3,10 +3,9 @@ import type { Focusable, TUI } from '@mariozechner/pi-tui';
 import { LineRenderer } from '../../line-renderer.js';
 import type { IRenderable, RenderDetail } from '../../navigable-view.js';
 import type { Forma } from '../../forma.js';
-import type { World } from '../../world.js';
 import { ZenoCoord } from '../../navigable-view.js';
-import { Task } from '../../task.js';
 import { EventEmitter } from 'events';
+import { NfSession } from './nf-session.js';
 
 export class NfOverlay implements Focusable {
   focused = false;
@@ -21,32 +20,13 @@ export class NfOverlay implements Focusable {
     private theme: Theme,
     private done: () => void,
     private events: EventEmitter,
-    private world?: World,
     initialDetail: RenderDetail | number = 0,
   ) {
     this.detail = initialDetail;
-    this.loadFocusedTaskAsAnchor();
+    this.anchor = NfSession.shared.anchor;
+    this.pivot = NfSession.shared.pivot;
     this.update();
     this.events.on('tick', this.update);
-  }
-
-  private loadFocusedTaskAsAnchor(): void {
-    if (this.anchor || !this.world) return;
-
-    try {
-      const focusedForma = this.world.focusedForma('task');
-      if (focusedForma) {
-        const task = this.world.loadEntity(
-          Task,
-          focusedForma.formaId.base64,
-        );
-        if (task) {
-          this.anchor = task;
-        }
-      }
-    } catch (error) {
-      // World not available or no focused task
-    }
   }
 
   private renderContent(): string[] {

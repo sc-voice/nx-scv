@@ -5,6 +5,7 @@ import type {
 import { EventEmitter } from 'events';
 import { NfOverlay } from './nf-overlay.js';
 import { NfWidget } from './nf-widget.js';
+import { NfSession } from './nf-session.js';
 import { World } from '../../world.js';
 
 const extensionEvents = new EventEmitter();
@@ -30,7 +31,7 @@ function initializeWorld(): void {
 }
 
 export default function (pi: ExtensionAPI) {
-  initializeWorld();
+  NfSession.init();
 
   pi.registerCommand('nf-overlay', {
     description: 'Display nf-overlay with focused task',
@@ -50,7 +51,6 @@ export default function (pi: ExtensionAPI) {
             theme,
             done,
             extensionEvents,
-            world ?? undefined,
           ),
         {
           overlay: true,
@@ -85,7 +85,6 @@ export default function (pi: ExtensionAPI) {
           }
         },
         extensionEvents,
-        world ?? undefined,
       );
 
       ctx.ui.setWidget('nf-widget', activeWidget.getContent());
