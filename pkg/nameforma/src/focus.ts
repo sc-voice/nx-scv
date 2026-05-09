@@ -58,7 +58,9 @@ export class Focus extends Forma {
    */
   static fromEntity(objectEntity: any): Focus {
     const formaId = objectEntity.id;
-    const formaType = (objectEntity.constructor as any).entity || objectEntity.constructor.name;
+    const formaType =
+      (objectEntity.constructor as any).entity ||
+      objectEntity.constructor.name;
 
     // Create Focus id as related to object id
     const focusId = UUID64.createRelatedId(formaId);

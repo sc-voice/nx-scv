@@ -19,7 +19,7 @@ declare module '@sc-voice/tools' {
   }
 
   export interface Fraction {
-    new(...args: any[]): Fraction;
+    new (...args: any[]): Fraction;
     value: number;
     denominator: number;
     numerator: number;

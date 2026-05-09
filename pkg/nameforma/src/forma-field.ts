@@ -4,7 +4,12 @@ export class FormaField {
   readonly label: string;
   readonly value: string;
 
-  constructor(name: string, mutable?: boolean, label?: string, value?: string) {
+  constructor(
+    name: string,
+    mutable?: boolean,
+    label?: string,
+    value?: string,
+  ) {
     this.name = name;
     this.mutable = mutable === true;
     this.label = label ?? name;

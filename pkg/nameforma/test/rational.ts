@@ -230,8 +230,8 @@ describe('Rational', () => {
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
     let schema = Rational.avroSchema;
     let { fullName } = schema;
-    const registry = {id: "PrAr6Tg"};
-    let avroType = Rational.registerAvro({avro, registry});
+    const registry = { id: 'PrAr6Tg' };
+    let avroType = Rational.registerAvro({ avro, registry });
 
     let thing1 = new Rational(null, 3, 'seconds');
     let buf1 = avroType.toBuffer(thing1);
@@ -247,8 +247,8 @@ describe('Rational', () => {
     dbg > 1 && cc.tag(msg, '===============', 'register schema');
     let schema = Rational.avroSchema;
     let { fullName } = schema;
-    const registry = {id: "PrAr6Th"};
-    let avroType = Rational.registerAvro({avro, registry});
+    const registry = { id: 'PrAr6Th' };
+    let avroType = Rational.registerAvro({ avro, registry });
 
     let thing1 = new Rational(2, 3, 'tbsp');
     let buf1 = avroType.toBuffer(thing1);

@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -33,13 +40,13 @@ describe('CLI.exec()', () => {
   it('should list tasks (empty world)', async () => {
     await exec('task', 'list');
     const out = nfTui.getChannel('stdout');
-    expect(out.some(line => line.includes('No tasks'))).toBe(true);
+    expect(out.some((line) => line.includes('No tasks'))).toBe(true);
   });
 
   it('should add a task and report it', async () => {
     await exec('task', 'add', 'Test task');
     const out = nfTui.getChannel('stdout');
-    expect(out.some(line => line.includes('Test task'))).toBe(true);
+    expect(out.some((line) => line.includes('Test task'))).toBe(true);
   });
 
   it('should create new CLI instance per call', async () => {
@@ -77,7 +84,7 @@ describe('World.logCommand()', () => {
     world1.logCommand('persist test', 'human');
 
     const world2 = World.fromPath(worldPath);
-    const found = world2.history.some(h => h.command === 'persist test');
+    const found = world2.history.some((h) => h.command === 'persist test');
     expect(found).toBe(true);
   });
 });
@@ -92,9 +99,15 @@ describe('nf binary', () => {
     await repl.start();
     console.log(`[scrollLines]: ${JSON.stringify(renderer.scrollLines)}`);
     console.log(`[errorLines]: ${JSON.stringify(renderer.errorLines)}`);
-    console.log(`[nfTui stdout]: ${JSON.stringify(nfTui.getChannel('stdout'))}`);
-    console.log(`[nfTui watch]: ${JSON.stringify(nfTui.getChannel('watch'))}`);
-    console.log(`[nfTui stderr]: ${JSON.stringify(nfTui.getChannel('stderr'))}`);
+    console.log(
+      `[nfTui stdout]: ${JSON.stringify(nfTui.getChannel('stdout'))}`,
+    );
+    console.log(
+      `[nfTui watch]: ${JSON.stringify(nfTui.getChannel('watch'))}`,
+    );
+    console.log(
+      `[nfTui stderr]: ${JSON.stringify(nfTui.getChannel('stderr'))}`,
+    );
     expect(renderer.errorLines).toHaveLength(0);
   });
 });

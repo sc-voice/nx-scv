@@ -1,7 +1,17 @@
-import { Action, ActionStatus, ActionTransitions, STATUS_ORDER } from './action.js';
+import {
+  Action,
+  ActionStatus,
+  ActionTransitions,
+  STATUS_ORDER,
+} from './action.js';
 import { Clock } from './clock.js';
 import { Focus } from './focus.js';
-import { Forma, type IFormaMatcher, AFormaMatcher, LevenshteinMatcher } from './forma.js';
+import {
+  Forma,
+  type IFormaMatcher,
+  AFormaMatcher,
+  LevenshteinMatcher,
+} from './forma.js';
 import { FormaField } from './forma-field.js';
 import { FormaList, IFormaItemClass, IFormaItem } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';

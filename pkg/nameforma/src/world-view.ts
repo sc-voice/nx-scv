@@ -1,4 +1,11 @@
-import { RenderData, RenderDetail, IRenderable, IView, ICursor, CursorType } from './navigable-view.js';
+import {
+  RenderData,
+  RenderDetail,
+  IRenderable,
+  IView,
+  ICursor,
+  CursorType,
+} from './navigable-view.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { World } from './world.js';
@@ -11,7 +18,7 @@ export class WorldView implements IView {
   readonly world: World;
   readonly channel: string;
 
-  constructor(world: World, channel: string = "watch") {
+  constructor(world: World, channel: string = 'watch') {
     this.world = world;
     this.channel = channel;
     this._detail = RenderDetail.Row;
@@ -50,7 +57,7 @@ export class WorldView implements IView {
   }
 
   setPivot(value: Forma): void {
-    if (!this.anchor) throw new Error("No anchor set!");
+    if (!this.anchor) throw new Error('No anchor set!');
     this.pivot = value;
   }
 
@@ -60,7 +67,7 @@ export class WorldView implements IView {
 
   getCursor(): ICursor {
     if (!this._cursor) {
-      throw new Error("Cursor not initialized");
+      throw new Error('Cursor not initialized');
     }
     return this._cursor;
   }
@@ -110,12 +117,17 @@ export class WorldView implements IView {
   }
 
   nextForma(): boolean {
-    if (!this._cursor || this._cursor.formaIndex >= this._primaryAxis.length - 1) {
+    if (
+      !this._cursor ||
+      this._cursor.formaIndex >= this._primaryAxis.length - 1
+    ) {
       return false;
     }
 
     this._cursor.formaIndex++;
-    this._cursor.forma = this._primaryAxis[this._cursor.formaIndex] as Forma;
+    this._cursor.forma = this._primaryAxis[
+      this._cursor.formaIndex
+    ] as Forma;
     return true;
   }
 
@@ -125,14 +137,15 @@ export class WorldView implements IView {
     }
 
     this._cursor.formaIndex--;
-    this._cursor.forma = this._primaryAxis[this._cursor.formaIndex] as Forma;
+    this._cursor.forma = this._primaryAxis[
+      this._cursor.formaIndex
+    ] as Forma;
     return true;
   }
 
   observe(): void {
     setInterval(() => {
-      nfTui.logTo(this.channel, "WorldView.observe: TBD", new Date);
+      nfTui.logTo(this.channel, 'WorldView.observe: TBD', new Date());
     }, 1000);
   }
 }
-

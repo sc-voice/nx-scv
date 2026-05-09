@@ -17,12 +17,13 @@ export default class WatchCommand {
   static displayStatusLine(verbosity: number): void {
     const { BRIGHT_CYAN } = Unicode.LINUX_COLOR;
     const { RESET } = Unicode.LINUX_STYLE;
-    const verbLabel = verbosity === 0 ? 'verbosity' : (verbosity > 0 ? `verbosity+${verbosity}` : `verbosity${verbosity}`);
-    const keys = [
-      'q:quit',
-      'h:help',
-      `+/-:${verbLabel}`
-    ];
+    const verbLabel =
+      verbosity === 0
+        ? 'verbosity'
+        : verbosity > 0
+          ? `verbosity+${verbosity}`
+          : `verbosity${verbosity}`;
+    const keys = ['q:quit', 'h:help', `+/-:${verbLabel}`];
     const statusLine = `[ ${keys.join(' | ')} ]`;
     const cols = process.stdout.columns || 80;
     const padding = Math.max(0, cols - statusLine.length);
@@ -32,14 +33,18 @@ export default class WatchCommand {
   }
 
   static displayHelp(): void {
-    nfTui.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    nfTui.log(
+      '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    );
     nfTui.log('Available Keys:');
     nfTui.log('  q / Q / ESC         Quit watch mode');
     nfTui.log('  h                   Show this help');
     nfTui.log('  space               Refresh display');
     nfTui.log('  + / → (right)       Increase verbosity level');
     nfTui.log('  - / ← (left)        Decrease verbosity level');
-    nfTui.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    nfTui.log(
+      '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n',
+    );
   }
 
   /**
@@ -48,23 +53,36 @@ export default class WatchCommand {
    * @param {Function} getGlobalOpts - Closure that returns global options
    */
   static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
-
     // watch [id]
     cmd
-      .argument('[id]', 'Task ID to watch (optional, defaults to focused task)')
-      .description('Watch focused task file and rerun task get when it changes')
-      .addHelpText('after', [
-        '',
-        'Examples:',
-        '  $ nameforma watch',
-        '  $ nameforma watch abc123def456',
-      ].join('\n'))
+      .argument(
+        '[id]',
+        'Task ID to watch (optional, defaults to focused task)',
+      )
+      .description(
+        'Watch focused task file and rerun task get when it changes',
+      )
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          '  $ nameforma watch',
+          '  $ nameforma watch abc123def456',
+        ].join('\n'),
+      )
       .action((id: string | undefined, options: any, cmd: any) => {
         let { world, verbosity } = getGlobalOpts();
         let task = TaskCommand.resolveTask(world, id);
-        const worldPath = (world as any).worldPath || path.join(process.cwd(), '.nameforma');
+        const worldPath =
+          (world as any).worldPath ||
+          path.join(process.cwd(), '.nameforma');
         const worldFilePath = path.join(worldPath, 'world.json');
-        let taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+        let taskFilePath = path.join(
+          worldPath,
+          'task',
+          `${task.id.base64}.json`,
+        );
 
         if (!fs.existsSync(taskFilePath)) {
           throw new Error(`Task file not found: ${taskFilePath}`);
@@ -99,21 +117,37 @@ export default class WatchCommand {
                 const newFocus = world.focusedForma('task');
 
                 // Check if focused task changed
-                if (newFocus && newFocus.formaId.base64 !== task.id.base64) {
+                if (
+                  newFocus &&
+                  newFocus.formaId.base64 !== task.id.base64
+                ) {
                   const oldTaskId = task.id.base64;
-                  const newTask = world.loadEntity(Task, newFocus.formaId.base64);
+                  const newTask = world.loadEntity(
+                    Task,
+                    newFocus.formaId.base64,
+                  );
 
                   if (newTask) {
                     task = newTask;
-                    taskFilePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+                    taskFilePath = path.join(
+                      worldPath,
+                      'task',
+                      `${task.id.base64}.json`,
+                    );
 
-                    nfTui.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
-                    nfTui.log(`📌 Focus changed from ${oldTaskId} to ${task.id.base64}`);
+                    nfTui.log(
+                      `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
+                    );
+                    nfTui.log(
+                      `📌 Focus changed from ${oldTaskId} to ${task.id.base64}`,
+                    );
                     nfTui.log(`📁 New file: ${taskFilePath}\n`);
 
                     // Reset task file mtime for the new task
                     if (fs.existsSync(taskFilePath)) {
-                      mtimes.task = fs.statSync(taskFilePath).mtime.getTime();
+                      mtimes.task = fs
+                        .statSync(taskFilePath)
+                        .mtime.getTime();
                     }
 
                     TaskCommand.displayTask(world, task, verbosity);
@@ -132,7 +166,10 @@ export default class WatchCommand {
                 mtimes.task = currentTaskMtime;
 
                 // Reload task from disk
-                const reloadedTask = world.loadEntity(Task, task.id.base64);
+                const reloadedTask = world.loadEntity(
+                  Task,
+                  task.id.base64,
+                );
                 if (reloadedTask) {
                   task = reloadedTask;
                   nfTui.log('\n━'.repeat(74) + '\n');
@@ -165,10 +202,23 @@ export default class WatchCommand {
           process.stdin.on('data', (key: Buffer) => {
             const char = key.toString();
             // Check for arrow keys (multi-byte sequences)
-            const isRightArrow = key.length === 3 && key[0] === 27 && key[1] === 91 && key[2] === 67;
-            const isLeftArrow = key.length === 3 && key[0] === 27 && key[1] === 91 && key[2] === 68;
+            const isRightArrow =
+              key.length === 3 &&
+              key[0] === 27 &&
+              key[1] === 91 &&
+              key[2] === 67;
+            const isLeftArrow =
+              key.length === 3 &&
+              key[0] === 27 &&
+              key[1] === 91 &&
+              key[2] === 68;
 
-            if (char === 'q' || char === 'Q' || (key[0] === 27 && !isRightArrow && !isLeftArrow)) { // 27 is ESC (but not arrow)
+            if (
+              char === 'q' ||
+              char === 'Q' ||
+              (key[0] === 27 && !isRightArrow && !isLeftArrow)
+            ) {
+              // 27 is ESC (but not arrow)
               cleanup();
             } else if (char === 'h' || char === 'H') {
               WatchCommand.displayHelp();

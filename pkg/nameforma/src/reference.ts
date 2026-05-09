@@ -40,7 +40,13 @@ export class Reference extends Forma {
     this.relevance = relevance;
     this.source = source;
 
-    dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, relevance, source });
+    dbg &&
+      cc.ok1(msg + UOK, {
+        id: this.id,
+        name: this.name,
+        relevance,
+        source,
+      });
   }
 
   /**
@@ -50,15 +56,15 @@ export class Reference extends Forma {
    * @returns Registered AvroType from avro.parse()
    */
   static override registerAvro(opts: any = {}) {
-    const msg = "ref.registerAvro";
+    const msg = 'ref.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
     Forma.registerAvro(opts);
 
     let { fullName } = Reference.avroSchema;
-    dbg>1 && cc.ok(msg, "registerType:", fullName);
+    dbg > 1 && cc.ok(msg, 'registerType:', fullName);
     let avroType = Schema.registerType(Reference, opts);
-    dbg && cc.ok1(msg, "schema:", fullName);
-    return avroType
+    dbg && cc.ok1(msg, 'schema:', fullName);
+    return avroType;
   }
 
   /**
@@ -102,19 +108,18 @@ export class Reference extends Forma {
   /**
    * Return array of strings to be presented as a TUI row
    */
-  override tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
+  override tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
     const msg = 't2k.tuiRowStrings';
-    let { id, name, summary, relevance, source="" } = this;
-    let { 
-      itemId = id.timeId(),
-      bullet,
-    } = cfg;
+    let { id, name, summary, relevance, source = '' } = this;
+    let { itemId = id.timeId(), bullet } = cfg;
 
-    let row = [itemId, [relevance.toFixed(1), name, summary, source].join(UBAR)];
+    let row = [
+      itemId,
+      [relevance.toFixed(1), name, summary, source].join(UBAR),
+    ];
     if (bullet) {
       row.unshift(bullet);
     }
     return row;
   }
-
 }

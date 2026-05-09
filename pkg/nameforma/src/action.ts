@@ -5,7 +5,7 @@ import { Schema } from './schema.js';
 import { Unicode, ColorConsole } from '@sc-voice/tools/text';
 
 const { cc } = ColorConsole;
-const { RIGHT_ARROW:URAR, CHECKMARK: UOK } = Unicode;
+const { RIGHT_ARROW: URAR, CHECKMARK: UOK } = Unicode;
 const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const { ACTION: A6N } = DBG;
 
@@ -19,12 +19,33 @@ export enum ActionStatus {
 }
 
 export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
-  [ActionStatus.req]:    [ActionStatus.spec, ActionStatus.done, ActionStatus.manage],
-  [ActionStatus.spec]:   [ActionStatus.work, ActionStatus.test, ActionStatus.manage, ActionStatus.req],
-  [ActionStatus.work]:   [ActionStatus.test, ActionStatus.manage, ActionStatus.spec],
-  [ActionStatus.test]:   [ActionStatus.work, ActionStatus.manage, ActionStatus.work],
-  [ActionStatus.manage]: [ActionStatus.req, ActionStatus.done, ActionStatus.manage],
-  [ActionStatus.done]:   [ActionStatus.manage],
+  [ActionStatus.req]: [
+    ActionStatus.spec,
+    ActionStatus.done,
+    ActionStatus.manage,
+  ],
+  [ActionStatus.spec]: [
+    ActionStatus.work,
+    ActionStatus.test,
+    ActionStatus.manage,
+    ActionStatus.req,
+  ],
+  [ActionStatus.work]: [
+    ActionStatus.test,
+    ActionStatus.manage,
+    ActionStatus.spec,
+  ],
+  [ActionStatus.test]: [
+    ActionStatus.work,
+    ActionStatus.manage,
+    ActionStatus.work,
+  ],
+  [ActionStatus.manage]: [
+    ActionStatus.req,
+    ActionStatus.done,
+    ActionStatus.manage,
+  ],
+  [ActionStatus.done]: [ActionStatus.manage],
 };
 
 export const STATUS_ORDER: Record<ActionStatus, number> = {
@@ -94,15 +115,15 @@ export class Action extends Forma {
    * @returns Registered AvroType from avro.parse()
    */
   static override registerAvro(opts: any = {}) {
-    const msg = "a4n.registerAvro";
+    const msg = 'a4n.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
     Forma.registerAvro(opts);
 
     let { fullName } = Action.avroSchema;
-    dbg>1 && cc.ok(msg, "registerType:", fullName);
+    dbg > 1 && cc.ok(msg, 'registerType:', fullName);
     let avroType = Schema.registerType(Action, opts);
-    dbg && cc.ok1(msg, "schema:", fullName);
-    return avroType
+    dbg && cc.ok1(msg, 'schema:', fullName);
+    return avroType;
   }
 
   /**
@@ -153,7 +174,9 @@ export class Action extends Forma {
     if (status !== this.status) {
       const allowed = ActionTransitions[this.status as ActionStatus] || [];
       if (!allowed.includes(status)) {
-        throw new Error(`${msg} invalid transition: ${this.status} → ${status}`);
+        throw new Error(
+          `${msg} invalid transition: ${this.status} → ${status}`,
+        );
       }
       this.statusDate = new Date();
     }
@@ -169,12 +192,18 @@ export class Action extends Forma {
       date.getMonth() === now.getMonth() &&
       date.getDate() === now.getDate()
     ) {
-      return Intl.DateTimeFormat(undefined, { timeStyle: 'short', hour12: false }).format(date);
+      return Intl.DateTimeFormat(undefined, {
+        timeStyle: 'short',
+        hour12: false,
+      }).format(date);
     }
     const fmt = Intl.DateTimeFormat(undefined, { dateStyle: 'short' });
     const s = fmt.format(date);
-    const s4 = fmt.format(new Date(date.getFullYear() + 4, date.getMonth(), date.getDate()));
-    let start = -1, end = -1;
+    const s4 = fmt.format(
+      new Date(date.getFullYear() + 4, date.getMonth(), date.getDate()),
+    );
+    let start = -1,
+      end = -1;
     for (let i = 0; i < s.length; i++) {
       if (s[i] !== s4[i]) {
         if (start === -1) start = i;
@@ -184,7 +213,8 @@ export class Action extends Forma {
       }
     }
     if (start === -1) return s;
-    let ys = start, ye = end;
+    let ys = start,
+      ye = end;
     while (ys > 0 && /\w/.test(s[ys - 1])) ys--;
     while (ye < s.length - 1 && /\w/.test(s[ye + 1])) ye++;
     if (ys > 0 && !/\w/.test(s[ys - 1])) ys--;
@@ -199,10 +229,20 @@ export class Action extends Forma {
     let row = super.tuiRowStrings(cfg);
     let id = row.shift()!;
     let statusNote = this.statusNote ? `(${this.statusNote})` : '';
-    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;
+    const {
+      BRIGHT_GREEN,
+      BRIGHT_CYAN,
+      BRIGHT_RED,
+      BRIGHT_MAGENTA,
+      NO_COLOR,
+    } = Unicode.LINUX_COLOR;
     const statusColor: Record<string, string> = {
-      done: BRIGHT_GREEN, test: BRIGHT_CYAN, manage: BRIGHT_RED,
-      req: BRIGHT_MAGENTA, spec: BRIGHT_MAGENTA, work: BRIGHT_CYAN,
+      done: BRIGHT_GREEN,
+      test: BRIGHT_CYAN,
+      manage: BRIGHT_RED,
+      req: BRIGHT_MAGENTA,
+      spec: BRIGHT_MAGENTA,
+      work: BRIGHT_CYAN,
     };
     const c = statusColor[this.status] ?? '';
     const dateStr = Action.shortDate(this.statusDate) + URAR;

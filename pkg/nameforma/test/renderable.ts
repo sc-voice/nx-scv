@@ -73,7 +73,10 @@ describe('renderable', () => {
     it('toRenderDetail result is in [0,1)', () => {
       for (let a = 0; a <= MAX; a++) {
         for (let p = 0; p <= MAX; p++) {
-          const d = new ZenoCoord(zenoStep(a), zenoStep(p)).toRenderDetail();
+          const d = new ZenoCoord(
+            zenoStep(a),
+            zenoStep(p),
+          ).toRenderDetail();
           expect(d).toBeGreaterThanOrEqual(0);
           expect(d).toBeLessThan(1);
         }
@@ -89,7 +92,10 @@ describe('renderable', () => {
     it('fromRenderDetail recovers anchor and pivot exactly for all (a,p) pairs', () => {
       for (let a = 0; a <= MAX; a++) {
         for (let p = 0; p <= MAX; p++) {
-          const detail = new ZenoCoord(zenoStep(a), zenoStep(p)).toRenderDetail();
+          const detail = new ZenoCoord(
+            zenoStep(a),
+            zenoStep(p),
+          ).toRenderDetail();
           const coord = ZenoCoord.fromRenderDetail(detail);
           expect(coord.anchorStep).toBe(a);
           expect(coord.pivotStep).toBe(p);
@@ -113,7 +119,7 @@ describe('renderable', () => {
   describe('zenoStepToDetail', () => {
     it('follows formula 1-(8/13)^n', () => {
       for (let n = 0; n <= MAX; n++) {
-        const expected = 1 - Math.pow(8/13, n);
+        const expected = 1 - Math.pow(8 / 13, n);
         expect(zenoStepToDetail(zenoStep(n))).toBeCloseTo(expected, 10);
       }
     });
@@ -125,12 +131,16 @@ describe('renderable', () => {
 
     it('is strictly increasing', () => {
       for (let i = 1; i <= MAX; i++) {
-        expect(zenoStepToDetail(zenoStep(i))).toBeGreaterThan(zenoStepToDetail(zenoStep(i - 1)));
+        expect(zenoStepToDetail(zenoStep(i))).toBeGreaterThan(
+          zenoStepToDetail(zenoStep(i - 1)),
+        );
       }
     });
 
     it('throws on out-of-bounds step', () => {
-      expect(() => zenoStepToDetail(MAX + 1 as ZenoStep)).toThrow(RangeError);
+      expect(() => zenoStepToDetail((MAX + 1) as ZenoStep)).toThrow(
+        RangeError,
+      );
       expect(() => zenoStepToDetail(-1 as ZenoStep)).toThrow(RangeError);
     });
   });
@@ -143,8 +153,8 @@ describe('renderable', () => {
     });
 
     it('snaps to nearest step', () => {
-      const d5 = 1 - Math.pow(8/13, 5);
-      const d6 = 1 - Math.pow(8/13, 6);
+      const d5 = 1 - Math.pow(8 / 13, 5);
+      const d6 = 1 - Math.pow(8 / 13, 6);
       const mid = (d5 + d6) / 2;
       const step = detailToZenoStep(mid);
       expect(step === 5 || step === 6).toBe(true);
@@ -161,7 +171,10 @@ describe('renderable', () => {
 
   describe('zenoStepToLines', () => {
     it('follows Fibonacci(n+2) sequence', () => {
-      const fib = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181];
+      const fib = [
+        1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
+        2584, 4181,
+      ];
       for (let n = 0; n <= MAX; n++) {
         expect(zenoStepToLines(zenoStep(n))).toBe(fib[n]);
       }
@@ -169,14 +182,17 @@ describe('renderable', () => {
 
     it('is strictly increasing', () => {
       for (let i = 1; i <= MAX; i++) {
-        expect(zenoStepToLines(zenoStep(i))).toBeGreaterThan(zenoStepToLines(zenoStep(i - 1)));
+        expect(zenoStepToLines(zenoStep(i))).toBeGreaterThan(
+          zenoStepToLines(zenoStep(i - 1)),
+        );
       }
     });
 
     it('throws on out-of-bounds step', () => {
-      expect(() => zenoStepToLines(MAX + 1 as ZenoStep)).toThrow(RangeError);
+      expect(() => zenoStepToLines((MAX + 1) as ZenoStep)).toThrow(
+        RangeError,
+      );
       expect(() => zenoStepToLines(-1 as ZenoStep)).toThrow(RangeError);
     });
   });
-
 });

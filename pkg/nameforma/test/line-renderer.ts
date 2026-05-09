@@ -29,7 +29,7 @@ describe('LineRenderer: atomic', () => {
     const label = 'First name';
     const mutable = false;
     const field = new FormaField(name, mutable, label, value);
-    const expected = [ `${label}:${value}` ];
+    const expected = [`${label}:${value}`];
     expect(renderer.render(field)).toEqual(expected);
   });
 });
@@ -51,7 +51,7 @@ describe('LineRenderer: multi-line', () => {
       123.456,
       'hello',
       [1, 'is', true],
-      [ 'Employee(', field, ')' ],
+      ['Employee(', field, ')'],
     ];
     const expected = [
       '123.46',

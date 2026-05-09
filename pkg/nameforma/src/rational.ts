@@ -48,7 +48,9 @@ export class Rational extends Fraction {
         isNull: (value as any).isNull,
       };
     } else {
-      throw new NotImplementedError(`Rational.patch: unsupported value type`);
+      throw new NotImplementedError(
+        `Rational.patch: unsupported value type`,
+      );
     }
 
     // Use put() to apply patch, merging with existing values
@@ -100,7 +102,9 @@ export class Rational extends Fraction {
 
     // Try to match: [numerator]/[denominator][units]
     // Or: [numerator][units]
-    const fractionMatch = trimmed.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)(.*)$/);
+    const fractionMatch = trimmed.match(
+      /^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)(.*)$/,
+    );
     if (fractionMatch) {
       const [, numStr, denomStr, unitsStr] = fractionMatch;
       config.numerator = parseFloat(numStr);
@@ -111,7 +115,9 @@ export class Rational extends Fraction {
         const normalized = units.abbreviation(unitsTrimmed);
         // Validate units exist in unitMap
         if (!(units as any).unitMap[normalized]) {
-          throw new Error(`Rational.parsePatch: unknown units "${unitsTrimmed}"`);
+          throw new Error(
+            `Rational.parsePatch: unknown units "${unitsTrimmed}"`,
+          );
         }
         config.units = unitsTrimmed;
       }
@@ -133,7 +139,9 @@ export class Rational extends Fraction {
           const normalized = units.abbreviation(unitsTrimmed);
           // Validate units exist in unitMap
           if (!(units as any).unitMap[normalized]) {
-            throw new Error(`Rational.parsePatch: unknown units "${unitsTrimmed}"`);
+            throw new Error(
+              `Rational.parsePatch: unknown units "${unitsTrimmed}"`,
+            );
           }
           config.units = unitsTrimmed;
         }
@@ -175,14 +183,14 @@ export class Rational extends Fraction {
    * @returns Registered AvroType from avro.parse()
    */
   static registerAvro(opts: any = {}) {
-    const msg = "r6l.registerAvro";
+    const msg = 'r6l.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
 
     let { fullName } = Rational.avroSchema;
-    dbg && cc.ok(msg, "registerType:", fullName);
+    dbg && cc.ok(msg, 'registerType:', fullName);
     let avroType = Schema.registerType(Rational, opts);
-    dbg && cc.ok1(msg, "schema:", fullName);
-    return avroType
+    dbg && cc.ok1(msg, 'schema:', fullName);
+    return avroType;
   }
 
   static get avroSchema() {

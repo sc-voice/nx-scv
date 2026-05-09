@@ -23,7 +23,11 @@ export default class IdCommand {
     // Check if it's a UUID (v7 format or UUID64 base64)
     if (validateUUID(id)) {
       // If it matches UUIDv7 format (version 7 in the version field)
-      if (id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
+      if (
+        id.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        )
+      ) {
         return 'UUIDv7';
       }
       // Otherwise it's a valid UUID
@@ -88,7 +92,9 @@ export default class IdCommand {
                 try {
                   uuid = UUID64.fromString(words[0]);
                   const inputId = words[0];
-                  nfTui.log(`Format:    ${inputId.includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
+                  nfTui.log(
+                    `Format:    ${inputId.includes('-') ? 'UUIDv7' : 'UUID64 base64'}`,
+                  );
                   nfTui.log(`Base64:    ${uuid.base64}`);
                   nfTui.log(`UUID:      ${uuid.asV7()}`);
                   nfTui.log(`Timestamp: ${uuid.toDate().toISOString()}`);
@@ -113,22 +119,30 @@ export default class IdCommand {
           // If --save flag is set with --numeronym, save and generate numeronym
           if (options.save) {
             if (!options.numeronym) {
-              nfTui.error('✗ Error: -n/--numeronym required with -s/--save');
+              nfTui.error(
+                '✗ Error: -n/--numeronym required with -s/--save',
+              );
               process.exit(1);
             }
             if (!words || words.length === 0) {
-              nfTui.error('✗ Error: Word required for numeronym generation');
+              nfTui.error(
+                '✗ Error: Word required for numeronym generation',
+              );
               process.exit(1);
             }
             if (words.length > 1) {
-              nfTui.error('✗ Error: Single word expected for numeronym generation');
+              nfTui.error(
+                '✗ Error: Single word expected for numeronym generation',
+              );
               process.exit(1);
             }
 
             const word = words[0];
             const numeronym = Identifiable.numeronym(word);
             if (numeronym === undefined) {
-              nfTui.error(`✗ Error: cannot create valid numeronym from "${word}"`);
+              nfTui.error(
+                `✗ Error: cannot create valid numeronym from "${word}"`,
+              );
               process.exit(1);
             }
 
@@ -144,9 +158,12 @@ export default class IdCommand {
 
           // If --generate flag is set, generate N UUIDs
           if (options.generate !== undefined) {
-            const count = options.generate === true ? 1 : Number(options.generate);
+            const count =
+              options.generate === true ? 1 : Number(options.generate);
             if (isNaN(count) || count < 0) {
-              nfTui.error(`✗ Error: invalid count for -g: ${options.generate}`);
+              nfTui.error(
+                `✗ Error: invalid count for -g: ${options.generate}`,
+              );
               process.exit(1);
             }
             for (let i = 0; i < count; i++) {
@@ -180,7 +197,9 @@ export default class IdCommand {
               }
               try {
                 const uuid = UUID64.fromString(words[0]);
-                nfTui.log(`Format:    ${words[0].includes('-') ? 'UUIDv7' : 'UUID64 base64'}`);
+                nfTui.log(
+                  `Format:    ${words[0].includes('-') ? 'UUIDv7' : 'UUID64 base64'}`,
+                );
                 nfTui.log(`Base64:    ${uuid.base64}`);
                 nfTui.log(`UUID:      ${uuid.asV7()}`);
                 nfTui.log(`Timestamp: ${uuid.toDate().toISOString()}`);
@@ -214,10 +233,12 @@ export default class IdCommand {
 
           // If --numeronym or -n flag is set, convert all words and show them
           if (options.numeronym) {
-            const numeronyms = words.map(word => {
+            const numeronyms = words.map((word) => {
               const numeronym = Identifiable.numeronym(word);
               if (numeronym === undefined) {
-                throw new Error(`cannot create valid numeronym from "${word}"`);
+                throw new Error(
+                  `cannot create valid numeronym from "${word}"`,
+                );
               }
               return numeronym;
             });
@@ -225,7 +246,9 @@ export default class IdCommand {
           } else {
             // Default: single word conversion or return numeronym as-is
             if (words.length > 1) {
-              nfTui.error('✗ Error: Single word expected. Use --numeronym to convert multiple words');
+              nfTui.error(
+                '✗ Error: Single word expected. Use --numeronym to convert multiple words',
+              );
               process.exit(1);
             }
 

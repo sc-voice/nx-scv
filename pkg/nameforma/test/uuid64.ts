@@ -313,13 +313,15 @@ describe('UUID64 Avro Serialization', () => {
   it('UUIDv7 buffer roundtrip: v7 → uuid64 → v7 (genuine RFC 4122 v7)', () => {
     // Generate genuine UUIDv7 from uuid package
     const genuineUUIDv7String = uuidv7();
-    const genuineUUIDv7Buffer = UUID64.uuidStringToBytes(genuineUUIDv7String);
+    const genuineUUIDv7Buffer = UUID64.uuidStringToBytes(
+      genuineUUIDv7String,
+    );
 
     // Convert UUIDv7 → UUID64
     const uuid64Buffer = UUID64.toUUID64Buffer(genuineUUIDv7Buffer);
 
     // Verify UUID64 format (byte 15 bits 5-0 should be 0x1E)
-    expect((uuid64Buffer[15] & 0x3f)).toBe(0x1e);
+    expect(uuid64Buffer[15] & 0x3f).toBe(0x1e);
 
     // Convert UUID64 → UUIDv7
     const recoveredUUIDv7 = UUID64.toUUIDV7Buffer(uuid64Buffer);
@@ -503,9 +505,15 @@ describe('UUID64 itemId', () => {
 describe('UUID64 OPB64 Conversions', () => {
   // Test: OPB64 lexicographic ordering matches numeric ordering
   it('OPB64 lexicographic ordering matches numeric ordering', () => {
-    const buf1 = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]);
-    const buf2 = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
-    const buf3 = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a]);
+    const buf1 = Buffer.from([
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+    ]);
+    const buf2 = Buffer.from([
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02,
+    ]);
+    const buf3 = Buffer.from([
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a,
+    ]);
 
     const opb64_1 = UUID64.toOrderPreservingBase64(buf1);
     const opb64_2 = UUID64.toOrderPreservingBase64(buf2);

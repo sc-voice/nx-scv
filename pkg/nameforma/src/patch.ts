@@ -77,12 +77,16 @@ export class Patch extends Identifiable {
 
       // Check if field is patchable
       if (!patchableFields.includes(k)) {
-        throw new Error(`${msg} Cannot patch '${k}'. Patchable fields: ${patchableFields.join(', ')}`);
+        throw new Error(
+          `${msg} Cannot patch '${k}'. Patchable fields: ${patchableFields.join(', ')}`,
+        );
       }
 
       // Check if field exists in destination
       if (dst[k] === undefined) {
-        throw new Error(`${msg} Field '${k}' does not exist on destination object`);
+        throw new Error(
+          `${msg} Field '${k}' does not exist on destination object`,
+        );
       }
     });
 

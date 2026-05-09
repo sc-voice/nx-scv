@@ -33,9 +33,9 @@ export interface SchemaOpts {
  * An Avro-serializable class
  */
 export interface ISchemaClass {
-  new(...args:any[]): any;
+  new (...args: any[]): any;
   readonly avroSchema: any;
-  registerAvro(opts:SchemaOpts): AvroType;
+  registerAvro(opts: SchemaOpts): AvroType;
 }
 
 let UUID64: any;
@@ -47,7 +47,7 @@ let UUID64: any;
 export class SchemaRegistry {
   [key: string]: any;
 
-  constructor(cfg:any = {}) {
+  constructor(cfg: any = {}) {
     Object.assign(this, cfg);
   }
 }
@@ -55,7 +55,9 @@ export class SchemaRegistry {
 export class Schema {
   /** Static registry for all registered schemas, keyed by full name */
   //static #defaultRegistry: Record<string, any> = {};
-  static #defaultRegistry: SchemaRegistry = new SchemaRegistry({id:"defaultRegistry"});
+  static #defaultRegistry: SchemaRegistry = new SchemaRegistry({
+    id: 'defaultRegistry',
+  });
 
   /** avro-js library instance for schema parsing and type handling */
   static #avro: any;
@@ -86,7 +88,7 @@ export class Schema {
    * Does nothing if the type is already registered.
    * @returns parsed and registered serialization AvroType
    */
-  static registerType(type:ISchemaClass, opts: any={}): AvroType {
+  static registerType(type: ISchemaClass, opts: any = {}): AvroType {
     const msg = 's4a.registerType';
     const dbg = S4A.ALL;
     let { avroSchema } = type;
@@ -97,11 +99,11 @@ export class Schema {
     let { registry = Schema.#defaultRegistry } = opts;
     let avroType = registry[fullName];
     if (avroType == null) {
-      dbg>1 && cc.ok(msg, "new schema:", fullName);
+      dbg > 1 && cc.ok(msg, 'new schema:', fullName);
       avroType = Schema.registerSchema(avroSchema, opts);
     }
-    dbg && cc.ok1(msg, "registered:", fullName)
-    return avroType
+    dbg && cc.ok1(msg, 'registered:', fullName);
+    return avroType;
   }
 
   /**
@@ -121,14 +123,14 @@ export class Schema {
     const msg = 's4a.registerSchema';
     const dbg = S4A.ALL;
 
-    let { fullName="fullName?", name, namespace } = schema;
-    dbg>1 && cc.ok(msg, "schema:", fullName)
+    let { fullName = 'fullName?', name, namespace } = schema;
+    dbg > 1 && cc.ok(msg, 'schema:', fullName);
     if (name == null) {
-      let emsg = (`${msg} name?`)
-      cc.bad1(msg+-1, emsg)
-      throw new Error(emsg)
+      let emsg = `${msg} name?`;
+      cc.bad1(msg + -1, emsg);
+      throw new Error(emsg);
     }
-    dbg>2 && cc.ok(msg, 'parsing:', fullName);
+    dbg > 2 && cc.ok(msg, 'parsing:', fullName);
     let { avro = Schema.#avro, registry = Schema.#defaultRegistry } = opts;
     if (avro == null) {
       throw new Error(`${msg} avro?`);
@@ -137,14 +139,14 @@ export class Schema {
     let avroType = registry[fullName];
 
     if (avroType == null) {
-      dbg>1 && cc.ok(msg, 'avro.parse registry:', registry.id);
+      dbg > 1 && cc.ok(msg, 'avro.parse registry:', registry.id);
       avroType = avro.parse(schema, Object.assign({ registry }, opts));
       if (avroType == null) {
         let eMsg = `${msg} parse?`;
         cc.bad1(eMsg);
         throw new Error(eMsg);
       }
-      dbg && cc.ok1(msg, "schema:", fullName);
+      dbg && cc.ok1(msg, 'schema:', fullName);
       registry[fullName] = avroType;
 
       // TODO: why are we updating the default registry
@@ -169,7 +171,8 @@ export class Schema {
   toAvro(jsObj: any, opts: any = {}) {
     const msg = 's4a.toAvro';
     const dbg = S4A.TO_AVRO;
-    const { avro = Schema.#avro, registry = Schema.#defaultRegistry } = opts;
+    const { avro = Schema.#avro, registry = Schema.#defaultRegistry } =
+      opts;
     if (avro == null) {
       let eMsg = `${msg} avro?`;
       cc.bad1(msg, eMsg);
@@ -177,7 +180,8 @@ export class Schema {
     }
     const { name } = this;
     const fullName = this.fullName;
-    let type = (name && registry[name]) || (fullName && registry[fullName]);
+    let type =
+      (name && registry[name]) || (fullName && registry[fullName]);
     if (type == null) {
       let { avroSchema } = jsObj.constructor;
       if (avroSchema == null) {
@@ -185,7 +189,7 @@ export class Schema {
         cc.bad1(emsg);
         throw new Error(emsg);
       }
-      type = Schema.registerSchema(avroSchema, { avro, registry});
+      type = Schema.registerSchema(avroSchema, { avro, registry });
     }
     if (type == null) {
       let eMsg = `${msg} type?`;

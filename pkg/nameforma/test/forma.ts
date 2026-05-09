@@ -57,20 +57,23 @@ describe('Forma', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, '===========');
 
-    const id = new UUID64()
+    const id = new UUID64();
     const schema = Forma.avroSchema;
     const { fullName } = schema;
-    let avroType = Forma.registerAvro({avro});
+    let avroType = Forma.registerAvro({ avro });
     expect(avroType._name).toEqual(fullName);
     expect(Schema.REGISTRY[fullName]).toBe(avroType);
-    expect(Schema.REGISTRY.id).toBe("defaultRegistry");
-    expect( Object.keys(Schema.REGISTRY).sort(),).toEqual([
-      'id',
-      'scvoice.nameforma.UUID64', 
-      'scvoice.nameforma.Identifiable', 
-      'scvoice.nameforma.Forma', 
-      'bytes', 'string',
-    ].sort());
+    expect(Schema.REGISTRY.id).toBe('defaultRegistry');
+    expect(Object.keys(Schema.REGISTRY).sort()).toEqual(
+      [
+        'id',
+        'scvoice.nameforma.UUID64',
+        'scvoice.nameforma.Identifiable',
+        'scvoice.nameforma.Forma',
+        'bytes',
+        'string',
+      ].sort(),
+    );
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Forma({ id });
@@ -83,7 +86,10 @@ describe('Forma', () => {
 
   it('asRenderData', () => {
     const { FormaField } = NameForma;
-    const f = new Forma({ name: 'test-forma', summary: 'A test forma for verification' });
+    const f = new Forma({
+      name: 'test-forma',
+      summary: 'A test forma for verification',
+    });
 
     // All (anchor>=2): 3 FormaFields with full id, name, summary
     const dataAll = f.asRenderData(RenderDetail.All);
@@ -137,5 +143,4 @@ describe('Forma', () => {
     expect(ClassB.register()).toBe('CLASSB' + ClassB.avroSchema);
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
-
 });

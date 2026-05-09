@@ -13,19 +13,13 @@ import { confirm } from './confirm.js';
 
 export default class ActionCommand {
   static readonly EXAMPLES: Record<string, string[]> = {
-    list: [
-      '$ nf action list # list actions for focused task',
-    ],
-    show: [
-      '$ nf action show ACTION_ID # show a specific action',
-    ],
+    list: ['$ nf action list # list actions for focused task'],
+    show: ['$ nf action show ACTION_ID # show a specific action'],
     add: [
       '$ nf action add "Implement feature" --summary "Add user auth"',
       '$ nf action add "Write tests" --status req',
     ],
-    delete: [
-      '$ nf action delete ACTION_ID # delete an action',
-    ],
+    delete: ['$ nf action delete ACTION_ID # delete an action'],
     get: [
       '$ nf action get ACTION_ID.name # get an action field',
       '$ nf action get ACTION_ID.status',
@@ -51,7 +45,8 @@ export default class ActionCommand {
       return task;
     }
     const focus = world.focusedForma('task');
-    if (!focus) throw new Error('No task focused and --task not specified');
+    if (!focus)
+      throw new Error('No task focused and --task not specified');
     const task = world.loadEntity(Task, focus.formaId.base64);
     if (!task) throw new Error(`Focused task not found: ${focus.formaId}`);
     return task;
@@ -65,27 +60,31 @@ export default class ActionCommand {
     }
   }
 
-
   static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
-    const helpText = ['Examples:',
-      ...Object.values(ActionCommand.EXAMPLES).flat().map(e => `  ${e}`)
+    const helpText = [
+      'Examples:',
+      ...Object.values(ActionCommand.EXAMPLES)
+        .flat()
+        .map((e) => `  ${e}`),
     ].join('\n');
     cmd.addHelpText('after', '\n' + helpText);
 
     // Default action: list actions of focused task
     cmd
-      .description([
-        'Manage actions (status: req → spec → work → test → manage → done)',
-        'that can be added, listed, updated, and deleted for tasks',
-        '',
-        'Statuses:',
-        '  req    - Requirements defined',
-        '  spec   - Specification written',
-        '  work   - In progress',
-        '  test   - Testing/Verification',
-        '  manage - Review/Management',
-        '  done   - Completed'
-      ].join('\n'))
+      .description(
+        [
+          'Manage actions (status: req → spec → work → test → manage → done)',
+          'that can be added, listed, updated, and deleted for tasks',
+          '',
+          'Statuses:',
+          '  req    - Requirements defined',
+          '  spec   - Specification written',
+          '  work   - In progress',
+          '  test   - Testing/Verification',
+          '  manage - Review/Management',
+          '  done   - Completed',
+        ].join('\n'),
+      )
       .action((options: any, cmd: any) => {
         const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
@@ -114,9 +113,14 @@ export default class ActionCommand {
     cmd
       .command('list')
       .description('List actions for the focused task')
-      .addHelpText('after', ['', 'Examples:',
-        ...ActionCommand.EXAMPLES.list.map(e => `  ${e}`)
-      ].join('\n'))
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          ...ActionCommand.EXAMPLES.list.map((e) => `  ${e}`),
+        ].join('\n'),
+      )
       .action((options: any, cmd: any) => {
         const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
@@ -145,9 +149,14 @@ export default class ActionCommand {
     cmd
       .command('show <id>')
       .description('Show a specific action')
-      .addHelpText('after', ['', 'Examples:',
-        ...ActionCommand.EXAMPLES.show.map(e => `  ${e}`)
-      ].join('\n'))
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          ...ActionCommand.EXAMPLES.show.map((e) => `  ${e}`),
+        ].join('\n'),
+      )
       .action((id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
@@ -178,9 +187,14 @@ export default class ActionCommand {
       .command('add <name>')
       .description('Add an action to the focused task')
       .option('-s, --summary <summary>', 'Action summary')
-      .addHelpText('after', ['', 'Examples:',
-        ...ActionCommand.EXAMPLES.add.map(e => `  ${e}`)
-      ].join('\n'))
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          ...ActionCommand.EXAMPLES.add.map((e) => `  ${e}`),
+        ].join('\n'),
+      )
       .action((name: string, options: any, cmd: any) => {
         const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
@@ -205,9 +219,14 @@ export default class ActionCommand {
     cmd
       .command('delete <id>')
       .description('Delete an action')
-      .addHelpText('after', ['', 'Examples:',
-        ...ActionCommand.EXAMPLES.delete.map(e => `  ${e}`)
-      ].join('\n'))
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          ...ActionCommand.EXAMPLES.delete.map((e) => `  ${e}`),
+        ].join('\n'),
+      )
       .action((id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
@@ -238,9 +257,14 @@ export default class ActionCommand {
       .command('get <dotref>')
       .description('Get an action field value (format: <id>.<field>)')
       .option('-t, --task <fid>', 'Task fuzzy ID (default: focused task)')
-      .addHelpText('after', ['', 'Examples:',
-        ...ActionCommand.EXAMPLES.get.map(e => `  ${e}`)
-      ].join('\n'))
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          ...ActionCommand.EXAMPLES.get.map((e) => `  ${e}`),
+        ].join('\n'),
+      )
       .action((dotref: string, options: any, cmd: any) => {
         const parts = dotref.split('.');
         if (parts.length !== 2) {
@@ -274,85 +298,105 @@ export default class ActionCommand {
     // action set <id>.<field> <value...>
     cmd
       .command('set <dotref> <value...>')
-      .description('Set an action field value (format: <id>.<field> <value>)')
-      .addHelpText('after', ['',
-        'Updatable fields:',
-        '  name        Title',
-        '  summary     Detailed summary',
-        '  status      Action status with note (requires: <newStatus> <statusNote>)',
-        '  statusNote  Status change note',
-        '',
-        'Examples:',
-        ...ActionCommand.EXAMPLES.set.map(e => `  ${e}`),
-      ].join('\n'))
+      .description(
+        'Set an action field value (format: <id>.<field> <value>)',
+      )
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Updatable fields:',
+          '  name        Title',
+          '  summary     Detailed summary',
+          '  status      Action status with note (requires: <newStatus> <statusNote>)',
+          '  statusNote  Status change note',
+          '',
+          'Examples:',
+          ...ActionCommand.EXAMPLES.set.map((e) => `  ${e}`),
+        ].join('\n'),
+      )
       .option('-t, --task <fid>', 'Task fuzzy ID (default: focused task)')
-      .action(async (dotref: string, values: string[], options: any, cmd: any) => {
-        const parts = dotref.split('.');
-        if (parts.length !== 2) {
-          throw new Error('Format: action set <id>.<field> <value>');
-        }
-        const [id, field] = parts;
-
-        if (id.length < 3) {
-          throw new Error('ID must be at least 3 characters');
-        }
-
-        // Validate status field requires exactly 2 values
-        if (field === 'status') {
-          if (values.length !== 2) {
-            throw new Error('status field requires: <newStatus> <statusNote>');
+      .action(
+        async (
+          dotref: string,
+          values: string[],
+          options: any,
+          cmd: any,
+        ) => {
+          const parts = dotref.split('.');
+          if (parts.length !== 2) {
+            throw new Error('Format: action set <id>.<field> <value>');
           }
-        } else {
-          if (values.length !== 1) {
-            throw new Error(`${field} field requires exactly one value`);
+          const [id, field] = parts;
+
+          if (id.length < 3) {
+            throw new Error('ID must be at least 3 characters');
           }
-        }
 
-        const world = getGlobalOpts().world;
-        const task = ActionCommand.resolveTask(world, options.task);
-        const actionList = task.actions(world);
-
-        try {
-          const action: Action = actionList.getItem(id);
-
+          // Validate status field requires exactly 2 values
           if (field === 'status') {
-            const [newStatus, statusNote] = values;
-            const oldStatus = action.status;
-            const allowed: ActionStatus[] = ActionTransitions[oldStatus as ActionStatus] || [];
-
-            if (settings.isAgent && oldStatus !== newStatus && !allowed.includes(newStatus as ActionStatus)) {
+            if (values.length !== 2) {
               throw new Error(
-                `invalid transition: ${oldStatus} → ${newStatus}` +
-                `\n  allowed: ${allowed.join(', ') || '(none)'}`
+                'status field requires: <newStatus> <statusNote>',
               );
             }
-
-            if (settings.isAgent && (newStatus === 'done')) {
-              const consensusConfirmed = await confirm(
-                `>>> Action: ${action.id}\n>>> name: ${action.name}\n>>> Transition to '${newStatus}': Was team consulted and consensus gained? (no/yes) `
-              );
-              if (!consensusConfirmed) {
-                nfTui.log('Transition cancelled - consensus required');
-                return;
-              }
-            }
-
-            actionList.patchItem(id, { status: newStatus, statusNote });
-            world.save();
-            nfTui.log(`✓ ${oldStatus}->${newStatus} ${statusNote}`);
           } else {
-            const updateCfg: any = {};
-            updateCfg[field] = values[0];
-            actionList.patchItem(id, updateCfg);
-            world.save();
-            nfTui.log(`✓ ${field} updated`);
+            if (values.length !== 1) {
+              throw new Error(`${field} field requires exactly one value`);
+            }
           }
-        } catch (err: any) {
-          if (err.message.includes('invalid transition')) {
-            throw err;
+
+          const world = getGlobalOpts().world;
+          const task = ActionCommand.resolveTask(world, options.task);
+          const actionList = task.actions(world);
+
+          try {
+            const action: Action = actionList.getItem(id);
+
+            if (field === 'status') {
+              const [newStatus, statusNote] = values;
+              const oldStatus = action.status;
+              const allowed: ActionStatus[] =
+                ActionTransitions[oldStatus as ActionStatus] || [];
+
+              if (
+                settings.isAgent &&
+                oldStatus !== newStatus &&
+                !allowed.includes(newStatus as ActionStatus)
+              ) {
+                throw new Error(
+                  `invalid transition: ${oldStatus} → ${newStatus}` +
+                    `\n  allowed: ${allowed.join(', ') || '(none)'}`,
+                );
+              }
+
+              if (settings.isAgent && newStatus === 'done') {
+                const consensusConfirmed = await confirm(
+                  `>>> Action: ${action.id}\n>>> name: ${action.name}\n>>> Transition to '${newStatus}': Was team consulted and consensus gained? (no/yes) `,
+                );
+                if (!consensusConfirmed) {
+                  nfTui.log('Transition cancelled - consensus required');
+                  return;
+                }
+              }
+
+              actionList.patchItem(id, { status: newStatus, statusNote });
+              world.save();
+              nfTui.log(`✓ ${oldStatus}->${newStatus} ${statusNote}`);
+            } else {
+              const updateCfg: any = {};
+              updateCfg[field] = values[0];
+              actionList.patchItem(id, updateCfg);
+              world.save();
+              nfTui.log(`✓ ${field} updated`);
+            }
+          } catch (err: any) {
+            if (err.message.includes('invalid transition')) {
+              throw err;
+            }
+            throw new Error(`Action not found: ${id}`);
           }
-          throw new Error(`Action not found: ${id}`);
-        }
-      });
+        },
+      );
   }
 }

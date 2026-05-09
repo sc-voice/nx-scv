@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -35,14 +41,19 @@ describe('CLI: id command', () => {
     };
 
     // Create a temporary world for testing
-    tempWorld = fs.mkdtempSync(path.join(os.tmpdir(), 'nameforma-id-test'));
+    tempWorld = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'nameforma-id-test'),
+    );
     const worldPath = path.join(tempWorld, '.nameforma');
 
     // Setup commander program
     program = new Command();
 
     // Setup global options but without -v to avoid conflict with --validate in id command
-    let globalOpts: any = { world: World.fromPath(worldPath), verbosity: 0 };
+    let globalOpts: any = {
+      world: World.fromPath(worldPath),
+      verbosity: 0,
+    };
     program
       .option('-w, --world <path>', 'Path to .nameforma directory')
       .hook('preAction', (thisCommand: any) => {
@@ -108,8 +119,9 @@ describe('CLI: id command', () => {
       } catch (err: any) {
         // Commander throws on exit(1)
       }
-      expect(errors.some(e => e.includes('Single word expected')))
-        .toBe(true);
+      expect(errors.some((e) => e.includes('Single word expected'))).toBe(
+        true,
+      );
     });
 
     it('generates UUID64 when no words provided', async () => {
@@ -176,7 +188,7 @@ describe('CLI: id command', () => {
       } catch (err: any) {
         // Commander throws on exit(1)
       }
-      expect(errors.some(e => e.includes('Single UUID64'))).toBe(true);
+      expect(errors.some((e) => e.includes('Single UUID64'))).toBe(true);
     });
   });
 
@@ -184,7 +196,7 @@ describe('CLI: id command', () => {
     it('generates multiple UUIDs with -g <count>', async () => {
       await program.parseAsync(['node', 'test', 'id', '-g', '3']);
       expect(output.length).toBe(3);
-      output.forEach(uuid => {
+      output.forEach((uuid) => {
         expect(UUID64.validate(uuid)).toBe(true);
       });
     });
@@ -192,7 +204,7 @@ describe('CLI: id command', () => {
     it('generates multiple UUIDs with --generate <count>', async () => {
       await program.parseAsync(['node', 'test', 'id', '--generate', '5']);
       expect(output.length).toBe(5);
-      output.forEach(uuid => {
+      output.forEach((uuid) => {
         expect(UUID64.validate(uuid)).toBe(true);
       });
     });
@@ -221,7 +233,7 @@ describe('CLI: id command', () => {
       expect(output.length).toBe(1);
       expect(validateUUID(output[0])).toBe(true);
       expect(output[0]).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
     });
 
@@ -230,7 +242,7 @@ describe('CLI: id command', () => {
       expect(output.length).toBe(1);
       expect(validateUUID(output[0])).toBe(true);
       expect(output[0]).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       );
     });
 
@@ -253,7 +265,13 @@ describe('CLI: id command', () => {
     });
 
     it('validates UUID64 base64', async () => {
-      await program.parseAsync(['node', 'test', 'id', '-v', '0Pqvz51J006XNHphPhfTNW']);
+      await program.parseAsync([
+        'node',
+        'test',
+        'id',
+        '-v',
+        '0Pqvz51J006XNHphPhfTNW',
+      ]);
       expect(output).toEqual(['UUID64']);
     });
 
@@ -264,7 +282,13 @@ describe('CLI: id command', () => {
     });
 
     it('validates with --validate flag', async () => {
-      await program.parseAsync(['node', 'test', 'id', '--validate', 'I18n']);
+      await program.parseAsync([
+        'node',
+        'test',
+        'id',
+        '--validate',
+        'I18n',
+      ]);
       expect(output).toEqual(['numeronym']);
     });
 
@@ -274,7 +298,7 @@ describe('CLI: id command', () => {
       } catch (err: any) {
         // Commander throws on exit(1)
       }
-      expect(errors.some(e => e.includes('unknown id'))).toBe(true);
+      expect(errors.some((e) => e.includes('unknown id'))).toBe(true);
     });
 
     it('errors when no ID provided', async () => {
@@ -283,16 +307,23 @@ describe('CLI: id command', () => {
       } catch (err: any) {
         // Commander throws on exit(1)
       }
-      expect(errors.some(e => e.includes('ID required'))).toBe(true);
+      expect(errors.some((e) => e.includes('ID required'))).toBe(true);
     });
 
     it('errors with multiple IDs', async () => {
       try {
-        await program.parseAsync(['node', 'test', 'id', '-v', 'F13n', 'I18n']);
+        await program.parseAsync([
+          'node',
+          'test',
+          'id',
+          '-v',
+          'F13n',
+          'I18n',
+        ]);
       } catch (err: any) {
         // Commander throws on exit(1)
       }
-      expect(errors.some(e => e.includes('Single ID'))).toBe(true);
+      expect(errors.some((e) => e.includes('Single ID'))).toBe(true);
     });
   });
 
@@ -317,13 +348,16 @@ describe('CLI: id command', () => {
   describe('Inspect option (-i, --inspect)', () => {
     it('inspects numeronym with -i', async () => {
       // Create temp world to avoid interference from project's .nameforma
-      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cli-id-test'));
+      const tempDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'cli-id-test'),
+      );
       const worldPath = path.join(tempDir, '.nameforma');
       fs.mkdirSync(worldPath, { recursive: true });
 
       try {
         // Use a new program with proper global options support
-        const { program: testProgram, getGlobalOpts } = createTestProgram(tempDir);
+        const { program: testProgram, getGlobalOpts } =
+          createTestProgram(tempDir);
         const testIdCmd = testProgram.command('id');
         IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
@@ -334,7 +368,15 @@ describe('CLI: id command', () => {
         };
 
         try {
-          await testProgram.parseAsync(['node', 'test', '-w', tempDir, 'id', '-i', 'F13n']);
+          await testProgram.parseAsync([
+            'node',
+            'test',
+            '-w',
+            tempDir,
+            'id',
+            '-i',
+            'F13n',
+          ]);
           expect(testOutput.length).toBe(2);
           expect(testOutput[0]).toContain('Type: numeronym');
           expect(testOutput[1]).toContain('Value: F13n');
@@ -388,7 +430,8 @@ describe('CLI: id command', () => {
 
     it('generates and saves numeronym with -s -n', async () => {
       // Create new program for this test to isolate world directory
-      const { program: testProgram, getGlobalOpts } = createTestProgram(worldPath);
+      const { program: testProgram, getGlobalOpts } =
+        createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
       IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
@@ -428,7 +471,8 @@ describe('CLI: id command', () => {
     });
 
     it('uses -w option before command to specify world directory', async () => {
-      const { program: testProgram, getGlobalOpts } = createTestProgram(worldPath);
+      const { program: testProgram, getGlobalOpts } =
+        createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
       IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 
@@ -463,7 +507,8 @@ describe('CLI: id command', () => {
     });
 
     it('generates and saves numeronym with --save --numeronym', async () => {
-      const { program: testProgram, getGlobalOpts } = createTestProgram(worldPath);
+      const { program: testProgram, getGlobalOpts } =
+        createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
       IdCommand.registerCommand(testIdCmd, getGlobalOpts);
 

@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -77,7 +83,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       }
 
       expect(() => world.registerEntity(BadEntity as any)).toThrow(
-        /missing static entity property/
+        /missing static entity property/,
       );
     });
 
@@ -93,7 +99,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       }
 
       expect(() => world.registerEntity(BadEntity as any)).toThrow(
-        /missing static avroSchema property/
+        /missing static avroSchema property/,
       );
     });
 
@@ -106,7 +112,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       }
 
       expect(() => world.registerEntity(BadEntity as any)).toThrow(
-        /missing static fromJson method/
+        /missing static fromJson method/,
       );
     });
 
@@ -126,7 +132,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       world.registerEntity(AnotherEntity);
 
       const names = world.getEntityNames();
-      expect(names).toContain('task');      // Auto-registered
+      expect(names).toContain('task'); // Auto-registered
       expect(names).toContain('mock');
       expect(names).toContain('another');
       expect(names.length).toBe(3);
@@ -289,7 +295,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       // Use a single character that both UUIDs likely contain (fuzzy matching with levenshtein=1)
       // This should match both entities and throw ambiguous error
       expect(() => world.loadFuzzy(MockEntity, '0')).toThrow(
-        /ambiguous match/
+        /ambiguous match/,
       );
     });
 
@@ -321,9 +327,9 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const f7t = world.entityList(MockEntity);
       f7t.addItem({ name: 'test' });
 
-      expect(() =>
-        world.loadFuzzy(MockEntity, 'search', 999)
-      ).toThrow(/levenshtein out of range/);
+      expect(() => world.loadFuzzy(MockEntity, 'search', 999)).toThrow(
+        /levenshtein out of range/,
+      );
     });
   });
 
@@ -413,7 +419,9 @@ describe('World Storage - Save, Load, List, Delete', () => {
       list.addItem({ name: 'entity3' });
       expect(list.size).toBe(3);
 
-      const names = Array.from(list).map((e) => e.name).sort();
+      const names = Array.from(list)
+        .map((e) => e.name)
+        .sort();
       expect(names).toEqual(['entity1', 'entity2', 'entity3']);
     });
 
@@ -439,7 +447,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
       }
 
       expect(collected.length).toBe(2);
-      expect(collected.map((e) => e.name).sort()).toEqual(['first', 'second']);
+      expect(collected.map((e) => e.name).sort()).toEqual([
+        'first',
+        'second',
+      ]);
     });
   });
 });
@@ -489,7 +500,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual(['focusStack', 'history', 'id', 'numeronym']);  // No worldPath
+      expect(Object.keys(json).sort()).toEqual([
+        'focusStack',
+        'history',
+        'id',
+        'numeronym',
+      ]); // No worldPath
     });
 
     it('should preserve World id across save', () => {
@@ -600,7 +616,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual(['focusStack', 'history', 'id', 'numeronym']);
+      expect(Object.keys(json).sort()).toEqual([
+        'focusStack',
+        'history',
+        'id',
+        'numeronym',
+      ]);
     });
 
     it('should load existing World if world.json exists', () => {
@@ -633,7 +654,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
       expect(json.history).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual(['focusStack', 'history', 'id', 'numeronym']);
+      expect(Object.keys(json).sort()).toEqual([
+        'focusStack',
+        'history',
+        'id',
+        'numeronym',
+      ]);
     });
   });
 
@@ -645,10 +671,14 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name:'test task' });
+      const task = list.addItem({ name: 'test task' });
 
       // Verify file was created
-      const filePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+      const filePath = path.join(
+        worldPath,
+        'task',
+        `${task.id.base64}.json`,
+      );
       expect(fs.existsSync(filePath)).toBe(true);
 
       const content = fs.readFileSync(filePath, 'utf8');
@@ -665,8 +695,12 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name:'test task' });
-      const filePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+      const task = list.addItem({ name: 'test task' });
+      const filePath = path.join(
+        worldPath,
+        'task',
+        `${task.id.base64}.json`,
+      );
 
       expect(fs.existsSync(filePath)).toBe(true);
 
@@ -684,11 +718,15 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name:'original' });
-      const filePath = path.join(worldPath, 'task', `${task.id.base64}.json`);
+      const task = list.addItem({ name: 'original' });
+      const filePath = path.join(
+        worldPath,
+        'task',
+        `${task.id.base64}.json`,
+      );
 
       // Patch via FormaList
-      list.patchItem(task.id.base64, { name:'updated' });
+      list.patchItem(task.id.base64, { name: 'updated' });
 
       // Verify file was updated
       const content = fs.readFileSync(filePath, 'utf8');
@@ -706,9 +744,9 @@ describe('World Serialization - save()/load() methods', () => {
 
       // Add and modify tasks
       const list1 = world.entityList(Task);
-      const task1 = list1.addItem({ name:'task1' });
-      const task2 = list1.addItem({ name:'task2' });
-      list1.patchItem(task1.id.base64, { name:'task1-updated' });
+      const task1 = list1.addItem({ name: 'task1' });
+      const task2 = list1.addItem({ name: 'task2' });
+      list1.patchItem(task1.id.base64, { name: 'task1-updated' });
 
       // Create new world instance and load
       const world2 = new World(worldPath);
@@ -798,7 +836,7 @@ describe('World - focusStack', () => {
 
       world.focusForma(e1);
       world.focusForma(e2);
-      world.focusForma(e1);  // Move e1 to top
+      world.focusForma(e1); // Move e1 to top
 
       expect(world.focusStack.size).toBe(2);
       const focusItems = Array.from(world.focusStack);
@@ -900,10 +938,10 @@ describe('World - focusStack', () => {
       const stack1 = world.focusStack;
       const stack2 = world.focusStack;
 
-      expect(stack1).not.toBe(stack2);  // Different FormaLists
+      expect(stack1).not.toBe(stack2); // Different FormaLists
       const items1 = Array.from(stack1);
       const items2 = Array.from(stack2);
-      expect(items1[0].id.base64).toBe(items2[0].id.base64);  // Same content
+      expect(items1[0].id.base64).toBe(items2[0].id.base64); // Same content
     });
 
     it('should return empty list initially', () => {
@@ -999,7 +1037,9 @@ describe('World - focusStack', () => {
       const focusItems = Array.from(world.focusStack);
       expect(focusItems[0].formaId.base64).toBe(e3.id.base64);
       expect(focusItems[1].formaId.base64).toBe(e1.id.base64);
-      expect(focusItems.some(f => f.formaId.base64 === e2.id.base64)).toBe(false);
+      expect(
+        focusItems.some((f) => f.formaId.base64 === e2.id.base64),
+      ).toBe(false);
     });
 
     it('should be no-op if entity not in focusStack', () => {
@@ -1025,7 +1065,9 @@ describe('World - focusStack', () => {
 
       const entities = [e3, e2, e1];
       const sorted = entities.sort(
-        (a, b) => world.focusOrder(a) - world.focusOrder(b) || a.id.base64.localeCompare(b.id.base64)
+        (a, b) =>
+          world.focusOrder(a) - world.focusOrder(b) ||
+          a.id.base64.localeCompare(b.id.base64),
       );
 
       // e1 is most focused (index 0)
@@ -1056,7 +1098,11 @@ describe('World - focusStack', () => {
         expect(Array.from(world.focusStack).length).toBe(3);
 
         // Delete m2's backing file directly (simulating stale entry)
-        const m2FilePath = path.join(worldPath, 'mock', `${m2.id.base64}.json`);
+        const m2FilePath = path.join(
+          worldPath,
+          'mock',
+          `${m2.id.base64}.json`,
+        );
         fs.unlinkSync(m2FilePath);
 
         // Call validate and check returns true (entries were removed)
@@ -1108,7 +1154,11 @@ describe('World - focusStack', () => {
         world.focusForma(m2);
 
         // Delete m1's file
-        const m1FilePath = path.join(worldPath, 'mock', `${m1.id.base64}.json`);
+        const m1FilePath = path.join(
+          worldPath,
+          'mock',
+          `${m1.id.base64}.json`,
+        );
         fs.unlinkSync(m1FilePath);
 
         // Serialize — should clean stale entries

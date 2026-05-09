@@ -34,7 +34,12 @@ export type FormaListEvent<T extends IFormaItem> =
   | { type: 'add'; item: T; cfg: any; entity?: IFormaItem }
   | { type: 'patch'; item: T; cfg: any; entity?: IFormaItem }
   | { type: 'delete'; item: T; entity?: IFormaItem }
-  | { type: 'move'; item: T; options: { before?: FuzzyId | null; after?: FuzzyId | null }; entity?: IFormaItem };
+  | {
+      type: 'move';
+      item: T;
+      options: { before?: FuzzyId | null; after?: FuzzyId | null };
+      entity?: IFormaItem;
+    };
 
 /**
  * IEventBus - Event emission interface for FormaList listeners
@@ -91,7 +96,13 @@ export class FormaList<T extends IFormaItem> {
   #cachedSuffixLen: number | null = null;
   #emitter?: IEventBus;
 
-  constructor(items: T[], ItemClass: IFormaItemClass, parent?: IFormaItem, emitter?: IEventBus, keyField: string = 'id') {
+  constructor(
+    items: T[],
+    ItemClass: IFormaItemClass,
+    parent?: IFormaItem,
+    emitter?: IEventBus,
+    keyField: string = 'id',
+  ) {
     this.items = items;
     this.#ItemClass = ItemClass;
     this.keyField = keyField;
@@ -142,7 +153,7 @@ export class FormaList<T extends IFormaItem> {
    * @returns New item
    */
   addItem(cfg: any = {}): T {
-    const msg = "FormaList.addItem:";
+    const msg = 'FormaList.addItem:';
 
     // Enforce parent-child ID relationships only for non-entities with entity parents
     // (e.g., Action children of a Task entity, not Task children of World)
@@ -204,14 +215,18 @@ export class FormaList<T extends IFormaItem> {
    */
   getItem(id: FuzzyId): T {
     const filter = Identifiable.idFilter(id);
-    const matches = this.#filterItems(item => filter(this.#itemId(item)));
+    const matches = this.#filterItems((item) =>
+      filter(this.#itemId(item)),
+    );
 
     if (matches.length === 0) {
       throw new Error(`getItem: no item found for "${id}"`);
     }
     if (matches.length > 1) {
-      const ids = matches.map(item => this.#itemId(item)).join(', ');
-      throw new Error(`getItem: ambiguous match for "${id}": found ${matches.length} items [${ids}]`);
+      const ids = matches.map((item) => this.#itemId(item)).join(', ');
+      throw new Error(
+        `getItem: ambiguous match for "${id}": found ${matches.length} items [${ids}]`,
+      );
     }
     return matches[0];
   }
@@ -254,7 +269,10 @@ export class FormaList<T extends IFormaItem> {
    * @returns Moved item
    * @throws If item ID or anchor ID not found
    */
-  moveItem(id: FuzzyId, options: { before?: FuzzyId | null; after?: FuzzyId | null } = {}): T {
+  moveItem(
+    id: FuzzyId,
+    options: { before?: FuzzyId | null; after?: FuzzyId | null } = {},
+  ): T {
     const index = this.#findIndex(id);
     if (index === -1) {
       throw new Error(`Item not found: ${id}`);
@@ -322,7 +340,9 @@ export class FormaList<T extends IFormaItem> {
    * Invalidated when list contents change.
    */
   #computePrefixSuffixLengths(): void {
-    const timeIds = this.items.map(it => ((it as any)[this.keyField] as UUID64).timeId());
+    const timeIds = this.items.map((it) =>
+      ((it as any)[this.keyField] as UUID64).timeId(),
+    );
 
     if (timeIds.length === 0) {
       this.#cachedPrefixLen = 0;
@@ -333,7 +353,10 @@ export class FormaList<T extends IFormaItem> {
     // Special case: single item in list
     if (timeIds.length === 1) {
       const suffixLen = 2;
-      const prefixLen = UUID64.TIME_SEQ_CHARS - FormaList.MIN_LIST_ITEM_ID_LENGTH - suffixLen;
+      const prefixLen =
+        UUID64.TIME_SEQ_CHARS -
+        FormaList.MIN_LIST_ITEM_ID_LENGTH -
+        suffixLen;
       this.#cachedPrefixLen = prefixLen;
       this.#cachedSuffixLen = suffixLen;
       return;
@@ -343,7 +366,7 @@ export class FormaList<T extends IFormaItem> {
     let prefixLen = 0;
     for (let i = 0; i < UUID64.TIME_SEQ_CHARS; i++) {
       const char = timeIds[0][i];
-      if (timeIds.every(id => id[i] === char)) {
+      if (timeIds.every((id) => id[i] === char)) {
         prefixLen = i + 1;
       } else {
         break;
@@ -354,7 +377,7 @@ export class FormaList<T extends IFormaItem> {
     let suffixLen = 0;
     for (let i = 1; i <= UUID64.TIME_SEQ_CHARS - prefixLen; i++) {
       const char = timeIds[0][timeIds[0].length - i];
-      if (timeIds.every(id => id[id.length - i] === char)) {
+      if (timeIds.every((id) => id[id.length - i] === char)) {
         suffixLen = i;
       } else {
         break;
@@ -369,7 +392,7 @@ export class FormaList<T extends IFormaItem> {
       if (suffixLen >= needed) {
         suffixLen -= needed;
       } else {
-        prefixLen -= (needed - suffixLen);
+        prefixLen -= needed - suffixLen;
         suffixLen = 0;
       }
     }
@@ -384,7 +407,7 @@ export class FormaList<T extends IFormaItem> {
    * omitting the prefix and suffix in common with the timeIds of
    * the list items. Results are cached until list contents change.
    */
-  itemListId(item:T) : string {
+  itemListId(item: T): string {
     if (this.#cachedPrefixLen === null || this.#cachedSuffixLen === null) {
       this.#computePrefixSuffixLengths();
     }
@@ -428,7 +451,7 @@ export class FormaList<T extends IFormaItem> {
    */
   #findIndex(id: FuzzyId): number {
     const filter = Identifiable.idFilter(id);
-    return this.items.findIndex(item => filter(this.#itemId(item)));
+    return this.items.findIndex((item) => filter(this.#itemId(item)));
   }
 
   /**

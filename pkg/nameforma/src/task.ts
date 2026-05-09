@@ -100,7 +100,10 @@ export class Task extends Forma {
   progress(): number {
     const total = this.rawActions.length;
     if (total === 0) return 0;
-    const sum = this.rawActions.reduce((acc, a) => acc + STATUS_ORDER[a.status], 0);
+    const sum = this.rawActions.reduce(
+      (acc, a) => acc + STATUS_ORDER[a.status],
+      0,
+    );
     return sum / (total * 6);
   }
 
@@ -109,12 +112,19 @@ export class Task extends Forma {
    * Red: 0 actions or any manage. Green: all done. Yellow: any work or test. Magenta: all req or spec.
    */
   progressColor(): string {
-    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA } = Unicode.LINUX_COLOR;
-    const statuses = this.rawActions.map(a => a.status);
+    const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA } =
+      Unicode.LINUX_COLOR;
+    const statuses = this.rawActions.map((a) => a.status);
     if (statuses.length === 0) return BRIGHT_RED;
     if (statuses.includes(ActionStatus.manage)) return BRIGHT_RED;
-    if (statuses.every(s => s === ActionStatus.done)) return BRIGHT_GREEN;
-    if (statuses.some(s => s === ActionStatus.work || s === ActionStatus.test)) return BRIGHT_CYAN;
+    if (statuses.every((s) => s === ActionStatus.done))
+      return BRIGHT_GREEN;
+    if (
+      statuses.some(
+        (s) => s === ActionStatus.work || s === ActionStatus.test,
+      )
+    )
+      return BRIGHT_CYAN;
     return BRIGHT_MAGENTA;
   }
 
@@ -135,11 +145,11 @@ export class Task extends Forma {
    * @param opts Optional schema registration options (avro instance, registry)
    * @returns Registered AvroType from avro.parse()
    */
-  static override registerAvro(opts: any = {}) : AvroType {
-    const msg = "t2k.registerAvro";
+  static override registerAvro(opts: any = {}): AvroType {
+    const msg = 't2k.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
 
-    dbg>1 && cc.ok(msg, 'dependencies');
+    dbg > 1 && cc.ok(msg, 'dependencies');
     Forma.registerAvro(opts);
     Action.registerAvro(opts);
     Reference.registerAvro(opts);
@@ -147,7 +157,7 @@ export class Task extends Forma {
     dbg && cc.ok(msg, 'task');
     let avroType = Schema.registerType(Task, opts);
     dbg && cc.ok1(msg, Task.avroSchema.fullName);
-    return avroType
+    return avroType;
   }
 
   static entity = 'task';
@@ -167,8 +177,14 @@ export class Task extends Forma {
       type: 'record',
       fields: [
         ...(FORMA as any).fields,
-        { name: 'rawActions', type: { type: 'array', items: Action.avroSchema.fullName } },
-        { name: 'rawReferences', type: { type: 'array', items: Reference.avroSchema.fullName } },
+        {
+          name: 'rawActions',
+          type: { type: 'array', items: Action.avroSchema.fullName },
+        },
+        {
+          name: 'rawReferences',
+          type: { type: 'array', items: Reference.avroSchema.fullName },
+        },
       ],
     });
   }
@@ -197,7 +213,9 @@ export class Task extends Forma {
         try {
           action.put(data);
         } catch (err: any) {
-          throw new Error(`Task ${this.id.timeId()} action ${data.id || '?'} '${data.name || '?'}': ${err.message}`);
+          throw new Error(
+            `Task ${this.id.timeId()} action ${data.id || '?'} '${data.name || '?'}': ${err.message}`,
+          );
         }
         return action;
       }),
@@ -210,14 +228,11 @@ export class Task extends Forma {
   /**
    * Return array of strings to be presented as a TUI row
    */
-  override tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
+  override tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
     const msg = 't2k.tuiRowStrings';
     let { id, name, summary } = this;
     let progressValue = this.progress();
-    let {
-      itemId = id.timeId(),
-      bullet,
-    } = cfg;
+    let { itemId = id.timeId(), bullet } = cfg;
 
     const { NO_COLOR } = Unicode.LINUX_COLOR;
     const pct = Math.round(progressValue * 100);
@@ -228,5 +243,4 @@ export class Task extends Forma {
     }
     return row;
   }
-
 }

@@ -1,6 +1,11 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
-import { RenderData, RenderDetail, IRenderable, ZenoCoord } from './navigable-view.js';
+import {
+  RenderData,
+  RenderDetail,
+  IRenderable,
+  ZenoCoord,
+} from './navigable-view.js';
 import { FormaField } from './forma-field.js';
 import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
 import { DBG } from './defines.js';
@@ -38,15 +43,17 @@ export interface IFormaMatcher<T extends Forma> {
  * Configuration for configuring the string representation of a list item
  */
 export interface ListItemStringCfg {
-  itemId?: string,
-  bullet?: string,
-  separator?: string,
+  itemId?: string;
+  bullet?: string;
+  separator?: string;
 }
 
 /**
  * AFormaMatcher - Abstract base class providing default compare() implementation
  */
-export abstract class AFormaMatcher<T extends Forma> implements IFormaMatcher<T> {
+export abstract class AFormaMatcher<T extends Forma>
+  implements IFormaMatcher<T>
+{
   abstract similarity(item: T): number;
 
   /**
@@ -78,7 +85,7 @@ export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
    */
   constructor(
     private searchValue: string,
-    private ignoreCase: boolean = true
+    private ignoreCase: boolean = true,
   ) {
     super();
   }
@@ -89,24 +96,29 @@ export class LevenshteinMatcher<T extends Forma> extends AFormaMatcher<T> {
    * @returns Similarity: 1 = exact match, 0 = no similarity
    */
   similarity(item: T): number {
-    const msg = "f3a.simlarity";
-    const s10e = this.ignoreCase ? this.searchValue.toLowerCase() : this.searchValue;
+    const msg = 'f3a.simlarity';
+    const s10e = this.ignoreCase
+      ? this.searchValue.toLowerCase()
+      : this.searchValue;
 
     const itemId = item.id;
     let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
     itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
 
     // Compare against prefix of same length as search
-    const compareStr = (s10e.length <= UUID64.TIME_SEQ_CHARS) 
-      ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
-      : itemIdStr;
+    const compareStr =
+      s10e.length <= UUID64.TIME_SEQ_CHARS
+        ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
+        : itemIdStr;
     //cc.tag1(msg, "TESTTAG1")
 
     // Use normalized distance (0-1), convert to similarity (1-0)
-    const normalizedDistance = Levenshtein.normalizedDistance(s10e, compareStr);
+    const normalizedDistance = Levenshtein.normalizedDistance(
+      s10e,
+      compareStr,
+    );
     return 1 - normalizedDistance;
   }
-
 } // LevenshteinMatcher
 
 /**
@@ -160,16 +172,16 @@ export class Forma extends Identifiable implements IRenderable {
    * @returns Registered AvroType from avro.parse()
    */
   static override registerAvro(opts: any = {}) {
-    const msg = "f3a.registerAvro";
+    const msg = 'f3a.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
     Identifiable.registerAvro(opts);
 
-    dbg>1 && cc.ok(msg, "registerType")
+    dbg > 1 && cc.ok(msg, 'registerType');
     let { fullName } = Forma.avroSchema;
-    dbg>1 && cc.ok(msg, "registerType:", fullName)
+    dbg > 1 && cc.ok(msg, 'registerType:', fullName);
     let avroType = Schema.registerType(Forma, opts);
-    dbg && cc.ok1(msg, "schema:", fullName)
-    return avroType
+    dbg && cc.ok1(msg, 'schema:', fullName);
+    return avroType;
   }
 
   /**
@@ -207,7 +219,7 @@ export class Forma extends Identifiable implements IRenderable {
    *   - defaultName: Check name starts with class prefix (default: false)
    * @returns true if valid, Error object if invalid
    */
-  validate(opts: any = {}) : boolean {
+  validate(opts: any = {}): boolean {
     const msg = 'f3a.validate';
     const dbg = (DBG as any).FORMA.VALIDATE;
     const {
@@ -254,19 +266,11 @@ export class Forma extends Identifiable implements IRenderable {
   /**
    * Return array of strings to be presented as a TUI row
    */
-  tuiRowStrings(cfg:ListItemStringCfg={}) : string[] {
+  tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
     const msg = 'f3a.tuiRowStrings';
-    let {
-      id, 
-      name = "name?",
-      summary,
-    } = this;
-    let { 
-      itemId = id.timeId(),
-      bullet,
-      separator = " ",
-    } = cfg;
-    let row = [itemId, name]
+    let { id, name = 'name?', summary } = this;
+    let { itemId = id.timeId(), bullet, separator = ' ' } = cfg;
+    let row = [itemId, name];
     if (bullet != null) {
       row.unshift(bullet);
     }
@@ -279,9 +283,9 @@ export class Forma extends Identifiable implements IRenderable {
   /**
    * Return the string representation used for lists
    */
-  listItemString(cfg:ListItemStringCfg={}) : string {
+  listItemString(cfg: ListItemStringCfg = {}): string {
     const msg = 'f3a.listItemString';
-    return this.tuiRowStrings(cfg).join(" ")
+    return this.tuiRowStrings(cfg).join(' ');
   }
 
   asRenderData(
@@ -313,6 +317,4 @@ export class Forma extends Identifiable implements IRenderable {
       return `${shortId}: ${name}`;
     }
   }
-
 } // Forma
-

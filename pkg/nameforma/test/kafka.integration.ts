@@ -54,7 +54,9 @@ describe('Kafka Integration Tests', () => {
 
     admin = kafka.admin();
     producer = kafka.producer();
-    consumer = kafka.consumer({ groupId: `nameforma-test-${world.id.base64}` });
+    consumer = kafka.consumer({
+      groupId: `nameforma-test-${world.id.base64}`,
+    });
 
     // Connect clients
     await admin.connect();
@@ -169,7 +171,10 @@ describe('Kafka Integration Tests', () => {
     const messageReceived: Promise<void> = new Promise((resolve) => {
       consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
-          if (message.value && message.key?.toString() === world.id.base64) {
+          if (
+            message.value &&
+            message.key?.toString() === world.id.base64
+          ) {
             const data = JSON.parse(message.value.toString());
             if (data.items[0]?.name === 'round-trip-1') {
               receivedMessage = data;
@@ -184,7 +189,7 @@ describe('Kafka Integration Tests', () => {
     await Promise.race([
       messageReceived,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Consumer timeout')), 10000)
+        setTimeout(() => reject(new Error('Consumer timeout')), 10000),
       ),
     ]);
 
@@ -195,10 +200,10 @@ describe('Kafka Integration Tests', () => {
 
     // Verify item integrity
     const received1 = receivedMessage.items.find(
-      (item: any) => item.name === 'round-trip-1'
+      (item: any) => item.name === 'round-trip-1',
     );
     const received2 = receivedMessage.items.find(
-      (item: any) => item.name === 'round-trip-2'
+      (item: any) => item.name === 'round-trip-2',
     );
 
     expect(received1).toBeDefined();
@@ -211,7 +216,7 @@ describe('Kafka Integration Tests', () => {
     const replicatedList = new FormaList(
       replicatedArray,
       TestItem,
-      UUID64.fromString(receivedMessage.worldId)
+      UUID64.fromString(receivedMessage.worldId),
     );
 
     for (const itemData of receivedMessage.items) {
@@ -227,7 +232,9 @@ describe('Kafka Integration Tests', () => {
   });
 
   it('World.fromPath should create persistent world with stable ID', () => {
-    const testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-persist-'));
+    const testDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'world-persist-'),
+    );
     const worldPath = path.join(testDir, '.nameforma');
 
     // Create world via fromPath

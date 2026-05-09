@@ -2,8 +2,8 @@ import UUID64 from './uuid64.js';
 import { Schema } from './schema.js';
 import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/text';
-import { ISchemaClass } from './schema.js'
-import { DBG } from "./defines.js"
+import { ISchemaClass } from './schema.js';
+import { DBG } from './defines.js';
 
 const { ColorConsole, Unicode } = Text;
 const { CHECKMARK: UOK } = Unicode;
@@ -89,7 +89,11 @@ export class Identifiable {
     } else if (cfg instanceof UUID64) {
       // UUID64 instance: use directly
       uuid64Id = cfg;
-    } else if (cfg && typeof cfg === 'object' && (cfg as any).uuidv7 instanceof Buffer) {
+    } else if (
+      cfg &&
+      typeof cfg === 'object' &&
+      (cfg as any).uuidv7 instanceof Buffer
+    ) {
       // Avro deserialized UUID64 record: has uuidv7 Buffer but isn't our UUID64 class
       uuid64Id = UUID64.fromBuffer((cfg as any).uuidv7);
     } else {
@@ -183,9 +187,7 @@ export class Identifiable {
       name: 'Identifiable',
       namespace: 'scvoice.nameforma',
       type: 'record',
-      fields: [
-        { name: 'id', type: UUID64.avroSchema.fullName },
-      ],
+      fields: [{ name: 'id', type: UUID64.avroSchema.fullName }],
     });
   }
 
@@ -196,15 +198,15 @@ export class Identifiable {
    * @returns Registered AvroType from avro.parse()
    */
   static registerAvro(opts: any = {}) {
-    const msg = "i10e.registerAvro";
+    const msg = 'i10e.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
     let { fullName } = Identifiable.avroSchema;
-    dbg>1 && cc.ok(msg, "dependency:", "UUID64");
+    dbg > 1 && cc.ok(msg, 'dependency:', 'UUID64');
     UUID64.registerAvro(opts);
-    dbg>1 && cc.ok(msg, "registerType:", fullName)
+    dbg > 1 && cc.ok(msg, 'registerType:', fullName);
     let avroType = Schema.registerType(Identifiable, opts);
-    dbg && cc.ok1(msg, "schema:", fullName);
-    return avroType
+    dbg && cc.ok1(msg, 'schema:', fullName);
+    return avroType;
   }
 
   /**
@@ -228,17 +230,21 @@ export class Identifiable {
   static idFilter(
     fuzzyId: FuzzyId,
     levenshtein?: number,
-    ignoreCase: boolean = true
+    ignoreCase: boolean = true,
   ): (itemId: string) => boolean {
     if (levenshtein === undefined) {
       levenshtein = fuzzyId.length;
     }
 
     if (levenshtein < 1 || levenshtein > UUID64.CHARS) {
-      throw new Error(`idFilter: levenshtein out of range: ${levenshtein}`);
+      throw new Error(
+        `idFilter: levenshtein out of range: ${levenshtein}`,
+      );
     }
 
-    const normalizedSearchId = ignoreCase ? fuzzyId.toLowerCase() : fuzzyId;
+    const normalizedSearchId = ignoreCase
+      ? fuzzyId.toLowerCase()
+      : fuzzyId;
 
     return (itemIdStr: string) => {
       let idStr = ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
@@ -254,7 +260,10 @@ export class Identifiable {
         maxDistance = UUID64.CHARS - levenshtein!;
       }
 
-      const distance = Levenshtein.distance(normalizedSearchId, compareStr);
+      const distance = Levenshtein.distance(
+        normalizedSearchId,
+        compareStr,
+      );
       return distance <= maxDistance;
     };
   }

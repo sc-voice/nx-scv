@@ -22,10 +22,16 @@ export default class DocCommand {
     result = result.replace(/&apos;/g, "'");
 
     // Convert **bold text** to bright magenta (including across newlines)
-    result = result.replace(/\*\*(.+?)\*\*/gs, `${BRIGHT_MAGENTA}$1${NO_COLOR}`);
+    result = result.replace(
+      /\*\*(.+?)\*\*/gs,
+      `${BRIGHT_MAGENTA}$1${NO_COLOR}`,
+    );
 
     // Convert all headings to bright blue
-    result = result.replace(/^(\s*#+ .+)$/gm, `${BRIGHT_BLUE}$1${NO_COLOR}`);
+    result = result.replace(
+      /^(\s*#+ .+)$/gm,
+      `${BRIGHT_BLUE}$1${NO_COLOR}`,
+    );
 
     return result;
   }
@@ -33,17 +39,22 @@ export default class DocCommand {
   static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     cmd
       .argument('[doc]', 'Doc name (default: nf-ref)', 'nf-ref')
-      .addHelpText('after', ['', 'Examples:',
-        '  nf doc nf-ref # overview',
-        '  nf doc nf-url # nf URI schema',
-        '  nf doc uuid64 # base64 time-based uri',
-      ].join('\n'))
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          '  nf doc nf-ref # overview',
+          '  nf doc nf-url # nf URI schema',
+          '  nf doc uuid64 # base64 time-based uri',
+        ].join('\n'),
+      )
       .action((doc: string) => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
         const docPath = path.join(
           __dirname,
           '../../dist/doc/nf',
-          `${doc}.md`
+          `${doc}.md`,
         );
         try {
           const content = readFileSync(docPath, 'utf8');

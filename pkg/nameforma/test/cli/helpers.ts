@@ -73,10 +73,16 @@ export function countTasks(worldPath) {
  * @returns {object} - { testCmd(...args), getGlobalOpts() }
  */
 export function createTestCmd(program: Command, worldPath: string) {
-  let globalOpts: GlobalOpts = { world: World.fromPath(worldPath), verbosity: 0 };
+  let globalOpts: GlobalOpts = {
+    world: World.fromPath(worldPath),
+    verbosity: 0,
+  };
 
   program
-    .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
+    .option(
+      '-w, --world <path>',
+      'Path to .nameforma directory (or auto-discover)',
+    )
     .option('-v, --verbose <level>', 'Verbosity level', '0')
     .hook('preAction', (thisCommand: any) => {
       const opts = thisCommand.optsWithGlobals();
@@ -106,10 +112,16 @@ export function createTestCmd(program: Command, worldPath: string) {
  */
 export function createTestProgram(worldPath: string) {
   const program = new Command();
-  let globalOpts: GlobalOpts = { world: World.fromPath(worldPath), verbosity: 0 };
+  let globalOpts: GlobalOpts = {
+    world: World.fromPath(worldPath),
+    verbosity: 0,
+  };
 
   program
-    .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
+    .option(
+      '-w, --world <path>',
+      'Path to .nameforma directory (or auto-discover)',
+    )
     .hook('preAction', (thisCommand: any) => {
       const opts = thisCommand.optsWithGlobals();
       let resolvedPath = opts.world || worldPath;

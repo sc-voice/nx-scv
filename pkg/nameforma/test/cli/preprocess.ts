@@ -44,15 +44,40 @@ function preprocessArgv(argv: string[]): string[] {
 describe('CLI: preprocessArgv', () => {
   describe('global options placement', () => {
     it('moves -w before command', () => {
-      const input = ['node', 'nameforma', 'id', '-w', '/path', '-g', '-n', 'Word'];
+      const input = [
+        'node',
+        'nameforma',
+        'id',
+        '-w',
+        '/path',
+        '-g',
+        '-n',
+        'Word',
+      ];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '-w', '/path', 'id', '-g', '-n', 'Word']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '-w',
+        '/path',
+        'id',
+        '-g',
+        '-n',
+        'Word',
+      ]);
     });
 
     it('moves --world before command', () => {
       const input = ['node', 'nameforma', 'id', '--world', '/path', '-g'];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '--world', '/path', 'id', '-g']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '--world',
+        '/path',
+        'id',
+        '-g',
+      ]);
     });
 
     it('moves -d before command', () => {
@@ -64,25 +89,85 @@ describe('CLI: preprocessArgv', () => {
     it('moves --debug before command', () => {
       const input = ['node', 'nameforma', 'schema', 'list', '--debug'];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '--debug', 'schema', 'list']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '--debug',
+        'schema',
+        'list',
+      ]);
     });
 
     it('moves multiple global options before command', () => {
-      const input = ['node', 'nameforma', 'id', '-w', '/path', '-d', '-g', '-n', 'Word'];
+      const input = [
+        'node',
+        'nameforma',
+        'id',
+        '-w',
+        '/path',
+        '-d',
+        '-g',
+        '-n',
+        'Word',
+      ];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '-w', '/path', '-d', 'id', '-g', '-n', 'Word']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '-w',
+        '/path',
+        '-d',
+        'id',
+        '-g',
+        '-n',
+        'Word',
+      ]);
     });
 
     it('preserves global options already before command', () => {
-      const input = ['node', 'nameforma', '-w', '/path', 'id', '-g', '-n', 'Word'];
+      const input = [
+        'node',
+        'nameforma',
+        '-w',
+        '/path',
+        'id',
+        '-g',
+        '-n',
+        'Word',
+      ];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '-w', '/path', 'id', '-g', '-n', 'Word']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '-w',
+        '/path',
+        'id',
+        '-g',
+        '-n',
+        'Word',
+      ]);
     });
 
     it('handles mixed global options before and after command', () => {
-      const input = ['node', 'nameforma', '-w', '/path1', 'id', '-d', '-g'];
+      const input = [
+        'node',
+        'nameforma',
+        '-w',
+        '/path1',
+        'id',
+        '-d',
+        '-g',
+      ];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '-w', '/path1', '-d', 'id', '-g']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '-w',
+        '/path1',
+        '-d',
+        'id',
+        '-g',
+      ]);
     });
   });
 
@@ -96,13 +181,27 @@ describe('CLI: preprocessArgv', () => {
     it('moves --help to the end', () => {
       const input = ['node', 'nameforma', '--help', 'task', 'list'];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', 'task', 'list', '--help']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        'task',
+        'list',
+        '--help',
+      ]);
     });
 
     it('moves help flag to end with global options', () => {
       const input = ['node', 'nameforma', '-h', '-w', '/path', 'id', '-g'];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '-w', '/path', 'id', '-g', '-h']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '-w',
+        '/path',
+        'id',
+        '-g',
+        '-h',
+      ]);
     });
   });
 
@@ -128,13 +227,34 @@ describe('CLI: preprocessArgv', () => {
     it('does not move non-global options', () => {
       const input = ['node', 'nameforma', 'id', '-i', 'F13n', '-g'];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', 'id', '-i', 'F13n', '-g']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        'id',
+        '-i',
+        'F13n',
+        '-g',
+      ]);
     });
 
     it('handles global option value that looks like a flag', () => {
-      const input = ['node', 'nameforma', 'id', '-w', '/path/-with-dashes', '-g'];
+      const input = [
+        'node',
+        'nameforma',
+        'id',
+        '-w',
+        '/path/-with-dashes',
+        '-g',
+      ];
       const output = preprocessArgv(input);
-      expect(output).toEqual(['node', 'nameforma', '-w', '/path/-with-dashes', 'id', '-g']);
+      expect(output).toEqual([
+        'node',
+        'nameforma',
+        '-w',
+        '/path/-with-dashes',
+        'id',
+        '-g',
+      ]);
     });
   });
 });

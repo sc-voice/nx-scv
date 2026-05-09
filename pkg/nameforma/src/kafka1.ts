@@ -476,7 +476,8 @@ export class Consumer extends Role {
       cc.bad1(msg, 'eachMessage?');
       throw new Error(`${msg} eachMessage?`);
     }
-    let idle = () => new Promise<void>((r) => setTimeout(() => r(), _msIdle));
+    let idle = () =>
+      new Promise<void>((r) => setTimeout(() => r(), _msIdle));
     await this._inboxClock.start({ idle });
     this._runner = new _Runner({
       kafka,

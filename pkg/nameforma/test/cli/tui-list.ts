@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+} from '@sc-voice/vitest';
 import { World } from '../../src/world.js';
 import { Task } from '../../src/task.js';
 import UUID64 from '../../src/uuid64.js';
@@ -70,7 +77,9 @@ describe('TuiList', () => {
 
       new TuiList(entityList, world).render();
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('(0):'));
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('(0):'),
+      );
       expect(consoleSpy).toHaveBeenCalledTimes(1);
       consoleSpy.mockRestore();
     });
@@ -82,8 +91,8 @@ describe('TuiList', () => {
       const task3 = entityList.addItem({ name: 'Task 3' });
       const task4 = entityList.addItem({ name: 'Task 4' });
 
-      world.focusForma(task3);  // focusOrder = 1
-      world.focusForma(task1);  // focusOrder = 0 (most recent)
+      world.focusForma(task3); // focusOrder = 1
+      world.focusForma(task1); // focusOrder = 0 (most recent)
       // task2 and task4 remain unfocused; task4 is more recent
 
       const consoleSpy = vi.spyOn(console, 'log');
@@ -91,10 +100,10 @@ describe('TuiList', () => {
 
       const calls = consoleSpy.mock.calls;
       expect(calls.length).toBe(5);
-      expect(calls[1][0]).toContain('Task 1');  // focusOrder=0, most recent
-      expect(calls[2][0]).toContain('Task 3');  // focusOrder=1
-      expect(calls[3][0]).toContain('Task 4');  // unfocused, more recent
-      expect(calls[4][0]).toContain('Task 2');  // unfocused, older
+      expect(calls[1][0]).toContain('Task 1'); // focusOrder=0, most recent
+      expect(calls[2][0]).toContain('Task 3'); // focusOrder=1
+      expect(calls[3][0]).toContain('Task 4'); // unfocused, more recent
+      expect(calls[4][0]).toContain('Task 2'); // unfocused, older
       consoleSpy.mockRestore();
     });
 
@@ -118,7 +127,10 @@ describe('TuiList', () => {
       world.focusForma(primary);
 
       const relatedId = UUID64.createRelatedId(primary.id);
-      const related = entityList.addItem({ id: relatedId, name: 'Related' });
+      const related = entityList.addItem({
+        id: relatedId,
+        name: 'Related',
+      });
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
@@ -188,7 +200,10 @@ describe('TuiList', () => {
       entityList.addItem({ name: 'A'.repeat(100) });
 
       const consoleSpy = vi.spyOn(console, 'log');
-      new TuiList(entityList, world, { maxLinesPerRow: 1, maxWidth: 20 }).render();
+      new TuiList(entityList, world, {
+        maxLinesPerRow: 1,
+        maxWidth: 20,
+      }).render();
 
       const listLine = consoleSpy.mock.calls[1][0] as string;
       expect(listLine).toContain('…');
@@ -200,7 +215,11 @@ describe('TuiList', () => {
       entityList.addItem({ name: 'A'.repeat(100) });
 
       const consoleSpy = vi.spyOn(console, 'log');
-      new TuiList(entityList, world, { maxLinesPerRow: 1, maxWidth: 20, textOverflow: 'hidden' }).render();
+      new TuiList(entityList, world, {
+        maxLinesPerRow: 1,
+        maxWidth: 20,
+        textOverflow: 'hidden',
+      }).render();
 
       const listLine = consoleSpy.mock.calls[1][0] as string;
       const cleanLine = listLine.replace(/\x1b\[[0-9;]*m/g, '');
@@ -242,7 +261,11 @@ describe('TuiList', () => {
 
       const consoleSpy = vi.spyOn(console, 'log');
       // Render with maxLinesPerRow=2 and wrapIndent=4
-      new TuiList(entityList, world, { maxLinesPerRow: 2, maxWidth: 40, wrapIndent: 4 }).render();
+      new TuiList(entityList, world, {
+        maxLinesPerRow: 2,
+        maxWidth: 40,
+        wrapIndent: 4,
+      }).render();
 
       const calls = consoleSpy.mock.calls;
       expect(calls.length).toBeGreaterThanOrEqual(2);

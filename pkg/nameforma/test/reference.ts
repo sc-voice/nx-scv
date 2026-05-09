@@ -82,7 +82,8 @@ describe('Reference', () => {
     dbg && cc.tag(msg, 'avro.parse');
     expect(avroType._name).toEqual(fullName);
     expect(!!registry[fullName]).toBe(true);
-    dbg > 1 && cc.tag(msg + UOK, 'parsed schema is added to registry:', fullName);
+    dbg > 1 &&
+      cc.tag(msg + UOK, 'parsed schema is added to registry:', fullName);
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Reference({
@@ -142,7 +143,7 @@ describe('Reference', () => {
     const parsed = arrayType.fromBuffer(buf);
 
     // Reconstruct Reference instances from parsed data
-    const reconstructed = parsed.map(r => new Reference(r));
+    const reconstructed = parsed.map((r) => new Reference(r));
 
     expect(reconstructed).toHaveLength(3);
     expect(reconstructed[0].name).toBe('Reference 1');

@@ -143,9 +143,10 @@ describe('kafka', () => {
     expect([...t4A._consumerMap.keys()]).toEqual([consumerOther]);
     expect(t4A._consumerMap.get(consumerOther)).toBe(true);
     await consumer.subscribe({ topics: [topicA] });
-    expect(
-      [...t4A._consumerMap.keys()]
-    ).toEqual([consumerOther, consumer]);
+    expect([...t4A._consumerMap.keys()]).toEqual([
+      consumerOther,
+      consumer,
+    ]);
     expect(t4A._consumerMap.get(consumer)).toBe(true);
     expect(t4A._consumerMap.get(consumerOther)).toBe(true);
 

@@ -11,7 +11,7 @@ const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = DBG.FORMA_LIST.TEST
+const dbg = DBG.FORMA_LIST.TEST;
 
 /**
  * Test item class implementing IFormaItem
@@ -48,7 +48,8 @@ describe('FormaList', () => {
     expect(list.parentId).toEqual(world.id);
     expect(list.size).toBe(0);
     tempWorld.cleanup();
-    dbg && cc.tag1(msg + UOK, 'constructor with parent creates empty list');
+    dbg &&
+      cc.tag1(msg + UOK, 'constructor with parent creates empty list');
   });
 
   it('FormaList.constructor without parentId', () => {
@@ -59,7 +60,11 @@ describe('FormaList', () => {
     expect(list.items).toBe(items);
     expect(list.parentId).toBeUndefined();
     expect(list.size).toBe(0);
-    dbg && cc.tag1(msg + UOK, 'constructor without parentId creates empty list');
+    dbg &&
+      cc.tag1(
+        msg + UOK,
+        'constructor without parentId creates empty list',
+      );
   });
 
   it('FormaList.addItem with parentId', () => {
@@ -76,7 +81,11 @@ describe('FormaList', () => {
     expect(item1.id.isRelated(world.id)).toBe(false);
     expect(list.size).toBe(1);
     expect(items[0]).toBe(item1);
-    dbg && cc.tag1(msg + UOK, 'addItem creates item without parent relationship (item is entity)');
+    dbg &&
+      cc.tag1(
+        msg + UOK,
+        'addItem creates item without parent relationship (item is entity)',
+      );
 
     const item2 = list.addItem({ name: 'item2' });
     const item3 = list.addItem({ name: 'item3' });
@@ -215,7 +224,8 @@ describe('FormaList', () => {
     expect(items[0]).toBe(item1);
     expect(items[1]).toBe(item3);
     expect(items[2]).toBe(item2);
-    dbg && cc.tag1(msg + UOK, 'moveItem with before: null inserts at start');
+    dbg &&
+      cc.tag1(msg + UOK, 'moveItem with before: null inserts at start');
   });
 
   it('FormaList.moveItem with after anchor', () => {
@@ -285,11 +295,15 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'moveItem throws for missing item ID');
 
     // Invalid before anchor
-    expect(() => list.moveItem(item1.id.base64, { before: fakeId })).toThrow();
+    expect(() =>
+      list.moveItem(item1.id.base64, { before: fakeId }),
+    ).toThrow();
     dbg && cc.tag1(msg + UOK, 'moveItem throws for invalid before anchor');
 
     // Invalid after anchor
-    expect(() => list.moveItem(item1.id.base64, { after: fakeId })).toThrow();
+    expect(() =>
+      list.moveItem(item1.id.base64, { after: fakeId }),
+    ).toThrow();
     dbg && cc.tag1(msg + UOK, 'moveItem throws for invalid after anchor');
   });
 
@@ -377,11 +391,11 @@ describe('FormaList', () => {
 
     // Get by full ID
     expect(list.getItem(item1.id.base64)).toBe(item1);
-    dbg && cc.tag(msg + UOK, 'getItem full ID:', item1.id.base64 );
+    dbg && cc.tag(msg + UOK, 'getItem full ID:', item1.id.base64);
 
     // Get by partial ID (first N chars)
-    dbg && cc.tag(msg, "item1:", item1.id.base64);
-    dbg && cc.tag(msg, "item2:", item2.id.base64);
+    dbg && cc.tag(msg, 'item1:', item1.id.base64);
+    dbg && cc.tag(msg, 'item2:', item2.id.base64);
     let fuzzyId = item2.id.timeId(6);
     expect(list.getItem(fuzzyId)).toBe(item2);
 
@@ -393,7 +407,7 @@ describe('FormaList', () => {
     dbg && cc.tag(msg + UOK, 'deleteItem fuzzyId:', fuzzyId);
   });
 
-it('itemListId returns trimmed ID witout common prefix and suffix', () => {
+  it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     // Create two IDs that share a common prefix "0Prek" and common suffix "00"
     // We use manual construction of UUID64 to ensure exact patterns.
     // Pattern: [common_prefix][unique_middle][common_suffix]
@@ -405,24 +419,32 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
 
     // Add first item - single item case, MIN_LIST_ITEM_ID_LENGTH=5
     // timeId('0PrekDWc00'), result should be 5 chars: 'ekDWc'
-    const forma1 = new Forma({id:id1, name:"name1", summary: "summary1"});
-    list.addItem({id: id1, name:"name1", summary: "summary1"});
+    const forma1 = new Forma({
+      id: id1,
+      name: 'name1',
+      summary: 'summary1',
+    });
+    list.addItem({ id: id1, name: 'name1', summary: 'summary1' });
     expect(list.itemListId(forma1)).toBe('ekDWc');
 
     // Add second item - now multiple items, common prefix/suffix
     // timeIds: '0PrekDWc00' and '0PrejD4s00'
     // Common prefix: '0Pre' (4 chars), common suffix: '00' (2 chars)
     // Result: 'kDWc0' and 'jD4s0' (5 chars to meet MIN_LIST_ITEM_ID_LENGTH)
-    const forma2 = new Forma({id:id2, name:"name2", summary: "summary2"});
-    list.addItem({id: id2, name:"name2", summary: "summary2"});
+    const forma2 = new Forma({
+      id: id2,
+      name: 'name2',
+      summary: 'summary2',
+    });
+    list.addItem({ id: id2, name: 'name2', summary: 'summary2' });
     expect(list.itemListId(forma1)).toBe('kDWc0');
     expect(list.itemListId(forma2)).toBe('jD4s0');
 
     // Verify getItem works with trimmed IDs
-    expect(list.getItem("kDWc0")).toBe(items[0]);
-    expect(list.getItem("jD4s0")).toBe(items[1]);
-    expect(list.getItem("kdwc0")).toBe(items[0]);
-    expect(list.getItem("jd4s0")).toBe(items[1]);
+    expect(list.getItem('kDWc0')).toBe(items[0]);
+    expect(list.getItem('jD4s0')).toBe(items[1]);
+    expect(list.getItem('kdwc0')).toBe(items[0]);
+    expect(list.getItem('jd4s0')).toBe(items[1]);
   });
 
   it('FormaList.patchItem guards id field', () => {
@@ -495,5 +517,4 @@ it('itemListId returns trimmed ID witout common prefix and suffix', () => {
     dbg && cc.tag1(msg + UOK, 'moveItem emits change event');
     tempWorld.cleanup();
   });
-
 });

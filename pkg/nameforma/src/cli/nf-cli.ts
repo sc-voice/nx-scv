@@ -103,7 +103,9 @@ export class REPL {
           ({ stdout } = await execAsync(`nf --args ${trimmed}`));
         } catch (err: any) {
           try {
-            const msg = String(err?.stderr || err?.message || err || 'Unknown error');
+            const msg = String(
+              err?.stderr || err?.message || err || 'Unknown error',
+            );
             nfTui.error(msg);
           } catch {
             // swallow error logging failures
@@ -129,8 +131,10 @@ export class REPL {
           this.world.logCommand(trimmed, IS_CLAUDE ? 'agent' : 'human');
         } catch (execErr: any) {
           try {
-            const msg = String(execErr?.message || execErr || 'Execution failed');
-            nfTui.error('[repl11] error: '+msg);
+            const msg = String(
+              execErr?.message || execErr || 'Execution failed',
+            );
+            nfTui.error('[repl11] error: ' + msg);
           } catch {
             // swallow
           }
@@ -154,7 +158,8 @@ export class REPL {
 
 export function resolveWorld(worldPath?: string): World {
   if (!worldPath) {
-    worldPath = World.findWorld() || path.join(process.cwd(), '.nameforma');
+    worldPath =
+      World.findWorld() || path.join(process.cwd(), '.nameforma');
   } else if (!worldPath.endsWith('.nameforma')) {
     worldPath = path.join(worldPath, '.nameforma');
   }
@@ -179,14 +184,18 @@ export class CLI {
     ].join('\n');
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
-    const pkgJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
+    const pkgJson = JSON.parse(
+      readFileSync(join(__dirname, '../../package.json'), 'utf-8'),
+    );
     const version = pkgJson.version;
 
     let globalOpts: GlobalOpts = { world: resolveWorld(), verbosity: 0 };
 
     program
       .name('nameforma')
-      .description(`NameForma/${USER} CLI - Manage tasks, formas, and schemas`)
+      .description(
+        `NameForma/${USER} CLI - Manage tasks, formas, and schemas`,
+      )
       .version(version)
       .addHelpText('after', '\n' + helpText)
       .configureOutput({
@@ -194,10 +203,20 @@ export class CLI {
         writeErr: (str) => nfTui.error(str.trim()),
         outputError: (str, write) => nfTui.error(str.trim()),
       })
-      .option('-w, --world <path>', 'Path to .nameforma directory (or auto-discover)')
+      .option(
+        '-w, --world <path>',
+        'Path to .nameforma directory (or auto-discover)',
+      )
       .option('-d, --debug', 'Enable debug output')
-      .option('-v, --verbose <level>', 'Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default)', '0')
-      .option('--agent', 'Run as agent (requires consensus for done/manage transitions)')
+      .option(
+        '-v, --verbose <level>',
+        'Verbosity level: -2 (omit refs), -1 (single-line refs), 0 (default)',
+        '0',
+      )
+      .option(
+        '--agent',
+        'Run as agent (requires consensus for done/manage transitions)',
+      )
       .hook('preAction', (thisCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
         globalOpts = {
@@ -210,16 +229,51 @@ export class CLI {
 
     const getGlobalOpts = () => globalOpts;
 
-    TaskCommand.registerCommand(program.command('task').description('Manage tasks'), getGlobalOpts);
-    IdCommand.registerCommand(program.command('id').description('Generate/validate numeronym, UUIDv7, UUID64'), getGlobalOpts);
-    ActionCommand.registerCommand(program.command('action').description('List actions for the focused task'), getGlobalOpts);
+    TaskCommand.registerCommand(
+      program.command('task').description('Manage tasks'),
+      getGlobalOpts,
+    );
+    IdCommand.registerCommand(
+      program
+        .command('id')
+        .description('Generate/validate numeronym, UUIDv7, UUID64'),
+      getGlobalOpts,
+    );
+    ActionCommand.registerCommand(
+      program
+        .command('action')
+        .description('List actions for the focused task'),
+      getGlobalOpts,
+    );
 
-    const refCmd = program.command('reference').alias('ref').description('List references for the focused task');
+    const refCmd = program
+      .command('reference')
+      .alias('ref')
+      .description('List references for the focused task');
     ReferenceCommand.registerCommand(refCmd, getGlobalOpts);
 
-    WatchCommand.registerCommand(program.command('watch').description('Watch focused task file and rerun task get when it changes'), getGlobalOpts);
-    DocCommand.registerCommand(program.command('doc').description('Display TUI-formatted documentation'), getGlobalOpts);
-    CommitMsgCommand.registerCommand(program.command('commit-msg').description('List done actions from focused tasks since last commit'), getGlobalOpts);
+    WatchCommand.registerCommand(
+      program
+        .command('watch')
+        .description(
+          'Watch focused task file and rerun task get when it changes',
+        ),
+      getGlobalOpts,
+    );
+    DocCommand.registerCommand(
+      program
+        .command('doc')
+        .description('Display TUI-formatted documentation'),
+      getGlobalOpts,
+    );
+    CommitMsgCommand.registerCommand(
+      program
+        .command('commit-msg')
+        .description(
+          'List done actions from focused tasks since last commit',
+        ),
+      getGlobalOpts,
+    );
 
     return program;
   }
@@ -274,17 +328,19 @@ export class CLI {
   }
 }
 
-const isTestRunner = process.argv.some(arg => arg.includes('vitest') || arg.includes('jest'));
+const isTestRunner = process.argv.some(
+  (arg) => arg.includes('vitest') || arg.includes('jest'),
+);
 
 if (!isTestRunner) {
   const argsIdx = process.argv.indexOf('--args');
   if (argsIdx !== -1) {
     console.log(JSON.stringify(process.argv.slice(argsIdx + 1)));
     process.exit(0);
-  }
-
-  else if (process.argv.includes('--pi-tui-test')) {
-    const { TUI, Text, ProcessTerminal } = await import('@mariozechner/pi-tui');
+  } else if (process.argv.includes('--pi-tui-test')) {
+    const { TUI, Text, ProcessTerminal } = await import(
+      '@mariozechner/pi-tui'
+    );
     const tui = new TUI(new ProcessTerminal());
     const scrollText = new Text();
     tui.addChild(scrollText);
@@ -295,7 +351,7 @@ if (!isTestRunner) {
     const interval = setInterval(() => {
       const len = 3 + Math.floor(Math.random() * 18);
       const word = Array.from({ length: len }, () =>
-        String.fromCharCode(97 + Math.floor(Math.random() * 26))
+        String.fromCharCode(97 + Math.floor(Math.random() * 26)),
       ).join('');
       lines.push(word);
       if (lines.length > 75) lines.shift();
@@ -303,21 +359,23 @@ if (!isTestRunner) {
       footerText.setText(new Date().toLocaleTimeString());
       tui.requestRender();
     }, 200);
-    const stop = () => { clearInterval(interval); tui.stop(); process.exit(0); };
+    const stop = () => {
+      clearInterval(interval);
+      tui.stop();
+      process.exit(0);
+    };
     setTimeout(stop, 30000);
     process.on('SIGINT', stop);
-  }
-
-  else if (process.argv.length <= 2) {
+  } else if (process.argv.length <= 2) {
     const world = resolveWorld(process.env.WORLD);
     const repl = new REPL(world);
-    repl.start().catch(err => {
+    repl.start().catch((err) => {
       nfTui.error(err);
       process.exit(1);
     });
   } else {
     const cli = new CLI();
-    cli.parseArgv(process.argv).catch(err => {
+    cli.parseArgv(process.argv).catch((err) => {
       nfTui.error(err);
       process.exit(1);
     });

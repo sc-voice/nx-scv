@@ -10,7 +10,8 @@ const CONSUMER = {
   CTOR: 0,
   READ_TOPICS: 0,
   RUN: 0,
-  SUBSCRIBE: 0, TEST: 0,
+  SUBSCRIBE: 0,
+  TEST: 0,
 };
 
 const ACTION = {

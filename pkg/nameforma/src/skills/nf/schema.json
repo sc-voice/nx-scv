@@ -188,17 +188,57 @@
     "description": "Action state machine for the nf task system",
     "states": ["req", "spec", "work", "test", "manage", "done"],
     "transitions": [
-      {"from": "req", "to": "spec", "description": "Requirements gathered → moving to specification"},
-      {"from": "req", "to": "done", "description": "Request declined"},
-      {"from": "spec", "to": "work", "description": "Specification approved → starting implementation"},
-      {"from": "spec", "to": "test", "description": "New bug found/test added → needs verification"},
-      {"from": "work", "to": "test", "description": "Implementation complete → needs verification"},
-      {"from": "test", "to": "work", "description": "Simple errors found during testing"},
-      {"from": "test", "to": "manage", "description": "Tests pass or unexpected errors occur"},
-      {"from": "test", "to": "req", "description": "Unexpected test failure requires revisiting requirements"},
-      {"from": "manage", "to": "req", "description": "Revisit requirements after management review"},
-      {"from": "manage", "to": "done", "description": "Formal consensus reached; action finalized"},
-      {"from": "done", "to": "manage", "description": "Revisit requirements for existing completed tasks"}
+      {
+        "from": "req",
+        "to": "spec",
+        "description": "Requirements gathered → moving to specification"
+      },
+      { "from": "req", "to": "done", "description": "Request declined" },
+      {
+        "from": "spec",
+        "to": "work",
+        "description": "Specification approved → starting implementation"
+      },
+      {
+        "from": "spec",
+        "to": "test",
+        "description": "New bug found/test added → needs verification"
+      },
+      {
+        "from": "work",
+        "to": "test",
+        "description": "Implementation complete → needs verification"
+      },
+      {
+        "from": "test",
+        "to": "work",
+        "description": "Simple errors found during testing"
+      },
+      {
+        "from": "test",
+        "to": "manage",
+        "description": "Tests pass or unexpected errors occur"
+      },
+      {
+        "from": "test",
+        "to": "req",
+        "description": "Unexpected test failure requires revisiting requirements"
+      },
+      {
+        "from": "manage",
+        "to": "req",
+        "description": "Revisit requirements after management review"
+      },
+      {
+        "from": "manage",
+        "to": "done",
+        "description": "Formal consensus reached; action finalized"
+      },
+      {
+        "from": "done",
+        "to": "manage",
+        "description": "Revisit requirements for existing completed tasks"
+      }
     ]
   },
   "notes": {

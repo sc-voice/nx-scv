@@ -5,12 +5,13 @@ import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 
-const { Schema, Action, ActionStatus, ActionTransitions, FormaList } = NameForma;
+const { Schema, Action, ActionStatus, ActionTransitions, FormaList } =
+  NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 
-const dbg = Math.max(0,DBG.ACTION?.TEST);
+const dbg = Math.max(0, DBG.ACTION?.TEST);
 
 describe('Action', () => {
   it('ctor default', () => {
@@ -63,7 +64,9 @@ describe('Action', () => {
   it('ActionTransitions enforces invalid transition', () => {
     const a4n = new Action({ status: ActionStatus.test }); // status: test
     // test → req is not a valid transition
-    expect(() => a4n.patch({ status: ActionStatus.req })).toThrow(/invalid transition/);
+    expect(() => a4n.patch({ status: ActionStatus.req })).toThrow(
+      /invalid transition/,
+    );
   });
 
   it('statusNote stored on action', () => {
@@ -101,15 +104,16 @@ describe('Action', () => {
     dbg > 1 && cc.tag(msg, '===========');
 
     const id = new UUID64();
-    const registry = {id:'Pr9QpW800'}
+    const registry = { id: 'Pr9QpW800' };
     const schema = Action.avroSchema;
     let { fullName } = schema;
     expect(!!registry[fullName]).toBe(false);
-    let avroType = Action.registerAvro({avro, registry});
-    dbg && cc.tag(msg, "avro.parse");
+    let avroType = Action.registerAvro({ avro, registry });
+    dbg && cc.tag(msg, 'avro.parse');
     expect(avroType._name).toEqual(fullName);
     expect(!!registry[fullName]).toBe(true);
-    dbg > 1 && cc.tag(msg + UOK, 'parsed schema is added to registry:', fullName);
+    dbg > 1 &&
+      cc.tag(msg + UOK, 'parsed schema is added to registry:', fullName);
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
     const thing1 = new Action({ id, status: 'done' });
@@ -119,7 +123,10 @@ describe('Action', () => {
     expect(thing2.status).toBe('done');
     expect(thing2.id.base64).toBe(thing1.id.base64);
     expect(thing2.statusDate).toBeInstanceOf(Date);
-    expect(thing2.statusDate.getTime()).toBeCloseTo(thing1.statusDate.getTime(), -2);
+    expect(thing2.statusDate.getTime()).toBeCloseTo(
+      thing1.statusDate.getTime(),
+      -2,
+    );
     dbg && cc.tag1(msg + UOK, 'Action serialized with avro');
   });
 
@@ -134,9 +141,9 @@ describe('Action', () => {
       items: Action.avroSchema.fullName,
     });
 
-    const registry = {id:'Pr9y3LH'}
-    Action.registerAvro({avro, registry});
-    let arrayType = Schema.registerSchema(arraySchema, {avro, registry});
+    const registry = { id: 'Pr9y3LH' };
+    Action.registerAvro({ avro, registry });
+    let arrayType = Schema.registerSchema(arraySchema, { avro, registry });
     dbg > 1 && cc.tag(msg + UOK, 'array schema registered');
 
     // Create test array of Actions
@@ -146,11 +153,13 @@ describe('Action', () => {
     const actions = [action1, action2, action3];
 
     dbg > 1 && cc.tag(msg, 'serialize Action array');
-    const buf = arrayType.toBuffer(actions.map(a => Action.avroSchema.toAvro(a, { avro, registry })));
+    const buf = arrayType.toBuffer(
+      actions.map((a) => Action.avroSchema.toAvro(a, { avro, registry })),
+    );
     const parsed = arrayType.fromBuffer(buf);
 
     // Reconstruct Action instances from parsed data
-    const reconstructed = parsed.map(a => new Action(a));
+    const reconstructed = parsed.map((a) => new Action(a));
 
     expect(reconstructed).toHaveLength(3);
     expect(reconstructed[0].status).toBe('done');
@@ -197,10 +206,20 @@ describe('Action', () => {
 
   it('STATUS_ORDER maintains expected ordering', () => {
     const { STATUS_ORDER } = NameForma;
-    expect(STATUS_ORDER[ActionStatus.done]).toBeGreaterThan(STATUS_ORDER[ActionStatus.manage]);
-    expect(STATUS_ORDER[ActionStatus.manage]).toBeGreaterThan(STATUS_ORDER[ActionStatus.test]);
-    expect(STATUS_ORDER[ActionStatus.test]).toBeGreaterThan(STATUS_ORDER[ActionStatus.work]);
-    expect(STATUS_ORDER[ActionStatus.work]).toBeGreaterThan(STATUS_ORDER[ActionStatus.spec]);
-    expect(STATUS_ORDER[ActionStatus.spec]).toBeGreaterThan(STATUS_ORDER[ActionStatus.req]);
+    expect(STATUS_ORDER[ActionStatus.done]).toBeGreaterThan(
+      STATUS_ORDER[ActionStatus.manage],
+    );
+    expect(STATUS_ORDER[ActionStatus.manage]).toBeGreaterThan(
+      STATUS_ORDER[ActionStatus.test],
+    );
+    expect(STATUS_ORDER[ActionStatus.test]).toBeGreaterThan(
+      STATUS_ORDER[ActionStatus.work],
+    );
+    expect(STATUS_ORDER[ActionStatus.work]).toBeGreaterThan(
+      STATUS_ORDER[ActionStatus.spec],
+    );
+    expect(STATUS_ORDER[ActionStatus.spec]).toBeGreaterThan(
+      STATUS_ORDER[ActionStatus.req],
+    );
   });
 });

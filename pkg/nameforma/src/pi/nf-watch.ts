@@ -34,16 +34,20 @@ export class WatchComponent implements Component {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const terminal = new ProcessTerminal();
   const tui = new TUI(terminal);
-  
+
   const watchComp = new WatchComponent();
   tui.addChild(watchComp);
 
-  terminal.start((data) => {
-    // Very basic input handling for the demo
-    if (data === '\u0003') { // Ctrl+C
-      process.exit();
-    }
-  }, () => {});
+  terminal.start(
+    (data) => {
+      // Very basic input handling for the demo
+      if (data === '\u0003') {
+        // Ctrl+C
+        process.exit();
+      }
+    },
+    () => {},
+  );
 
   tui.start();
 
@@ -51,7 +55,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   setInterval(() => {
     terminal.write('\r\x1b[K'); // Clear line
     const lines = watchComp.render(terminal.columns);
-    lines.forEach(line => terminal.write(line + '\n'));
+    lines.forEach((line) => terminal.write(line + '\n'));
   }, 1000);
 
   process.on('SIGINT', () => {

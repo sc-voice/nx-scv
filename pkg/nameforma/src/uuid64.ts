@@ -86,13 +86,13 @@ class UUID64 {
    * @returns Registered AvroType from avro.parse()
    */
   static registerAvro(opts: any = {}) {
-    const msg = "uuid64.registerAvro";
+    const msg = 'uuid64.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
     let { fullName } = UUID64.avroSchema;
-    dbg > 2 && cc.ok(msg, "registerType:", fullName)
+    dbg > 2 && cc.ok(msg, 'registerType:', fullName);
     let avroType = Schema.registerType(UUID64, opts);
-    dbg && cc.ok1(msg, "schema:", fullName);
-    return avroType
+    dbg && cc.ok1(msg, 'schema:', fullName);
+    return avroType;
   }
 
   /**
@@ -103,9 +103,7 @@ class UUID64 {
     type: 'record',
     name: 'UUID64',
     namespace: 'scvoice.nameforma',
-    fields: [
-      { name: 'uuidv7', type: 'bytes' }
-    ]
+    fields: [{ name: 'uuidv7', type: 'bytes' }],
   });
 
   // ========================================================================
@@ -125,12 +123,12 @@ class UUID64 {
    *
    * Internal use: pass uuidv7 and base64 to construct from factory methods.
    */
-  constructor(uuidv7Buf?:Buffer) {
+  constructor(uuidv7Buf?: Buffer) {
     if (uuidv7Buf == null) {
       this.uuidv7 = UUID64.createBufferUUIDV7();
     } else {
       if (!UUID64.validate(uuidv7Buf)) {
-        throw new Error( `Expected valid 16-byte uuidv7 buffer`);
+        throw new Error(`Expected valid 16-byte uuidv7 buffer`);
       }
       this.uuidv7 = Buffer.from(uuidv7Buf);
     }
@@ -142,7 +140,7 @@ class UUID64 {
   get base64(): string {
     if (this.#base64 == null) {
       this.#base64 = UUID64.toOrderPreservingBase64(
-          UUID64.toUUID64Buffer(this.uuidv7)
+        UUID64.toUUID64Buffer(this.uuidv7),
       );
     }
 
@@ -195,7 +193,7 @@ class UUID64 {
   /**
    * Create a UUID64 instance from a 16-byte UUIDv7 buffer.
    *
-   * @param buffer 16-byte UUIDV7 buffer 
+   * @param buffer 16-byte UUIDV7 buffer
    * @returns UUID64 instance
    * @throws Error if buffer is invalid or not 16 bytes
    */
@@ -205,7 +203,7 @@ class UUID64 {
     }
 
     if (!UUID64.validate(uuidv7Buf)) {
-      throw new Error( `Expected valid 16-byte uuidv7 buffer`);
+      throw new Error(`Expected valid 16-byte uuidv7 buffer`);
     }
 
     return new UUID64(uuidv7Buf);
@@ -325,7 +323,8 @@ class UUID64 {
 
     // Bytes 6-7: pure 12-bit sequence (no version bits)
     uuid64[6] = (sequence >> 4) & 0xff; // Upper 8 bits of sequence
-    uuid64[7] = ((sequence & 0x0f) << 4) | Number((randomBits >> 58n) & 0x0fn); // Lower 4 bits of sequence + 4 random bits
+    uuid64[7] =
+      ((sequence & 0x0f) << 4) | Number((randomBits >> 58n) & 0x0fn); // Lower 4 bits of sequence + 4 random bits
 
     // Byte 8: 8 random bits
     uuid64[8] = Number((randomBits >> 50n) & 0xffn);
@@ -339,7 +338,7 @@ class UUID64 {
     uuid64[14] = Number((randomBits >> 2n) & 0xffn);
 
     // Byte 15: 2 random bits + 6-bit version/variant (0x1E)
-    uuid64[15] = ((Number(randomBits & 0x03n)) << 6) | 0x1e;
+    uuid64[15] = (Number(randomBits & 0x03n) << 6) | 0x1e;
 
     return uuid64;
   }
@@ -485,7 +484,7 @@ class UUID64 {
    * @param start index of first character (default 0)
    * @param end index of last character + 1 (default 10, use UUID64.TIME_SEQ_CHARS)
    */
-  timeId(start:number = 0, end:number = 10): string {
+  timeId(start: number = 0, end: number = 10): string {
     return this.base64.substring(start, end);
   }
 

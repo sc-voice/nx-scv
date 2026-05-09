@@ -3,7 +3,7 @@ import type { RenderData } from './navigable-view.js';
 import { FormaField } from './forma-field.js';
 
 /**
- * A renderer that converts complex, recursive RenderData into a flattened 
+ * A renderer that converts complex, recursive RenderData into a flattened
  * array of strings suitable for TUI display.
  */
 export interface LineRendererConfig {
@@ -12,7 +12,7 @@ export interface LineRendererConfig {
 }
 
 /**
- * A renderer that converts complex, recursive RenderData into a flattened 
+ * A renderer that converts complex, recursive RenderData into a flattened
  * array of strings suitable for TUI display.
  */
 export class LineRenderer {
@@ -26,7 +26,7 @@ export class LineRenderer {
 
   /**
    * Renders the provided RenderData into an array of strings.
-   * 
+   *
    * @param data The RenderData to render.
    * @param currentIndent The current indentation level (relative to constructor).
    * @returns An array of formatted strings.
@@ -60,12 +60,12 @@ export class LineRenderer {
     } else if (Array.isArray(data)) {
       return [
         '[',
-        data.map(item=>this.cellString(item)).join(', '),
+        data.map((item) => this.cellString(item)).join(', '),
         ']',
       ].join('');
     }
 
-    return "JSON:" + JSON.stringify(data);
+    return 'JSON:' + JSON.stringify(data);
   }
 
   public rowStrings(data: RenderData): string[] {

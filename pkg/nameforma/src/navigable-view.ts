@@ -28,23 +28,17 @@ export const RenderDetail = {
   All: 1,
 } as const;
 
-export type RenderDetail = typeof RenderDetail[keyof typeof RenderDetail];
+export type RenderDetail =
+  (typeof RenderDetail)[keyof typeof RenderDetail];
 
-export type RenderCell = 
-  | string
-  | number
-  | boolean
-  | UUID64
-  | FormaField;
+export type RenderCell = string | number | boolean | UUID64 | FormaField;
 
-export type RenderRow = 
+export type RenderRow =
   | RenderCell
   | RenderCell[]
   | { [key: string]: RenderRow };
 
-export type RenderData =
-  | RenderRow
-  | RenderRow[];
+export type RenderData = RenderRow | RenderRow[];
 
 const MAX_ZENO_STEP = 17;
 
@@ -56,7 +50,9 @@ export type ZenoStep = number & { readonly __zenoStep: unique symbol };
 
 export function zenoStep(n: number): ZenoStep {
   if (!Number.isInteger(n) || n < 0 || n > MAX_ZENO_STEP) {
-    throw new RangeError(`zenoStep: must be integer in [0,${MAX_ZENO_STEP}], got ${n}`);
+    throw new RangeError(
+      `zenoStep: must be integer in [0,${MAX_ZENO_STEP}], got ${n}`,
+    );
   }
   return n as ZenoStep;
 }
@@ -67,12 +63,16 @@ export function zenoStep(n: number): ZenoStep {
  * Ranges from 0 (n=0) to ~0.998 (n=17).
  */
 const ZenoDetail: readonly number[] = Object.freeze(
-  Array.from({ length: MAX_ZENO_STEP+2 }, (_, n) => 1 - Math.pow(8/13, n))
+  Array.from(
+    { length: MAX_ZENO_STEP + 2 },
+    (_, n) => 1 - Math.pow(8 / 13, n),
+  ),
 );
 
 function fibonacci(n: number): number {
   if (n <= 1) return n;
-  let a = 0, b = 1;
+  let a = 0,
+    b = 1;
   for (let i = 2; i <= n; i++) {
     [a, b] = [b, a + b];
   }
@@ -84,19 +84,19 @@ function fibonacci(n: number): number {
  * Formula: ZenoLines[n] = Fibonacci(n+2)
  */
 const ZenoLines: readonly number[] = Object.freeze(
-  Array.from({ length: MAX_ZENO_STEP+1 }, (_, n) => fibonacci(n + 2))
+  Array.from({ length: MAX_ZENO_STEP + 1 }, (_, n) => fibonacci(n + 2)),
 );
 
 /**
- * The ZenoCoord system controls view detail in two dimensions. 
- * ZenoCoord/RenderDetail are related as a 2D → 1D bijection 
+ * The ZenoCoord system controls view detail in two dimensions.
+ * ZenoCoord/RenderDetail are related as a 2D → 1D bijection
  * manipulable by a single end-user control (RenderDetail) or
- * dual controls (anchorDetail, pivotDetail). 
+ * dual controls (anchorDetail, pivotDetail).
  * ZenoCoord also controls the number of lines presented in a view,
  * which eliminates the need for scrolling in most use cases.
  *
  * AnchorStep sets macro detail level (0-17), pivot adjusts within that level (0-1).
- * Combined detail = 
+ * Combined detail =
  *   detail[anchorStep] + pivotStep * (detail[anchorStep+1] - detail[anchorStep])
  *
  * Examples:
@@ -126,7 +126,8 @@ export class ZenoCoord {
     const anchorDetail = zenoStepToDetail(anchor);
     const anchorDelta = ZenoDetail[anchor + 1] - anchorDetail;
     const FUDGE = 0.000000000000001; // overcome floating point aliasing
-    const pivotDetail = anchorDelta > 0 ? (detail - anchorDetail + FUDGE) / anchorDelta : 0;
+    const pivotDetail =
+      anchorDelta > 0 ? (detail - anchorDetail + FUDGE) / anchorDelta : 0;
     const pivot = detailToZenoStep(pivotDetail);
     return new ZenoCoord(anchor, pivot);
   }
@@ -134,7 +135,9 @@ export class ZenoCoord {
 
 export function zenoStepToDetail(step: ZenoStep): number {
   if (step < 0 || step > MAX_ZENO_STEP) {
-    throw new RangeError(`zenoStepToDetail: step ${step} out of bounds [0,${MAX_ZENO_STEP}]`);
+    throw new RangeError(
+      `zenoStepToDetail: step ${step} out of bounds [0,${MAX_ZENO_STEP}]`,
+    );
   }
   return ZenoDetail[step];
 }
@@ -153,7 +156,9 @@ export function detailToZenoStep(detail: number): ZenoStep {
 
 export function zenoStepToLines(step: ZenoStep): number {
   if (step < 0 || step > MAX_ZENO_STEP) {
-    throw new RangeError(`zenoStepToLines: step ${step} out of bounds [0,${MAX_ZENO_STEP}]`);
+    throw new RangeError(
+      `zenoStepToLines: step ${step} out of bounds [0,${MAX_ZENO_STEP}]`,
+    );
   }
   return ZenoLines[step];
 }
@@ -166,22 +171,25 @@ export interface IRenderable extends Identifiable {
   /**
    * Renders the subject into the provided renderer.
    */
-  asRenderData(
-    detail?: RenderDetail | number,
-    pivot?: Forma,
-  ): RenderData;
+  asRenderData(detail?: RenderDetail | number, pivot?: Forma): RenderData;
 }
 
-export type CursorTarget = 'current' | 'top' | 'bottom' | 'middle' | 'first' | 'last';
+export type CursorTarget =
+  | 'current'
+  | 'top'
+  | 'bottom'
+  | 'middle'
+  | 'first'
+  | 'last';
 export type CursorType = 'Forma' | 'Field';
 
 /** Semantic address within the Forma sequence. Decoupled from presentation (IView). */
 export interface ICursor {
   type: CursorType;
-  forma: Forma;         // primary axis: which Forma
+  forma: Forma; // primary axis: which Forma
   field: string | null; // secondary axis: which field within Forma
-  formaIndex: number;   // position in sequence
-  fieldIndex: number;   // position within fields
+  formaIndex: number; // position in sequence
+  fieldIndex: number; // position within fields
 }
 
 /**

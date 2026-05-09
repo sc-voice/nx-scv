@@ -4,10 +4,19 @@ import { EventEmitter } from 'node:events';
 import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
-import { EntityConstructor, validateEntity, STANDARD_ENTITIES } from './entity.js';
+import {
+  EntityConstructor,
+  validateEntity,
+  STANDARD_ENTITIES,
+} from './entity.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
-import { FormaList, type IFormaItem, type IEventBus, type FormaListEvent } from './forma-list.js';
+import {
+  FormaList,
+  type IFormaItem,
+  type IEventBus,
+  type FormaListEvent,
+} from './forma-list.js';
 import { Focus } from './focus.js';
 
 const { ColorConsole } = Text;
@@ -48,14 +57,20 @@ export class World extends Forma implements IEventBus {
    */
   constructor(worldPath: string, id?: UUID64 | string) {
     const name = worldPath.split('/').at(-1);
-    super({id, name, summary:worldPath});
+    super({ id, name, summary: worldPath });
     //super({id, name:worldPath.split("/").at(-1), summary:worldPath});
 
     const msg = 'world.ctor';
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
-    this.#focusStack = new FormaList<Focus>([], Focus as any, undefined, undefined, 'formaId');
+    this.#focusStack = new FormaList<Focus>(
+      [],
+      Focus as any,
+      undefined,
+      undefined,
+      'formaId',
+    );
     this.#bus = new EventEmitter();
 
     // Register standard entities
@@ -72,7 +87,7 @@ export class World extends Forma implements IEventBus {
     // Wire persistence listener for FormaList mutations
     this.#bus.on('change', (event: FormaListEvent<any>) => {
       const dbg = WORLD?.EVENT || WORLD?.ALL;
-      const msg = 'w3d.#bus.change'+event.type;
+      const msg = 'w3d.#bus.change' + event.type;
       const { entity } = event;
 
       if (!entity) {
@@ -88,7 +103,8 @@ export class World extends Forma implements IEventBus {
       switch (event.type) {
         case 'add':
         case 'patch':
-          dbg && cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
+          dbg &&
+            cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
           this.#saveEntity(entityType, entity);
           break;
         case 'delete':
@@ -97,11 +113,19 @@ export class World extends Forma implements IEventBus {
           const itemIsEntity = !!(event.item?.constructor as any).entity;
           if (itemIsEntity) {
             // Top-level entity deletion: delete the entity file
-            dbg && cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
+            dbg &&
+              cc.ok(
+                `${msg} ${entityType}: ${entity.id.toString()}`,
+                event,
+              );
             this.delete(entityType, entity.id.base64);
           } else {
             // Nested item deletion: save the parent entity with updated children
-            dbg && cc.ok(`${msg} nested item deleted, saving parent ${entityType}: ${entity.id.toString()}`, event);
+            dbg &&
+              cc.ok(
+                `${msg} nested item deleted, saving parent ${entityType}: ${entity.id.toString()}`,
+                event,
+              );
             this.#saveEntity(entityType, entity);
           }
           break;
@@ -243,14 +267,29 @@ export class World extends Forma implements IEventBus {
 
     if (data.focusStack && Array.isArray(data.focusStack)) {
       const focuses = data.focusStack.map((f: any) =>
-        Focus.fromJson({ id: f.id, formaId: f.formaId, formaType: f.formaType, name: f.name, summary: f.summary })
+        Focus.fromJson({
+          id: f.id,
+          formaId: f.formaId,
+          formaType: f.formaType,
+          name: f.name,
+          summary: f.summary,
+        }),
       );
-      this.#focusStack = new FormaList<Focus>(focuses, Focus as any, undefined, undefined, 'formaId');
+      this.#focusStack = new FormaList<Focus>(
+        focuses,
+        Focus as any,
+        undefined,
+        undefined,
+        'formaId',
+      );
     }
 
     if (data.history && Array.isArray(data.history)) {
-      this.#history = data.history.filter((e: any) =>
-        e.timestamp && (e.user === 'agent' || e.user === 'human') && e.command
+      this.#history = data.history.filter(
+        (e: any) =>
+          e.timestamp &&
+          (e.user === 'agent' || e.user === 'human') &&
+          e.command,
       );
     }
   }
@@ -292,7 +331,10 @@ export class World extends Forma implements IEventBus {
    * @returns {ReturnType<T['fromJson']>|null} - Typed entity instance, or null if not found
    * @throws {Error} - If id validation fails
    */
-  loadEntity<T extends EntityConstructor>(EntityClass: T, id: UUID64 | string): ReturnType<T['fromJson']> | null {
+  loadEntity<T extends EntityConstructor>(
+    EntityClass: T,
+    id: UUID64 | string,
+  ): ReturnType<T['fromJson']> | null {
     const msg = 'world.loadEntity';
     const dbg = WORLD?.LOAD;
 
@@ -302,7 +344,11 @@ export class World extends Forma implements IEventBus {
     // Convert UUID64 to string if needed
     const idStr = typeof id === 'string' ? id : id.toString();
 
-    const filePath = path.join(this.#worldPath, entityType, `${idStr}.json`);
+    const filePath = path.join(
+      this.#worldPath,
+      entityType,
+      `${idStr}.json`,
+    );
     if (!fs.existsSync(filePath)) {
       dbg && cc.ok1(msg, `not found ${filePath}`);
       return null;
@@ -367,7 +413,7 @@ export class World extends Forma implements IEventBus {
   loadFuzzy<T extends EntityConstructor>(
     EntityClass: T,
     match: string,
-    levenshtein?: number
+    levenshtein?: number,
   ): ReturnType<T['fromJson']> | null {
     const msg = 'world.loadFuzzy';
     const dbg = WORLD?.LOAD;
@@ -384,8 +430,12 @@ export class World extends Forma implements IEventBus {
     const filter = Identifiable.idFilter(match, levenshtein);
 
     // Get all .json files and filter by filename (id)
-    const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));
-    const matchingFiles = files.filter((file) => filter(file.slice(0, -5)));
+    const files = fs
+      .readdirSync(entityDir)
+      .filter((f) => f.endsWith('.json'));
+    const matchingFiles = files.filter((file) =>
+      filter(file.slice(0, -5)),
+    );
 
     if (matchingFiles.length === 0) {
       dbg && cc.ok1(msg, `no match for ${match} in ${entityType}`);
@@ -394,7 +444,9 @@ export class World extends Forma implements IEventBus {
 
     if (matchingFiles.length > 1) {
       const ids = matchingFiles.map((f) => f.slice(0, -5)).join(', ');
-      throw new Error(`${msg}: ambiguous match for "${match}": found ${matchingFiles.length} matches [${ids}]`);
+      throw new Error(
+        `${msg}: ambiguous match for "${match}": found ${matchingFiles.length} matches [${ids}]`,
+      );
     }
 
     // Load and reconstruct the matching entity
@@ -434,7 +486,9 @@ export class World extends Forma implements IEventBus {
       return [];
     }
 
-    const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));
+    const files = fs
+      .readdirSync(entityDir)
+      .filter((f) => f.endsWith('.json'));
     const entities = files.map((file) => {
       const filePath = path.join(entityDir, file);
       const data = fs.readFileSync(filePath, 'utf8');
@@ -459,7 +513,7 @@ export class World extends Forma implements IEventBus {
    * }
    */
   entityList<T extends EntityConstructor>(
-    EntityClass: T
+    EntityClass: T,
   ): FormaList<ReturnType<T['fromJson']>> {
     const msg = 'world.entityList';
     const dbg = WORLD?.LIST;
@@ -469,7 +523,9 @@ export class World extends Forma implements IEventBus {
     const items: ReturnType<T['fromJson']>[] = [];
 
     if (fs.existsSync(entityDir)) {
-      const files = fs.readdirSync(entityDir).filter((f) => f.endsWith('.json'));
+      const files = fs
+        .readdirSync(entityDir)
+        .filter((f) => f.endsWith('.json'));
       for (const file of files) {
         const filePath = path.join(entityDir, file);
         const data = fs.readFileSync(filePath, 'utf8');
@@ -490,8 +546,14 @@ export class World extends Forma implements IEventBus {
       }
     }
 
-    dbg && cc.ok1(msg, `loaded ${items.length} ${entityType}(s) as FormaList`);
-    return new FormaList<ReturnType<T['fromJson']>>(items, EntityClass as any, undefined, this);
+    dbg &&
+      cc.ok1(msg, `loaded ${items.length} ${entityType}(s) as FormaList`);
+    return new FormaList<ReturnType<T['fromJson']>>(
+      items,
+      EntityClass as any,
+      undefined,
+      this,
+    );
   }
 
   /**
@@ -557,13 +619,14 @@ export class World extends Forma implements IEventBus {
     // For regular Forma items (Task, etc.), lookup by id
     const isFocus = ent instanceof Focus;
     const lookupId = isFocus ? (ent as any).formaId : ent.id;
-    const lookupIdStr = typeof lookupId === 'string' ? lookupId : lookupId.base64;
+    const lookupIdStr =
+      typeof lookupId === 'string' ? lookupId : lookupId.base64;
 
     const items = Array.from(this.#focusStack);
     // Most recent is at end of FormaList, so iterate backwards
     for (let i = items.length - 1; i >= 0; i--) {
       if (items[i].formaId.base64 === lookupIdStr) {
-        return items.length - 1 - i;  // Position from most recent
+        return items.length - 1 - i; // Position from most recent
       }
     }
     return Number.MAX_SAFE_INTEGER;
@@ -624,17 +687,23 @@ export class World extends Forma implements IEventBus {
   get focusStack(): FormaList<Focus> {
     // Return new FormaList with items reversed (most recent first)
     const items = Array.from(this.#focusStack).reverse();
-    return new FormaList<Focus>(items, Focus as any, undefined, undefined, 'formaId');
+    return new FormaList<Focus>(
+      items,
+      Focus as any,
+      undefined,
+      undefined,
+      'formaId',
+    );
   }
 
   /**
    * Remove stale entries from focusStack where backing entity no longer exists
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
-  override validate(opts:any = {}): boolean {
+  override validate(opts: any = {}): boolean {
     let result = super.validate(opts);
 
-    const msg = "w3d.validate";
+    const msg = 'w3d.validate';
     const before = Array.from(this.#focusStack);
     const valid = before.filter((focus) => {
       try {
@@ -646,9 +715,17 @@ export class World extends Forma implements IEventBus {
       }
     });
     if (valid.length === before.length) return false;
-    this.#focusStack = new FormaList<Focus>(valid, Focus as any, undefined, undefined, 'formaId');
+    this.#focusStack = new FormaList<Focus>(
+      valid,
+      Focus as any,
+      undefined,
+      undefined,
+      'formaId',
+    );
     if (before.length - valid.length > 0) {
-      console.warn(`Cleaned ${before.length - valid.length} stale focus entries`);
+      console.warn(
+        `Cleaned ${before.length - valid.length} stale focus entries`,
+      );
     }
     return result;
   }
@@ -732,7 +809,7 @@ export class World extends Forma implements IEventBus {
   toJSON(): any {
     this.validate();
     return {
-      focusStack: Array.from(this.#focusStack).map(f => ({
+      focusStack: Array.from(this.#focusStack).map((f) => ({
         id: f.id.toString(),
         formaId: f.formaId.toString(),
         formaType: f.formaType,
@@ -775,15 +852,24 @@ export class World extends Forma implements IEventBus {
           formaType: f.formaType,
           name: f.name,
           summary: f.summary,
-        })
+        }),
       );
-      world.#focusStack = new FormaList<Focus>(focuses, Focus as any, undefined, undefined, 'formaId');
+      world.#focusStack = new FormaList<Focus>(
+        focuses,
+        Focus as any,
+        undefined,
+        undefined,
+        'formaId',
+      );
     }
 
     // Restore history if present
     if (data.history && Array.isArray(data.history)) {
-      world.#history = data.history.filter((entry: any) =>
-        entry.timestamp && (entry.user === 'agent' || entry.user === 'human') && entry.command
+      world.#history = data.history.filter(
+        (entry: any) =>
+          entry.timestamp &&
+          (entry.user === 'agent' || entry.user === 'human') &&
+          entry.command,
       );
     }
 

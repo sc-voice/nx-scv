@@ -1,6 +1,6 @@
 import avro from 'avro-js';
 import { describe, it, expect } from '@sc-voice/vitest';
-import { Text, ScvMath, } from '@sc-voice/tools';
+import { Text, ScvMath } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 import UUID64 from '../src/uuid64.js';
@@ -75,9 +75,9 @@ describe('TESTTESTschema', () => {
     const msg = 'tf3a.avro';
     dbg > 1 && cc.tag(msg, STARTTEST);
 
-    const id = new UUID64()
-    const registry = {id:'Pr9zmfd'};
-    const registry2 = {id:'Pr9zmfe'};
+    const id = new UUID64();
+    const registry = { id: 'Pr9zmfd' };
+    const registry2 = { id: 'Pr9zmfe' };
     const f3a = Forma.avroSchema;
     dbg > 1 && cc.tag(msg, 'registerType Forma');
     let avroType = Forma.registerAvro({ avro, registry });
@@ -85,20 +85,22 @@ describe('TESTTESTschema', () => {
     let avroTypeAgain = Forma.registerAvro({ avro, registry });
     expect(avroTypeAgain).toBe(avroType);
     dbg > 1 && cc.tag(msg, 'registerType Forma registry2');
-    let avroType2 = Forma.registerAvro({ avro, registry:registry2 });
+    let avroType2 = Forma.registerAvro({ avro, registry: registry2 });
     let { fullName } = f3a;
     expect(avroType).toEqual(avroType2);
     expect(`"${fullName}"`).toEqual(avroType2.toString());
-    expect( Object.keys(registry).sort()).toEqual([
-      'id',
-      'scvoice.nameforma.UUID64', 
-      'scvoice.nameforma.Identifiable', 
-      'scvoice.nameforma.Forma', 
-      'bytes', 
-      'string',
-    ].sort()); // includes 2 string fields: fullName, summary
-    expect(registry).toMatchObject({ [fullName]: avroType2, });
-    expect(registry2).toMatchObject({ [fullName]: avroType2, });
+    expect(Object.keys(registry).sort()).toEqual(
+      [
+        'id',
+        'scvoice.nameforma.UUID64',
+        'scvoice.nameforma.Identifiable',
+        'scvoice.nameforma.Forma',
+        'bytes',
+        'string',
+      ].sort(),
+    ); // includes 2 string fields: fullName, summary
+    expect(registry).toMatchObject({ [fullName]: avroType2 });
+    expect(registry2).toMatchObject({ [fullName]: avroType2 });
     dbg > 1 && cc.tag(msg + UOK, 'registries match');
 
     dbg > 1 && cc.tag(msg, 'serialize with schema');
@@ -138,9 +140,9 @@ describe('TESTTESTschema', () => {
     expect(schema.name).toBe('TestRecord');
     let avro1 = schema.toAvro(thing1, { registry });
     let avro2 = type.clone(thing1, { wrapUnion: true });
-    expect(
-      JSON.stringify(avro1)
-    ).toEqual(JSON.stringify({ id, clr, qty, ok }));
+    expect(JSON.stringify(avro1)).toEqual(
+      JSON.stringify({ id, clr, qty, ok }),
+    );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
   it('toAvro union', () => {
@@ -174,14 +176,14 @@ describe('TESTTESTschema', () => {
     const thing1 = new TestRecord({ id, clr, qty, ok });
     expect(avroSchema.name).toBe('TestRecord');
     let avro1 = avroSchema.toAvro(thing1, { registry, avro });
-    expect(
-      JSON.stringify(avro1)
-    ).toEqual(JSON.stringify({
+    expect(JSON.stringify(avro1)).toEqual(
+      JSON.stringify({
         id,
         clr: { string: clr },
         qty: { double: qty },
         ok: { boolean: ok },
-      }));
+      }),
+    );
     dbg && cc.tag1(msg, 'avro1:', avro1);
   });
   it('toAvro simple array', () => {

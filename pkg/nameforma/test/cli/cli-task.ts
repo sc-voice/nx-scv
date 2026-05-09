@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import { execSync } from 'child_process';
 import { Command } from 'commander';
 import fs from 'fs';
@@ -7,7 +13,12 @@ import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import { CLI } from '../../src/cli/nf-cli.js';
 import { World } from '../../src/world.js';
-import { createTempWorld, readTaskFile, listTaskFiles, countTasks } from './helpers';
+import {
+  createTempWorld,
+  readTaskFile,
+  listTaskFiles,
+  countTasks,
+} from './helpers';
 
 const { Task, Rational } = NameForma;
 
@@ -64,7 +75,6 @@ describe('CLI: task command', () => {
     expect(countTasks(tempWorld.worldPath)).toBe(1);
   });
 
-
   it('create task related to another task', async () => {
     // Create primary task
     await cli.parseArgv([
@@ -78,7 +88,9 @@ describe('CLI: task command', () => {
     ]);
 
     const primaryOutput = output.join('\n');
-    const primaryIdMatch = primaryOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const primaryIdMatch = primaryOutput.match(
+      /Task added: ([A-Za-z0-9_-]+)/,
+    );
     const primaryId = primaryIdMatch ? primaryIdMatch[1] : null;
     expect(primaryId).not.toBeNull();
 
@@ -104,14 +116,23 @@ describe('CLI: task command', () => {
 
     // Verify related task was created with a different ID but related UUID
     const relatedOutput = output.join('\n');
-    const relatedIdMatch = relatedOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const relatedIdMatch = relatedOutput.match(
+      /Task added: ([A-Za-z0-9_-]+)/,
+    );
     const relatedId = relatedIdMatch ? relatedIdMatch[1] : null;
     expect(relatedId).not.toBeNull();
     expect(relatedId).not.toBe(primaryId);
   });
 
   it('list tasks when empty', async () => {
-    await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'list',
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toBe('No tasks');
@@ -132,7 +153,14 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // List tasks
-    await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'list',
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Tasks \(\d+\):/);
@@ -161,7 +189,15 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Show the task
-    await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'get',
+      taskId,
+    ]);
 
     expect(output.length).toBeGreaterThan(0);
     expect(output[0]).toMatch(/Task:/);
@@ -191,7 +227,16 @@ describe('CLI: task command', () => {
 
       // Delete using partial fuzzy ID (first 8 chars) with --force
       const partialId = taskId?.substring(0, 8);
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', partialId, '--force']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        partialId,
+        '--force',
+      ]);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/Task deleted:/);
@@ -219,7 +264,16 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete using exact full ID with --force
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        taskId,
+        '--force',
+      ]);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/Task deleted:/);
@@ -245,12 +299,28 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete the task with --force
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        taskId,
+        '--force',
+      ]);
 
       output.length = 0;
 
       // List tasks
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'list',
+      ]);
 
       expect(output[0]).toBe('No tasks');
     });
@@ -274,13 +344,30 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete the task with --force
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        taskId,
+        '--force',
+      ]);
 
       output.length = 0;
 
       // Try to show deleted task - should fail
       await expect(
-        cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId])
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'get',
+          taskId,
+        ]),
       ).rejects.toThrow(/Task not found/);
     });
 
@@ -308,14 +395,30 @@ describe('CLI: task command', () => {
       expect(countTasks(tempWorld.worldPath)).toBe(3);
 
       // Delete the second task with --force
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskIds[1], '--force']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        taskIds[1],
+        '--force',
+      ]);
 
       expect(countTasks(tempWorld.worldPath)).toBe(2);
 
       output.length = 0;
 
       // List remaining tasks
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'list',
+      ]);
 
       const listOutput = output.join('\n');
       expect(listOutput).toMatch(/Task 1/);
@@ -348,7 +451,16 @@ describe('CLI: task command', () => {
 
       // Try to delete with very short ID that matches both - should throw ambiguous error (with --force)
       await expect(
-        cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', '0', '--force'])
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'delete',
+          '0',
+          '--force',
+        ]),
       ).rejects.toThrow(/ambiguous match/);
 
       // Verify both tasks still exist
@@ -374,7 +486,16 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Delete the task with --force
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'delete', taskId, '--force']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'delete',
+        taskId,
+        '--force',
+      ]);
 
       // Verify output shows the full task ID, not the search string
       expect(output[0]).toContain(`Task deleted: ${taskId}`);
@@ -391,7 +512,7 @@ describe('CLI: task command', () => {
         tempWorld.worldPath,
         'get',
         'nonexistent',
-      ])
+      ]),
     ).rejects.toThrow(/Task not found/);
   });
 
@@ -551,9 +672,11 @@ describe('CLI: task command', () => {
     const lines = showOutput.split('\n');
 
     // Find indices of each reference in output
-    const highIdx = lines.findIndex(l => l.includes('High Relevance'));
-    const mediumIdx = lines.findIndex(l => l.includes('Medium Relevance'));
-    const lowIdx = lines.findIndex(l => l.includes('Low Relevance'));
+    const highIdx = lines.findIndex((l) => l.includes('High Relevance'));
+    const mediumIdx = lines.findIndex((l) =>
+      l.includes('Medium Relevance'),
+    );
+    const lowIdx = lines.findIndex((l) => l.includes('Low Relevance'));
 
     // Verify they appear in descending relevance order
     expect(highIdx).toBeLessThan(mediumIdx);
@@ -562,7 +685,6 @@ describe('CLI: task command', () => {
     expect(mediumIdx).toBeGreaterThan(-1);
     expect(lowIdx).toBeGreaterThan(-1);
   });
-
 
   it('delete non-existent task returns error', async () => {
     await expect(
@@ -575,7 +697,7 @@ describe('CLI: task command', () => {
         'delete',
         'nonexistent',
         '--force',
-      ])
+      ]),
     ).rejects.toThrow(/Task not found/);
   });
 
@@ -607,7 +729,14 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // Show without ID - should use focused task
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'get',
+      ]);
 
       expect(output.length).toBeGreaterThan(0);
       expect(output[0]).toMatch(/Task:/);
@@ -617,7 +746,14 @@ describe('CLI: task command', () => {
 
     it('show without ID returns error when no task focused', async () => {
       await expect(
-        cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get'])
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'get',
+        ]),
       ).rejects.toThrow(/No task focused|Task not found/);
     });
 
@@ -644,14 +780,24 @@ describe('CLI: task command', () => {
       expect(task).not.toBeNull();
 
       // Add some actions
-      task!.actions(world).addItem({ name: 'First action', summary: 'Do this first' });
+      task!
+        .actions(world)
+        .addItem({ name: 'First action', summary: 'Do this first' });
       task!.actions(world).addItem({ name: 'Second action' });
       world.save();
 
       output.length = 0;
 
       // Show task - should display all actions
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'get',
+        taskId,
+      ]);
 
       const showOutput = output.join('\n');
       expect(showOutput).toMatch(/Task:/);
@@ -682,14 +828,26 @@ describe('CLI: task command', () => {
       // Add mixed status actions
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      task!.actions(world).addItem({ name: 'Done action', status: 'done' });
-      task!.actions(world).addItem({ name: 'Work action', status: 'work' });
+      task!
+        .actions(world)
+        .addItem({ name: 'Done action', status: 'done' });
+      task!
+        .actions(world)
+        .addItem({ name: 'Work action', status: 'work' });
       world.save();
 
       output.length = 0;
 
       // Show task - should display progress
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'get', taskId]);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'get',
+        taskId,
+      ]);
 
       const showOutput = output.join('\n');
       // Progress line includes ANSI color codes, so use flexible regex
@@ -717,7 +875,14 @@ describe('CLI: task command', () => {
       output.length = 0;
 
       // List tasks - should show progress percentage
-      await cli.parseArgv(['node', 'test', 'task', '-w', tempWorld.worldPath, 'list']);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'list',
+      ]);
 
       const listOutput = output.join('\n');
       expect(listOutput).toMatch(/\d+%/);
@@ -911,7 +1076,7 @@ describe('CLI: task command', () => {
           'set',
           'name',
           '',
-        ])
+        ]),
       ).rejects.toThrow(/Task name cannot be blank/);
     });
 
@@ -949,7 +1114,7 @@ describe('CLI: task command', () => {
           'set',
           'invalid',
           'value',
-        ])
+        ]),
       ).rejects.toThrow(/Invalid field: invalid/);
     });
 
@@ -1048,7 +1213,7 @@ describe('CLI: task command', () => {
           'set',
           'name',
           'value',
-        ])
+        ]),
       ).rejects.toThrow(/No task focused|Task not found/);
     });
 
@@ -1063,7 +1228,7 @@ describe('CLI: task command', () => {
           'set',
           'nonexistent.name',
           'value',
-        ])
+        ]),
       ).rejects.toThrow(/Task not found/);
     });
   });
@@ -1073,7 +1238,13 @@ describe('CLI: task command', () => {
     const task = world.entityList(Task).addItem({ name: 'Focus Me' });
 
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', task.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      task.id.base64,
     ]);
 
     expect(output[0]).toMatch(/Task focused:/);
@@ -1088,15 +1259,33 @@ describe('CLI: task command', () => {
     const taskB = world.entityList(Task).addItem({ name: 'Task B' });
 
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', taskA.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      taskA.id.base64,
     ]);
     output.length = 0;
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', taskB.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      taskB.id.base64,
     ]);
     output.length = 0;
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', taskA.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      taskA.id.base64,
     ]);
 
     const world2 = World.fromPath(tempWorld.worldPath);
@@ -1109,11 +1298,23 @@ describe('CLI: task command', () => {
     const task = world.entityList(Task).addItem({ name: 'Unfocus Me' });
 
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', task.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      task.id.base64,
     ]);
     output.length = 0;
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'unfocus', task.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'unfocus',
+      task.id.base64,
     ]);
 
     expect(output[0]).toMatch(/Task unfocused:/);
@@ -1127,15 +1328,32 @@ describe('CLI: task command', () => {
     const taskB = world.entityList(Task).addItem({ name: 'Task B' });
 
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', taskA.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      taskA.id.base64,
     ]);
     output.length = 0;
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'focus', taskB.id.base64,
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'focus',
+      taskB.id.base64,
     ]);
     output.length = 0;
     await cli.parseArgv([
-      'node', 'test', 'task', '-w', tempWorld.worldPath, 'unfocus',
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'unfocus',
     ]);
 
     expect(output[0]).toMatch(/Task unfocused:/);
@@ -1159,10 +1377,13 @@ describe('CLI: nameforma package script', () => {
   it('npm run cli task list shows no tasks when empty', () => {
     const tempWorld = createTempWorld();
     try {
-      const output = execSync(`npm run cli -- task -w ${tempWorld.tempDir} list`, {
-        cwd: process.cwd(),
-        encoding: 'utf8',
-      });
+      const output = execSync(
+        `npm run cli -- task -w ${tempWorld.tempDir} list`,
+        {
+          cwd: process.cwd(),
+          encoding: 'utf8',
+        },
+      );
 
       expect(output).toMatch(/No tasks/);
     } finally {

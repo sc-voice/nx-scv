@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import { Command } from 'commander';
 import DocCommand from '../../src/cli/cli-doc.js';
 
@@ -71,8 +77,8 @@ describe('DocCommand', () => {
     output.forEach((line) => {
       // Allow for ANSI codes and markdown table content
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, '');
-//0PsmmIHG00auPU-q_AgmtW
-      console.error("DEBUG", cleanLine.length, cleanLine);
+      //0PsmmIHG00auPU-q_AgmtW
+      console.error('DEBUG', cleanLine.length, cleanLine);
       expect(cleanLine.length).toBeLessThanOrEqual(100);
     });
   });

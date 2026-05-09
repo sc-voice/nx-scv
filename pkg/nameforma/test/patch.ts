@@ -58,21 +58,43 @@ describe('Patch', () => {
   it('patch simple', () => {
     const msg = 'tp3h.patch.simple';
     const id = new UUID64();
-    const thing1 = new TestClass({ id, color: 'blue', size: 34, sale: true, summary: "summary1" });
-    const thing2 = new TestClass({ id, color: 'blue', size: 34, sale: true, summary: "summary1" });
+    const thing1 = new TestClass({
+      id,
+      color: 'blue',
+      size: 34,
+      sale: true,
+      summary: 'summary1',
+    });
+    const thing2 = new TestClass({
+      id,
+      color: 'blue',
+      size: 34,
+      sale: true,
+      summary: 'summary1',
+    });
     const color = 'red';
     const size = 42;
     const sale = false;
-    const summary = "summary2";
+    const summary = 'summary2';
 
     const p3h1 = new Patch({ id, color });
     p3h1.apply(thing2);
-    expect(thing2).toMatchObject({ color: 'red', size: 34, sale: true, summary: "summary1" });
+    expect(thing2).toMatchObject({
+      color: 'red',
+      size: 34,
+      sale: true,
+      summary: 'summary1',
+    });
     dbg && cc.tag(msg, 'empty', p3h1);
 
     const p3h2 = new Patch({ id, color: 'green' });
     p3h2.apply(thing2);
-    expect(thing2).toMatchObject({ color: 'green', size: 34, sale: true, summary: "summary1" });
+    expect(thing2).toMatchObject({
+      color: 'green',
+      size: 34,
+      sale: true,
+      summary: 'summary1',
+    });
     dbg && cc.tag(msg, 'color', p3h2);
 
     const p3h3 = new Patch({ id, color, size, sale, summary });

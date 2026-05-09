@@ -1,4 +1,11 @@
-import { TUI, Text, Input, ProcessTerminal, type Component, type Focusable } from '@mariozechner/pi-tui';
+import {
+  TUI,
+  Text,
+  Input,
+  ProcessTerminal,
+  type Component,
+  type Focusable,
+} from '@mariozechner/pi-tui';
 import { Unicode } from '@sc-voice/tools/text';
 
 type Channel = 'stdout' | 'stderr' | string;
@@ -47,20 +54,30 @@ export class CliRenderer implements IRenderer {
 class PromptInput implements Component, Focusable {
   readonly input: Input;
 
-  get focused(): boolean { return this.input.focused; }
-  set focused(v: boolean) { this.input.focused = v; }
+  get focused(): boolean {
+    return this.input.focused;
+  }
+  set focused(v: boolean) {
+    this.input.focused = v;
+  }
 
   constructor(private prompt: string) {
     this.input = new Input();
     this.input.setValue('');
   }
 
-  handleInput(data: string): void { this.input.handleInput(data); }
-  invalidate(): void { this.input.invalidate(); }
+  handleInput(data: string): void {
+    this.input.handleInput(data);
+  }
+  invalidate(): void {
+    this.input.invalidate();
+  }
 
   render(width: number): string[] {
-    const lines = this.input.render(Math.max(1, width - this.prompt.length));
-    return lines.map((line, i) => i === 0 ? this.prompt + line : line);
+    const lines = this.input.render(
+      Math.max(1, width - this.prompt.length),
+    );
+    return lines.map((line, i) => (i === 0 ? this.prompt + line : line));
   }
 }
 
@@ -116,11 +133,15 @@ export class ReplRenderer implements IReplRenderer {
     });
   }
 
-  static started:boolean = false;
+  static started: boolean = false;
 
   start(): void {
     if (ReplRenderer.started) {
-      console.log(BRIGHT_CYAN, "[nf-tui123] extra start() ignored", NO_COLOR);
+      console.log(
+        BRIGHT_CYAN,
+        '[nf-tui123] extra start() ignored',
+        NO_COLOR,
+      );
       return;
     }
     ReplRenderer.started = true;
@@ -152,7 +173,9 @@ export class ReplRenderer implements IReplRenderer {
     const line = args.map(stringify).join(' ');
     this.errorLines.push(line);
     if (this.errorLines.length > 10) this.errorLines.shift();
-    this.errorText.setText(`${BRIGHT_RED}${this.errorLines.join('\n')}${RESET}`);
+    this.errorText.setText(
+      `${BRIGHT_RED}${this.errorLines.join('\n')}${RESET}`,
+    );
     this.tui.requestRender();
   }
 
@@ -195,12 +218,16 @@ export class TestReplRenderer implements IReplRenderer {
     if (this.inputQueue.length > 0) {
       return Promise.resolve(this.inputQueue.shift()!);
     }
-    return new Promise((resolve) => { this.resolveRead = resolve; });
+    return new Promise((resolve) => {
+      this.resolveRead = resolve;
+    });
   }
 
   start(): void {}
   stop(): void {}
-  clearErrors(): void { this.errorLines = []; }
+  clearErrors(): void {
+    this.errorLines = [];
+  }
 
   log(...args: unknown[]): void {
     this.scrollLines.push(args.map(String).join(' '));

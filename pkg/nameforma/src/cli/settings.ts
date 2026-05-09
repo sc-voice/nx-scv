@@ -7,7 +7,8 @@ export class Settings {
   isAgent: boolean;
 
   constructor(options?: { isAgent?: boolean }) {
-    this.isAgent = options?.isAgent !== undefined ? options.isAgent : IS_CLAUDE;
+    this.isAgent =
+      options?.isAgent !== undefined ? options.isAgent : IS_CLAUDE;
   }
 }
 

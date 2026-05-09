@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import { Command } from 'commander';
 import { execSync } from 'child_process';
 import { NameForma } from '../../src/index.js';
@@ -43,7 +49,10 @@ describe('CLI: action command', () => {
     program = new Command();
 
     // Create test command runner and get getGlobalOpts
-    const { testCmd: tc, getGlobalOpts } = createTestCmd(program, tempWorld.worldPath);
+    const { testCmd: tc, getGlobalOpts } = createTestCmd(
+      program,
+      tempWorld.worldPath,
+    );
     testCmd = tc;
 
     // Register commands with getGlobalOpts
@@ -87,7 +96,12 @@ describe('CLI: action command', () => {
 
     // Focus the task
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add an action to the focused task
     output = [];
@@ -112,11 +126,22 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add action with summary
     output = [];
-    await testCmd('action', 'add', 'Test Action', '-s', 'This is a summary');
+    await testCmd(
+      'action',
+      'add',
+      'Test Action',
+      '-s',
+      'This is a summary',
+    );
 
     expect(output[0]).toMatch(/✓ Action added/);
 
@@ -125,7 +150,9 @@ describe('CLI: action command', () => {
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.actions(world).items).toHaveLength(1);
-    expect(task!.actions(world).items[0].summary).toBe('This is a summary');
+    expect(task!.actions(world).items[0].summary).toBe(
+      'This is a summary',
+    );
   });
 
   it('action list explicit command', async () => {
@@ -136,7 +163,12 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add actions
     output = [];
@@ -149,7 +181,7 @@ describe('CLI: action command', () => {
     output = [];
     await testCmd('action', 'list');
 
-    const nonEmptyOutput = output.filter(line => line.trim());
+    const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[0]).toMatch(/Actions for/);
     expect(nonEmptyOutput[1]).toMatch(/○ 1\. Action 1/);
     expect(nonEmptyOutput[2]).toMatch(/○ 2\. Action 2/);
@@ -163,7 +195,12 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add an action
     output = [];
@@ -176,7 +213,7 @@ describe('CLI: action command', () => {
     output = [];
     await testCmd('action', 'show', actionId);
 
-    const nonEmptyOutput = output.filter(line => line.trim());
+    const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[1]).toMatch(/○ 1\. Test Action/);
     expect(nonEmptyOutput[2]).toMatch(/Test summary/);
   });
@@ -189,7 +226,12 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add an action
     output = [];
@@ -212,7 +254,12 @@ describe('CLI: action command', () => {
 
     // Set summary using dotref
     output = [];
-    await testCmd('action', 'set', `${actionId}.summary`, 'Updated summary');
+    await testCmd(
+      'action',
+      'set',
+      `${actionId}.summary`,
+      'Updated summary',
+    );
 
     expect(output[0]).toMatch(/✓ summary updated/);
 
@@ -232,7 +279,12 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add an action
     output = [];
@@ -271,7 +323,12 @@ describe('CLI: action command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add actions
     output = [];
@@ -293,7 +350,7 @@ describe('CLI: action command', () => {
     expect(task!.rawActions.length).toBe(1);
     expect(task.rawActions[0].name).toBe('Action 2');
 
-    const nonEmptyOutput = output.filter(line => line.trim());
+    const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[0]).toMatch(/✓ Action deleted/);
     expect(nonEmptyOutput[1]).toMatch(/Action 1/);
 
@@ -313,7 +370,12 @@ describe('CLI: action command', () => {
 
       // Focus task
       output = [];
-      { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+      {
+        const w = World.fromPath(tempWorld.worldPath);
+        const t = w.loadFuzzy(Task, taskId);
+        w.focusForma(t);
+        w.save();
+      }
 
       // Add action
       output = [];
@@ -359,7 +421,13 @@ describe('CLI: action command', () => {
       const { actionId } = await setupTaskWithAction();
 
       output = [];
-      await testCmd('action', 'set', `${actionId}.status`, 'spec', 'starting spec phase');
+      await testCmd(
+        'action',
+        'set',
+        `${actionId}.status`,
+        'spec',
+        'starting spec phase',
+      );
 
       expect(output[0]).toMatch(/req->spec starting spec phase/);
     });
@@ -368,7 +436,13 @@ describe('CLI: action command', () => {
       const { actionId, taskId } = await setupTaskWithAction();
 
       output = [];
-      await testCmd('action', 'set', `${actionId}.status`, 'spec', 'my note');
+      await testCmd(
+        'action',
+        'set',
+        `${actionId}.status`,
+        'spec',
+        'my note',
+      );
 
       const w = World.fromPath(tempWorld.worldPath);
       const task = w.loadFuzzy(Task, taskId)!;
@@ -381,12 +455,24 @@ describe('CLI: action command', () => {
       const { actionId } = await setupTaskWithAction();
 
       // First move to spec
-      await testCmd('action', 'set', `${actionId}.status`, 'spec', 'move to spec');
+      await testCmd(
+        'action',
+        'set',
+        `${actionId}.status`,
+        'spec',
+        'move to spec',
+      );
 
       output = [];
       try {
         // spec → done is not a valid transition
-        await testCmd('action', 'set', `${actionId}.status`, 'done', 'invalid transition');
+        await testCmd(
+          'action',
+          'set',
+          `${actionId}.status`,
+          'done',
+          'invalid transition',
+        );
         expect.fail('Should have thrown');
       } catch (e: any) {
         expect(e.message).toMatch(/invalid transition/);
@@ -409,8 +495,12 @@ describe('CLI: action command', () => {
       encoding: 'utf8',
     });
 
-    expect(output).toMatch(/Manage actions.*req.*spec.*work.*test.*manage.*done/s);
-    expect(output).toMatch(/that can be added, listed, updated, and deleted for tasks/);
+    expect(output).toMatch(
+      /Manage actions.*req.*spec.*work.*test.*manage.*done/s,
+    );
+    expect(output).toMatch(
+      /that can be added, listed, updated, and deleted for tasks/,
+    );
     expect(output).toMatch(/nf action list/);
     expect(output).toMatch(/nf action add/);
     expect(output).toMatch(/nf action delete/);

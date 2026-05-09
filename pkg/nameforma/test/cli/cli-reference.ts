@@ -1,4 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from '@sc-voice/vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+} from '@sc-voice/vitest';
 import { Command } from 'commander';
 import { execSync } from 'child_process';
 import { NameForma } from '../../src/index.js';
@@ -43,7 +49,10 @@ describe('CLI: reference command', () => {
     program = new Command();
 
     // Create test command runner and get getGlobalOpts
-    const { testCmd: tc, getGlobalOpts } = createTestCmd(program, tempWorld.worldPath);
+    const { testCmd: tc, getGlobalOpts } = createTestCmd(
+      program,
+      tempWorld.worldPath,
+    );
     testCmd = tc;
 
     // Register commands with getGlobalOpts
@@ -87,7 +96,12 @@ describe('CLI: reference command', () => {
 
     // Focus the task
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add a reference to the focused task
     output = [];
@@ -112,11 +126,21 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add reference with summary as positional arg
     output = [];
-    await testCmd('reference', 'add', 'Test Reference', 'This is a summary');
+    await testCmd(
+      'reference',
+      'add',
+      'Test Reference',
+      'This is a summary',
+    );
 
     expect(output[0]).toMatch(/✓ Reference added/);
 
@@ -125,7 +149,9 @@ describe('CLI: reference command', () => {
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.references(world).items).toHaveLength(1);
-    expect(task!.references(world).items[0].summary).toBe('This is a summary');
+    expect(task!.references(world).items[0].summary).toBe(
+      'This is a summary',
+    );
   });
 
   it('reference add with relevance and source', async () => {
@@ -136,7 +162,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add reference with relevance and source
     output = [];
@@ -170,7 +201,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     output = [];
     await testCmd('reference', 'add', 'Test Reference');
@@ -187,7 +223,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Create a real file in the temp world root for the probe to find
     const { mkdirSync, writeFileSync } = await import('fs');
@@ -212,7 +253,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Try to add reference with invalid relevance
     try {
@@ -220,7 +266,9 @@ describe('CLI: reference command', () => {
       await testCmd('reference', 'add', 'Test Reference', '-r', '1.5');
       expect.fail('Should have thrown');
     } catch (e: any) {
-      expect(e.message).toMatch(/Relevance must be a number between 0 and 1/);
+      expect(e.message).toMatch(
+        /Relevance must be a number between 0 and 1/,
+      );
     }
   });
 
@@ -232,7 +280,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add references
     output = [];
@@ -246,7 +299,7 @@ describe('CLI: reference command', () => {
     await testCmd('reference', 'list');
 
     // Filter out empty strings from output array
-    const nonEmptyOutput = output.filter(line => line.trim());
+    const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[0]).toMatch(/References for/);
     expect(nonEmptyOutput[1]).toMatch(/1\. Reference 2/);
     expect(nonEmptyOutput[2]).toMatch(/0\.8/);
@@ -261,7 +314,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add a reference
     output = [];
@@ -281,7 +339,7 @@ describe('CLI: reference command', () => {
     output = [];
     await testCmd('reference', 'show', referenceId);
 
-    const nonEmptyOutput = output.filter(line => line.trim());
+    const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[1]).toMatch(/1\. Test Reference/);
     expect(nonEmptyOutput[2]).toMatch(/Test summary/);
     expect(nonEmptyOutput[3]).toMatch(/0\.7/);
@@ -295,7 +353,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add a reference
     output = [];
@@ -331,7 +394,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add two references
     output = [];
@@ -359,7 +427,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add a reference
     output = [];
@@ -370,12 +443,22 @@ describe('CLI: reference command', () => {
 
     // Set name
     output = [];
-    await testCmd('reference', 'set', `${referenceId}.name`, 'Updated Name');
+    await testCmd(
+      'reference',
+      'set',
+      `${referenceId}.name`,
+      'Updated Name',
+    );
     expect(output[0]).toMatch(/✓ Reference updated/);
 
     // Set summary
     output = [];
-    await testCmd('reference', 'set', `${referenceId}.summary`, 'New summary');
+    await testCmd(
+      'reference',
+      'set',
+      `${referenceId}.summary`,
+      'New summary',
+    );
     expect(output[0]).toMatch(/✓ Reference updated/);
 
     // Set relevance
@@ -385,7 +468,12 @@ describe('CLI: reference command', () => {
 
     // Set source
     output = [];
-    await testCmd('reference', 'set', `${referenceId}.source`, 'https://new-source.com');
+    await testCmd(
+      'reference',
+      'set',
+      `${referenceId}.source`,
+      'https://new-source.com',
+    );
 
     // Verify all updates persisted
     const world = World.fromPath(tempWorld.worldPath);
@@ -405,7 +493,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     try {
       output = [];
@@ -424,7 +517,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add a reference
     output = [];
@@ -439,7 +537,9 @@ describe('CLI: reference command', () => {
       await testCmd('reference', 'set', `${referenceId}.relevance`, '1.5');
       expect.fail('Should have thrown');
     } catch (e: any) {
-      expect(e.message).toMatch(/Relevance must be a number between 0 and 1/);
+      expect(e.message).toMatch(
+        /Relevance must be a number between 0 and 1/,
+      );
     }
   });
 
@@ -451,7 +551,12 @@ describe('CLI: reference command', () => {
     const taskId = taskIdMatch![1];
 
     output = [];
-    { const w = World.fromPath(tempWorld.worldPath); const t = w.loadFuzzy(Task, taskId); w.focusForma(t); w.save(); }
+    {
+      const w = World.fromPath(tempWorld.worldPath);
+      const t = w.loadFuzzy(Task, taskId);
+      w.focusForma(t);
+      w.save();
+    }
 
     // Add references
     output = [];
@@ -470,7 +575,7 @@ describe('CLI: reference command', () => {
     output = [];
     await testCmd('reference', 'delete', ref1Id);
 
-    const nonEmptyOutput = output.filter(line => line.trim());
+    const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[0]).toMatch(/✓ Reference deleted/);
     expect(nonEmptyOutput[1]).toMatch(/Reference 1/);
 
@@ -490,7 +595,9 @@ describe('CLI: reference command', () => {
       encoding: 'utf8',
     });
 
-    expect(output).toMatch(/Manage references linking tasks\/actions to external resources/);
+    expect(output).toMatch(
+      /Manage references linking tasks\/actions to external resources/,
+    );
     expect(output).toMatch(/nf reference list/);
     expect(output).toMatch(/nf ref add/);
     expect(output).toMatch(/nf ref json/);
@@ -532,5 +639,4 @@ describe('CLI: reference command', () => {
     expect(output).toMatch(/nf ref set REF_ID.relevance/);
     expect(output).toMatch(/nf ref set REF_ID.source/);
   });
-
 });

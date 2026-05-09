@@ -17,10 +17,14 @@ export default class CommitMsgCommand {
    */
   static getLastCommitDate(): Date {
     try {
-      const dateStr = execSync('git log -1 --format=%ai', { encoding: 'utf-8' }).trim();
+      const dateStr = execSync('git log -1 --format=%ai', {
+        encoding: 'utf-8',
+      }).trim();
       return new Date(dateStr);
     } catch (err) {
-      throw new Error('Failed to get last commit date. Make sure you are in a git repository.');
+      throw new Error(
+        'Failed to get last commit date. Make sure you are in a git repository.',
+      );
     }
   }
 
@@ -29,12 +33,17 @@ export default class CommitMsgCommand {
    */
   static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
     cmd
-      .description('List done actions from focused tasks since last commit')
-      .addHelpText('after', [
-        '',
-        'Outputs to stdout. Redirect to file if needed:',
-        '  $ nf commit-msg > .commit-msg',
-      ].join('\n'))
+      .description(
+        'List done actions from focused tasks since last commit',
+      )
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Outputs to stdout. Redirect to file if needed:',
+          '  $ nf commit-msg > .commit-msg',
+        ].join('\n'),
+      )
       .action((options: any, cmdObj: any) => {
         try {
           const world = getGlobalOpts().world;
@@ -54,8 +63,12 @@ export default class CommitMsgCommand {
             if (!task) continue;
 
             // Get done actions since last commit
-            const doneActions = task.rawActions.filter(action => {
-              return action.status === 'done' && action.statusDate && new Date(action.statusDate) > lastCommitDate;
+            const doneActions = task.rawActions.filter((action) => {
+              return (
+                action.status === 'done' &&
+                action.statusDate &&
+                new Date(action.statusDate) > lastCommitDate
+              );
             });
 
             if (doneActions.length === 0) continue;
@@ -69,7 +82,13 @@ export default class CommitMsgCommand {
             for (const action of doneActions) {
               const itemId = actions.itemListId(action) + ':';
               const line = action.listItemString({ itemId });
-              const wrapped = tui.wrapAndTruncate(line, 74, 1, 'ellipsis', itemId.length);
+              const wrapped = tui.wrapAndTruncate(
+                line,
+                74,
+                1,
+                'ellipsis',
+                itemId.length,
+              );
               lines.push(`  ${wrapped}`);
             }
           }
