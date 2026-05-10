@@ -9,7 +9,6 @@ import type {
 import type { Forma } from '../../forma.js';
 
 import { ZenoCoord } from '../../navigable-view.js';
-import { EventEmitter } from 'events';
 import { NfSession } from './nf-session.js';
 
 export class NfWidget {
@@ -21,12 +20,11 @@ export class NfWidget {
     private theme: Theme,
     private key: string,
     private onInvalidate: () => void,
-    private events: EventEmitter,
     initialDetail: RenderDetail | number = 0,
   ) {
     this.detail = initialDetail;
     this.update();
-    this.events.on('tick', this.update);
+    NfSession.shared.on('tick', this.update);
   }
 
   get anchor(): IRenderable | null {
@@ -37,15 +35,16 @@ export class NfWidget {
     return NfSession.shared.pivot;
   }
 
+  get zenoCoord(): ZenoCoord {
+    return ZenoCoord.fromRenderDetail(this.detail);
+  }
+
   private renderContent(): string[] {
     if (!this.anchor) {
       return ['(no anchor)'];
     }
 
-    const renderData = this.anchor.asRenderData(
-      this.detail,
-      this.pivot ?? undefined,
-    );
+    const renderData = this.anchor.asRenderData(NfSession.shared.view);
     return this.renderer.render(renderData);
   }
 
@@ -117,17 +116,11 @@ export class NfWidget {
     });
   }
 
-  zoom(detailIncrement: number): void {
-    this.detail = (this.detail as number) + detailIncrement;
-    this.update();
-    this.onInvalidate();
-  }
-
   observe(): void {
     // Widget is already observing via the tick event
   }
 
   dispose(): void {
-    this.events.off('tick', this.update);
+    NfSession.shared.off('tick', this.update);
   }
 }

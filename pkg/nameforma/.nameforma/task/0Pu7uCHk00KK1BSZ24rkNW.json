@@ -1,36 +1,36 @@
 {
   "id": "0Pu7uCHk00KK1BSZ24rkNW",
-  "name": "NfContext for nf-pi extension",
-  "summary": "Implement NfContext for the nf-pi extension to handle context management.",
+  "name": "NfSession for nf-pi extension",
+  "summary": "Implemented NfSession singleton extending EventEmitter with WorldView as single property; delegated anchor/pivot/zenoCoord/world via getters; unified asRenderData signature to accept IView; NfPrompt and NfWidget consume NfSession.shared.view for rendering",
   "rawActions": [
     {
       "id": "0Pu7vRNO00KK1BSZ24rkNW",
-      "name": "Refactor NfContext to manage EventEmitter, World, and focused task lookup",
-      "summary": "Refactor NfContext (singleton) to bridge World events (e.g., 'change') to its own event bus; NfContext.init() must establish this link to the pre-resolved World and maintain a synchronized 'focusedTask: Task | null' property. Simultaneously, refactor NfOverlay and NfWidget to remove duplicate 'loadFocusedTaskAsAnchor' logic and strip their constructors of the World dependency, delegating all focus tracking to NfContext.",
+      "name": "Implement NfSession singleton with WorldView delegation",
+      "summary": "Implemented NfSession as singleton EventEmitter holding WorldView; NfSession delegates anchor/pivot/zenoCoord/world to view via getters; unified asRenderData signature to accept IView instead of separate detail/pivot parameters; removed pivot initialization (interaction happens later)",
       "status": "spec",
       "statusNote": "requirements clear",
       "statusDate": "2026-05-08T20:33:29.361Z"
     },
     {
       "id": "0Pu7vROZ00KK1BSZ24rkNW",
-      "name": "Refactor index.ts to use NfContext singleton",
-      "summary": "",
+      "name": "Refactor index.ts to use NfSession singleton",
+      "summary": "Refactored index.ts to call NfSession.init() at startup; NfSession initialization creates WorldView and establishes singleton event bus with tick events",
       "status": "req",
       "statusNote": "",
       "statusDate": "2026-05-08T14:02:35.427Z"
     },
     {
       "id": "0Pu7vRPk00KK1BSZ24rkNW",
-      "name": "Refactor NfOverlay to consume NfContext and remove duplicate logic",
-      "summary": "",
+      "name": "Refactor NfPrompt to consume NfSession",
+      "summary": "Renamed NfOverlay to NfPrompt; refactored to use NfSession.shared for anchor/pivot state; updated renderContent() to pass NfSession.shared.view to asRenderData()",
       "status": "req",
       "statusNote": "",
       "statusDate": "2026-05-08T14:02:35.502Z"
     },
     {
       "id": "0Pu7vRQw00KK1BSZ24rkNW",
-      "name": "Refactor NfWidget to consume NfContext and remove duplicate logic",
-      "summary": "",
+      "name": "Refactor NfWidget to consume NfSession",
+      "summary": "Refactored NfWidget to use NfSession.shared for anchor/pivot/world state; updated renderContent() to pass NfSession.shared.view to asRenderData()",
       "status": "req",
       "statusNote": "",
       "statusDate": "2026-05-08T14:02:35.578Z"
@@ -46,17 +46,17 @@
     },
     {
       "id": "0Pu7vwTW00KK1BSZ24rkNW",
-      "name": "nf-context.ts",
+      "name": "nf-session.ts",
       "summary": "",
       "relevance": 0.5,
-      "source": "nf:./src/pi/nf-pi/nf-context.ts"
+      "source": "nf:./src/pi/nf-pi/nf-session.ts"
     },
     {
       "id": "0Pu7vwUd00KK1BSZ24rkNW",
-      "name": "nf-overlay.ts",
+      "name": "nf-prompt.ts",
       "summary": "",
       "relevance": 0.5,
-      "source": "nf:./src/pi/nf-pi/nf-overlay.ts"
+      "source": "nf:./src/pi/nf-pi/nf-prompt.ts"
     },
     {
       "id": "0Pu7vwVn00KK1BSZ24rkNW",

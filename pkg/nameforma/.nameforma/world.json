@@ -71,18 +71,11 @@
       "summary": "A class that converts RenderData into an array of string[]"
     },
     {
-      "id": "0Pu8S7QS00KK1BSZ24rkNW",
+      "id": "0PuEkaqb00KK1BSZ24rkNW",
       "formaId": "0Pu7uCHk00KK1BSZ24rkNW",
       "formaType": "task",
       "name": "NfContext for nf-pi extension",
-      "summary": "Implement NfContext for the nf-pi extension to handle context management."
-    },
-    {
-      "id": "0Pu9b0el00ZhEi7FuO2StW",
-      "formaId": "0Pu9ayyC00ZhEi7FuO2StW",
-      "formaType": "task",
-      "name": "test",
-      "summary": ""
+      "summary": "Implemented NfSession singleton extending EventEmitter with WorldView as single property; delegated anchor/pivot/zenoCoord/world via getters; unified asRenderData signature to accept IView; NfWidget and NfOverlay consume NfSession.shared.view for rendering"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

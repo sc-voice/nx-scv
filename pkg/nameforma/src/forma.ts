@@ -4,6 +4,7 @@ import {
   RenderData,
   RenderDetail,
   IRenderable,
+  IView,
   ZenoCoord,
 } from './navigable-view.js';
 import { FormaField } from './forma-field.js';
@@ -288,13 +289,11 @@ export class Forma extends Identifiable implements IRenderable {
     return this.tuiRowStrings(cfg).join(' ');
   }
 
-  asRenderData(
-    detail: RenderDetail | number = RenderDetail.Row,
-    pivot?: Forma,
-  ): RenderData {
+  asRenderData(view: IView): RenderData {
     const { id, name, summary } = this;
     const cls = this.constructor.name;
     const shortId = id.timeId();
+    const detail = view.detail;
 
     if (detail < RenderDetail.Row) {
       return new FormaField('id', false, `${cls}.id`, id.timeId());

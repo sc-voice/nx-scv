@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { World } from '../../world.js';
+import { WorldView } from '../../world-view.js';
 import { ZenoCoord } from '../../navigable-view.js';
-import { Task } from '../../task.js';
 
 /**
  * NfSession stores shared context for the nf-pi extension.
@@ -11,16 +11,28 @@ import { Task } from '../../task.js';
 export class NfSession extends EventEmitter {
   private static _shared: NfSession;
 
-  public zenoCoord?: ZenoCoord;
-  public world: World;
-  public anchor: any;
-  public pivot: any;
+  public view: WorldView;
 
   private constructor(world: World) {
     super();
-    this.world = world;
-    this.anchor = world;
-    this.pivot = null;
+    this.view = new WorldView(world, 'nf-pi');
+    this.view.setAnchor(world);
+  }
+
+  get anchor() {
+    return this.view.anchor;
+  }
+
+  get pivot() {
+    return this.view.pivot;
+  }
+
+  get zenoCoord() {
+    return this.view.zenoCoord;
+  }
+
+  get world() {
+    return this.view.world;
   }
 
   public static get shared(): NfSession {
@@ -46,19 +58,6 @@ export class NfSession extends EventEmitter {
       // World not found, context will work without anchor
     }
     const ctx = new NfSession(world as World);
-
-    // Load focused task if one exists
-    if (world) {
-      const focusedTaskFocus = world.focusedForma('task');
-      if (focusedTaskFocus) {
-        try {
-          ctx.pivot = world.loadEntity(Task, focusedTaskFocus.formaId);
-        } catch (error) {
-          // Task not found or load failed, pivot remains null
-        }
-      }
-    }
-
     NfSession._shared = ctx;
     return NfSession._shared;
   }

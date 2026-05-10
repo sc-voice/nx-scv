@@ -5,6 +5,7 @@ import {
   IView,
   ICursor,
   CursorType,
+  ZenoCoord,
 } from './navigable-view.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
@@ -48,6 +49,10 @@ export class WorldView implements IView {
     this._detail = value;
   }
 
+  get zenoCoord(): ZenoCoord {
+    return ZenoCoord.fromRenderDetail(this._detail);
+  }
+
   private _primaryAxis: IRenderable[] = [];
   private _cursor: ICursor | null = null;
 
@@ -61,8 +66,8 @@ export class WorldView implements IView {
     this.pivot = value;
   }
 
-  zoom(delta: number): void {
-    this._detail += delta;
+  zoomTo(zeno: ZenoCoord): void {
+    this._detail = zeno.toRenderDetail();
   }
 
   getCursor(): ICursor {

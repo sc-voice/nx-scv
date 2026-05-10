@@ -4,6 +4,8 @@ import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
 import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
+import type { IView } from '../src/navigable-view.js';
+import { ZenoCoord } from '../src/navigable-view.js';
 
 const { Schema, Forma, RenderDetail } = NameForma;
 const { Unicode, ColorConsole } = Text;
@@ -91,8 +93,19 @@ describe('Forma', () => {
       summary: 'A test forma for verification',
     });
 
+    const createMockView = (detail: RenderDetail | number): IView => ({
+      anchor: f,
+      pivot: null as any,
+      detail,
+      zenoCoord: ZenoCoord.fromRenderDetail(detail),
+      setAnchor: () => {},
+      setPivot: () => {},
+      zoomTo: () => {},
+      observe: () => {},
+    });
+
     // All (anchor>=2): 3 FormaFields with full id, name, summary
-    const dataAll = f.asRenderData(RenderDetail.All);
+    const dataAll = f.asRenderData(createMockView(RenderDetail.All));
     expect(Array.isArray(dataAll)).toBe(true);
     expect(dataAll).toHaveLength(3);
     expect(dataAll[0]).toBeInstanceOf(FormaField);
@@ -104,12 +117,12 @@ describe('Forma', () => {
     expect(dataAll[2].value).toBe('A test forma for verification');
 
     // Row (anchor=0): compact string "timeId: name"
-    const dataRow = f.asRenderData(RenderDetail.Row);
+    const dataRow = f.asRenderData(createMockView(RenderDetail.Row));
     expect(typeof dataRow).toBe('string');
     expect(dataRow).toBe(`${f.id.timeId()}: test-forma`);
 
     // Cell (detail<0): single FormaField with id timeId
-    const dataCell = f.asRenderData(RenderDetail.Cell);
+    const dataCell = f.asRenderData(createMockView(RenderDetail.Cell));
     expect(dataCell).toBeInstanceOf(FormaField);
     expect(dataCell.name).toBe('id');
     expect(dataCell.value).toBe(f.id.timeId());

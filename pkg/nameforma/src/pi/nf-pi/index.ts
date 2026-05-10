@@ -2,39 +2,22 @@ import type {
   ExtensionAPI,
   ExtensionCommandContext,
 } from '@mariozechner/pi-coding-agent';
-import { EventEmitter } from 'events';
-import { NfOverlay } from './nf-overlay.js';
+import { NfPrompt } from './nf-prompt.js';
 import { NfWidget } from './nf-widget.js';
 import { NfSession } from './nf-session.js';
-import { World } from '../../world.js';
-
-const extensionEvents = new EventEmitter();
-
-// The single heartbeat for the entire extension
-setInterval(() => {
-  extensionEvents.emit('tick');
-}, 1000);
 
 let activeWidget: NfWidget | null = null;
-let world: World | null = null;
-
-function initializeWorld(): void {
-  if (world) return;
-  try {
-    const worldPath = World.findWorld();
-    if (worldPath) {
-      world = World.fromPath(worldPath);
-    }
-  } catch (error) {
-    // World not found, widget will work without anchor
-  }
-}
 
 export default function (pi: ExtensionAPI) {
   NfSession.init();
 
-  pi.registerCommand('nf-overlay', {
-    description: 'Display nf-overlay with focused task',
+  // The single heartbeat for the entire extension
+  setInterval(() => {
+    NfSession.shared.emit('tick');
+  }, 1000);
+
+  pi.registerCommand('nf-prompt', {
+    description: 'Display nf-prompt with focused task',
     handler: async (_args: string, ctx: ExtensionCommandContext) => {
       if (!ctx.hasUI) {
         ctx.ui.notify(
@@ -46,11 +29,10 @@ export default function (pi: ExtensionAPI) {
 
       await ctx.ui.custom(
         (tui: any, theme: any, _keybindings: any, done: any) =>
-          new NfOverlay(
+          new NfPrompt(
             tui,
             theme,
             done,
-            extensionEvents,
           ),
         {
           overlay: true,
@@ -84,7 +66,6 @@ export default function (pi: ExtensionAPI) {
             ctx.ui.setWidget('nf-widget', activeWidget.getContent());
           }
         },
-        extensionEvents,
       );
 
       ctx.ui.setWidget('nf-widget', activeWidget.getContent());

@@ -171,7 +171,7 @@ export interface IRenderable extends Identifiable {
   /**
    * Renders the subject into the provided renderer.
    */
-  asRenderData(detail?: RenderDetail | number, pivot?: Forma): RenderData;
+  asRenderData(view: IView): RenderData;
 }
 
 export type CursorTarget =
@@ -238,6 +238,7 @@ export interface IView {
   readonly anchor: IRenderable;
   readonly pivot: Forma;
   readonly detail: number;
+  readonly zenoCoord: ZenoCoord;
 
   /**
    * Sets the primary subject of observation.
@@ -249,7 +250,7 @@ export interface IView {
    */
   setPivot(value: Forma): void;
 
-  zoom(detailIncrement: number): void;
+  zoomTo(zeno: ZenoCoord): void;
 
   /**
    * Starts the observation loop/stream for a given renderer and channel.
