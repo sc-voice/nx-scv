@@ -231,18 +231,23 @@ export class Action extends Forma {
     let statusNote = this.statusNote ? `(${this.statusNote})` : '';
     const {
       BRIGHT_GREEN,
-      BRIGHT_CYAN,
       BRIGHT_RED,
+      BRIGHT_BLUE,
+      BRIGHT_YELLOW,
       BRIGHT_MAGENTA,
+      BLUE,
+      RED,
+      MAGENTA,
+      YELLOW,
       NO_COLOR,
     } = Unicode.LINUX_COLOR;
     const statusColor: Record<string, string> = {
-      done: BRIGHT_GREEN,
-      test: BRIGHT_CYAN,
+      req: BLUE,
+      spec: BRIGHT_BLUE,
+      work: YELLOW,
+      test: BRIGHT_MAGENTA,
       manage: BRIGHT_RED,
-      req: BRIGHT_MAGENTA,
-      spec: BRIGHT_MAGENTA,
-      work: BRIGHT_CYAN,
+      done: BRIGHT_GREEN,
     };
     const c = statusColor[this.status] ?? '';
     const dateStr = Action.shortDate(this.statusDate) + URAR;

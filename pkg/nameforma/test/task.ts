@@ -246,8 +246,7 @@ describe('task', () => {
     const actionsList = new FormaList(
       task.rawActions,
       Action,
-      task,
-      mockBus,
+      { parent: task, emitter: mockBus },
     );
     dbg > 1 && cc.tag(msg, 'created FormaList with mock bus');
 
@@ -485,5 +484,92 @@ describe('task', () => {
         msg + UOK,
         'deleteItem mutations sync with rawReferences as Reference instances',
       );
+  });
+
+  it('Task.namespace() supports fuzzy ID lookup for actions and references', () => {
+    const msg = 't2k.namespace.fuzzyid';
+    const t2k = new Task({ name: 'test task' });
+
+    // Add actions
+    const actionsList = t2k.actions({ emit: () => {}, on: () => {} } as any);
+    const action1 = actionsList.addItem({ name: 'action1' });
+    const action2 = actionsList.addItem({ name: 'action2' });
+
+    // Add references
+    const refsList = t2k.references({ emit: () => {}, on: () => {} } as any);
+    const ref1 = refsList.addItem({ name: 'ref1' });
+    const ref2 = refsList.addItem({ name: 'ref2' });
+
+    // Get fuzzy IDs and verify retrieval
+    const ns = t2k.namespace();
+    const fuzzyId1 = ns.fuzzyIdOf(action1);
+    const fuzzyId2 = ns.fuzzyIdOf(action2);
+    const fuzzyIdRef1 = ns.fuzzyIdOf(ref1);
+    const fuzzyIdRef2 = ns.fuzzyIdOf(ref2);
+
+    expect(fuzzyId1).toBeDefined();
+    expect(fuzzyId2).toBeDefined();
+    expect(fuzzyIdRef1).toBeDefined();
+    expect(fuzzyIdRef2).toBeDefined();
+
+    // Retrieve by full fuzzy ID
+    expect(ns.getForma(fuzzyId1)).toBe(action1);
+    expect(ns.getForma(fuzzyId2)).toBe(action2);
+    expect(ns.getForma(fuzzyIdRef1)).toBe(ref1);
+    expect(ns.getForma(fuzzyIdRef2)).toBe(ref2);
+
+    dbg && cc.tag1(msg + UOK, 'namespace fuzzy ID lookup works for actions and references');
+  });
+
+  it('Task.namespace() throws on ambiguous fuzzy ID match', () => {
+    const msg = 't2k.namespace.ambiguous';
+    const t2k = new Task({ name: 'test task' });
+    const bus = { emit: () => {}, on: () => {} } as any;
+
+    const actionsList = t2k.actions(bus);
+    const action1 = actionsList.addItem({ name: 'action1' });
+    const action2 = actionsList.addItem({ name: 'action2' });
+
+    const ns = t2k.namespace();
+
+    // A very short fuzzyId might match multiple items with levenshtein tolerance
+    // This should throw an error, not return undefined or ambiguous result
+    expect(() => ns.getForma('0')).toThrow(/ambiguous/);
+    dbg && cc.tag1(msg + UOK, 'ambiguous fuzzyId throws error');
+  });
+
+  it('Task.namespace() fuzzy IDs update when items deleted', () => {
+    const msg = 't2k.namespace.fuzzyid.delete';
+    const t2k = new Task({ name: 'test task' });
+    const bus = { emit: () => {}, on: () => {} } as any;
+
+    const actionsList = t2k.actions(bus);
+    const action1 = actionsList.addItem({ name: 'action1' });
+    const action2 = actionsList.addItem({ name: 'action2' });
+
+    const refsList = t2k.references(bus);
+    const ref1 = refsList.addItem({ name: 'ref1' });
+
+    const ns = t2k.namespace();
+    const fuzzyId1 = ns.fuzzyIdOf(action1);
+    const fuzzyIdRef1 = ns.fuzzyIdOf(ref1);
+
+    // Verify items exist by fuzzy ID
+    expect(ns.getForma(fuzzyId1)).toBe(action1);
+    expect(ns.getForma(fuzzyIdRef1)).toBe(ref1);
+
+    // Delete items
+    actionsList.deleteItem(action1.id.base64);
+    refsList.deleteItem(ref1.id.base64);
+
+    // Verify removed from namespace by fuzzy ID
+    expect(ns.getForma(fuzzyId1)).toBeUndefined();
+    expect(ns.getForma(fuzzyIdRef1)).toBeUndefined();
+
+    // Verify remaining action2 still accessible
+    const fuzzyId2 = ns.fuzzyIdOf(action2);
+    expect(ns.getForma(fuzzyId2)).toBe(action2);
+
+    dbg && cc.tag1(msg + UOK, 'namespace fuzzy IDs update correctly on delete');
   });
 });

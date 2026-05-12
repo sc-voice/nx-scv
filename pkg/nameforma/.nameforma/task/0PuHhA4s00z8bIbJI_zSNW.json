@@ -1,0 +1,112 @@
+{
+  "id": "0PuHhA4s00z8bIbJI_zSNW",
+  "name": "Improve FuzzyId support",
+  "summary": "Implement INamespaced for World and Task. Architecture: Replace FormaList with FuzzyNamespace entirely as single unified system. (1) Extend FuzzyNamespace: add patchForma(), event bus support, mutation methods. (2) World implements INamespaced: namespace(bus) returns FuzzyNamespace of all top-level entities. (3) Task implements INamespaced: namespace(bus) returns combined FuzzyNamespace of actions + references (no more disjoint namespaces). (4) Update clients: CLI, tests to use namespace(bus). Key files: src/fuzzy-namespace.ts, src/world.ts, src/task.ts, src/forma-list.ts (to replace), src/cli/cli-task.ts (to update).",
+  "rawActions": [
+    {
+      "id": "0PuI87Iq00z8bIbJI_zSNW",
+      "name": "Define FuzzyNamespace Class",
+      "summary": "Define the FuzzyNamespace class implementation for INamespaceProviders and structural requirements for FuzzyId masking logic.",
+      "status": "done",
+      "statusNote": "FuzzyNamespace fully integrated with FormaList mutation API",
+      "statusDate": "2026-05-11T22:27:13.955Z"
+    },
+    {
+      "id": "0PuIxwLY00z8bIbJI_zSNW",
+      "name": "Implement INamespaced for World",
+      "summary": "Make World class implement INamespaced interface. World manages a FuzzyNamespace of all top-level entities, enabling agent discovery and UI navigation of the world's working set.",
+      "status": "manage",
+      "statusNote": "implementation tested, 11 new tests all passing",
+      "statusDate": "2026-05-12T00:14:17.758Z"
+    },
+    {
+      "id": "0PuJ0bUs00z8bIbJI_zSNW",
+      "name": "Implement INamespaced for Task",
+      "summary": "Task currently manages two disjoint FormaLists (rawActions, rawReferences) within a single work context. DUAL FORMA-LIST PROBLEM: Each list has separate FuzzyId masking and mutation API; clients must call both separately for complete visibility. SOLUTION: Combined namespace via Task.namespace(bus): IFuzzyNamespace merging actions+references into single discoverable interface. Migrate clients from task.actions(bus)+task.references(bus) to unified task.namespace(bus). Part of FormaList→FuzzyNamespace replacement.",
+      "status": "done",
+      "statusNote": "clone and user agree",
+      "statusDate": "2026-05-11T23:56:36.437Z"
+    },
+    {
+      "id": "0PuPYb_o00z8bIbJI_zSNW",
+      "name": "Update CLI task display to use World.namespace() fuzzyIds",
+      "summary": "",
+      "status": "test",
+      "statusNote": "implementation complete: entityList now receives world.namespace()",
+      "statusDate": "2026-05-12T00:26:40.194Z"
+    },
+    {
+      "id": "0PuPZqWF00z8bIbJI_zSNW",
+      "name": "LEUI nf-pi extension using FuzzyNamespaces",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-12T00:21:21.039Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PuHhAxg00z8bIbJI_zSNW",
+      "name": "forma-list.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/forma-list.d.ts"
+    },
+    {
+      "id": "0PuHhAyp00z8bIbJI_zSNW",
+      "name": "forma.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/forma.d.ts"
+    },
+    {
+      "id": "0PuHhAzw00z8bIbJI_zSNW",
+      "name": "entity.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/entity.d.ts"
+    },
+    {
+      "id": "0PuHhA_400z8bIbJI_zSNW",
+      "name": "world.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/world.d.ts"
+    },
+    {
+      "id": "0PuHiDTf00z8bIbJI_zSNW",
+      "name": "identifiable.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/identifiable.d.ts"
+    },
+    {
+      "id": "0PuHiK0s00z8bIbJI_zSNW",
+      "name": "uuid64.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/uuid64.d.ts"
+    },
+    {
+      "id": "0PuI0JIx00z8bIbJI_zSNW",
+      "name": "navigable-view.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/navigable-view.d.ts"
+    },
+    {
+      "id": "0PuIOXvH00z8bIbJI_zSNW",
+      "name": "fuzzy-namespace.ts",
+      "summary": "FuzzyNamespace class implementation",
+      "relevance": 0.9,
+      "source": "nf:./src/fuzzy-namespace.ts"
+    },
+    {
+      "id": "0PuPam7i00z8bIbJI_zSNW",
+      "name": "PYb_o",
+      "summary": "@src/cli/cli-task.ts",
+      "relevance": 0.5,
+      "source": ""
+    }
+  ]
+}

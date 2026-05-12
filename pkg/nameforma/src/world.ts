@@ -19,6 +19,7 @@ import {
 } from './forma-list.js';
 import { Focus } from './focus.js';
 import { NfUrl } from './nf-url.js';
+import { FuzzyNamespace, type INamespaced, type IFuzzyNamespace } from './fuzzy-namespace.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -40,13 +41,14 @@ interface HistoryEntry {
   command: string;
 }
 
-export class World extends Forma implements IEventBus {
+export class World extends Forma implements IEventBus, INamespaced {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusStack: FormaList<Focus>;
   #bus: EventEmitter;
   #history: HistoryEntry[] = [];
+  #namespace: FuzzyNamespace;
 
   // Export Focus class for use elsewhere
   static Focus = Focus;
@@ -67,12 +69,11 @@ export class World extends Forma implements IEventBus {
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
+    this.#namespace = new FuzzyNamespace();
     this.#focusStack = new FormaList<Focus>(
       [],
       Focus as any,
-      undefined,
-      undefined,
-      'formaId',
+      { keyField: 'formaId' },
     );
     this.#bus = new EventEmitter();
 
@@ -80,6 +81,9 @@ export class World extends Forma implements IEventBus {
     for (const EntityClass of STANDARD_ENTITIES) {
       this.registerEntity(EntityClass);
     }
+
+    // Populate namespace with existing tasks
+    this.#populateNamespace();
 
     // Ensure .nameforma directory exists
     if (!fs.existsSync(worldPath)) {
@@ -109,6 +113,10 @@ export class World extends Forma implements IEventBus {
           dbg &&
             cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
           this.#saveEntity(entityType, entity);
+          if (entityType === 'task') {
+            this.#namespace.removeForma(entity.id.base64);
+            this.#namespace.addForma(entity);
+          }
           break;
         case 'delete':
           // Check if the item being deleted is itself an entity (top-level)
@@ -130,6 +138,10 @@ export class World extends Forma implements IEventBus {
                 event,
               );
             this.#saveEntity(entityType, entity);
+            if (entityType === 'task') {
+              this.#namespace.removeForma(entity.id.base64);
+              this.#namespace.addForma(entity);
+            }
           }
           break;
         case 'move':
@@ -142,6 +154,62 @@ export class World extends Forma implements IEventBus {
     });
 
     dbg && cc.ok1(msg, `initialized ${worldPath}`);
+  }
+
+  /**
+   * Populate namespace with all Task entities from disk
+   */
+  #populateNamespace(): void {
+    const msg = 'world.#populateNamespace';
+    const dbg = WORLD?.ALL;
+
+    // Import Task class dynamically to avoid circular dependency
+    const Task = this.entityClassOfName('task');
+    if (!Task) {
+      dbg && cc.ok1(msg, 'task entity not registered');
+      return;
+    }
+
+    const taskDir = path.join(this.#worldPath, 'task');
+    if (!fs.existsSync(taskDir)) {
+      dbg && cc.ok1(msg, 'no tasks directory');
+      return;
+    }
+
+    const files = fs
+      .readdirSync(taskDir)
+      .filter((f) => f.endsWith('.json'));
+
+    for (const file of files) {
+      const filePath = path.join(taskDir, file);
+      try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        const entity = JSON.parse(data);
+
+        if (entity.id) {
+          try {
+            entity.id = UUID64.fromString(entity.id);
+          } catch (err) {
+            dbg && cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
+            continue;
+          }
+        }
+
+        const task = Task.fromJson(entity);
+        this.#namespace.addForma(task);
+      } catch (err) {
+        dbg && cc.bad1(`${msg} failed to load ${filePath}`, err);
+      }
+    }
+
+    dbg && cc.ok1(msg, `loaded ${files.length} tasks`);
+  }
+
+  /**
+   * Implement INamespaced: return the namespace of tasks
+   */
+  namespace(): IFuzzyNamespace {
+    return this.#namespace;
   }
 
   /**
@@ -281,9 +349,7 @@ export class World extends Forma implements IEventBus {
       this.#focusStack = new FormaList<Focus>(
         focuses,
         Focus as any,
-        undefined,
-        undefined,
-        'formaId',
+        { keyField: 'formaId' },
       );
     }
 
@@ -554,8 +620,7 @@ export class World extends Forma implements IEventBus {
     return new FormaList<ReturnType<T['fromJson']>>(
       items,
       EntityClass as any,
-      undefined,
-      this,
+      { emitter: this, namespace: this.#namespace },
     );
   }
 
@@ -572,6 +637,11 @@ export class World extends Forma implements IEventBus {
     if (!fs.existsSync(filePath)) {
       dbg && cc.ok1(msg, `not found ${filePath}`);
       return;
+    }
+
+    // Remove from namespace if task
+    if (entityType === 'task') {
+      this.#namespace.removeForma(id);
     }
 
     // Remove from focus stack if present
@@ -693,9 +763,7 @@ export class World extends Forma implements IEventBus {
     return new FormaList<Focus>(
       items,
       Focus as any,
-      undefined,
-      undefined,
-      'formaId',
+      { keyField: 'formaId' },
     );
   }
 
@@ -721,9 +789,7 @@ export class World extends Forma implements IEventBus {
     this.#focusStack = new FormaList<Focus>(
       valid,
       Focus as any,
-      undefined,
-      undefined,
-      'formaId',
+      { keyField: 'formaId' },
     );
     if (before.length - valid.length > 0) {
       console.warn(
@@ -860,9 +926,7 @@ export class World extends Forma implements IEventBus {
       world.#focusStack = new FormaList<Focus>(
         focuses,
         Focus as any,
-        undefined,
-        undefined,
-        'formaId',
+        { keyField: 'formaId' },
       );
     }
 

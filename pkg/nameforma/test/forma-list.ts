@@ -2,6 +2,7 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import UUID64 from '../src/uuid64.js';
 import { NameForma } from '../src/index.js';
 import { World } from '../src/world.js';
+import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 import { Text } from '@sc-voice/tools';
 import { DBG } from '../src/defines.js';
 import { createTempWorld } from './cli/helpers.js';
@@ -42,7 +43,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     expect(list.items).toBe(items);
     expect(list.parentId).toEqual(world.id);
@@ -55,7 +56,7 @@ describe('FormaList', () => {
   it('FormaList.constructor without parentId', () => {
     const msg = 'tfl.ctor.no-parent';
     const items: TestItem[] = [];
-    const list = new FormaList<TestItem>(items, TestItem);
+    const list = new FormaList<TestItem>(items, TestItem, {});
 
     expect(list.items).toBe(items);
     expect(list.parentId).toBeUndefined();
@@ -72,7 +73,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     // Add items
     const item1 = list.addItem({ name: 'item1' });
@@ -103,7 +104,7 @@ describe('FormaList', () => {
   it('FormaList.addItem without parentId', () => {
     const msg = 'tfl.addItem.no-parent';
     const items: TestItem[] = [];
-    const list = new FormaList<TestItem>(items, TestItem);
+    const list = new FormaList<TestItem>(items, TestItem, {});
 
     // Add items without parentId (no related ID check)
     const item1 = list.addItem({ name: 'item1' });
@@ -122,7 +123,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -145,7 +146,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -176,7 +177,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'original' });
     const item2 = list.addItem({ name: 'item2' });
@@ -199,7 +200,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -233,7 +234,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -266,7 +267,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -285,7 +286,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const fakeId = new UUID64().base64;
@@ -312,7 +313,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     expect(list.size).toBe(0);
     list.addItem({ name: 'item1' });
@@ -329,7 +330,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -354,7 +355,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -384,7 +385,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
     const world = World.fromPath(tempWorld.worldPath);
-    const list = new FormaList<TestItem>(items, TestItem, world);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world });
 
     const item1 = list.addItem({ name: 'item1' });
     const item2 = list.addItem({ name: 'item2' });
@@ -415,7 +416,8 @@ describe('FormaList', () => {
     const id2 = UUID64.fromString('0PrejD4s001_58Qc4M8DdW');
 
     const items: Forma[] = [];
-    const list = new FormaList(items, Forma);
+    const namespace = new FuzzyNamespace();
+    const list = new FormaList(items, Forma, { namespace });
 
     // Add first item - single item case, MIN_LIST_ITEM_ID_LENGTH=5
     // timeId('0PrekDWc00'), result should be 5 chars: 'ekDWc'
@@ -450,7 +452,7 @@ describe('FormaList', () => {
   it('FormaList.patchItem guards id field', () => {
     const msg = 'tfl.patchItem.id-guard';
     const items: TestItem[] = [];
-    const list = new FormaList<TestItem>(items, TestItem);
+    const list = new FormaList<TestItem>(items, TestItem, {});
 
     const item = list.addItem({ name: 'original' });
     const originalId = item.id.base64;
@@ -480,7 +482,7 @@ describe('FormaList', () => {
       on: () => {},
     };
 
-    const list = new FormaList<TestItem>(items, TestItem, world, mockBus);
+    const list = new FormaList<TestItem>(items, TestItem, { parent: world, emitter: mockBus });
 
     // Add item
     const item1 = list.addItem({ name: 'item1' });
@@ -516,5 +518,58 @@ describe('FormaList', () => {
     expect(events[0].entity).toBe(item2);
     dbg && cc.tag1(msg + UOK, 'moveItem emits change event');
     tempWorld.cleanup();
+  });
+
+  it('FormaList.addItem updates namespace', () => {
+    const msg = 'tfl.addItem.namespace';
+    const items: TestItem[] = [];
+    const namespace = new FuzzyNamespace();
+    const list = new FormaList<TestItem>(items, TestItem, { keyField: 'id', namespace });
+
+    const item1 = list.addItem({ name: 'item1' });
+    expect(namespace.getForma(item1.id.base64)).toBe(item1);
+    dbg && cc.tag1(msg + UOK, 'addItem adds to namespace');
+
+    const item2 = list.addItem({ name: 'item2' });
+    const item3 = list.addItem({ name: 'item3' });
+    expect(namespace.getForma(item2.id.base64)).toBe(item2);
+    expect(namespace.getForma(item3.id.base64)).toBe(item3);
+    dbg && cc.tag1(msg + UOK, 'multiple addItem updates namespace');
+  });
+
+  it('FormaList.deleteItem removes from namespace', () => {
+    const msg = 'tfl.deleteItem.namespace';
+    const items: TestItem[] = [];
+    const namespace = new FuzzyNamespace();
+    const list = new FormaList<TestItem>(items, TestItem, { keyField: 'id', namespace });
+
+    const item1 = list.addItem({ name: 'item1' });
+    const item2 = list.addItem({ name: 'item2' });
+    expect(namespace.getForma(item1.id.base64)).toBe(item1);
+    expect(namespace.getForma(item2.id.base64)).toBe(item2);
+
+    list.deleteItem(item1.id.base64);
+    expect(namespace.getForma(item1.id.base64)).toBeUndefined();
+    expect(namespace.getForma(item2.id.base64)).toBe(item2);
+    dbg && cc.tag1(msg + UOK, 'deleteItem removes from namespace');
+
+    list.deleteItem(item2.id.base64);
+    expect(namespace.getForma(item2.id.base64)).toBeUndefined();
+    dbg && cc.tag1(msg + UOK, 'deleteItem with empty namespace works');
+  });
+
+  it('FormaList.patchItem does not affect namespace', () => {
+    const msg = 'tfl.patchItem.namespace';
+    const items: TestItem[] = [];
+    const namespace = new FuzzyNamespace();
+    const list = new FormaList<TestItem>(items, TestItem, { keyField: 'id', namespace });
+
+    const item1 = list.addItem({ name: 'item1' });
+    const formaInNamespace = namespace.getForma(item1.id.base64);
+
+    list.patchItem(item1.id.base64, { name: 'updated' });
+    expect(namespace.getForma(item1.id.base64)).toBe(formaInNamespace);
+    expect(item1.name).toBe('updated');
+    dbg && cc.tag1(msg + UOK, 'patchItem does not affect namespace');
   });
 });

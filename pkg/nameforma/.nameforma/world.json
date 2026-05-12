@@ -1,13 +1,6 @@
 {
   "focusStack": [
     {
-      "id": "0PtG3Sns00pR4YwVEdPhdW",
-      "formaId": "0PtG3Rn600pR4YwVEdPhdW",
-      "formaType": "task",
-      "name": "Improve ID resolution in CLI",
-      "summary": ""
-    },
-    {
       "id": "0PtG4U0W00djorcB1Zx_tW",
       "formaId": "0PtG4S7R00djorcB1Zx_tW",
       "formaType": "task",
@@ -36,20 +29,6 @@
       "summary": ""
     },
     {
-      "id": "0PtKNQC700vJw3pLnPEeNW",
-      "formaId": "0PtKNPKL00vJw3pLnPEeNW",
-      "formaType": "task",
-      "name": "Add REPL mode to nf",
-      "summary": "Interactive loop where user launches nf session and can type commands without nf prefix"
-    },
-    {
-      "id": "0PtMlySI00pUYFlXiNeJ7W",
-      "formaId": "0PtMkkuf00pUYFlXiNeJ7W",
-      "formaType": "task",
-      "name": "build nx-tui from pi-tui",
-      "summary": ""
-    },
-    {
       "id": "0PtkpznZ00SQ4w3ljEox7W",
       "formaId": "0PtkpoWg00SQ4w3ljEox7W",
       "formaType": "task",
@@ -71,11 +50,18 @@
       "summary": "A class that converts RenderData into an array of string[]"
     },
     {
-      "id": "0PuEkaqb00KK1BSZ24rkNW",
+      "id": "0PuHhA5-00KK1BSZ24rkNW",
       "formaId": "0Pu7uCHk00KK1BSZ24rkNW",
       "formaType": "task",
-      "name": "NfContext for nf-pi extension",
-      "summary": "Implemented NfSession singleton extending EventEmitter with WorldView as single property; delegated anchor/pivot/zenoCoord/world via getters; unified asRenderData signature to accept IView; NfWidget and NfOverlay consume NfSession.shared.view for rendering"
+      "name": "NfSession for nf-pi extension",
+      "summary": "Implemented NfSession singleton extending EventEmitter with WorldView as single property; delegated anchor/pivot/zenoCoord/world via getters; unified asRenderData signature to accept IView; NfPrompt and NfWidget consume NfSession.shared.view for rendering"
+    },
+    {
+      "id": "0PuJ0a8E00z8bIbJI_zSNW",
+      "formaId": "0PuHhA4s00z8bIbJI_zSNW",
+      "formaType": "task",
+      "name": "Improve FuzzyId support",
+      "summary": "Implement INamespaced for World and Task. Architecture: Replace FormaList with FuzzyNamespace entirely as single unified system. (1) Extend FuzzyNamespace: add patchForma(), event bus support, mutation methods. (2) World implements INamespaced: namespace(bus) returns FuzzyNamespace of all top-level entities. (3) Task implements INamespaced: namespace(bus) returns combined FuzzyNamespace of actions + references (no more disjoint namespaces). (4) Update clients: CLI, tests to use namespace(bus). Key files: src/fuzzy-namespace.ts, src/world.ts, src/task.ts, src/forma-list.ts (to replace), src/cli/cli-task.ts (to update)."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

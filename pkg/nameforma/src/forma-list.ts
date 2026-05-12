@@ -1,6 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { Forma } from './forma.js';
+import { FuzzyNamespace } from './fuzzy-namespace.js';
 
 /**
  * IFormaItem - Instance shape for items managed by FormaList
@@ -30,15 +31,15 @@ export interface IFormaItemClass {
  * - If item is not an entity but parent is: entity = parent
  * - If neither is an entity: entity = undefined
  */
-export type FormaListEvent<T extends IFormaItem> =
-  | { type: 'add'; item: T; cfg: any; entity?: IFormaItem }
-  | { type: 'patch'; item: T; cfg: any; entity?: IFormaItem }
-  | { type: 'delete'; item: T; entity?: IFormaItem }
+export type FormaListEvent<T extends Forma> =
+  | { type: 'add'; item: T; cfg: any; entity?: Forma }
+  | { type: 'patch'; item: T; cfg: any; entity?: Forma }
+  | { type: 'delete'; item: T; entity?: Forma }
   | {
       type: 'move';
       item: T;
       options: { before?: FuzzyId | null; after?: FuzzyId | null };
-      entity?: IFormaItem;
+      entity?: Forma;
     };
 
 /**
@@ -62,10 +63,10 @@ export interface IEventBus {
  * - All mutations go through controlled CRUD methods only
  * - Items created via direct constructor call with cfg parameter including id property
  * - parentId: UUID64 is optional; child item ids must be related if parentId provided
- * - Generic type T must extend IFormaItem (have Identifiable id property)
+ * - Generic type T must extend Forma (have id and patch methods)
  *
  * ## Construction
- * - new FormaList(items: T[], ItemClass: IFormaItemClass, parentId?: UUID64)
+ * - new FormaList(items: T[], ItemClass: IFormaItemClass, cfg?: { parent?, emitter?, keyField?, namespace? })
  * - items array is mutated in-place (passed by reference)
  * - ItemClass constructor must accept cfg parameter with id property
  *
@@ -75,18 +76,19 @@ export interface IEventBus {
  * - getItem(id): T | undefined - Retrieve by ID
  * - patchItem(id, cfg): T - Update existing item (throws if not found)
  * - moveItem(id, {before?, after?}): T - Reorder item (throws if IDs not found)
+ * - itemListId(item): string - Get unique ID within this list or namespace
  * - size: number - Get list size
  * - [Symbol.iterator]: Iterable support for spread syntax and for...of loops
  *
  * Note: FormaList is not Avro serializable (mutator helpers are runtime-only)
  */
-export class FormaList<T extends IFormaItem> {
+export class FormaList<T extends Forma> {
   static readonly MIN_LIST_ITEM_ID_LENGTH = 5;
 
   readonly items: T[];
   readonly #ItemClass: IFormaItemClass;
   readonly parentId?: UUID64;
-  readonly #parentEntity?: IFormaItem;
+  readonly #parentEntity?: Forma;
   readonly #itemIsEntity: boolean;
   readonly #itemEntityType?: string;
   readonly #parentIsEntity: boolean;
@@ -95,27 +97,33 @@ export class FormaList<T extends IFormaItem> {
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
   #emitter?: IEventBus;
+  #namespace?: FuzzyNamespace;
 
   constructor(
     items: T[],
     ItemClass: IFormaItemClass,
-    parent?: IFormaItem,
-    emitter?: IEventBus,
-    keyField: string = 'id',
+    cfg?: {
+      parent?: IFormaItem;
+      emitter?: IEventBus;
+      keyField?: string;
+      namespace?: FuzzyNamespace;
+    },
   ) {
     this.items = items;
     this.#ItemClass = ItemClass;
-    this.keyField = keyField;
-    this.#emitter = emitter;
+    this.keyField = cfg?.keyField ?? 'id';
+    this.#emitter = cfg?.emitter;
+    this.#namespace = cfg?.namespace;
 
     // Determine if ItemClass is an entity
     this.#itemIsEntity = !!(ItemClass as any).entity;
     this.#itemEntityType = (ItemClass as any).entity;
 
     // Store parent entity if provided
+    const parent = cfg?.parent;
     if (parent) {
-      this.parentId = (parent as IFormaItem).id as UUID64;
-      this.#parentEntity = parent as IFormaItem;
+      this.parentId = (parent as Forma).id as UUID64;
+      this.#parentEntity = parent as Forma;
       this.#parentIsEntity = !!(parent.constructor as any).entity;
       this.#parentEntityType = (parent.constructor as any).entity;
     } else {
@@ -128,13 +136,13 @@ export class FormaList<T extends IFormaItem> {
    * @param item - The item being mutated
    * @returns { entity? } - The in-memory entity to be persisted
    */
-  #computeEntityInfo(item: T): { entity?: IFormaItem } {
+  #computeEntityInfo(item: T): { entity?: Forma } {
     if (this.#itemIsEntity) {
       // Item itself is an entity
       return { entity: item };
     } else if (this.#parentIsEntity && this.#parentEntity) {
       // Item is not an entity, use parent entity
-      return { entity: this.#parentEntity };
+      return { entity: this.#parentEntity as Forma };
     }
     return {};
   }
@@ -169,6 +177,7 @@ export class FormaList<T extends IFormaItem> {
     const item = new (this.#ItemClass as any)(cfg) as T;
     this.items.push(item);
     this.#invalidateCache();
+    this.#namespace?.addForma(item);
 
     if (this.#emitter) {
       const { entity } = this.#computeEntityInfo(item);
@@ -194,6 +203,7 @@ export class FormaList<T extends IFormaItem> {
     const index = this.items.indexOf(itemToDelete);
     this.items.splice(index, 1);
     this.#invalidateCache();
+    this.#namespace?.removeForma(id);
 
     if (this.#emitter) {
       const { entity } = this.#computeEntityInfo(itemToDelete);
@@ -403,18 +413,14 @@ export class FormaList<T extends IFormaItem> {
 
   /**
    * Return a unique list item identifier for the given item.
-   * The list item id is computed from the timeId of the key field (default item.id),
-   * omitting the prefix and suffix in common with the timeIds of
-   * the list items. Results are cached until list contents change.
+   * If namespace is provided, delegates to namespace.fuzzyIdOf().
+   * Otherwise returns the raw timeId.
    */
   itemListId(item: T): string {
-    if (this.#cachedPrefixLen === null || this.#cachedSuffixLen === null) {
-      this.#computePrefixSuffixLengths();
+    if (this.#namespace) {
+      return this.#namespace.fuzzyIdOf(item);
     }
-
-    const targetTimeId = ((item as any)[this.keyField] as UUID64).timeId();
-    const endIndex = targetTimeId.length - this.#cachedSuffixLen!;
-    return targetTimeId.substring(this.#cachedPrefixLen!, endIndex);
+    return ((item as any)[this.keyField] as UUID64).timeId();
   }
 
   /**

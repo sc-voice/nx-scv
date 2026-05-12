@@ -4,6 +4,7 @@ import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
 import { FormaList, type IEventBus } from './forma-list.js';
+import { FuzzyNamespace, type INamespaced, type IFuzzyNamespace } from './fuzzy-namespace.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
@@ -38,9 +39,10 @@ const FORMA = Forma.avroSchema;
  * Tasks serialize to Avro format with all fields including nested actions and references arrays.
  * Empty arrays serialize as `[]`.
  */
-export class Task extends Forma {
+export class Task extends Forma implements INamespaced {
   rawActions: Array<Action> = [];
   rawReferences: Array<Reference> = [];
+  #namespace: FuzzyNamespace;
 
   /**
    * Create a new Task instance.
@@ -56,7 +58,9 @@ export class Task extends Forma {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
     super({ id: cfg.id }); // for deserialized tasks
+    this.#namespace = new FuzzyNamespace();
     this.put(cfg);
+    this.#populateNamespace();
 
     dbg && cc.ok1(msg, ...cc.props(this));
   }
@@ -74,7 +78,7 @@ export class Task extends Forma {
    * @param bus - Event bus for change notifications and persistence
    */
   actions(bus: IEventBus): FormaList<Action> {
-    return new FormaList(this.rawActions, Action, this, bus);
+    return new FormaList(this.rawActions, Action, { parent: this, emitter: bus, namespace: this.#namespace });
   }
 
   /**
@@ -90,7 +94,22 @@ export class Task extends Forma {
    * @param bus - Event bus for change notifications and persistence
    */
   references(bus: IEventBus): FormaList<Reference> {
-    return new FormaList(this.rawReferences, Reference, this, bus);
+    return new FormaList(this.rawReferences, Reference, { parent: this, emitter: bus, namespace: this.#namespace });
+  }
+
+  /**
+   * Implement INamespaced: return the combined namespace of actions and references
+   */
+  namespace(): IFuzzyNamespace {
+    return this.#namespace;
+  }
+
+  /**
+   * Populate namespace with existing actions and references
+   */
+  #populateNamespace(): void {
+    this.rawActions.forEach((action) => this.#namespace.addForma(action));
+    this.rawReferences.forEach((ref) => this.#namespace.addForma(ref));
   }
 
   /**

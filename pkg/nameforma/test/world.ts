@@ -1171,3 +1171,185 @@ describe('World - focusStack', () => {
     });
   });
 });
+
+describe('World — INamespaced namespace()', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let world: World;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    world = new World(worldPath);
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  describe('namespace() method', () => {
+    it('should return IFuzzyNamespace interface', () => {
+      const ns = world.namespace();
+      expect(ns).toBeDefined();
+      expect(typeof ns[Symbol.iterator]).toBe('function');
+      expect(typeof ns.getForma).toBe('function');
+    });
+
+    it('should return empty namespace when no tasks exist', () => {
+      const ns = world.namespace();
+      const items = Array.from(ns);
+      expect(items).toEqual([]);
+    });
+
+    it('should populate namespace with existing tasks at construct time', () => {
+      const list = world.entityList(Task);
+      const task1 = list.addItem({ name: 'task1' });
+      const task2 = list.addItem({ name: 'task2' });
+
+      // Create new world instance to test population at construct time
+      const world2 = new World(worldPath);
+      const ns = world2.namespace();
+
+      const items = Array.from(ns);
+      expect(items.length).toBe(2);
+
+      const taskIds = items.map(([, forma]) => forma.id.base64).sort();
+      const expectedIds = [task1.id.base64, task2.id.base64].sort();
+      expect(taskIds).toEqual(expectedIds);
+    });
+
+    it('should keep namespace in sync when task is added', () => {
+      const ns = world.namespace();
+      expect(Array.from(ns).length).toBe(0);
+
+      const list = world.entityList(Task);
+      const task = list.addItem({ name: 'new-task' });
+
+      const items = Array.from(ns);
+      expect(items.length).toBe(1);
+      expect(items[0][1].id.base64).toBe(task.id.base64);
+    });
+
+    it('should keep namespace in sync when task is patched', () => {
+      const list = world.entityList(Task);
+      const task = list.addItem({ name: 'original' });
+
+      const ns = world.namespace();
+      let items = Array.from(ns);
+      expect(items[0][1].name).toBe('original');
+
+      // Patch the task
+      list.patchItem(task.id.base64, { name: 'updated' });
+
+      items = Array.from(ns);
+      expect(items.length).toBe(1);
+      expect(items[0][1].name).toBe('updated');
+    });
+
+    it('should keep namespace in sync when task is deleted', () => {
+      const list = world.entityList(Task);
+      const task1 = list.addItem({ name: 'task1' });
+      const task2 = list.addItem({ name: 'task2' });
+
+      const ns = world.namespace();
+      expect(Array.from(ns).length).toBe(2);
+
+      // Delete one task
+      list.deleteItem(task1.id.base64);
+
+      const items = Array.from(ns);
+      expect(items.length).toBe(1);
+      expect(items[0][1].id.base64).toBe(task2.id.base64);
+    });
+
+    it('should resolve task by full UUID64 fuzzyId', () => {
+      const list = world.entityList(Task);
+      const task = list.addItem({ name: 'test' });
+
+      const ns = world.namespace();
+      const found = ns.getForma(task.id.base64);
+
+      expect(found).toBeDefined();
+      expect(found?.id.base64).toBe(task.id.base64);
+      expect(found?.name).toBe('test');
+    });
+
+    it('should resolve task by partial fuzzyId', () => {
+      const list = world.entityList(Task);
+      const task = list.addItem({ name: 'test' });
+
+      const ns = world.namespace();
+      const partial = task.id.base64.substring(0, 8);
+      const found = ns.getForma(partial);
+
+      expect(found).toBeDefined();
+      expect(found?.id.base64).toBe(task.id.base64);
+    });
+
+    it('should return undefined for non-existent fuzzyId', () => {
+      const list = world.entityList(Task);
+      list.addItem({ name: 'task' });
+
+      const ns = world.namespace();
+      const found = ns.getForma('nonexistent-id');
+
+      expect(found).toBeUndefined();
+    });
+
+    it('should throw on ambiguous fuzzyId match', () => {
+      const list = world.entityList(Task);
+      list.addItem({ name: 'task1' });
+      list.addItem({ name: 'task2' });
+
+      const ns = world.namespace();
+
+      // Single character that both UUIDs likely contain
+      expect(() => ns.getForma('0')).toThrow(/ambiguous match/);
+    });
+
+    it('should iterate namespace with masked fuzzyIds', () => {
+      const list = world.entityList(Task);
+      const task1 = list.addItem({ name: 'task1' });
+      const task2 = list.addItem({ name: 'task2' });
+
+      const ns = world.namespace();
+      const items = Array.from(ns);
+
+      expect(items.length).toBe(2);
+
+      // Each item is [fuzzyId, forma]
+      for (const [fuzzyId, forma] of items) {
+        expect(typeof fuzzyId).toBe('string');
+        expect(fuzzyId.length).toBeGreaterThanOrEqual(5);
+        expect(forma.id).toBeDefined();
+      }
+    });
+  });
+
+  describe('entityList receives namespace for LEUI fuzzyIds', () => {
+    it('should return FormaList with namespace so itemListId returns fuzzyId', () => {
+      const list = world.entityList(Task);
+      const task1 = list.addItem({ name: 'task1' });
+      const task2 = list.addItem({ name: 'task2' });
+
+      // Get the itemListId for each task
+      const id1 = list.itemListId(task1);
+      const id2 = list.itemListId(task2);
+
+      // Should be masked fuzzyIds (short, min 5 chars), not full timeIds
+      expect(id1.length).toBeGreaterThanOrEqual(5);
+      expect(id2.length).toBeGreaterThanOrEqual(5);
+
+      // Should not be the full base64 id (which is much longer)
+      expect(id1.length).toBeLessThan(task1.id.base64.length);
+      expect(id2.length).toBeLessThan(task2.id.base64.length);
+
+      // Should be resolvable via namespace.getForma
+      const ns = world.namespace();
+      expect(ns.getForma(id1)).toBe(task1);
+      expect(ns.getForma(id2)).toBe(task2);
+    });
+  });
+});

@@ -109,7 +109,7 @@ describe('Kafka Integration Tests', () => {
 
   it('should produce FormaList to Kafka', async () => {
     const itemsArray: TestItem[] = [];
-    const list = new FormaList(itemsArray, TestItem, world.id);
+    const list = new FormaList(itemsArray, TestItem, { parent: world });
 
     // Add test items
     const item1 = list.addItem({ name: 'item1' });
@@ -141,7 +141,7 @@ describe('Kafka Integration Tests', () => {
 
   it('should perform full round-trip with replicating consumer verification', async () => {
     const itemsArray: TestItem[] = [];
-    const list = new FormaList(itemsArray, TestItem, world.id);
+    const list = new FormaList(itemsArray, TestItem, { parent: world });
 
     // Create test items
     const item1 = list.addItem({ name: 'round-trip-1' });
@@ -216,7 +216,7 @@ describe('Kafka Integration Tests', () => {
     const replicatedList = new FormaList(
       replicatedArray,
       TestItem,
-      UUID64.fromString(receivedMessage.worldId),
+      {},
     );
 
     for (const itemData of receivedMessage.items) {
