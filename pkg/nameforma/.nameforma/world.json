@@ -62,6 +62,13 @@
       "formaType": "task",
       "name": "Improve FuzzyId support",
       "summary": "Implement INamespaced for World and Task. Architecture: Replace FormaList with FuzzyNamespace entirely as single unified system. (1) Extend FuzzyNamespace: add patchForma(), event bus support, mutation methods. (2) World implements INamespaced: namespace(bus) returns FuzzyNamespace of all top-level entities. (3) Task implements INamespaced: namespace(bus) returns combined FuzzyNamespace of actions + references (no more disjoint namespaces). (4) Update clients: CLI, tests to use namespace(bus). Key files: src/fuzzy-namespace.ts, src/world.ts, src/task.ts, src/forma-list.ts (to replace), src/cli/cli-task.ts (to update)."
+    },
+    {
+      "id": "0PuSuPzD00FZHDHPQUKENW",
+      "formaId": "0PuSIRKR00FZHDHPQUKENW",
+      "formaType": "task",
+      "name": "Introduce IRegistry to unify IEntity, INamespaced, and IPatchable",
+      "summary": "Existing structure: IEntity (entity.ts) requires patch(); INamespaced (fuzzy-namespace.ts) requires namespace(); patch() methods scattered on Forma. Goal: Create IRegistry interface to unify these contracts and eliminate scattered patch implementations."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

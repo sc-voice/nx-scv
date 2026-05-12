@@ -2,6 +2,7 @@ import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
+import type { IRegistry } from './registry.js';
 
 /**
  * Spatial Navigation Engine for a fractal space of Forma objects.
@@ -235,7 +236,7 @@ export interface INavigable {
  * Maintains the context of observation and manages the lifecycle.
  */
 export interface IView {
-  readonly anchor: IRenderable;
+  readonly anchor: IRegistry;
   readonly pivot: Forma;
   readonly detail: number;
   readonly zenoCoord: ZenoCoord;
@@ -243,7 +244,7 @@ export interface IView {
   /**
    * Sets the primary subject of observation.
    */
-  setAnchor(value: IRenderable): void;
+  setAnchor(value: IRegistry): void;
 
   /**
    * Shifts the perspective within the existing anchor.

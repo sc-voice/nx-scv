@@ -13,13 +13,13 @@ import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import {
   FormaList,
-  type IFormaItem,
   type IEventBus,
   type FormaListEvent,
 } from './forma-list.js';
 import { Focus } from './focus.js';
 import { NfUrl } from './nf-url.js';
-import { FuzzyNamespace, type INamespaced, type IFuzzyNamespace } from './fuzzy-namespace.js';
+import { FuzzyNamespace, type IFuzzyNamespace } from './fuzzy-namespace.js';
+import type { IRegistry } from './registry.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -41,7 +41,7 @@ interface HistoryEntry {
   command: string;
 }
 
-export class World extends Forma implements IEventBus, INamespaced {
+export class World extends Forma implements IEventBus, IRegistry {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
@@ -206,7 +206,7 @@ export class World extends Forma implements IEventBus, INamespaced {
   }
 
   /**
-   * Implement INamespaced: return the namespace of tasks
+   * IRegistry implementation: provides namespace of all top-level entities
    */
   namespace(): IFuzzyNamespace {
     return this.#namespace;

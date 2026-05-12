@@ -3,8 +3,9 @@ import { Forma, type ListItemStringCfg } from './forma.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
+import { IRegistry } from './registry.js';
 import { FormaList, type IEventBus } from './forma-list.js';
-import { FuzzyNamespace, type INamespaced, type IFuzzyNamespace } from './fuzzy-namespace.js';
+import { FuzzyNamespace, type IFuzzyNamespace } from './fuzzy-namespace.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
@@ -39,7 +40,7 @@ const FORMA = Forma.avroSchema;
  * Tasks serialize to Avro format with all fields including nested actions and references arrays.
  * Empty arrays serialize as `[]`.
  */
-export class Task extends Forma implements INamespaced {
+export class Task extends Forma implements IRegistry {
   rawActions: Array<Action> = [];
   rawReferences: Array<Reference> = [];
   #namespace: FuzzyNamespace;
@@ -98,7 +99,7 @@ export class Task extends Forma implements INamespaced {
   }
 
   /**
-   * Implement INamespaced: return the combined namespace of actions and references
+   * IRegistry implementation: return the combined namespace of actions and references
    */
   namespace(): IFuzzyNamespace {
     return this.#namespace;

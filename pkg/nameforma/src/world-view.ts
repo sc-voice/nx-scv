@@ -11,6 +11,7 @@ import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { World } from './world.js';
 import { nfTui } from './cli/nf-tui.js';
+import type { IRegistry } from './registry.js';
 
 /**
  * A simple implementation of IView for prototyping.
@@ -25,11 +26,11 @@ export class WorldView implements IView {
     this._detail = RenderDetail.Row;
   }
 
-  private _anchor: IRenderable | null = null;
-  get anchor(): IRenderable {
+  private _anchor: IRegistry | null = null;
+  get anchor(): IRegistry {
     return this._anchor!;
   }
-  private set anchor(value: IRenderable | null) {
+  private set anchor(value: IRegistry | null) {
     this._anchor = value;
   }
 
@@ -56,7 +57,7 @@ export class WorldView implements IView {
   private _primaryAxis: IRenderable[] = [];
   private _cursor: ICursor | null = null;
 
-  setAnchor(value: IRenderable): void {
+  setAnchor(value: IRegistry): void {
     this.anchor = value;
     this.pivot = null;
   }

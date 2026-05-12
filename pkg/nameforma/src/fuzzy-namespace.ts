@@ -21,18 +21,6 @@ export interface IFuzzyNamespace {
 }
 
 /**
- * INamespaced - Contract for entities that own and manage a FuzzyNamespace.
- * World and Task each have their own namespace managed individually.
- */
-export interface INamespaced {
-  /**
-   * Returns the FuzzyNamespace managed by this entity.
-   * Callers receive the read-only IFuzzyNamespace interface.
-   */
-  namespace(): IFuzzyNamespace;
-}
-
-/**
  * FuzzyNamespace - A namespace that maps Forma objects with their FuzzyID 
  *
  * Supports low-entropy UI (LEUI) by computing minimal unique FuzzyIds for set members.

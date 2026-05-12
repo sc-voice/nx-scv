@@ -8,16 +8,14 @@ import { Clock } from './clock.js';
 import { Focus } from './focus.js';
 import {
   Forma,
-  type IFormaMatcher,
-  AFormaMatcher,
   LevenshteinMatcher,
 } from './forma.js';
 import { FormaField } from './forma-field.js';
-import { FormaList, IFormaItemClass, IFormaItem } from './forma-list.js';
+import { FormaList } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import UUID64 from './uuid64.js';
-export type { IFormaMatcher, IFormaItem, IFormaItemClass, FuzzyId };
+export type { FuzzyId, IRegistry };
 import {
   Admin,
   Consumer,
@@ -32,13 +30,13 @@ import { Rational } from './rational.js';
 import { Reference } from './reference.js';
 import { Schema } from './schema.js';
 import { Task } from './task.js';
+import type { IRegistry } from './registry.js';
 export const NameForma = {
   Action,
   ActionStatus,
   ActionTransitions,
   STATUS_ORDER,
   Admin,
-  AFormaMatcher,
   Clock,
   Consumer,
   Focus,

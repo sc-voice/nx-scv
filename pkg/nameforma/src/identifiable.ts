@@ -32,7 +32,7 @@ export type FuzzyId = string;
  *
  * ## Overview
  * - Provides UUID64 generation and validation
- * - Immutable `id` property with getter
+ * - Immutable readonly `id` property
  * - Static methods: `uuid()`, `uuidToTime()`, `fromString()`, `validate()`
  *
  * ## Class Hierarchy
@@ -44,7 +44,8 @@ export type FuzzyId = string;
  *
  * ## Design Rationale
  *
- * 1. ID STORAGE: #id is a UUID64 POJO (not string)
+ * 1. ID STORAGE: readonly id is a UUID64 POJO (not string)
+ *    - Immutable after construction (write-once in constructor)
  *    - Provides valuable methods: .toTime(), .toBuffer(), .base64 property
  *    - When serialized to JSON, uuid64.toJSON() returns OPB64 string
  *    - POJO flexibility available to all subclasses
@@ -68,7 +69,7 @@ export type FuzzyId = string;
  *    - Deserialized id has all UUID64 methods available
  */
 export class Identifiable {
-  #id: UUID64;
+  readonly id: UUID64;
 
   /**
    * Constructor accepts UUID64 instance, string, Avro deserialized buffer, or default new UUID64.
@@ -100,14 +101,7 @@ export class Identifiable {
       throw new Error(`Identifiable constructor: invalid cfg type`);
     }
 
-    this.#id = uuid64Id;
-
-    Object.defineProperty(this, 'id', {
-      enumerable: true,
-      get() {
-        return this.#id;
-      },
-    });
+    this.id = uuid64Id;
   }
 
   /**
@@ -268,11 +262,4 @@ export class Identifiable {
     };
   }
 
-  /**
-   * Immutable id property - exposes UUID64 POJO with all its methods.
-   * @returns UUID64 instance with methods like .toTime(), .toBuffer(), .base64
-   */
-  get id(): UUID64 {
-    return this.#id;
-  }
 }

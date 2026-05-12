@@ -1172,7 +1172,7 @@ describe('World - focusStack', () => {
   });
 });
 
-describe('World — INamespaced namespace()', () => {
+describe('World — namespace()', () => {
   let tempDir: string;
   let worldPath: string;
   let world: World;

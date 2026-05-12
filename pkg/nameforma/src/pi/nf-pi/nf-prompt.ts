@@ -1,11 +1,12 @@
 import type { Theme } from '@mariozechner/pi-coding-agent';
 import type { Focusable, TUI } from '@mariozechner/pi-tui';
 import { LineRenderer } from '../../line-renderer.js';
-import type { IRenderable, RenderDetail } from '../../navigable-view.js';
+import type { RenderDetail } from '../../navigable-view.js';
 import { ZenoCoord, RenderDetail as RD } from '../../navigable-view.js';
 import { WorldView } from '../../world-view.js';
 import type { Forma } from '../../forma.js';
 import type { World } from '../../world.js';
+import type { IRegistry } from '../../registry.js';
 import { NfSession } from './nf-session.js';
 
 export class NfPrompt implements Focusable {
@@ -20,7 +21,7 @@ export class NfPrompt implements Focusable {
     private theme: Theme,
     private done: () => void,
     world?: World,
-    anchor?: IRenderable,
+    anchor?: IRegistry,
     pivot?: Forma | null,
   ) {
     const usingShared = !world && !anchor && pivot === undefined;
@@ -101,7 +102,7 @@ export class NfPrompt implements Focusable {
     });
   }
 
-  setAnchor(value: IRenderable): void {
+  setAnchor(value: IRegistry): void {
     this.view.setAnchor(value);
     this.update();
     this.tui.requestRender();

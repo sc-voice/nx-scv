@@ -15,25 +15,24 @@ const { CHECKMARK: UOK } = Unicode;
 const dbg = DBG.FORMA_LIST.TEST;
 
 /**
- * Test item class implementing IFormaItem
+ * Test item class with own property and patch delegation
  */
-class TestItem {
+class TestItem extends Forma {
   static readonly entity = 'test-item';
 
-  id: UUID64;
-  name: string;
+  color: string;
 
   constructor(cfg: any = {}) {
-    this.id = cfg.id || new UUID64();
-    this.name = cfg.name || this.id.timeId();
+    super(cfg);
+    this.color = cfg.color || 'blue';
   }
 
-  patch(cfg: any): void {
-    // Guard id field from being overwritten
-    if (cfg.id !== undefined && cfg.id !== this.id) {
-      throw new Error(`Cannot change id field via patch`);
+  override patch(cfg: any = {}): void {
+    const { color } = cfg;
+    if (color !== undefined) {
+      this.color = color;
     }
-    Object.assign(this, cfg);
+    super.patch(cfg);
   }
 }
 
@@ -449,21 +448,33 @@ describe('FormaList', () => {
     expect(list.getItem('jd4s0')).toBe(items[1]);
   });
 
-  it('FormaList.patchItem guards id field', () => {
-    const msg = 'tfl.patchItem.id-guard';
+  it('FormaList.patchItem patches subclass and inherited fields', () => {
+    const msg = 'tfl.patchItem.fields';
     const items: TestItem[] = [];
     const list = new FormaList<TestItem>(items, TestItem, {});
 
-    const item = list.addItem({ name: 'original' });
+    const item = list.addItem({ name: 'original', color: 'blue' });
     const originalId = item.id.base64;
 
-    // Attempt to patch with a different id should throw
-    const newId = new UUID64().base64;
-    expect(() => list.patchItem(item.id.base64, { id: newId })).toThrow();
-
-    // Verify id was not changed
+    // Patch subclass field (color)
+    list.patchItem(item.id.base64, { color: 'red' });
+    expect(item.color).toBe('red');
     expect(item.id.base64).toBe(originalId);
-    dbg && cc.tag1(msg + UOK, 'patchItem prevents id field modification');
+    dbg && cc.tag1(msg + UOK, 'patchItem updates subclass field');
+
+    // Patch inherited field (name)
+    list.patchItem(item.id.base64, { name: 'updated' });
+    expect(item.name).toBe('updated');
+    expect(item.color).toBe('red');
+    expect(item.id.base64).toBe(originalId);
+    dbg && cc.tag1(msg + UOK, 'patchItem updates inherited field');
+
+    // Patch both together
+    list.patchItem(item.id.base64, { color: 'green', name: 'final' });
+    expect(item.color).toBe('green');
+    expect(item.name).toBe('final');
+    expect(item.id.base64).toBe(originalId);
+    dbg && cc.tag1(msg + UOK, 'patchItem updates both subclass and inherited fields');
   });
 
   it('FormaList emits change events', () => {

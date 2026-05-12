@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { FuzzyNamespace, INamespaced } from '../src/fuzzy-namespace.js';
+import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 import { Forma } from '../src/forma.js';
 
 describe('FuzzyNamespace', () => {

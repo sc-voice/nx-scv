@@ -4,19 +4,16 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { World } from '../src/world.js';
-import { FormaList, type IFormaItem } from '../src/forma-list.js';
-import { Identifiable } from '../src/identifiable.js';
+import { FormaList } from '../src/forma-list.js';
+import { Forma } from '../src/forma.js';
 import UUID64 from '../src/uuid64.js';
 
 /**
- * TestItem - Simple FormaItem for integration testing
+ * TestItem - Simple Forma for integration testing
  */
-class TestItem extends Identifiable implements IFormaItem {
-  name: string;
-
+class TestItem extends Forma {
   constructor(cfg: any = {}) {
-    super(cfg?.id);
-    this.name = cfg.name || 'test';
+    super(cfg);
   }
 
   toJSON(): any {

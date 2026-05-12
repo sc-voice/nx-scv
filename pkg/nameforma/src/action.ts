@@ -42,6 +42,9 @@ export const ActionTransitions: Record<ActionStatus, ActionStatus[]> = {
   ],
   [ActionStatus.manage]: [
     ActionStatus.req,
+    ActionStatus.spec,
+    ActionStatus.work,
+    ActionStatus.test,
     ActionStatus.done,
     ActionStatus.manage,
   ],

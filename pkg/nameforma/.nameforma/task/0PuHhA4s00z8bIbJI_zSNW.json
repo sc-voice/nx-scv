@@ -31,9 +31,9 @@
       "id": "0PuPYb_o00z8bIbJI_zSNW",
       "name": "Update CLI task display to use World.namespace() fuzzyIds",
       "summary": "",
-      "status": "test",
-      "statusNote": "implementation complete: entityList now receives world.namespace()",
-      "statusDate": "2026-05-12T00:26:40.194Z"
+      "status": "done",
+      "statusNote": "CLI task list displays fuzzyIds from World.namespace()",
+      "statusDate": "2026-05-12T01:06:58.923Z"
     },
     {
       "id": "0PuPZqWF00z8bIbJI_zSNW",

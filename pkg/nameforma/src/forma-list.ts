@@ -4,25 +4,6 @@ import { Forma } from './forma.js';
 import { FuzzyNamespace } from './fuzzy-namespace.js';
 
 /**
- * IFormaItem - Instance shape for items managed by FormaList
- * Items must be Identifiable (have immutable UUID64 id)
- */
-export interface IFormaItem extends Identifiable {
-  // Instance properties inherited from Identifiable
-  // Subclasses can add additional properties
-  patch(cfg: any): void;
-}
-
-/**
- * IFormaItemClass - Constructor shape for item classes
- * Constructor accepts optional cfg parameter with id property
- */
-export interface IFormaItemClass {
-  new (cfg?: any): IFormaItem;
-  readonly entity?: string;
-}
-
-/**
  * FormaListEvent<T> - Discriminated union of FormaList mutation events
  * Used to notify external systems (e.g., World persistence) of list changes
  *
@@ -66,7 +47,7 @@ export interface IEventBus {
  * - Generic type T must extend Forma (have id and patch methods)
  *
  * ## Construction
- * - new FormaList(items: T[], ItemClass: IFormaItemClass, cfg?: { parent?, emitter?, keyField?, namespace? })
+ * - new FormaList(items: T[], ItemClass: typeof Forma, cfg?: { parent?, emitter?, keyField?, namespace? })
  * - items array is mutated in-place (passed by reference)
  * - ItemClass constructor must accept cfg parameter with id property
  *
@@ -86,7 +67,7 @@ export class FormaList<T extends Forma> {
   static readonly MIN_LIST_ITEM_ID_LENGTH = 5;
 
   readonly items: T[];
-  readonly #ItemClass: IFormaItemClass;
+  readonly #ItemClass: typeof Forma;
   readonly parentId?: UUID64;
   readonly #parentEntity?: Forma;
   readonly #itemIsEntity: boolean;
@@ -101,9 +82,9 @@ export class FormaList<T extends Forma> {
 
   constructor(
     items: T[],
-    ItemClass: IFormaItemClass,
+    ItemClass: typeof Forma,
     cfg?: {
-      parent?: IFormaItem;
+      parent?: Forma;
       emitter?: IEventBus;
       keyField?: string;
       namespace?: FuzzyNamespace;
@@ -149,9 +130,9 @@ export class FormaList<T extends Forma> {
 
   /**
    * Get the ItemClass for this list
-   * @returns IFormaItemClass constructor
+   * @returns Forma constructor
    */
-  get itemClass(): IFormaItemClass {
+  get itemClass(): typeof Forma {
     return this.#ItemClass;
   }
 
