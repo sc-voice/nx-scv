@@ -29,7 +29,9 @@ describe('NfUrl', () => {
   describe('uri', () => {
     it('formats uri as nf:BASE/path', () => {
       expect(new NfUrl('src/file.ts', '~').uri).toBe('nf:~/src/file.ts');
-      expect(new NfUrl('/absolute/path', '/').uri).toBe('nf://absolute/path');
+      expect(new NfUrl('/absolute/path', '/').uri).toBe(
+        'nf://absolute/path',
+      );
       expect(new NfUrl('src/file.ts', '@').uri).toBe('nf:@/src/file.ts');
     });
   });
@@ -62,7 +64,9 @@ describe('NfUrl', () => {
   describe('embedded base conversion', () => {
     it('converts @path to ~path', () => {
       const url = new NfUrl('@test/nf-url.ts', '~');
-      expect(url.uri).toMatch(/nf:~\/dev\/nx-nameforma\/pkg\/nameforma\/test\/nf-url\.ts/);
+      expect(url.uri).toMatch(
+        /nf:~\/dev\/nx-nameforma\/pkg\/nameforma\/test\/nf-url\.ts/,
+      );
       expect(url.resolve()).toBe(__filename);
     });
 
@@ -74,14 +78,22 @@ describe('NfUrl', () => {
 
     it('converts ~/path to @path', () => {
       const homeDir = os.homedir();
-      const devPath = path.join(homeDir, 'dev/nx-nameforma/pkg/nameforma/test/nf-url.ts');
-      const url = new NfUrl('~dev/nx-nameforma/pkg/nameforma/test/nf-url.ts', '@');
+      const devPath = path.join(
+        homeDir,
+        'dev/nx-nameforma/pkg/nameforma/test/nf-url.ts',
+      );
+      const url = new NfUrl(
+        '~dev/nx-nameforma/pkg/nameforma/test/nf-url.ts',
+        '@',
+      );
       expect(url.resolve()).toBe(devPath);
     });
 
     it('handles nf: prefix in input', () => {
       const url = new NfUrl('nf:@src/nf-url.ts', '~');
-      expect(url.uri).toMatch(/nf:~\/dev\/nx-nameforma\/pkg\/nameforma\/src\/nf-url\.ts/);
+      expect(url.uri).toMatch(
+        /nf:~\/dev\/nx-nameforma\/pkg\/nameforma\/src\/nf-url\.ts/,
+      );
     });
   });
 });

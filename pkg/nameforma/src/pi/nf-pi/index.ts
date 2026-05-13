@@ -29,11 +29,7 @@ export default function (pi: ExtensionAPI) {
 
       await ctx.ui.custom(
         (tui: any, theme: any, _keybindings: any, done: any) =>
-          new NfPrompt(
-            tui,
-            theme,
-            done,
-          ),
+          new NfPrompt(tui, theme, done),
         {
           overlay: true,
           overlayOptions: {
@@ -58,15 +54,11 @@ export default function (pi: ExtensionAPI) {
         activeWidget.dispose();
       }
 
-      activeWidget = new NfWidget(
-        ctx.ui.theme,
-        'nf-widget',
-        () => {
-          if (activeWidget) {
-            ctx.ui.setWidget('nf-widget', activeWidget.getContent());
-          }
-        },
-      );
+      activeWidget = new NfWidget(ctx.ui.theme, 'nf-widget', () => {
+        if (activeWidget) {
+          ctx.ui.setWidget('nf-widget', activeWidget.getContent());
+        }
+      });
 
       ctx.ui.setWidget('nf-widget', activeWidget.getContent());
       ctx.ui.notify(

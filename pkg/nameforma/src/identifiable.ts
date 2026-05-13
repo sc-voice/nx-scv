@@ -261,5 +261,4 @@ export class Identifiable {
       return distance <= maxDistance;
     };
   }
-
 }

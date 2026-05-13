@@ -13,7 +13,7 @@ import { NfSession } from './nf-session.js';
 
 export class NfWidget {
   private lines: string[] = [];
-  private renderer = new LineRenderer();
+  private renderer!: LineRenderer;
   public detail: RenderDetail | number = 0;
 
   constructor(
@@ -49,10 +49,13 @@ export class NfWidget {
   }
 
   private update = () => {
+    const zeno = ZenoCoord.fromRenderDetail(this.detail);
+    this.renderer = new LineRenderer({
+      zenoStep: zeno.anchorStep,
+    });
     const now = new Date();
     const timeStr = now.toLocaleTimeString(undefined, { hour12: false });
     const detailStr = (this.detail as number).toFixed(1);
-    const zeno = ZenoCoord.fromRenderDetail(this.detail);
     const zenoStr = zeno.anchorStep + '/' + zeno.pivotStep;
     const worldName = NfSession.shared.world?.name || 'nameforma';
     const worldId = NfSession.shared.world?.id.timeId() || '';
@@ -71,37 +74,32 @@ export class NfWidget {
   ): string[] {
     const lines: string[] = [];
 
-    if (typeof data === 'string') {
-      lines.push(`${indent}${data}`);
-    } else if (typeof data === 'number') {
-      lines.push(`${indent}${data}`);
-    } else if (typeof data === 'boolean') {
-      lines.push(`${indent}${data}`);
-    } else if (Array.isArray(data)) {
-      data.forEach((item) => {
-        lines.push(...this.renderDataToLines(item, indent));
-      });
-    } else if (typeof data === 'object') {
-      Object.entries(data).forEach(([key, value]) => {
-        if (typeof value === 'object' && !Array.isArray(value)) {
-          lines.push(`${indent}${key}:`);
-          lines.push(...this.renderDataToLines(value, indent + '  '));
-        } else {
-          lines.push(`${indent}${key}: ${this.valueToString(value)}`);
-        }
-      });
+    // Check if data is RenderRow[] (array of arrays) or RenderRow (array of cells)
+    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+      // RenderRow[]: array of rows
+      for (const row of data) {
+        lines.push(indent + this.rowToString(row));
+      }
+    } else {
+      // RenderRow: single row of cells
+      lines.push(indent + this.rowToString(data));
     }
 
     return lines;
   }
 
-  private valueToString(value: any): string {
-    if (typeof value === 'string') return value;
-    if (typeof value === 'number') return value.toString();
-    if (typeof value === 'boolean') return value.toString();
-    if (Array.isArray(value)) return `[${value.length} items]`;
-    if (typeof value === 'object') return '{...}';
-    return String(value);
+  private rowToString(row: any): string {
+    return row
+      .map((cell: any) => this.cellToString(cell))
+      .join(' ');
+  }
+
+  private cellToString(cell: any): string {
+    if (typeof cell === 'string') return cell;
+    if (typeof cell === 'number') return cell.toString();
+    if (typeof cell === 'boolean') return cell.toString();
+    if (cell?.label) return `${cell.label}:${cell.value}`;
+    return String(cell);
   }
 
   getContent(): string[] {

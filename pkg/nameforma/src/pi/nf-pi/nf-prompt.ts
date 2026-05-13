@@ -13,7 +13,7 @@ export class NfPrompt implements Focusable {
   focused = false;
   private lines: string[] = [];
   private view: WorldView;
-  private renderer = new LineRenderer();
+  private renderer!: LineRenderer;
   private inputBuffer: string = '';
 
   constructor(
@@ -46,17 +46,11 @@ export class NfPrompt implements Focusable {
 
     if (input === 'zo') {
       if (coord.anchorStep < ZenoCoord.MAX_ZENO_STEP) {
-        newCoord = new ZenoCoord(
-          (coord.anchorStep + 1) as any,
-          0 as any,
-        );
+        newCoord = new ZenoCoord((coord.anchorStep + 1) as any, 0 as any);
       }
     } else if (input === 'zc') {
       if (coord.anchorStep > 0) {
-        newCoord = new ZenoCoord(
-          (coord.anchorStep - 1) as any,
-          0 as any,
-        );
+        newCoord = new ZenoCoord((coord.anchorStep - 1) as any, 0 as any);
       }
     }
 
@@ -77,10 +71,16 @@ export class NfPrompt implements Focusable {
   }
 
   private update = () => {
+    this.renderer = new LineRenderer({
+      zenoStep: this.view.zenoCoord.anchorStep,
+    });
     const now = new Date();
     const timeStr = now.toLocaleTimeString();
     const zenoStr =
-      'detail@' + this.view.zenoCoord.anchorStep + '/' + this.view.zenoCoord.pivotStep;
+      'detail@' +
+      this.view.zenoCoord.anchorStep +
+      '/' +
+      this.view.zenoCoord.pivotStep;
     const header = this.theme.fg(
       'accent',
       `pi-nameforma ${timeStr} ${zenoStr}`,
@@ -135,7 +135,10 @@ export class NfPrompt implements Focusable {
     if (this.inputBuffer === 'zo' || this.inputBuffer === 'zc') {
       this.processInputSequence(this.inputBuffer);
       this.inputBuffer = '';
-    } else if (this.inputBuffer.length > 2 || !this.inputBuffer.match(/^[zoc]*$/)) {
+    } else if (
+      this.inputBuffer.length > 2 ||
+      !this.inputBuffer.match(/^[zoc]*$/)
+    ) {
       // Reset if buffer exceeds expected length or contains invalid chars
       this.inputBuffer = '';
     }

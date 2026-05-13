@@ -5,46 +5,54 @@ import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
 
 /**
- * Spatial Navigation Engine for a fractal space of Forma objects.
+ * 3D Spatial Navigation Engine for a fractal semantic space of Forma objects.
  *
- * The system projects high-dimensional data into a 2D viewport, where the resolution
- * is controlled by RenderDetail. Navigation logic remains constant while the density
- * and resolution of projected data changes—this is the "fractal" principle.
+ * NameForma information is modelled as a fractal space of IRegistry 
+ * instances that represent data subsets of interest. IRegistry instances 
+ * are presented with IViews anchored to that instance.
+ *
+ * IViews present their anchors fractally as a 
+ * semantically zoomable list of RenderRows.
+ * RenderRows have arbitrary width that a renderer can
+ * choose to render as one or more wrapped display lines according to viewport 
+ * height/width constraints.
+ * Each RenderRow comprises static read-only data as well as FormaFields, which
+ * are potentilly mutable.
+ *
+ * Semantic zooming to infinite detail is specified by RenderDetail
+ * over the open interval [0..1), where 0 is least detail and 1 is infinite detail.
+ * RenderDetail is useful as the mathematical model for semantic zooming,
+ * but is cumbersome for implementation.
+ * In practice, we work with discrete ZenoSteps, which are non-negative integers (ℤ≥0)
+ * that map to RenderDetail with 0 as the ZenoStep of least detail.
+ * Each ZenoStep corresponds to a minimal number of displayable RenderRows:
+ *
+ *   ZenoStep 0: 1 terse row
+ *   ZenoStep 1: 1 verbose row
+ *   ZenoStep 2: 2 rows
+ *   ZenoStep 3: 3 rows
+ *   ZenoStep 4: 5 rows
+ *   ZenoStep 5: 8 rows
+ *   ...
+ *   ZenoStep N: Fibonnaci(N) rows
+ *
+ * Renderers can wrap/clip RenderRows according to user preference.
  *
  * Two complementary concerns:
  * - IView (the Lens): maintains Anchor, Pivot, and RenderDetail — defines HOW to view
  * - INavigable (the Navigator): maintains Cursor position — defines WHERE we are
  */
 
-/**
- * Rendering detail can be specified continously over the range [-1..1].
- * Values between Cell (-1) and Row (0) provide a continous range of
- * increasing detail (e.g., -0.5) while remaining "cells".
- * Values between Row and All provide a continuous range of
- * increasing detail (e.g., 0.5) while remaining "row/rows".
- */
-export const RenderDetail = {
-  Cell: -1,
-  Row: 0,
-  All: 1,
-} as const;
+export type RenderCell = string | number | boolean | FormaField;
 
-export type RenderDetail =
-  (typeof RenderDetail)[keyof typeof RenderDetail];
-
-export type RenderCell = string | number | boolean | UUID64 | FormaField;
-
-export type RenderRow =
-  | RenderCell
-  | RenderCell[]
-  | { [key: string]: RenderRow };
+export type RenderRow = | RenderCell[]
 
 export type RenderData = RenderRow | RenderRow[];
 
 const MAX_ZENO_STEP = 17;
 
 /**
- * ZenoStep: branded integer [0..17] for stepped detail levels.
+ * ZenoStep: branded integer [0..MAX_ZENO_STEP] for stepped detail levels.
  * Uses Zeno-like convergence: detail = 1 - (8/13)^n
  */
 export type ZenoStep = number & { readonly __zenoStep: unique symbol };
@@ -57,6 +65,32 @@ export function zenoStep(n: number): ZenoStep {
   }
   return n as ZenoStep;
 }
+
+export const ZENO_1_ROW_TERSE = zenoStep(0);
+export const ZENO_1_ROW_VERBOSE = zenoStep(1);
+export const ZENO_2_ROWS = zenoStep(2);
+export const ZENO_3_ROWS = zenoStep(3);
+export const ZENO_5_ROWS = zenoStep(4);
+export const ZENO_8_ROWS = zenoStep(5);
+export const ZENO_13_ROWS = zenoStep(6);
+export const ZENO_21_ROWS = zenoStep(7);
+export const ZENO_34_ROWS = zenoStep(8);
+export const ZENO_55_ROWS = zenoStep(9);
+
+/**
+ * Rendering detail can be specified continously over the range [0..1].
+ * Values between Cell (-1) and Row (0) provide a continous range of
+ * increasing detail (e.g., -0.5) while remaining "cells".
+ * Values between Row and All provide a continuous range of
+ * increasing detail (e.g., 0.5) while remaining "row/rows".
+ */
+export const RenderDetail = {
+  Row: 0,
+  All: 1,
+} as const;
+
+export type RenderDetail =
+  (typeof RenderDetail)[keyof typeof RenderDetail];
 
 /**
  * ZenoDetail: convergence levels.
@@ -85,7 +119,7 @@ function fibonacci(n: number): number {
  * Formula: ZenoLines[n] = Fibonacci(n+2)
  */
 const ZenoLines: readonly number[] = Object.freeze(
-  Array.from({ length: MAX_ZENO_STEP + 1 }, (_, n) => fibonacci(n + 2)),
+  Array.from({ length: MAX_ZENO_STEP + 1 }, (_, n) => fibonacci(n + 1)),
 );
 
 /**

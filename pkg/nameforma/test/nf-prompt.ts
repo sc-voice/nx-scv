@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from '@sc-voice/vitest';
 import { NfPrompt } from '../src/pi/nf-pi/nf-prompt.js';
 import { Forma } from '../src/forma.js';
 import { ZenoCoord } from '../src/navigable-view.js';
+import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 
 describe('NfPrompt', () => {
   let prompt: NfPrompt;
@@ -27,9 +28,21 @@ describe('NfPrompt', () => {
       id: { timeId: () => 'world-id' },
     };
 
-    mockAnchor = new Forma({ name: 'test-anchor' });
+    const formaAnchor = new Forma({ name: 'test-anchor' });
+    const ns = new FuzzyNamespace();
+    ns.addForma(formaAnchor);
+    mockAnchor = Object.create(Object.getPrototypeOf(formaAnchor));
+    Object.assign(mockAnchor, formaAnchor);
+    mockAnchor.namespace = () => ns;
 
-    prompt = new NfPrompt(mockTui, mockTheme, doneFn, mockWorld, mockAnchor, null);
+    prompt = new NfPrompt(
+      mockTui,
+      mockTheme,
+      doneFn,
+      mockWorld,
+      mockAnchor,
+      null,
+    );
   });
 
   it('initializes with provided world and anchor', () => {
@@ -72,7 +85,10 @@ describe('NfPrompt', () => {
 
   it('handleInput: "zo" respects MAX_ZENO_STEP', () => {
     // Set to max
-    const maxCoord = new ZenoCoord(ZenoCoord.MAX_ZENO_STEP as any, 0 as any);
+    const maxCoord = new ZenoCoord(
+      ZenoCoord.MAX_ZENO_STEP as any,
+      0 as any,
+    );
     prompt['view'].zoomTo(maxCoord);
 
     const coordBefore = prompt['view'].zenoCoord;

@@ -210,11 +210,7 @@ describe('Kafka Integration Tests', () => {
 
     // Replicate: deserialize and verify data matches original
     const replicatedArray: TestItem[] = [];
-    const replicatedList = new FormaList(
-      replicatedArray,
-      TestItem,
-      {},
-    );
+    const replicatedList = new FormaList(replicatedArray, TestItem, {});
 
     for (const itemData of receivedMessage.items) {
       const item = new TestItem({

@@ -5,7 +5,10 @@ import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
 import { IRegistry } from './registry.js';
 import { FormaList, type IEventBus } from './forma-list.js';
-import { FuzzyNamespace, type IFuzzyNamespace } from './fuzzy-namespace.js';
+import {
+  FuzzyNamespace,
+  type IFuzzyNamespace,
+} from './fuzzy-namespace.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
@@ -79,7 +82,11 @@ export class Task extends Forma implements IRegistry {
    * @param bus - Event bus for change notifications and persistence
    */
   actions(bus: IEventBus): FormaList<Action> {
-    return new FormaList(this.rawActions, Action, { parent: this, emitter: bus, namespace: this.#namespace });
+    return new FormaList(this.rawActions, Action, {
+      parent: this,
+      emitter: bus,
+      namespace: this.#namespace,
+    });
   }
 
   /**
@@ -95,7 +102,11 @@ export class Task extends Forma implements IRegistry {
    * @param bus - Event bus for change notifications and persistence
    */
   references(bus: IEventBus): FormaList<Reference> {
-    return new FormaList(this.rawReferences, Reference, { parent: this, emitter: bus, namespace: this.#namespace });
+    return new FormaList(this.rawReferences, Reference, {
+      parent: this,
+      emitter: bus,
+      namespace: this.#namespace,
+    });
   }
 
   /**

@@ -6,6 +6,7 @@ import { NameForma } from '../src/index.js';
 import { DBG } from '../src/defines.js';
 import type { IView } from '../src/navigable-view.js';
 import { ZenoCoord } from '../src/navigable-view.js';
+import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 
 const { Schema, Forma, RenderDetail } = NameForma;
 const { Unicode, ColorConsole } = Text;
@@ -93,39 +94,46 @@ describe('Forma', () => {
       summary: 'A test forma for verification',
     });
 
-    const createMockView = (detail: RenderDetail | number): IView => ({
-      anchor: f,
-      pivot: null as any,
-      detail,
-      zenoCoord: ZenoCoord.fromRenderDetail(detail),
-      setAnchor: () => {},
-      setPivot: () => {},
-      zoomTo: () => {},
-      observe: () => {},
-    });
+    const createMockView = (detail: RenderDetail | number): IView => {
+      const ns = new FuzzyNamespace();
+      ns.addForma(f);
+      const mockAnchor: any = Object.create(Object.getPrototypeOf(f));
+      Object.assign(mockAnchor, f);
+      mockAnchor.namespace = () => ns;
+      return {
+        anchor: mockAnchor,
+        pivot: null as any,
+        detail,
+        zenoCoord: ZenoCoord.fromRenderDetail(detail),
+        setAnchor: () => {},
+        setPivot: () => {},
+        zoomTo: () => {},
+        observe: () => {},
+      };
+    };
 
     // All (anchor>=2): 3 FormaFields with full id, name, summary
     const dataAll = f.asRenderData(createMockView(RenderDetail.All));
     expect(Array.isArray(dataAll)).toBe(true);
-    expect(dataAll).toHaveLength(3);
-    expect(dataAll[0]).toBeInstanceOf(FormaField);
-    expect(dataAll[0].name).toBe('id');
-    expect(dataAll[0].mutable).toBe(false);
-    expect(dataAll[1].name).toBe('name');
-    expect(dataAll[1].value).toBe('test-forma');
-    expect(dataAll[2].name).toBe('summary');
-    expect(dataAll[2].value).toBe('A test forma for verification');
+    expect(dataAll).toHaveLength(2);
+    expect(Array.isArray(dataAll[0])).toBe(true);
+    expect(dataAll[0][0]).toBeInstanceOf(FormaField);
+    expect(dataAll[0][0].name).toBe('id');
+    expect(dataAll[0][0].mutable).toBe(false);
+    expect(dataAll[0][1]).toBeInstanceOf(FormaField);
+    expect(dataAll[0][1].name).toBe('name');
+    expect(dataAll[0][1].value).toBe('test-forma');
+    expect(dataAll[1][0]).toBeInstanceOf(FormaField);
+    expect(dataAll[1][0].name).toBe('summary');
+    expect(dataAll[1][0].value).toBe('A test forma for verification');
 
-    // Row (anchor=0): compact string "timeId: name"
+    // Row (anchor=0): single row with FormaField
+    const ns = new FuzzyNamespace();
+    ns.addForma(f);
     const dataRow = f.asRenderData(createMockView(RenderDetail.Row));
-    expect(typeof dataRow).toBe('string');
-    expect(dataRow).toBe(`${f.id.timeId()}: test-forma`);
-
-    // Cell (detail<0): single FormaField with id timeId
-    const dataCell = f.asRenderData(createMockView(RenderDetail.Cell));
-    expect(dataCell).toBeInstanceOf(FormaField);
-    expect(dataCell.name).toBe('id');
-    expect(dataCell.value).toBe(f.id.timeId());
+    expect(Array.isArray(dataRow)).toBe(true);
+    expect(dataRow).toHaveLength(1);
+    expect(dataRow[0]).toBeInstanceOf(FormaField);
   });
 
   it('classes', () => {

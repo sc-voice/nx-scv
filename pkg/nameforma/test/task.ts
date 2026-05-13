@@ -243,11 +243,10 @@ describe('task', () => {
 
     // Create a task and wire the mock bus to its actions FormaList
     const task = new Task({ name: 'test task' });
-    const actionsList = new FormaList(
-      task.rawActions,
-      Action,
-      { parent: task, emitter: mockBus },
-    );
+    const actionsList = new FormaList(task.rawActions, Action, {
+      parent: task,
+      emitter: mockBus,
+    });
     dbg > 1 && cc.tag(msg, 'created FormaList with mock bus');
 
     // Add an action and verify event fields
@@ -372,13 +371,11 @@ describe('task', () => {
     // Create task with references
     let thing1 = new Task({ name });
     const mockBus1 = { emit: () => {}, on: () => {} };
-    thing1
-      .references(mockBus1)
-      .addItem({
-        name: 'ref 1',
-        relevance: 0.9,
-        source: 'https://example.com',
-      });
+    thing1.references(mockBus1).addItem({
+      name: 'ref 1',
+      relevance: 0.9,
+      source: 'https://example.com',
+    });
     thing1.references(mockBus1).addItem({ name: 'ref 2', relevance: 0.5 });
     expect(thing1.rawReferences).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 references');
@@ -411,13 +408,11 @@ describe('task', () => {
     // Create task with references
     let thing1 = new Task({ name });
     const mockBus2 = { emit: () => {}, on: () => {} };
-    thing1
-      .references(mockBus2)
-      .addItem({
-        name: 'ref 1',
-        relevance: 0.9,
-        source: 'https://example.com',
-      });
+    thing1.references(mockBus2).addItem({
+      name: 'ref 1',
+      relevance: 0.9,
+      source: 'https://example.com',
+    });
     thing1.references(mockBus2).addItem({ name: 'ref 2', relevance: 0.5 });
     expect(thing1.rawReferences).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 references');
@@ -491,12 +486,18 @@ describe('task', () => {
     const t2k = new Task({ name: 'test task' });
 
     // Add actions
-    const actionsList = t2k.actions({ emit: () => {}, on: () => {} } as any);
+    const actionsList = t2k.actions({
+      emit: () => {},
+      on: () => {},
+    } as any);
     const action1 = actionsList.addItem({ name: 'action1' });
     const action2 = actionsList.addItem({ name: 'action2' });
 
     // Add references
-    const refsList = t2k.references({ emit: () => {}, on: () => {} } as any);
+    const refsList = t2k.references({
+      emit: () => {},
+      on: () => {},
+    } as any);
     const ref1 = refsList.addItem({ name: 'ref1' });
     const ref2 = refsList.addItem({ name: 'ref2' });
 
@@ -518,7 +519,11 @@ describe('task', () => {
     expect(ns.getForma(fuzzyIdRef1)).toBe(ref1);
     expect(ns.getForma(fuzzyIdRef2)).toBe(ref2);
 
-    dbg && cc.tag1(msg + UOK, 'namespace fuzzy ID lookup works for actions and references');
+    dbg &&
+      cc.tag1(
+        msg + UOK,
+        'namespace fuzzy ID lookup works for actions and references',
+      );
   });
 
   it('Task.namespace() throws on ambiguous fuzzy ID match', () => {
@@ -570,6 +575,7 @@ describe('task', () => {
     const fuzzyId2 = ns.fuzzyIdOf(action2);
     expect(ns.getForma(fuzzyId2)).toBe(action2);
 
-    dbg && cc.tag1(msg + UOK, 'namespace fuzzy IDs update correctly on delete');
+    dbg &&
+      cc.tag1(msg + UOK, 'namespace fuzzy IDs update correctly on delete');
   });
 });

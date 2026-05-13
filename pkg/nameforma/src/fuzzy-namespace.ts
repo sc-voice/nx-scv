@@ -18,17 +18,24 @@ export interface IFuzzyNamespace {
    * @returns The matching Forma, or undefined if not found or ambiguous
    */
   getForma(fuzzyId: FuzzyId): Forma | undefined;
+
+  /**
+   * Generate the masked FuzzyId for a Forma in this namespace.
+   * @param forma - The Forma instance
+   * @returns The computed FuzzyId
+   */
+  fuzzyIdOf(forma: Forma): FuzzyId;
 }
 
 /**
- * FuzzyNamespace - A namespace that maps Forma objects with their FuzzyID 
+ * FuzzyNamespace - A namespace that maps Forma objects with their FuzzyID
  *
  * Supports low-entropy UI (LEUI) by computing minimal unique FuzzyIds for set members.
  * In practice, FuzzyIds are a unique and tiny (e.g., 5-6 characters) subset
- * of the high-entropy 32 chars for a GUID. FuzzyIds are only unique within 
+ * of the high-entropy 32 chars for a GUID. FuzzyIds are only unique within
  * their namespace. Although primarily useful for LEUI, FuzzyNamespaces also
  * are an important resource for agents in discovery since they define a
- * "working set of objects". 
+ * "working set of objects".
  *
  * Design:
  * - Stores Forma objects in an internal set
@@ -214,4 +221,3 @@ export class FuzzyNamespace {
     };
   }
 }
-

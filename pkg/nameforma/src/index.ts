@@ -6,10 +6,7 @@ import {
 } from './action.js';
 import { Clock } from './clock.js';
 import { Focus } from './focus.js';
-import {
-  Forma,
-  LevenshteinMatcher,
-} from './forma.js';
+import { Forma, LevenshteinMatcher } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { FormaList } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';

@@ -6,6 +6,9 @@ import {
   IRenderable,
   IView,
   ZenoCoord,
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
+  ZENO_2_ROWS,
 } from './navigable-view.js';
 import { FormaField } from './forma-field.js';
 import { Unicode, Levenshtein, ColorConsole } from '@sc-voice/tools/text';
@@ -259,28 +262,36 @@ export class Forma extends Identifiable implements IRenderable {
   asRenderData(view: IView): RenderData {
     const { id, name, summary } = this;
     const cls = this.constructor.name;
-    const shortId = id.timeId();
-    const detail = view.detail;
+    const { anchor, zenoCoord } = view;
+    const { anchorStep } = zenoCoord;
+    const ns = anchor.namespace();
+    const shortId = ns.fuzzyIdOf(this);
 
-    if (detail < RenderDetail.Row) {
-      return new FormaField('id', false, `${cls}.id`, id.timeId());
-    }
-
-    const coord = ZenoCoord.fromRenderDetail(detail);
-
-    if (coord.anchorStep >= 2) {
-      return [
-        new FormaField('id', false, `${cls}.id`, id.toString()),
-        new FormaField('name', true, `${cls}.name`, name),
-        new FormaField('summary', true, `${cls}.summary`, summary),
+    if (anchorStep === ZENO_1_ROW_TERSE) {
+      return [ 
+        new FormaField('id', false, `${cls}.id`, `${shortId}: ${name} ${summary}`) 
       ];
-    } else if (coord.anchorStep === 1) {
+    }
+    if (anchorStep === ZENO_1_ROW_VERBOSE) {
       return [
         new FormaField('id', false, `${cls}.id`, shortId),
         new FormaField('name', true, `${cls}.name`, name),
+        new FormaField('name', true, `${cls}.summary`, summary),
       ];
-    } else {
-      return `${shortId}: ${name}`;
     }
-  }
+
+    // ZENO_2_ROWS is used for all futher detail
+    const rows = [
+      [
+        new FormaField('id', false, `${cls}.id`, id.toString()),
+        new FormaField('name', true, `${cls}.name`, name),
+      ],
+      [new FormaField('summary', true, `${cls}.summary`, summary)],
+    ];
+
+    // Subclasses can add their detail rows
+
+    return rows;
+  } // asRenderData
+
 } // Forma

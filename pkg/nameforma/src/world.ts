@@ -18,7 +18,10 @@ import {
 } from './forma-list.js';
 import { Focus } from './focus.js';
 import { NfUrl } from './nf-url.js';
-import { FuzzyNamespace, type IFuzzyNamespace } from './fuzzy-namespace.js';
+import {
+  FuzzyNamespace,
+  type IFuzzyNamespace,
+} from './fuzzy-namespace.js';
 import type { IRegistry } from './registry.js';
 
 const { ColorConsole } = Text;
@@ -70,11 +73,9 @@ export class World extends Forma implements IEventBus, IRegistry {
 
     this.#worldPath = worldPath;
     this.#namespace = new FuzzyNamespace();
-    this.#focusStack = new FormaList<Focus>(
-      [],
-      Focus as any,
-      { keyField: 'formaId' },
-    );
+    this.#focusStack = new FormaList<Focus>([], Focus as any, {
+      keyField: 'formaId',
+    });
     this.#bus = new EventEmitter();
 
     // Register standard entities
@@ -346,11 +347,9 @@ export class World extends Forma implements IEventBus, IRegistry {
           summary: f.summary,
         }),
       );
-      this.#focusStack = new FormaList<Focus>(
-        focuses,
-        Focus as any,
-        { keyField: 'formaId' },
-      );
+      this.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
+        keyField: 'formaId',
+      });
     }
 
     if (data.history && Array.isArray(data.history)) {
@@ -760,11 +759,9 @@ export class World extends Forma implements IEventBus, IRegistry {
   get focusStack(): FormaList<Focus> {
     // Return new FormaList with items reversed (most recent first)
     const items = Array.from(this.#focusStack).reverse();
-    return new FormaList<Focus>(
-      items,
-      Focus as any,
-      { keyField: 'formaId' },
-    );
+    return new FormaList<Focus>(items, Focus as any, {
+      keyField: 'formaId',
+    });
   }
 
   /**
@@ -786,11 +783,9 @@ export class World extends Forma implements IEventBus, IRegistry {
       }
     });
     if (valid.length === before.length) return false;
-    this.#focusStack = new FormaList<Focus>(
-      valid,
-      Focus as any,
-      { keyField: 'formaId' },
-    );
+    this.#focusStack = new FormaList<Focus>(valid, Focus as any, {
+      keyField: 'formaId',
+    });
     if (before.length - valid.length > 0) {
       console.warn(
         `Cleaned ${before.length - valid.length} stale focus entries`,
@@ -923,11 +918,9 @@ export class World extends Forma implements IEventBus, IRegistry {
           summary: f.summary,
         }),
       );
-      world.#focusStack = new FormaList<Focus>(
-        focuses,
-        Focus as any,
-        { keyField: 'formaId' },
-      );
+      world.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
+        keyField: 'formaId',
+      });
     }
 
     // Restore history if present

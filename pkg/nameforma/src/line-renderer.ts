@@ -1,4 +1,5 @@
-import type { RenderData } from './navigable-view.js';
+import type { RenderData, RenderCell, RenderRow, ZenoStep } from './navigable-view.js';
+import { ZENO_1_ROW_TERSE } from './navigable-view.js';
 
 import { FormaField } from './forma-field.js';
 
@@ -7,6 +8,7 @@ import { FormaField } from './forma-field.js';
  * array of strings suitable for TUI display.
  */
 export interface LineRendererConfig {
+  zenoStep?: ZenoStep;
   indentChar?: string;
   precision?: number;
 }
@@ -16,10 +18,12 @@ export interface LineRendererConfig {
  * array of strings suitable for TUI display.
  */
 export class LineRenderer {
+  public readonly zenoStep: ZenoStep;
   public readonly indentChar: string;
   public readonly precision: number;
 
   constructor(config: LineRendererConfig = {}) {
+    this.zenoStep = config.zenoStep ?? ZENO_1_ROW_TERSE;
     this.indentChar = config.indentChar ?? '  ';
     this.precision = config.precision ?? 2;
   }
@@ -34,20 +38,21 @@ export class LineRenderer {
   public render(data: RenderData, currentIndent: string = ''): string[] {
     const lines = [];
 
-    if (Array.isArray(data)) {
-      for (const item of data) {
-        lines.push(currentIndent + this.rowStrings(item).join(' '));
+    // Check if data is RenderRow[] (array of arrays) or RenderRow (array of cells)
+    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
+      // RenderRow[]: array of rows
+      for (const row of data) {
+        lines.push(currentIndent + this.rowStrings(row as RenderRow).join(' '));
       }
     } else {
-      lines.push(currentIndent + this.rowStrings(data).join(' '));
+      // RenderRow: single row of cells
+      lines.push(currentIndent + this.rowStrings(data as RenderRow).join(' '));
     }
 
     return lines;
   }
 
-  public cellString(data: RenderData): string {
-    const strings: string[] = [];
-
+  public cellString(data: RenderCell): string {
     if (typeof data === 'string') {
       return data;
     } else if (typeof data === 'number') {
@@ -55,31 +60,17 @@ export class LineRenderer {
     } else if (typeof data === 'boolean') {
       return data.toString();
     } else if (data instanceof FormaField) {
-      const field = data as any; // Cast to access properties easily for this check
-      return `${field.label}:${field.value}`;
-    } else if (Array.isArray(data)) {
-      return [
-        '[',
-        data.map((item) => this.cellString(item)).join(', '),
-        ']',
-      ].join('');
+      const field = data as any;
+      return this.zenoStep === ZENO_1_ROW_TERSE
+        ? field.value
+        : `${field.label}:${field.value}`;
     }
 
     return 'JSON:' + JSON.stringify(data);
   }
 
-  public rowStrings(data: RenderData): string[] {
-    const strings: string[] = [];
-
-    if (Array.isArray(data)) {
-      for (const item of data) {
-        strings.push(this.cellString(item));
-      }
-    } else {
-      strings.push(this.cellString(data));
-    }
-
-    return strings;
+  public rowStrings(data: RenderRow): string[] {
+    return data.map((item) => this.cellString(item));
   }
 
   private isObject(val: any): val is Record<string, any> {

@@ -19,14 +19,21 @@ export class NfUrl {
     const embedded = this.parseEmbeddedBase(this.input);
     if (embedded && embedded.base !== this.base) {
       // Resolve using embedded base and express using given base
-      const absolutePath = this.resolveWithBase(embedded.path, embedded.base);
+      const absolutePath = this.resolveWithBase(
+        embedded.path,
+        embedded.base,
+      );
       const relPath = this.makePathRelativeToBase(absolutePath, this.base);
-      const normalizedPath = relPath.startsWith('/') ? relPath : '/' + relPath;
+      const normalizedPath = relPath.startsWith('/')
+        ? relPath
+        : '/' + relPath;
       return `nf:${this.base}${normalizedPath}`;
     }
 
     // No embedded base or same base, use input as-is
-    const normalizedInput = this.input.startsWith('/') ? this.input : '/' + this.input;
+    const normalizedInput = this.input.startsWith('/')
+      ? this.input
+      : '/' + this.input;
     return `nf:${this.base}${normalizedInput}`;
   }
 
@@ -35,7 +42,10 @@ export class NfUrl {
     const embedded = this.parseEmbeddedBase(this.input);
     if (embedded && embedded.base !== this.base) {
       // Input has a different base, resolve it first then convert
-      const absolutePath = this.resolveWithBase(embedded.path, embedded.base);
+      const absolutePath = this.resolveWithBase(
+        embedded.path,
+        embedded.base,
+      );
       return this.convertPath(absolutePath, this.base);
     }
 
@@ -51,11 +61,15 @@ export class NfUrl {
       throw new Error(`Unknown base: ${this.base}`);
     }
 
-    const normalizedInput = this.input.startsWith('/') ? this.input.slice(1) : this.input;
+    const normalizedInput = this.input.startsWith('/')
+      ? this.input.slice(1)
+      : this.input;
     return path.resolve(basePath, normalizedInput);
   }
 
-  private parseEmbeddedBase(input: string): { base: string; path: string } | null {
+  private parseEmbeddedBase(
+    input: string,
+  ): { base: string; path: string } | null {
     // Check for "nf:BASE..." format
     if (input.startsWith('nf:')) {
       const rest = input.slice(3);
@@ -89,7 +103,9 @@ export class NfUrl {
       throw new Error(`Unknown base: ${base}`);
     }
 
-    const normalizedInput = inputPath.startsWith('/') ? inputPath.slice(1) : inputPath;
+    const normalizedInput = inputPath.startsWith('/')
+      ? inputPath.slice(1)
+      : inputPath;
     return path.resolve(basePath, normalizedInput);
   }
 
@@ -98,7 +114,10 @@ export class NfUrl {
     return absolutePath;
   }
 
-  private makePathRelativeToBase(absolutePath: string, base: string): string {
+  private makePathRelativeToBase(
+    absolutePath: string,
+    base: string,
+  ): string {
     if (base === '/') {
       return absolutePath;
     }
