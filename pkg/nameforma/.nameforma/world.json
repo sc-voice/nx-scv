@@ -1,24 +1,10 @@
 {
   "focusStack": [
     {
-      "id": "0PtG4U0W00djorcB1Zx_tW",
-      "formaId": "0PtG4S7R00djorcB1Zx_tW",
-      "formaType": "task",
-      "name": "Clean up nf action help",
-      "summary": ""
-    },
-    {
       "id": "0PtG4mrw00NItxaFFD4TNW",
       "formaId": "0PtG4la400NItxaFFD4TNW",
       "formaType": "task",
       "name": "Schema.toBuffer/fromBuffer",
-      "summary": ""
-    },
-    {
-      "id": "0PtG52dS00WB10qCAEI27W",
-      "formaId": "0PtG51ek00WB10qCAEI27W",
-      "formaType": "task",
-      "name": "Add task json subcommand",
       "summary": ""
     },
     {
@@ -29,46 +15,18 @@
       "summary": ""
     },
     {
-      "id": "0PtkpznZ00SQ4w3ljEox7W",
-      "formaId": "0PtkpoWg00SQ4w3ljEox7W",
+      "id": "0PuY9cio00gJACRXCtGE7W",
+      "formaId": "0PuY9VfX00gJACRXCtGE7W",
       "formaType": "task",
-      "name": "render nf watch content within nf-widget",
-      "summary": ""
+      "name": "IView support for Theme",
+      "summary": "Render IView text with custom nameforma Themes"
     },
     {
-      "id": "0PtzaN1E00Xq89ZHfVBntW",
-      "formaId": "0Ptq_qb400Xq89ZHfVBntW",
+      "id": "0PuchsIP00uGlZlFCH8dNW",
+      "formaId": "0PucJuPh00uGlZlFCH8dNW",
       "formaType": "task",
-      "name": "Implement nf-visual: vi-inspired modal for nameforma mutations",
-      "summary": "Vi-inspired modal interface for browsing and mutating nameforma entities. Navigation: j/k moves cursor up/down through entity list, zo/zc zooms detail level in/out, / searches forward, ? searches backward. Each line represents a uuid64-identified entity. Mutations: edit, delete, create, link commands (keybindings TBD)."
-    },
-    {
-      "id": "0Pu2FPUt00mb5K15dvOfNW",
-      "formaId": "0Pu2EokB00mb5K15dvOfNW",
-      "formaType": "task",
-      "name": "Create LineRenderer",
-      "summary": "A class that converts RenderData into an array of string[]"
-    },
-    {
-      "id": "0PuHhA5-00KK1BSZ24rkNW",
-      "formaId": "0Pu7uCHk00KK1BSZ24rkNW",
-      "formaType": "task",
-      "name": "NfSession for nf-pi extension",
-      "summary": "Implemented NfSession singleton extending EventEmitter with WorldView as single property; delegated anchor/pivot/zenoCoord/world via getters; unified asRenderData signature to accept IView; NfPrompt and NfWidget consume NfSession.shared.view for rendering"
-    },
-    {
-      "id": "0PuJ0a8E00z8bIbJI_zSNW",
-      "formaId": "0PuHhA4s00z8bIbJI_zSNW",
-      "formaType": "task",
-      "name": "Improve FuzzyId support",
-      "summary": "Implement INamespaced for World and Task. Architecture: Replace FormaList with FuzzyNamespace entirely as single unified system. (1) Extend FuzzyNamespace: add patchForma(), event bus support, mutation methods. (2) World implements INamespaced: namespace(bus) returns FuzzyNamespace of all top-level entities. (3) Task implements INamespaced: namespace(bus) returns combined FuzzyNamespace of actions + references (no more disjoint namespaces). (4) Update clients: CLI, tests to use namespace(bus). Key files: src/fuzzy-namespace.ts, src/world.ts, src/task.ts, src/forma-list.ts (to replace), src/cli/cli-task.ts (to update)."
-    },
-    {
-      "id": "0PuSuPzD00FZHDHPQUKENW",
-      "formaId": "0PuSIRKR00FZHDHPQUKENW",
-      "formaType": "task",
-      "name": "Introduce IRegistry to unify IEntity, INamespaced, and IPatchable",
-      "summary": "Existing structure: IEntity (entity.ts) requires patch(); INamespaced (fuzzy-namespace.ts) requires namespace(); patch() methods scattered on Forma. Goal: Create IRegistry interface to unify these contracts and eliminate scattered patch implementations."
+      "name": "count-blueberries",
+      "summary": "Count blueberries in the upstairs kitchen"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

@@ -5,7 +5,7 @@ import {
   ProcessTerminal,
   type Component,
   type Focusable,
-} from '@mariozechner/pi-tui';
+} from '@earendil-works/pi-tui';
 import { Unicode } from '@sc-voice/tools/text';
 
 type Channel = 'stdout' | 'stderr' | string;

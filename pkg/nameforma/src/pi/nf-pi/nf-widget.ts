@@ -1,4 +1,4 @@
-import type { Theme } from '@mariozechner/pi-coding-agent';
+import type { Theme } from '@earendil-works/pi-coding-agent';
 import { LineRenderer } from '../../line-renderer.js';
 import type {
   IView,

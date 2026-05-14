@@ -339,7 +339,7 @@ if (!isTestRunner) {
     process.exit(0);
   } else if (process.argv.includes('--pi-tui-test')) {
     const { TUI, Text, ProcessTerminal } = await import(
-      '@mariozechner/pi-tui'
+      '@earendil-works/pi-tui'
     );
     const tui = new TUI(new ProcessTerminal());
     const scrollText = new Text();

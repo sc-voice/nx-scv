@@ -1,5 +1,5 @@
-import type { Theme } from '@mariozechner/pi-coding-agent';
-import type { Focusable, TUI } from '@mariozechner/pi-tui';
+import type { Theme } from '@earendil-works/pi-coding-agent';
+import type { Focusable, TUI } from '@earendil-works/pi-tui';
 import { LineRenderer } from '../../line-renderer.js';
 import type { RenderDetail } from '../../navigable-view.js';
 import { ZenoCoord, RenderDetail as RD } from '../../navigable-view.js';

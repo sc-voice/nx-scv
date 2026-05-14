@@ -1,10 +1,11 @@
 import type {
   ExtensionAPI,
   ExtensionCommandContext,
-} from '@mariozechner/pi-coding-agent';
+} from '@earendil-works/pi-coding-agent';
 import { NfPrompt } from './nf-prompt.js';
 import { NfWidget } from './nf-widget.js';
 import { NfSession } from './nf-session.js';
+import { nfTool } from './tools/nf-tool.js';
 
 let activeWidget: NfWidget | null = null;
 
@@ -79,4 +80,6 @@ export default function (pi: ExtensionAPI) {
       ctx.ui.notify('nf-widget hidden', 'info');
     },
   });
+
+  pi.registerTool(nfTool);
 }

@@ -1,0 +1,32 @@
+{
+  "id": "0PuY9VfX00gJACRXCtGE7W",
+  "name": "IView support for Theme",
+  "summary": "Render IView text with custom nameforma Themes",
+  "rawActions": [
+    {
+      "id": "0PuYLOzR00gJACRXCtGE7W",
+      "name": "use the border to render the nf-prompt.ts left border",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-13T17:14:53.147Z"
+    },
+    {
+      "id": "0PuaHdo100gJACRXCtGE7W",
+      "name": "look in the fridge",
+      "summary": "Look in the fridge for blueberries",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-14T02:17:39.713Z"
+    },
+    {
+      "id": "0PuaHevf00gJACRXCtGE7W",
+      "name": "look in the fridge",
+      "summary": "Look in the fridge for blueberries",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-14T02:17:44.297Z"
+    }
+  ],
+  "rawReferences": []
+}

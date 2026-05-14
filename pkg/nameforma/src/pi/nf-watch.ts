@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
-import { Component, TUI } from '@mariozechner/pi-tui';
-import { ProcessTerminal } from '@mariozechner/pi-tui/dist/terminal.js';
+import { Component, TUI } from '@earendil-works/pi-tui';
+import { ProcessTerminal } from '@earendil-works/pi-tui/dist/terminal.js';
 
 export class WatchComponent implements Component {
   private time: string = '';

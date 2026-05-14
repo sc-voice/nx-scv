@@ -49,8 +49,9 @@
     "eslint": "^9.17.0"
   },
   "dependencies": {
-    "@mariozechner/pi-coding-agent": "^0.70.6",
-    "@mariozechner/pi-tui": "^0.70.6",
+    "@earendil-works/pi-coding-agent": "^0.74.0",
+    "@earendil-works/pi-tui": "^0.74.0",
+    "@earendil-works/pi-ai": "^0.74.0",
     "@sc-voice/tools": "*",
     "avro-js": "^1.12.0",
     "bubbly": "^1.1.2",

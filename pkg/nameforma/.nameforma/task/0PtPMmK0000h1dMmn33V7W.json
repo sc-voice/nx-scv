@@ -1,7 +1,0 @@
-{
-  "id": "0PtPMmK0000h1dMmn33V7W",
-  "name": "Add cli-view command",
-  "summary": "nf view task TASK_ID shows task in REPL watch panel, updating on changes. nf view task shows focused task. Replaces deprecated tmux-based watch mechanism in repl.ts.",
-  "rawActions": [],
-  "rawReferences": []
-}
