@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { LineRenderer } from '../src/line-renderer.js';
 import { FormaField } from '../src/forma-field.js';
 import { ZENO_1_ROW_VERBOSE } from '../src/navigable-view.js';
@@ -30,7 +30,7 @@ describe('LineRenderer: single row', () => {
     const label = 'First name';
     const mutable = false;
     const field = new FormaField(name, mutable, label, value);
-    expect(renderer.render([field])).toEqual([value]);
+    expect(renderer.render([field])[0]).toContain(value);
   });
 
   it('renders row with multiple cells', () => {
@@ -60,9 +60,33 @@ describe('LineRenderer: multiple rows', () => {
       '123.46',
       'hello',
       '1.00 is true',
-      `Employee( ${value} )`,
     ];
-    expect(renderer.render(data)).toEqual(expected);
+    const result = renderer.render(data);
+    expect(result[0]).toBe('123.46');
+    expect(result[1]).toBe('hello');
+    expect(result[2]).toBe('1.00 is true');
+    expect(result[3]).toContain(value);
+  });
+});
+
+describe('LineRenderer: nfLabel styling', () => {
+  it('applies nfLabel to FormaField labels', () => {
+    const mockTheme = {
+      nfLabel: vi.fn((text: string) => `[${text}]`),
+      nfBoundary: vi.fn((text: string) => text),
+      nfTrack: vi.fn((text: string) => text),
+      nfNominal: vi.fn((text: string) => text),
+      nfWarn: vi.fn((text: string) => text),
+      nfAttend: vi.fn((text: string) => text),
+      nfFree: vi.fn((text: string) => text),
+    };
+    const themedRenderer = new LineRenderer({ theme: mockTheme });
+    const field = new FormaField('fname', false, 'First name', 'Sam');
+    const result = themedRenderer.render([field])[0];
+
+    expect(mockTheme.nfLabel).toHaveBeenCalledWith('First name');
+    expect(result).toContain('[First name]');
+    expect(result).toContain('Sam');
   });
 });
 

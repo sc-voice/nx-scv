@@ -4,8 +4,32 @@ import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
 
+/**
+ * NameForma theme for pi-tui and nameforma cli
+ * for displaying status of observables that may
+ * or may not require attention
+ */
 export interface ITheme {
+  // A label for a value
   nfLabel(text: string): string;
+
+  // Boundary with peripheral alignment
+  nfBoundary(text: string): string;
+
+  // Identifiable and navigable
+  nfTrack(text: string): string;
+
+  // Aligned to expectations
+  nfNominal(text: string): string;
+
+  // May requires immediate attention
+  nfWarn(text: string): string;
+
+  // Requires immediate attention
+  nfAttend(text: string): string;
+
+  // Unattended and free
+  nfFree(text: string): string;
 }
 
 /**

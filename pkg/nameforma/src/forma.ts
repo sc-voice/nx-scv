@@ -6,6 +6,7 @@ import {
   IRenderable,
   IView,
   ZenoCoord,
+  ZenoStep,
   ZENO_1_ROW_TERSE,
   ZENO_1_ROW_VERBOSE,
   ZENO_2_ROWS,
@@ -259,21 +260,25 @@ export class Forma extends Identifiable implements IRenderable {
     return this.tuiRowStrings(cfg).join(' ');
   }
 
-  asRenderData(view: IView): RenderData {
+  /**
+   * IRenderable: Return renderable data at detail level zeno
+   */
+  asRenderData(view: IView, zeno: ZenoStep = view.zenoCoord.anchorStep): RenderData {
     const { id, name, summary } = this;
     const cls = this.constructor.name;
-    const { anchor, zenoCoord } = view;
-    const { anchorStep } = zenoCoord;
+    const { anchor } = view;
     const ns = anchor.namespace();
-    const shortId = ns.fuzzyIdOf(this);
+    const theme = view.theme;
+    const shortId = theme.nfTrack(ns.fuzzyIdOf(this));
     const indent = view.bodyIndent;
+    const sep = theme.nfBoundary("|");
 
-    if (anchorStep === ZENO_1_ROW_TERSE) {
+    if (zeno === ZENO_1_ROW_TERSE) {
       return [ 
-        new FormaField('id', false, `${cls}.id`, `${shortId}: ${name} ${summary}`) 
+        new FormaField('id', false, shortId, `${name}${sep}${summary}`) 
       ];
     }
-    if (anchorStep === ZENO_1_ROW_VERBOSE) {
+    if (zeno === ZENO_1_ROW_VERBOSE) {
       return [
         new FormaField('id', false, `${cls}`, shortId),
         new FormaField('name', true, `name`, name),
@@ -284,7 +289,8 @@ export class Forma extends Identifiable implements IRenderable {
     // ZENO_2_ROWS is used for all futher detail
     const rows = [
       [
-        new FormaField('id', false, `${cls}:${shortId} id`, id.base64),
+        new FormaField('id', false, '',
+          `${theme.nfLabel(cls)+shortId} ${theme.nfLabel('id')+id.base64}`),
         new FormaField('name', true, `name`, name),
       ],
       [new FormaField('summary', true, indent+`summary`, summary)],

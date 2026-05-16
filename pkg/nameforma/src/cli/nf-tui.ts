@@ -19,12 +19,19 @@ function stringify(arg: unknown): string {
   return String(arg);
 }
 
+/*
+ * Generic multi-channel renderer that can be mapped to stdout/stderr 
+ * as well as named channels
+ */
 export interface IRenderer {
   log(...args: unknown[]): void;
   error(...args: unknown[]): void;
   logTo(channel: Channel, ...args: unknown[]): void;
 }
 
+/*
+ * Renderer for application Read-Eval-Print-Loop (REPL)
+ */
 export interface IReplRenderer extends IRenderer {
   start(): void;
   stop(): void;
@@ -32,6 +39,9 @@ export interface IReplRenderer extends IRenderer {
   clearErrors(): void;
 }
 
+/*
+ * Renderer for shell Command Line Interface (CLI)
+ */
 export class CliRenderer implements IRenderer {
   log(...args: unknown[]): void {
     console.log(args.map(stringify).join(' '));

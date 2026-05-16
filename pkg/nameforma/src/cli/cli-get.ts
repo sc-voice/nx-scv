@@ -22,6 +22,7 @@ export default class GetCommand {
       .option('-j, --json', 'Output as JSON')
       .option('--zeno <int>', 'Semantic detail level (0-17)', '8')
       .option('--lines <int>', 'Viewport height in lines', '50')
+      .option('--line-width <int>', 'Line width in characters', '75')
       .action(async (fuzzyId: string, options: any) => {
         const world = getGlobalOpts().world;
         try {
@@ -35,9 +36,10 @@ export default class GetCommand {
           if (options.json) {
             nfTui.log(JSON.stringify(forma, null, 2));
           } else {
-            // Parse --zeno and --lines options
+            // Parse --zeno, --lines, and --line-width options
             const zenoInt = parseInt(options.zeno, 10);
             const linesInt = parseInt(options.lines, 10);
+            const lineWidthInt = parseInt(options.lineWidth, 10);
 
             if (isNaN(zenoInt) || zenoInt < 0 || zenoInt > 17) {
               nfTui.error(`✗ Invalid --zeno value: ${options.zeno} (must be 0-17)`);
@@ -46,6 +48,11 @@ export default class GetCommand {
 
             if (isNaN(linesInt) || linesInt < 1) {
               nfTui.error(`✗ Invalid --lines value: ${options.lines} (must be >= 1)`);
+              process.exit(1);
+            }
+
+            if (isNaN(lineWidthInt) || lineWidthInt < 1) {
+              nfTui.error(`✗ Invalid --line-width value: ${options.lineWidth} (must be >= 1)`);
               process.exit(1);
             }
 
@@ -59,7 +66,7 @@ export default class GetCommand {
               theme: view.theme,
               zenoStep: zenoStep(zenoInt),
               lines: linesInt,
-              lineWidth: 75,
+              lineWidth: lineWidthInt,
             });
 
             const lines = renderer.render(renderData);

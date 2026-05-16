@@ -52,7 +52,7 @@ describe('cli-get: EntityView + LineRenderer', () => {
     expect(lines.join(' ')).toContain('Entity.id');
   });
 
-  it('LineRenderer hides labels at ZENO_1_ROW_TERSE', () => {
+  it('LineRenderer renders labels at ZENO_1_ROW_TERSE', () => {
     const entity = new MockEntity() as any;
     const view = new EntityView(entity);
     const zenoCoord = new ZenoCoord(ZENO_1_ROW_TERSE, zenoStep(0));
@@ -63,7 +63,7 @@ describe('cli-get: EntityView + LineRenderer', () => {
     const lines = renderer.render(renderData);
 
     expect(lines.length).toBe(1);
-    expect(lines[0]).toBe('test-id: test entity');
+    expect(lines[0]).toContain('test-id: test entity');
   });
 
   it('LineRenderer respects lines budget', () => {

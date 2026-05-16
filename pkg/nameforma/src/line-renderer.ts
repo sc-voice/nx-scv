@@ -89,41 +89,53 @@ export class LineRenderer {
     return result;
   }
 
+  private visualLength(s: string): number {
+    return s.replace(/\x1b\[[0-9;]*m/g, '').length;
+  }
+
   private wrapRow(row: RenderRow, baseIndent: string): string[] {
     const cells = this.rowStrings(row);
     const wrapIndentStr = ' '.repeat(this.wrapIndent);
+    const bodyIndent = baseIndent + wrapIndentStr;
+    const bodyWidth = this.lineWidth - bodyIndent.length;
     const lines: string[] = [];
-    let currentLine = baseIndent;
+    let currentLine = '';
+    let hasWrapped = false;
 
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
-      const separator = currentLine === baseIndent ? '' : ' ';
+      const effectiveLineWidth = hasWrapped ? bodyWidth : this.lineWidth;
+      const separator = currentLine === '' ? '' : ' ';
       const testLine = currentLine + separator + cell;
 
       // Try to fit cell on current line
-      if (this.lineWidth <= 0 || testLine.length <= this.lineWidth) {
+      if (this.lineWidth <= 0 || this.visualLength(testLine) <= effectiveLineWidth) {
         currentLine = testLine;
       } else {
         // Cell doesn't fit on current line
-        if (currentLine !== baseIndent) {
+        if (currentLine !== '') {
           lines.push(currentLine);
         }
-        currentLine = baseIndent + wrapIndentStr + cell;
+        hasWrapped = true;
+        currentLine = cell;
 
-        // If cell is still too wide for empty line, word-wrap it
-        if (cell.length > this.lineWidth - baseIndent.length - this.wrapIndent) {
-          const wrappedLines = this.wordWrapCell(cell, baseIndent + wrapIndentStr);
+        // If cell is still too wide, word-wrap it
+        if (this.visualLength(cell) > bodyWidth) {
+          const wrappedLines = this.wordWrapCell(cell, '');
           lines.push(...wrappedLines.slice(0, -1));
           currentLine = wrappedLines[wrappedLines.length - 1];
         }
       }
     }
 
-    if (currentLine !== baseIndent) {
+    if (currentLine !== '') {
       lines.push(currentLine);
     }
 
-    return lines.length > 0 ? lines : [baseIndent];
+    // Apply baseIndent to first line, bodyIndent to subsequent lines
+    return lines.length > 0
+      ? [baseIndent + lines[0], ...lines.slice(1).map(line => bodyIndent + line)]
+      : [baseIndent];
   }
 
   private wordWrapCell(cell: string, indent: string): string[] {
@@ -135,7 +147,7 @@ export class LineRenderer {
       const sep = currentLine === indent ? '' : ' ';
       const testLine = currentLine + sep + word;
 
-      if (this.lineWidth <= 0 || testLine.length <= this.lineWidth) {
+      if (this.lineWidth <= 0 || this.visualLength(testLine) <= this.lineWidth) {
         currentLine = testLine;
       } else {
         if (currentLine !== indent) {
@@ -191,9 +203,7 @@ export class LineRenderer {
       return data.toString();
     } else if (data instanceof FormaField) {
       const field = data as any;
-      return this.zenoStep === ZENO_1_ROW_TERSE
-        ? field.value
-        : `${this.theme.nfLabel(field.label)}:${field.value}`;
+      return `${this.theme.nfLabel(field.label)}${field.value}`;
     }
 
     return 'JSON:' + JSON.stringify(data);

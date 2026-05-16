@@ -51,11 +51,65 @@ export class NameFormaTheme implements ITheme {
   }
 
   /**
-   * Apply yellow 'customMessageLabel' color to text (used for field labels)
+   * Apply 'border' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfBoundary(text: string): string {
+    return this.theme.fg('border', text);
+  }
+
+  /**
+   * Apply 'border' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfTrack(text: string): string {
+    return this.theme.fg('borderAccent', text);
+  }
+
+  /**
+   * Apply 'success' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfNominal(text: string): string {
+    return this.theme.fg('success', text);
+  }
+
+  /**
+   * Apply 'warning' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfWarn(text: string): string {
+    return this.theme.fg('warning', text);
+  }
+
+  /**
+   * Apply 'error' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfAttend(text: string): string {
+    return this.theme.fg('error', text);
+  }
+
+  /**
+   * Apply 'muted' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfFree(text: string): string {
+    return this.theme.fg('muted', text);
+  }
+
+  /**
+   * Apply 'border' color to text (used for field labels)
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
   nfLabel(text: string): string {
-    return this.theme.fg('customMessageLabel', text);
+    return text ? this.theme.fg('border', text + ':') : '';
   }
 }

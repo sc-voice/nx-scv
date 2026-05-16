@@ -1,5 +1,6 @@
 import { DBG } from './defines.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
+import { FormaField } from './forma-field.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
@@ -9,6 +10,19 @@ import {
   FuzzyNamespace,
   type IFuzzyNamespace,
 } from './fuzzy-namespace.js';
+import {
+  RenderData,
+  RenderRow,
+  RenderDetail,
+  IRenderable,
+  IView,
+  ZenoCoord,
+  ZenoStep,
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
+  ZENO_3_ROWS,
+  zenoStepToLines,
+} from './navigable-view.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
@@ -274,4 +288,74 @@ export class Task extends Forma implements IRegistry {
     }
     return row;
   }
-}
+
+  /**
+   * IRenderable: Return renderable data at detail level zeno
+   */
+  override asRenderData(view: IView, zeno: ZenoStep = view.zenoCoord.anchorStep): RenderData {
+    const msg = "Task.asRenderData()";
+    const dbg = 0;
+    const { 
+      id, name, summary, rawActions:actions, rawReferences:refs 
+    } = this;
+    const cls = this.constructor.name;
+    const { anchor } = view;
+    const ns = anchor.namespace();
+    const shortId = ns.fuzzyIdOf(this);
+    const indent = view.bodyIndent;
+    const theme = view.theme;
+    const sep = theme.nfBoundary("|");
+    const headerData:RenderData = super.asRenderData(view, zeno);
+    const ellipsis = [theme.nfLabel('...')];
+
+    if (zeno <= ZENO_3_ROWS) {
+      return headerData;
+    }
+
+    const renderData = [...(headerData as RenderRow[])];
+    let rowsAvail = zenoStepToLines(zeno) - headerData.length;
+    dbg > 2 && cc.tag(msg, {rowsAvail});
+
+    if (rowsAvail === 1) {
+      renderData.push([ 
+        new FormaField('actions', false, 'Actions', ''+actions.length),
+        new FormaField('references', false, 'References', ''+refs.length),
+      ]);
+      return renderData;
+    } 
+
+    rowsAvail -= 2; // action/reference title rows
+    renderData.push([ new FormaField('actions', false, 'Actions', ''+actions.length) ]);
+    if (rowsAvail < actions.length) {
+      rowsAvail--; // allow for ellipsis
+    }
+    dbg > 2 && cc.tag(msg, {rowsAvail});
+    for (let i = 0; i < actions.length; i++) {
+      if (0 < rowsAvail) {
+        const a4n = actions[i];
+        const row = a4n.asRenderData(view, ZENO_1_ROW_TERSE) as RenderRow;
+        renderData.push(row);
+        rowsAvail--;
+      } else {
+        renderData.push(ellipsis);
+        break;
+      }
+    }
+    renderData.push([ new FormaField('references', false, 'References', ''+refs.length) ]);
+    if (rowsAvail < refs.length) {
+      rowsAvail--; // allow for ellipsis;
+    }
+    for (let i = 0; i < actions.length; i++) {
+      if (0 < rowsAvail) {
+        const ref = refs[i];
+        renderData.push(ref.asRenderData(view, ZENO_1_ROW_TERSE) as RenderRow);
+        rowsAvail--;
+      } else {
+        renderData.push(ellipsis);
+        break;
+      }
+    }
+    return renderData;
+  } // asRenderData
+
+} // Task
