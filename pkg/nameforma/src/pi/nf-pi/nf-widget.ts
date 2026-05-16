@@ -5,8 +5,10 @@ import type {
   IRenderable,
   RenderDetail,
   RenderData,
+  ITheme,
 } from '../../navigable-view.js';
 import type { Forma } from '../../forma.js';
+import { NameFormaTheme } from '../../nameforma-theme.js';
 
 import { ZenoCoord } from '../../navigable-view.js';
 import { NfSession } from './nf-session.js';
@@ -15,6 +17,7 @@ export class NfWidget {
   private lines: string[] = [];
   private renderer!: LineRenderer;
   public detail: RenderDetail | number = 0;
+  private iTheme: ITheme;
 
   constructor(
     private theme: Theme,
@@ -23,6 +26,7 @@ export class NfWidget {
     initialDetail: RenderDetail | number = 0,
   ) {
     this.detail = initialDetail;
+    this.iTheme = new NameFormaTheme(theme);
     this.update();
     NfSession.shared.on('tick', this.update);
   }
@@ -51,6 +55,7 @@ export class NfWidget {
   private update = () => {
     const zeno = ZenoCoord.fromRenderDetail(this.detail);
     this.renderer = new LineRenderer({
+      theme: this.iTheme,
       zenoStep: zeno.anchorStep,
     });
     const now = new Date();

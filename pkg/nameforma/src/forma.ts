@@ -266,6 +266,7 @@ export class Forma extends Identifiable implements IRenderable {
     const { anchorStep } = zenoCoord;
     const ns = anchor.namespace();
     const shortId = ns.fuzzyIdOf(this);
+    const indent = view.bodyIndent;
 
     if (anchorStep === ZENO_1_ROW_TERSE) {
       return [ 
@@ -274,19 +275,19 @@ export class Forma extends Identifiable implements IRenderable {
     }
     if (anchorStep === ZENO_1_ROW_VERBOSE) {
       return [
-        new FormaField('id', false, `${cls}.id`, shortId),
-        new FormaField('name', true, `${cls}.name`, name),
-        new FormaField('name', true, `${cls}.summary`, summary),
+        new FormaField('id', false, `${cls}`, shortId),
+        new FormaField('name', true, `name`, name),
+        new FormaField('summary', true, `summary`, summary),
       ];
     }
 
     // ZENO_2_ROWS is used for all futher detail
     const rows = [
       [
-        new FormaField('id', false, `${cls}.id`, id.toString()),
-        new FormaField('name', true, `${cls}.name`, name),
+        new FormaField('id', false, `${cls}:${shortId} id`, id.base64),
+        new FormaField('name', true, `name`, name),
       ],
-      [new FormaField('summary', true, `${cls}.summary`, summary)],
+      [new FormaField('summary', true, indent+`summary`, summary)],
     ];
 
     // Subclasses can add their detail rows

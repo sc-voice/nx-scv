@@ -214,6 +214,42 @@ export class World extends Forma implements IEventBus, IRegistry {
   }
 
   /**
+   * Resolve fuzzy ID with world namespace as primary, focused entity's namespace as secondary.
+   * @param {string} fuzzyId - Fuzzy ID to resolve
+   * @returns {Forma|undefined} - Matching Forma or undefined if not found
+   */
+  resolveFuzzyId(fuzzyId: string): Forma | undefined {
+    const msg = 'world.resolveFuzzyId';
+    const dbg = WORLD?.ALL;
+
+    // Try world namespace first
+    let forma = this.#namespace.getForma(fuzzyId);
+    if (forma) {
+      dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
+      return forma;
+    }
+
+    // Try focused entity's namespace (secondary)
+    const focusedEntry = Array.from(this.#focusStack).at(-1);
+    if (focusedEntry) {
+      const EntityClass = this.entityClassOfName(focusedEntry.formaType);
+      if (EntityClass) {
+        const entity = this.loadEntity(EntityClass, focusedEntry.formaId);
+        if (entity && 'namespace' in entity) {
+          forma = (entity as any).namespace().getForma(fuzzyId);
+          if (forma) {
+            dbg && cc.ok1(msg, `found in focused ${focusedEntry.formaType} namespace: ${fuzzyId}`);
+            return forma;
+          }
+        }
+      }
+    }
+
+    dbg && cc.ok1(msg, `not found: ${fuzzyId}`);
+    return undefined;
+  }
+
+  /**
    * Search up filesystem tree for .nameforma/ directory
    * @param {string} startPath - Starting directory
    * @returns {string|null} - Path to .nameforma/ or null if not found

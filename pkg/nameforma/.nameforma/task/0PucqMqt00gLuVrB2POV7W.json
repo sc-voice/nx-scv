@@ -1,0 +1,125 @@
+{
+  "id": "0PucqMqt00gLuVrB2POV7W",
+  "name": "cli-get shows a Forma",
+  "summary": "cli-get FUZZY_ID; cli-get --json FUZZY_ID",
+  "rawActions": [
+    {
+      "id": "0PucrpXD00gLuVrB2POV7W",
+      "name": "Write cli-get.ts",
+      "summary": "Resolve fuzzy_id in world and focus namespaces",
+      "status": "done",
+      "statusNote": "Implementation complete, tested plain and JSON output",
+      "statusDate": "2026-05-14T14:18:01.855Z"
+    },
+    {
+      "id": "0PudGojI00gLuVrB2POV7W",
+      "name": "Use LineRenderer API to generate non-JSON output for cli-get",
+      "summary": "Implement TUI-formatted output in get command using LineRenderer for RenderData conversion",
+      "status": "manage",
+      "statusNote": "Tests pass (7/7). Ready for review before marking done.",
+      "statusDate": "2026-05-15T14:12:30.847Z"
+    },
+    {
+      "id": "0PudJM9500gLuVrB2POV7W",
+      "name": "Add lines option to LineRenderer config",
+      "summary": "Add lines (unlimited), lineWidth (75), wrapIndent (2) options. Wrap at whitespace, honor newlines, distribute line budget via round-robin",
+      "status": "manage",
+      "statusNote": "LineRenderer implementation tested and ready for review",
+      "statusDate": "2026-05-14T17:55:48.248Z"
+    },
+    {
+      "id": "0Pui276p00gLuVrB2POV7W",
+      "name": "Integrate NameFormaTheme into IView",
+      "summary": "NameFormaTheme extends MarkdownTheme; integrate into IView as theme property and setTheme() method",
+      "status": "done",
+      "statusNote": "NameFormaTheme integrated with IView using initTheme() and globalThis Symbol",
+      "statusDate": "2026-05-16T01:02:36.700Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0PucrHYx00gLuVrB2POV7W",
+      "name": "forma.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/forma.ts"
+    },
+    {
+      "id": "0PucrLFV00gLuVrB2POV7W",
+      "name": "world.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/world.ts"
+    },
+    {
+      "id": "0PucrWXk00gLuVrB2POV7W",
+      "name": "fuzzy-namespace.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/fuzzy-namespace.d.ts"
+    },
+    {
+      "id": "0PudG83B00gLuVrB2POV7W",
+      "name": "cli-get.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/cli/cli-get.d.ts"
+    },
+    {
+      "id": "0PudGTIT00gLuVrB2POV7W",
+      "name": "line-renderer.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/line-renderer.ts"
+    },
+    {
+      "id": "0PudHCW900gLuVrB2POV7W",
+      "name": "navigable-view.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/navigable-view.d.ts"
+    },
+    {
+      "id": "0PudfKJH00gLuVrB2POV7W",
+      "name": "world-view.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/world-view.ts"
+    },
+    {
+      "id": "0PudfNGa00gLuVrB2POV7W",
+      "name": "world-view.d.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./dist/world-view.d.ts"
+    },
+    {
+      "id": "0PudmGv500gLuVrB2POV7W",
+      "name": "entity-view.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/entity-view.ts"
+    },
+    {
+      "id": "0Pui2gRQ00gLuVrB2POV7W",
+      "name": "tui",
+      "summary": "pi-tui Theme - basis for NameFormaTheme",
+      "relevance": 0.5,
+      "source": "nf:./../../../pi-mono/packages/tui"
+    },
+    {
+      "id": "0PujKUsY00gLuVrB2POV7W",
+      "name": "extensions.md",
+      "summary": "pi extensions doc",
+      "relevance": 0.5,
+      "source": "nf:./../../../pi-mono/packages/coding-agent/docs/extensions.md"
+    },
+    {
+      "id": "0PujYPdu00gLuVrB2POV7W",
+      "name": "theme-guide",
+      "summary": "Reference to the theme implementation guide for nf cli development.",
+      "relevance": 0.5,
+      "source": "local/theme.md"
+    }
+  ]
+}

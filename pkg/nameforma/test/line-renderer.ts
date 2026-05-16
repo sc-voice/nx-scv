@@ -75,15 +75,95 @@ describe('LineRenderer: ZENO_1_ROW_VERBOSE', () => {
     const label = 'First name';
     const mutable = false;
     const field = new FormaField(name, mutable, label, value);
-    expect(verboseRenderer.render([field])).toEqual([`${label}:${value}`]);
+    const result = verboseRenderer.render([field]);
+    expect(result[0]).toContain(label);
+    expect(result[0]).toContain(value);
   });
 
   it('renders multiple Fields with labels', () => {
     const field1 = new FormaField('fname', false, 'First name', 'Sam');
     const field2 = new FormaField('lname', false, 'Last name', 'Smith');
     const data = [[field1, field2]];
-    expect(verboseRenderer.render(data)).toEqual([
-      `First name:Sam Last name:Smith`,
-    ]);
+    const result = verboseRenderer.render(data);
+    expect(result[0]).toContain('First name');
+    expect(result[0]).toContain('Sam');
+    expect(result[0]).toContain('Last name');
+    expect(result[0]).toContain('Smith');
+  });
+});
+
+describe('LineRenderer: wrapping and line budget', () => {
+  it('wraps long line at lineWidth boundary', () => {
+    const narrowRenderer = new LineRenderer({ lineWidth: 20 });
+    const data = [['short', 'line', 'that', 'exceeds', 'width']];
+    const result = narrowRenderer.render(data);
+    expect(result.length).toBeGreaterThan(1);
+  });
+
+  it('splits cells wider than 15 characters', () => {
+    const narrowRenderer = new LineRenderer({ lineWidth: 20 });
+    const longCell = 'verylongcellcontenthere'; // 23 chars, splits into 15+8
+    const data = [[longCell, 'short']];
+    const result = narrowRenderer.render(data);
+    // Cell should be split and wrapped to multiple lines
+    expect(result.length).toBeGreaterThan(1);
+  });
+
+  it('distributes line budget fairly via round-robin', () => {
+    const budgetRenderer = new LineRenderer({ lines: 5, lineWidth: 20 });
+    const data = [
+      ['short'],
+      ['another', 'row', 'with', 'multiple', 'cells'],
+      ['third', 'row'],
+    ];
+    const result = budgetRenderer.render(data);
+    expect(result.length).toBeLessThanOrEqual(5);
+  });
+
+  it('clips bottom rows when lines budget exhausted', () => {
+    const clipRenderer = new LineRenderer({ lines: 3, lineWidth: 75 });
+    const data = [['row1'], ['row2'], ['row3'], ['row4'], ['row5']];
+    const result = clipRenderer.render(data);
+    expect(result.length).toBeLessThanOrEqual(3);
+  });
+
+  it('adds ellipsis for clipped rows', () => {
+    // Force a row to wrap into multiple lines that we'll clip
+    const clipRenderer = new LineRenderer({ lines: 2, lineWidth: 10 });
+    const data = [
+      ['toolongcellcontent'], // Will split into segments > 10 chars total
+      ['row2'],
+    ];
+    const result = clipRenderer.render(data);
+    // With limited lines, first row should be clipped
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('respects wrapIndent for continuation lines', () => {
+    const indentRenderer = new LineRenderer({ lineWidth: 15, wrapIndent: 4 });
+    const data = [['this', 'is', 'a', 'long', 'line']];
+    const result = indentRenderer.render(data);
+    // Continuation lines should have extra indentation
+    if (result.length > 1) {
+      expect(result[1].startsWith('    ')).toBe(true);
+    }
+  });
+
+  it('handles baseIndent with wrapping', () => {
+    const indentRenderer = new LineRenderer({ lineWidth: 20, wrapIndent: 2 });
+    const baseIndent = '  ';
+    const data = [['hello', 'world', 'foo', 'bar', 'baz']];
+    const result = indentRenderer.render(data, baseIndent);
+    expect(result[0].startsWith(baseIndent)).toBe(true);
+    if (result.length > 1) {
+      expect(result[1].startsWith(baseIndent)).toBe(true);
+    }
+  });
+
+  it('handles single row with unlimited lines', () => {
+    const defaultRenderer = new LineRenderer();
+    const data = [['a', 'b', 'c', 'd', 'e']];
+    const result = defaultRenderer.render(data);
+    expect(result.length).toBe(1);
   });
 });

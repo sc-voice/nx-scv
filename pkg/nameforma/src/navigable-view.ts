@@ -4,6 +4,10 @@ import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
 
+export interface ITheme {
+  nfLabel(text: string): string;
+}
+
 /**
  * 3D Spatial Navigation Engine for a fractal semantic space of Forma objects.
  *
@@ -272,8 +276,9 @@ export interface INavigable {
 export interface IView {
   readonly anchor: IRegistry;
   readonly pivot: Forma;
-  readonly detail: number;
   readonly zenoCoord: ZenoCoord;
+  readonly bodyIndent: string;
+  readonly theme: ITheme;
 
   /**
    * Sets the primary subject of observation.
@@ -285,7 +290,15 @@ export interface IView {
    */
   setPivot(value: Forma): void;
 
+  /**
+   * An IView comprises a header followed by an indented body.
+   * Set the body indent
+   */
+  setBodyIndent(indent:string): void;
+
   zoomTo(zeno: ZenoCoord): void;
+
+  setTheme(theme: ITheme): void;
 
   /**
    * Starts the observation loop/stream for a given renderer and channel.

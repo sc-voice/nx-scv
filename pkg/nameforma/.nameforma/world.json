@@ -22,11 +22,11 @@
       "summary": "Render IView text with custom nameforma Themes"
     },
     {
-      "id": "0PuchsIP00uGlZlFCH8dNW",
-      "formaId": "0PucJuPh00uGlZlFCH8dNW",
+      "id": "0PudFufJ00gLuVrB2POV7W",
+      "formaId": "0PucqMqt00gLuVrB2POV7W",
       "formaType": "task",
-      "name": "count-blueberries",
-      "summary": "Count blueberries in the upstairs kitchen"
+      "name": "cli-get shows a Forma",
+      "summary": "cli-get FUZZY_ID; cli-get --json FUZZY_ID"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

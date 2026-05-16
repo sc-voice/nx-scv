@@ -1,3 +1,4 @@
 {
-  "extensions": ["../src/pi/nf-pi"]
+  "extensions": ["../src/pi/nf-pi"],
+  "theme": "nameforma"
 }

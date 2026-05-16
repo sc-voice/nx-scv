@@ -1,9 +1,10 @@
 import type { Theme } from '@earendil-works/pi-coding-agent';
 import type { Focusable, TUI } from '@earendil-works/pi-tui';
 import { LineRenderer } from '../../line-renderer.js';
-import type { RenderDetail } from '../../navigable-view.js';
+import type { RenderDetail, ITheme } from '../../navigable-view.js';
 import { ZenoCoord, RenderDetail as RD } from '../../navigable-view.js';
 import { WorldView } from '../../world-view.js';
+import { NameFormaTheme } from '../../nameforma-theme.js';
 import type { Forma } from '../../forma.js';
 import type { World } from '../../world.js';
 import type { IRegistry } from '../../registry.js';
@@ -15,6 +16,7 @@ export class NfPrompt implements Focusable {
   private view: WorldView;
   private renderer!: LineRenderer;
   private inputBuffer: string = '';
+  private iTheme: ITheme;
 
   constructor(
     public tui: TUI,
@@ -29,6 +31,7 @@ export class NfPrompt implements Focusable {
     const a = anchor || NfSession.shared.view.anchor;
     const p = pivot !== undefined ? pivot : NfSession.shared.view.pivot;
 
+    this.iTheme = new NameFormaTheme(theme);
     this.view = new WorldView(w, 'nf-prompt');
     this.view.setAnchor(a);
     if (p) {
@@ -72,6 +75,7 @@ export class NfPrompt implements Focusable {
 
   private update = () => {
     this.renderer = new LineRenderer({
+      theme: this.iTheme,
       zenoStep: this.view.zenoCoord.anchorStep,
     });
     const now = new Date();
