@@ -23,11 +23,24 @@ class Operation {
 }
 
 const operations = [
-  new Operation('add', 'Add a Forma class', ['forma', 'name', 'summary']),
-  new Operation('focus', 'Focus a task', ['more_less', 'fuzzy_id'] ),
+  new Operation('add-task',
+    'Add a new Task',
+    ['name', 'summary']),
+  new Operation('add-action', 
+    'Add a new Action to focused Task', 
+    ['name', 'summary', ]),
+  new Operation('add-reference', 
+    'Add a new Reference to focused Task', 
+    ['name', 'summary', 'relevance', 'source']),
+  new Operation('focus', 'Focus a task', ['fuzzy_id'] ),
+  new Operation('unfocus', 'Focus a task', ['fuzzy_id'] ),
+  new Operation('task', 'Get current task', [] ),
+  new Operation('rename', 'Rename a forma with given value', 
+    ['fuzzy_id', 'value']),
   new Operation('set_field_value', 'Set a Forma field value', 
-    ['forma', 'fuzzy_id', 'field', 'value']),
-  new Operation('get_forma_json', 'Get JSON for a Forma', ['forma', 'fuzzy_id']), ]
+    ['fuzzy_id', 'field', 'value']),
+  new Operation('get', 'Get JSON for a Forma', ['fuzzy_id']), 
+];
 
 const opNames = [
   ...operations.map(op=>op.name),
@@ -59,19 +72,14 @@ export const nfTool = {
         description: 'Include [DEBUG] output',
       }),
     ),
-    more_less: Type.Optional(
-      StringEnum(['more', 'less'], {
-        description: 'Increase or decrease Forma attribute, condition or relationship',
-      }),
-    ),
     name: Type.Optional(
       Type.String({
-        description: 'Short mnemonic identifier derived from summary',
+        description: 'Short title of summary (required for add)',
       }),
     ),
     summary: Type.Optional(
       Type.String({
-        description: 'Full description of Forma instance',
+        description: 'Detailed description (required for add)',
       }),
     ),
     link: Type.Optional(
@@ -81,7 +89,7 @@ export const nfTool = {
     ),
     relevance: Type.Optional(
       Type.Number({
-        description: 'Relevance score from 0 to 1',
+        description: 'Relevance score from 0:not-relevant to 1:highly-relevant',
       }),
     ),
     fuzzy_id: Type.Optional(
@@ -123,10 +131,9 @@ export const nfTool = {
       const { 
         debug,
         field, 
-        forma = 'task',
+        forma,
         fuzzy_id, 
         link, 
-        more_less,
         name, 
         operation, 
         relevance, 
@@ -136,8 +143,12 @@ export const nfTool = {
 
       let cmd = 'nf';
 
-      if (operation === 'add') {
-        cmd += ` ${forma} add` + arg(name) + arg(summary);
+      if (operation === 'add-task') {
+        cmd += ` task add` + arg(name) + arg(summary);
+      } else if (operation === 'add-action') {
+        cmd += ` action add` + arg(name) + arg(summary);
+      } else if (operation === 'add-reference') {
+        cmd += ` reference add` + arg(name) + arg(summary);
         if (link) {
           cmd += ' --source' + arg(link);
         }
@@ -145,12 +156,17 @@ export const nfTool = {
           cmd += ` --relevance ${relevance}`;
         }
       } else if (operation === 'focus') {
-        const focusOp = more_less === 'less' ? 'unfocus' : 'focus';
-        cmd += ` task ${focusOp} ${fuzzy_id}`;
+        cmd += ` task focus ${fuzzy_id}`;
+      } else if (operation === 'ujnfocus') {
+        cmd += ` task unfocus ${fuzzy_id}`;
+      } else if (operation === 'rename') {
+        cmd += ` set ${fuzzy_id}.name` + arg(value);
       } else if (operation === 'set_field_value') {
-        cmd += ` ${forma} set ${fuzzy_id}.${field}` + arg(value);
-      } else if (operation === 'get_forma_json') {
-        cmd += ` ${forma} get --json ${fuzzy_id}`;
+        cmd += ` set ${fuzzy_id}.${field}` + arg(value);
+      } else if (operation === 'task') {
+        cmd += ` task`;
+      } else if (operation === 'get') {
+        cmd += ` get ${fuzzy_id}`;
       } else {
         throw new Error(`Unsupported operation params: ${params}`);
       }

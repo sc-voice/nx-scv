@@ -1,0 +1,92 @@
+{
+  "id": "0PuzEscB00Akj7O9XrUo7W",
+  "name": "Convert Entity to a subclass of Forma (with spaces)",
+  "summary": "Make Task a subclass of Entity",
+  "rawActions": [
+    {
+      "id": "0Pv01rLS00Akj7O9XrUo7W",
+      "name": "move namespace logic to Entity class",
+      "summary": "Move core business logic from Task to the newly refactored Entity class.",
+      "status": "done",
+      "statusNote": "Entity now has abstract namespace management; Task properly extends it",
+      "statusDate": "2026-05-19T13:33:18.915Z"
+    },
+    {
+      "id": "0Pv02IC-00Akj7O9XrUo7W",
+      "name": "update types",
+      "summary": "Update TypeScript interfaces and types to reflect that Task is now an Entity subclass.",
+      "status": "done",
+      "statusNote": "IReadOnlyNamespace and IMutableNamespace interfaces properly split read/write concerns",
+      "statusDate": "2026-05-19T13:33:39.503Z"
+    },
+    {
+      "id": "0Pv02IHS00Akj7O9XrUo7W",
+      "name": "refactor constructor",
+      "summary": "Adjust the Task constructor to properly call super() and initialize inherited properties from Entity.",
+      "status": "done",
+      "statusNote": "Constructor refactored with lazy namespace initialization",
+      "statusDate": "2026-05-19T13:33:39.798Z"
+    },
+    {
+      "id": "0Pv02ILy00Akj7O9XrUo7W",
+      "name": "update tests",
+      "summary": "Update Vitest unit tests for Task to account for changes in its base class and constructor.",
+      "status": "done",
+      "statusNote": "All 574 tests passing",
+      "statusDate": "2026-05-19T13:33:40.103Z"
+    },
+    {
+      "id": "0Pv02IQW00Akj7O9XrUo7W",
+      "name": "check dependencies",
+      "summary": "Verify that other parts of the monorepo (tools, nameforma) are not broken by the changes to Task and Entity.",
+      "status": "done",
+      "statusNote": "No dependency breakage in monorepo",
+      "statusDate": "2026-05-19T13:33:40.413Z"
+    },
+    {
+      "id": "0Pv0SRFz00Akj7O9XrUo7W",
+      "name": "update World to inherit from Entity",
+      "summary": "Make World extend Entity instead of just Forma to inherit namespace management infrastructure",
+      "status": "test",
+      "statusNote": "namespace/mutableNamespace now idiomatic getters",
+      "statusDate": "2026-05-19T13:40:11.845Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Pv01DHr00Akj7O9XrUo7W",
+      "name": "entity_ts",
+      "summary": "The base Entity class that needs to be converted to a subclass of Forma.",
+      "relevance": 1,
+      "source": "file://src/entity.ts"
+    },
+    {
+      "id": "0Pv01Dmk00Akj7O9XrUo7W",
+      "name": "forma_ts",
+      "summary": "The Forma class which Entity should subclass.",
+      "relevance": 1,
+      "source": "file://src/forma.ts"
+    },
+    {
+      "id": "0Pv01EKC00Akj7O9XrUo7W",
+      "name": "entity_view_ts",
+      "summary": "Views that may depend on the Entity structure and need updates if its base class changes.",
+      "relevance": 0.8,
+      "source": "file://src/entity-view.ts"
+    },
+    {
+      "id": "0Pv0DMHJ00Akj7O9XrUo7W",
+      "name": "IRegistry Interface Definition",
+      "summary": "Defines the IRegistry interface which allows entities to manage a namespace of related Forma objects.",
+      "relevance": 1,
+      "source": "src/registry.ts"
+    },
+    {
+      "id": "0Pv0DWiU00Akj7O9XrUo7W",
+      "name": "The Entity is both a Registry (managing a namespace) and a Serializable object (via avroSchema and fromJson).",
+      "summary": "",
+      "relevance": 1,
+      "source": ""
+    }
+  ]
+}

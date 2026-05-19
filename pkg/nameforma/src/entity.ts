@@ -1,12 +1,59 @@
 import { Forma } from './forma.js';
-import { Task } from './task.js';
+import {
+  FuzzyNamespace,
+  type IReadOnlyNamespace,
+  type IMutableNamespace,
+} from './fuzzy-namespace.js';
+import { IRegistry } from './registry.js';
 
 /**
- * Entity interface - Contract for persistent entities in World
- * All entities must extend Forma
+ * Entity - Abstract base class for persistent entities in World
+ * Extends Forma with namespace management for child Forma objects (actions, references, etc.)
  */
-export interface Entity extends Forma {
-  patch(updates: any): void;
+export abstract class Entity extends Forma implements IRegistry {
+  #namespace?: FuzzyNamespace;
+
+  constructor(cfg: any = {}) {
+    const msg = 'entity.ctor';
+    super(cfg);
+  }
+
+  /**
+   * IRegistry implementation: return the read-only namespace managed by this entity
+   * Lazy initialization: creates namespace and populates on first access
+   */
+  get namespace(): IReadOnlyNamespace {
+    if (!this.#namespace) {
+      this.#namespace = new FuzzyNamespace();
+      this.populateNamespace();
+    }
+    return this.#namespace;
+  }
+
+  /**
+   * Populate namespace with child Forma objects.
+   * Subclasses override to add their specific collections (actions, references, etc.)
+   */
+  protected abstract populateNamespace(): void;
+
+  /**
+   * Get the mutable namespace for subclass use (e.g., FormaList operations)
+   * Lazy initialization: creates namespace and populates on first access
+   */
+  protected get mutableNamespace(): IMutableNamespace {
+    if (!this.#namespace) {
+      this.#namespace = new FuzzyNamespace();
+      this.populateNamespace();
+    }
+    return this.#namespace;
+  }
+
+  /**
+   * Add a Forma to this entity's namespace
+   */
+  protected addToNamespace(forma: Forma): void {
+    this.mutableNamespace.addForma(forma);
+  }
 }
 
 export interface EntityConstructor {
@@ -34,8 +81,3 @@ export function validateEntity(
   }
   return true;
 }
-
-/**
- * Standard entities registered by default in World
- */
-export const STANDARD_ENTITIES: EntityConstructor[] = [Task];

@@ -1,15 +1,11 @@
 import { DBG } from './defines.js';
+import { Entity } from './entity.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
-import { IRegistry } from './registry.js';
 import { FormaList, type IEventBus } from './forma-list.js';
-import {
-  FuzzyNamespace,
-  type IFuzzyNamespace,
-} from './fuzzy-namespace.js';
 import {
   RenderData,
   RenderRow,
@@ -31,7 +27,7 @@ const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const FORMA = Forma.avroSchema;
 
 /**
- * Task extends Forma with action and reference management.
+ * Task extends Entity with action and reference management.
  *
  * @see doc/task-action.md
  *
@@ -57,17 +53,16 @@ const FORMA = Forma.avroSchema;
  * Tasks serialize to Avro format with all fields including nested actions and references arrays.
  * Empty arrays serialize as `[]`.
  */
-export class Task extends Forma implements IRegistry {
+export class Task extends Entity {
   rawActions: Array<Action> = [];
   rawReferences: Array<Reference> = [];
-  #namespace: FuzzyNamespace;
 
   /**
    * Create a new Task instance.
    *
    * @param cfg Configuration object with optional:
    *   - `id`: UUID64 for deserialized tasks (auto-generated if omitted)
-   *   - `name`: Task name (inherited from Forma)
+   *   - `name`: Task name (inherited from Entity)
    *   - `actions`: Array of action configs (auto-constructed via FormaList)
    *
    * Calls put() to initialize all fields from cfg.
@@ -75,12 +70,18 @@ export class Task extends Forma implements IRegistry {
   constructor(cfg: any = {}) {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
-    super({ id: cfg.id }); // for deserialized tasks
-    this.#namespace = new FuzzyNamespace();
+    super({ id: cfg.id });
     this.put(cfg);
-    this.#populateNamespace();
 
     dbg && cc.ok1(msg, ...cc.props(this));
+  }
+
+  /**
+   * Populate namespace with actions and references
+   */
+  protected override populateNamespace(): void {
+    this.rawActions.forEach((action) => this.addToNamespace(action));
+    this.rawReferences.forEach((ref) => this.addToNamespace(ref));
   }
 
   /**
@@ -99,7 +100,7 @@ export class Task extends Forma implements IRegistry {
     return new FormaList(this.rawActions, Action, {
       parent: this,
       emitter: bus,
-      namespace: this.#namespace,
+      namespace: this.mutableNamespace,
     });
   }
 
@@ -119,23 +120,8 @@ export class Task extends Forma implements IRegistry {
     return new FormaList(this.rawReferences, Reference, {
       parent: this,
       emitter: bus,
-      namespace: this.#namespace,
+      namespace: this.mutableNamespace,
     });
-  }
-
-  /**
-   * IRegistry implementation: return the combined namespace of actions and references
-   */
-  namespace(): IFuzzyNamespace {
-    return this.#namespace;
-  }
-
-  /**
-   * Populate namespace with existing actions and references
-   */
-  #populateNamespace(): void {
-    this.rawActions.forEach((action) => this.#namespace.addForma(action));
-    this.rawReferences.forEach((ref) => this.#namespace.addForma(ref));
   }
 
   /**
@@ -300,7 +286,7 @@ export class Task extends Forma implements IRegistry {
     } = this;
     const cls = this.constructor.name;
     const { anchor } = view;
-    const ns = anchor.namespace();
+    const ns = anchor.namespace;
     const shortId = ns.fuzzyIdOf(this);
     const indent = view.bodyIndent;
     const theme = view.theme;
@@ -345,7 +331,7 @@ export class Task extends Forma implements IRegistry {
     if (rowsAvail < refs.length) {
       rowsAvail--; // allow for ellipsis;
     }
-    for (let i = 0; i < actions.length; i++) {
+    for (let i = 0; i < refs.length; i++) {
       if (0 < rowsAvail) {
         const ref = refs[i];
         renderData.push(ref.asRenderData(view, ZENO_1_ROW_TERSE) as RenderRow);

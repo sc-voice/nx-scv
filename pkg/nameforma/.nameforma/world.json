@@ -1,32 +1,18 @@
 {
   "focusStack": [
     {
-      "id": "0PtG4mrw00NItxaFFD4TNW",
-      "formaId": "0PtG4la400NItxaFFD4TNW",
+      "id": "0PutDgcY00bvTa7C9N4cdW",
+      "formaId": "0PurmuK-00bvTa7C9N4cdW",
       "formaType": "task",
-      "name": "Schema.toBuffer/fromBuffer",
-      "summary": ""
+      "name": "Introduce \"/nf\" command refactor",
+      "summary": "Updated action summary for overlay-nf-widget via task update attempt."
     },
     {
-      "id": "0PtKNNj100QtcoYuYKlO7W",
-      "formaId": "0PtG59ND00QtcoYuYKlO7W",
+      "id": "0PuzEuq200Akj7O9XrUo7W",
+      "formaId": "0PuzEscB00Akj7O9XrUo7W",
       "formaType": "task",
-      "name": "Add world.resolvePath(hint)",
-      "summary": ""
-    },
-    {
-      "id": "0PuY9cio00gJACRXCtGE7W",
-      "formaId": "0PuY9VfX00gJACRXCtGE7W",
-      "formaType": "task",
-      "name": "IView support for Theme",
-      "summary": "Render IView text with custom nameforma Themes"
-    },
-    {
-      "id": "0PudFufJ00gLuVrB2POV7W",
-      "formaId": "0PucqMqt00gLuVrB2POV7W",
-      "formaType": "task",
-      "name": "cli-get shows a Forma",
-      "summary": "cli-get FUZZY_ID; cli-get --json FUZZY_ID"
+      "name": "Convert Entity to a subclass of Forma",
+      "summary": "Make Task a subclass of Entity"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

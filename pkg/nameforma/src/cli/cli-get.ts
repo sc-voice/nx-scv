@@ -26,12 +26,14 @@ export default class GetCommand {
       .action(async (fuzzyId: string, options: any) => {
         const world = getGlobalOpts().world;
         try {
-          const forma = world.resolveFuzzyId(fuzzyId);
+          const resolved = world.resolveFuzzyId(fuzzyId);
 
-          if (!forma) {
+          if (!resolved) {
             nfTui.error(`✗ Not found: ${fuzzyId}`);
             process.exit(1);
           }
+
+          const { forma } = resolved;
 
           if (options.json) {
             nfTui.log(JSON.stringify(forma, null, 2));

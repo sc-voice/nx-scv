@@ -502,7 +502,7 @@ describe('task', () => {
     const ref2 = refsList.addItem({ name: 'ref2' });
 
     // Get fuzzy IDs and verify retrieval
-    const ns = t2k.namespace();
+    const ns = t2k.namespace;
     const fuzzyId1 = ns.fuzzyIdOf(action1);
     const fuzzyId2 = ns.fuzzyIdOf(action2);
     const fuzzyIdRef1 = ns.fuzzyIdOf(ref1);
@@ -535,7 +535,7 @@ describe('task', () => {
     const action1 = actionsList.addItem({ name: 'action1' });
     const action2 = actionsList.addItem({ name: 'action2' });
 
-    const ns = t2k.namespace();
+    const ns = t2k.namespace;
 
     // A very short fuzzyId might match multiple items with levenshtein tolerance
     // This should throw an error, not return undefined or ambiguous result
@@ -555,7 +555,7 @@ describe('task', () => {
     const refsList = t2k.references(bus);
     const ref1 = refsList.addItem({ name: 'ref1' });
 
-    const ns = t2k.namespace();
+    const ns = t2k.namespace;
     const fuzzyId1 = ns.fuzzyIdOf(action1);
     const fuzzyIdRef1 = ns.fuzzyIdOf(ref1);
 

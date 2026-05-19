@@ -1,4 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { WorldView } from '../src/world-view.js';
 import { World } from '../src/world.js';
 import { RenderDetail } from '../src/navigable-view.js';
@@ -6,13 +9,21 @@ import { Forma } from '../src/forma.js';
 import UUID64 from '../src/uuid64.js';
 
 describe('WorldView cursor state management', () => {
+  let tempDir: string;
   let world: World;
   let view: WorldView;
 
   beforeEach(() => {
-    const worldPath = '.nameforma-test';
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-view-test-'));
+    const worldPath = path.join(tempDir, '.nameforma');
     world = new World(worldPath);
     view = new WorldView(world, 'test');
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
   describe('extractFormas', () => {

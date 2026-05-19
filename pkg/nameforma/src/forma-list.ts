@@ -1,7 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { Forma } from './forma.js';
-import { FuzzyNamespace } from './fuzzy-namespace.js';
+import { type IMutableNamespace } from './fuzzy-namespace.js';
 
 /**
  * FormaListEvent<T> - Discriminated union of FormaList mutation events
@@ -78,7 +78,7 @@ export class FormaList<T extends Forma> {
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
   #emitter?: IEventBus;
-  #namespace?: FuzzyNamespace;
+  #namespace?: IMutableNamespace;
 
   constructor(
     items: T[],
@@ -87,7 +87,7 @@ export class FormaList<T extends Forma> {
       parent?: Forma;
       emitter?: IEventBus;
       keyField?: string;
-      namespace?: FuzzyNamespace;
+      namespace?: IMutableNamespace;
     },
   ) {
     this.items = items;

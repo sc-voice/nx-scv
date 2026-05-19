@@ -11,6 +11,7 @@ import os from 'os';
 import { World } from '../src/world.js';
 import { Forma } from '../src/forma.js';
 import { Task } from '../src/task.js';
+import { Action } from '../src/action.js';
 
 // Mock entity class for testing - extends Forma
 class MockEntity extends Forma {
@@ -1190,15 +1191,15 @@ describe('World — namespace()', () => {
   });
 
   describe('namespace() method', () => {
-    it('should return IFuzzyNamespace interface', () => {
-      const ns = world.namespace();
+    it('should return IReadOnlyNamespace interface', () => {
+      const ns = world.namespace;
       expect(ns).toBeDefined();
       expect(typeof ns[Symbol.iterator]).toBe('function');
       expect(typeof ns.getForma).toBe('function');
     });
 
     it('should return empty namespace when no tasks exist', () => {
-      const ns = world.namespace();
+      const ns = world.namespace;
       const items = Array.from(ns);
       expect(items).toEqual([]);
     });
@@ -1210,7 +1211,7 @@ describe('World — namespace()', () => {
 
       // Create new world instance to test population at construct time
       const world2 = new World(worldPath);
-      const ns = world2.namespace();
+      const ns = world2.namespace;
 
       const items = Array.from(ns);
       expect(items.length).toBe(2);
@@ -1221,7 +1222,7 @@ describe('World — namespace()', () => {
     });
 
     it('should keep namespace in sync when task is added', () => {
-      const ns = world.namespace();
+      const ns = world.namespace;
       expect(Array.from(ns).length).toBe(0);
 
       const list = world.entityList(Task);
@@ -1236,7 +1237,7 @@ describe('World — namespace()', () => {
       const list = world.entityList(Task);
       const task = list.addItem({ name: 'original' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
       let items = Array.from(ns);
       expect(items[0][1].name).toBe('original');
 
@@ -1253,7 +1254,7 @@ describe('World — namespace()', () => {
       const task1 = list.addItem({ name: 'task1' });
       const task2 = list.addItem({ name: 'task2' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
       expect(Array.from(ns).length).toBe(2);
 
       // Delete one task
@@ -1268,7 +1269,7 @@ describe('World — namespace()', () => {
       const list = world.entityList(Task);
       const task = list.addItem({ name: 'test' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
       const found = ns.getForma(task.id.base64);
 
       expect(found).toBeDefined();
@@ -1280,7 +1281,7 @@ describe('World — namespace()', () => {
       const list = world.entityList(Task);
       const task = list.addItem({ name: 'test' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
       const partial = task.id.base64.substring(0, 8);
       const found = ns.getForma(partial);
 
@@ -1292,7 +1293,7 @@ describe('World — namespace()', () => {
       const list = world.entityList(Task);
       list.addItem({ name: 'task' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
       const found = ns.getForma('nonexistent-id');
 
       expect(found).toBeUndefined();
@@ -1303,7 +1304,7 @@ describe('World — namespace()', () => {
       list.addItem({ name: 'task1' });
       list.addItem({ name: 'task2' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
 
       // Single character that both UUIDs likely contain
       expect(() => ns.getForma('0')).toThrow(/ambiguous match/);
@@ -1314,7 +1315,7 @@ describe('World — namespace()', () => {
       const task1 = list.addItem({ name: 'task1' });
       const task2 = list.addItem({ name: 'task2' });
 
-      const ns = world.namespace();
+      const ns = world.namespace;
       const items = Array.from(ns);
 
       expect(items.length).toBe(2);
@@ -1347,9 +1348,91 @@ describe('World — namespace()', () => {
       expect(id2.length).toBeLessThan(task2.id.base64.length);
 
       // Should be resolvable via namespace.getForma
-      const ns = world.namespace();
+      const ns = world.namespace;
       expect(ns.getForma(id1)).toBe(task1);
       expect(ns.getForma(id2)).toBe(task2);
     });
+  });
+});
+
+describe('World — resolveFuzzyId()', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let world: World;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    world = new World(worldPath);
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('returns { entity, forma } where entity === forma for world namespace', () => {
+    const task = world.entityList(Task).addItem({ name: 'top-level task' });
+
+    const result = world.resolveFuzzyId(task.id.base64);
+
+    expect(result).toBeDefined();
+    expect(result!.forma).toBe(result!.entity);
+    expect(result!.forma.id.base64).toBe(task.id.base64);
+  });
+
+  it('returns undefined for unknown fuzzyId', () => {
+    const result = world.resolveFuzzyId('nonexistent-id');
+    expect(result).toBeUndefined();
+  });
+
+  it('task id resolves via world namespace even when task is focused', () => {
+    // A task id lives only in the world namespace, never in the focus namespace.
+    // This means resolveFuzzyId always returns { entity: task, forma: task } for task ids —
+    // entity === forma is the invariant for top-level formas.
+    //
+    // Architectural note: if a child forma were given the same id as a task (which should
+    // be impossible given UUID64 uniqueness), world namespace would win because it is checked
+    // first. Overlapping namespaces are not currently possible by construction, but the
+    // priority order (world > focus) defines the tiebreak if that assumption ever breaks.
+    const task = world.entityList(Task).addItem({ name: 'focused task' });
+    world.focusForma(task);
+
+    const result = world.resolveFuzzyId(task.id.base64);
+
+    expect(result).toBeDefined();
+    expect(result!.entity).toBe(result!.forma);
+    expect(result!.forma.id.base64).toBe(task.id.base64);
+  });
+
+  it('returns { entity: task, forma: action } for action in focused task namespace', () => {
+    const task = world.entityList(Task).addItem({ name: 'parent task' });
+    world.focusForma(task);
+    const action = task.actions(world).addItem({ name: 'nested action' });
+
+    const result = world.resolveFuzzyId(action.id.base64);
+
+    expect(result).toBeDefined();
+    expect(result!.entity.id.base64).toBe(task.id.base64);
+    expect(result!.forma).toBeInstanceOf(Action);
+    expect(result!.forma.id.base64).toBe(action.id.base64);
+  });
+
+  it('resolves action after world reload (round-trip serialization)', () => {
+    const task = world.entityList(Task).addItem({ name: 'parent task' });
+    world.focusForma(task);
+    const action = task.actions(world).addItem({ name: 'nested action' });
+    world.save();
+
+    const w2 = World.fromPath(worldPath);
+    const focused = w2.focusedForma('task');
+    w2.focusForma(w2.loadEntity(Task, focused!.formaId.base64)!);
+
+    const result = w2.resolveFuzzyId(action.id.base64);
+
+    expect(result).toBeDefined();
+    expect(result!.entity.id.base64).toBe(task.id.base64);
+    expect(result!.forma.id.base64).toBe(action.id.base64);
   });
 });

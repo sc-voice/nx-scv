@@ -99,7 +99,10 @@ describe('Forma', () => {
       ns.addForma(f);
       const mockAnchor: any = Object.create(Object.getPrototypeOf(f));
       Object.assign(mockAnchor, f);
-      mockAnchor.namespace = () => ns;
+      Object.defineProperty(mockAnchor, 'namespace', {
+        get: () => ns,
+        configurable: true
+      });
       return {
         anchor: mockAnchor,
         pivot: null as any,

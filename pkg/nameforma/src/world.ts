@@ -5,10 +5,11 @@ import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 import {
-  EntityConstructor,
+  Entity,
+  type EntityConstructor,
   validateEntity,
-  STANDARD_ENTITIES,
 } from './entity.js';
+import { Task } from './task.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import {
@@ -18,16 +19,14 @@ import {
 } from './forma-list.js';
 import { Focus } from './focus.js';
 import { NfUrl } from './nf-url.js';
-import {
-  FuzzyNamespace,
-  type IFuzzyNamespace,
-} from './fuzzy-namespace.js';
-import type { IRegistry } from './registry.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { WORLD } = DBG;
 
+/**
+ * Standard entities registered by default in World
+ */
 /**
  * World class manages persistent entity storage in .nameforma/ directory
  * World is a singleton that maintains local preferences and is
@@ -44,14 +43,13 @@ interface HistoryEntry {
   command: string;
 }
 
-export class World extends Forma implements IEventBus, IRegistry {
+export class World extends Entity implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusStack: FormaList<Focus>;
   #bus: EventEmitter;
   #history: HistoryEntry[] = [];
-  #namespace: FuzzyNamespace;
 
   // Export Focus class for use elsewhere
   static Focus = Focus;
@@ -72,19 +70,13 @@ export class World extends Forma implements IEventBus, IRegistry {
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
-    this.#namespace = new FuzzyNamespace();
     this.#focusStack = new FormaList<Focus>([], Focus as any, {
       keyField: 'formaId',
     });
     this.#bus = new EventEmitter();
 
     // Register standard entities
-    for (const EntityClass of STANDARD_ENTITIES) {
-      this.registerEntity(EntityClass);
-    }
-
-    // Populate namespace with existing tasks
-    this.#populateNamespace();
+    this.registerEntity(Task);
 
     // Ensure .nameforma directory exists
     if (!fs.existsSync(worldPath)) {
@@ -115,8 +107,8 @@ export class World extends Forma implements IEventBus, IRegistry {
             cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
           this.#saveEntity(entityType, entity);
           if (entityType === 'task') {
-            this.#namespace.removeForma(entity.id.base64);
-            this.#namespace.addForma(entity);
+            this.mutableNamespace.removeForma(entity.id.base64);
+            this.mutableNamespace.addForma(entity);
           }
           break;
         case 'delete':
@@ -140,8 +132,8 @@ export class World extends Forma implements IEventBus, IRegistry {
               );
             this.#saveEntity(entityType, entity);
             if (entityType === 'task') {
-              this.#namespace.removeForma(entity.id.base64);
-              this.#namespace.addForma(entity);
+              this.mutableNamespace.removeForma(entity.id.base64);
+              this.mutableNamespace.addForma(entity);
             }
           }
           break;
@@ -160,16 +152,9 @@ export class World extends Forma implements IEventBus, IRegistry {
   /**
    * Populate namespace with all Task entities from disk
    */
-  #populateNamespace(): void {
-    const msg = 'world.#populateNamespace';
+  protected override populateNamespace(): void {
+    const msg = 'world.populateNamespace';
     const dbg = WORLD?.ALL;
-
-    // Import Task class dynamically to avoid circular dependency
-    const Task = this.entityClassOfName('task');
-    if (!Task) {
-      dbg && cc.ok1(msg, 'task entity not registered');
-      return;
-    }
 
     const taskDir = path.join(this.#worldPath, 'task');
     if (!fs.existsSync(taskDir)) {
@@ -197,7 +182,7 @@ export class World extends Forma implements IEventBus, IRegistry {
         }
 
         const task = Task.fromJson(entity);
-        this.#namespace.addForma(task);
+        this.addToNamespace(task);
       } catch (err) {
         dbg && cc.bad1(`${msg} failed to load ${filePath}`, err);
       }
@@ -207,46 +192,130 @@ export class World extends Forma implements IEventBus, IRegistry {
   }
 
   /**
-   * IRegistry implementation: provides namespace of all top-level entities
-   */
-  namespace(): IFuzzyNamespace {
-    return this.#namespace;
-  }
-
-  /**
    * Resolve fuzzy ID with world namespace as primary, focused entity's namespace as secondary.
    * @param {string} fuzzyId - Fuzzy ID to resolve
-   * @returns {Forma|undefined} - Matching Forma or undefined if not found
+   * @returns {{ entity: Forma, forma: Forma } | undefined} - entity is the serializing entity; forma is the matched forma
    */
-  resolveFuzzyId(fuzzyId: string): Forma | undefined {
+  resolveFuzzyId(fuzzyId: string): { entity: Forma; forma: Forma } | undefined {
     const msg = 'world.resolveFuzzyId';
     const dbg = WORLD?.ALL;
 
-    // Try world namespace first
-    let forma = this.#namespace.getForma(fuzzyId);
-    if (forma) {
-      dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
-      return forma;
-    }
-
-    // Try focused entity's namespace (secondary)
+    // Try focused entity's namespace (primary)
     const focusedEntry = Array.from(this.#focusStack).at(-1);
     if (focusedEntry) {
       const EntityClass = this.entityClassOfName(focusedEntry.formaType);
       if (EntityClass) {
         const entity = this.loadEntity(EntityClass, focusedEntry.formaId);
         if (entity && 'namespace' in entity) {
-          forma = (entity as any).namespace().getForma(fuzzyId);
-          if (forma) {
+          const nested = (entity as any).namespace.getForma(fuzzyId);
+          if (nested) {
             dbg && cc.ok1(msg, `found in focused ${focusedEntry.formaType} namespace: ${fuzzyId}`);
-            return forma;
+            return { entity, forma: nested };
           }
         }
       }
     }
 
+    // Try world namespace (secondary)
+    const forma = this.namespace.getForma(fuzzyId);
+    if (forma) {
+      dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
+      return { entity: forma, forma };
+    }
+
     dbg && cc.ok1(msg, `not found: ${fuzzyId}`);
     return undefined;
+  }
+
+  /**
+   * Update a forma field and persist via its serializing entity.
+   * @param {Forma} forma - The forma to update (must exist in a namespace)
+   * @param {string} fieldPath - Field path to update (e.g., 'name', 'summary')
+   * @param {any} value - New value
+   * @returns {Forma} - The updated forma
+   */
+  patchForma(forma: Forma, fieldPath: string, value: any): Forma {
+    const msg = 'world.patchForma';
+    const dbg = WORLD?.ALL;
+
+    dbg &&
+      cc.ok1(
+        msg,
+        `input forma.id.base64=${forma.id.base64}, fieldPath=${fieldPath}, value=${value}`,
+      );
+
+    // Find the serializing entity
+    const inWorld = this.namespace.getForma(forma.id.base64);
+    dbg &&
+      cc.ok1(
+        msg,
+        `inWorld=${inWorld ? 'found' : 'not found'}, inWorld.id=${inWorld?.id.base64}`,
+      );
+
+    if (inWorld) {
+      // Top-level forma in world namespace
+      dbg && cc.ok1(msg, `patching world entity ${forma.id.base64}`);
+      const EntityClass = this.entityClassOfName(
+        (forma.constructor as any).entity,
+      );
+      dbg &&
+        cc.ok1(
+          msg,
+          `EntityClass=${(EntityClass as any).entity || EntityClass?.constructor.name}`,
+        );
+
+      if (!EntityClass) {
+        throw new Error(`Unknown entity type for ${forma.id.base64}`);
+      }
+      const list = this.entityList(EntityClass);
+      dbg && cc.ok1(msg, `list.items.length=${list.items.length}`);
+
+      const result = list.patchItem(forma.id.base64, { [fieldPath]: value });
+      dbg && cc.ok1(msg, `patched, result.id=${result.id.base64}`);
+      return result;
+    }
+
+    // Try focused entity's namespace
+    const focusedEntry = Array.from(this.#focusStack).at(-1);
+    dbg &&
+      cc.ok1(
+        msg,
+        `focusedEntry=${focusedEntry ? `${focusedEntry.formaType}/${focusedEntry.formaId}` : 'none'}`,
+      );
+
+    if (focusedEntry) {
+      const EntityClass = this.entityClassOfName(focusedEntry.formaType);
+      if (EntityClass) {
+        const entity = this.loadEntity(EntityClass, focusedEntry.formaId);
+        if (entity && 'namespace' in entity) {
+          const nested = (entity as any).namespace().getForma(forma.id.base64);
+          dbg &&
+            cc.ok1(
+              msg,
+              `nested=${nested ? 'found' : 'not found'} in ${focusedEntry.formaType}`,
+            );
+
+          if (nested) {
+            dbg &&
+              cc.ok1(
+                msg,
+                `patching nested ${forma.id.base64} in ${focusedEntry.formaType}`,
+              );
+            nested.patch({ [fieldPath]: value });
+            this.emit('change', {
+              type: 'patch',
+              item: nested,
+              cfg: { [fieldPath]: value },
+              entity,
+            });
+            dbg && cc.ok1(msg, `patched nested, result.id=${nested.id.base64}`);
+            return nested;
+          }
+        }
+      }
+    }
+
+    throw new Error(`Forma not found in any namespace: ${forma.id.base64}`);
   }
 
   /**
@@ -655,7 +724,7 @@ export class World extends Forma implements IEventBus, IRegistry {
     return new FormaList<ReturnType<T['fromJson']>>(
       items,
       EntityClass as any,
-      { emitter: this, namespace: this.#namespace },
+      { emitter: this, namespace: this.mutableNamespace },
     );
   }
 
@@ -676,7 +745,7 @@ export class World extends Forma implements IEventBus, IRegistry {
 
     // Remove from namespace if task
     if (entityType === 'task') {
-      this.#namespace.removeForma(id);
+      this.mutableNamespace.removeForma(id);
     }
 
     // Remove from focus stack if present

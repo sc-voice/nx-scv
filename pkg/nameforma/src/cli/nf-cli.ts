@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import IdCommand from './cli-id.js';
 import GetCommand from './cli-get.js';
+import SetCommand from './cli-set.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
@@ -244,6 +245,12 @@ export class CLI {
       program
         .command('get')
         .description('Get a forma by fuzzy ID'),
+      getGlobalOpts,
+    );
+    SetCommand.registerCommand(
+      program
+        .command('set')
+        .description('Set a forma field'),
       getGlobalOpts,
     );
     ActionCommand.registerCommand(

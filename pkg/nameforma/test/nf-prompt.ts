@@ -33,7 +33,10 @@ describe('NfPrompt', () => {
     ns.addForma(formaAnchor);
     mockAnchor = Object.create(Object.getPrototypeOf(formaAnchor));
     Object.assign(mockAnchor, formaAnchor);
-    mockAnchor.namespace = () => ns;
+    Object.defineProperty(mockAnchor, 'namespace', {
+      get: () => ns,
+      configurable: true
+    });
 
     prompt = new NfPrompt(
       mockTui,

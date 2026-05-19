@@ -3,10 +3,10 @@ import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 
 /**
- * IFuzzyNamespace - Read-only interface for UI and agent code.
+ * IReadOnlyNamespace - Read-only interface for UI and agent code.
  * Provides iteration and lookup of Forma within a namespace with masked FuzzyIds.
  */
-export interface IFuzzyNamespace {
+export interface IReadOnlyNamespace {
   /**
    * Iterator yields [FuzzyId, Forma] tuples for UI rendering.
    */
@@ -28,6 +28,22 @@ export interface IFuzzyNamespace {
 }
 
 /**
+ * IMutableNamespace - Mutable interface for internal namespace management.
+ * Extends IReadOnlyNamespace with write operations.
+ */
+export interface IMutableNamespace extends IReadOnlyNamespace {
+  /**
+   * Add a Forma instance to this namespace.
+   */
+  addForma(forma: Forma): void;
+
+  /**
+   * Remove a Forma instance from this namespace by fuzzy ID match.
+   */
+  removeForma(fuzzyId: FuzzyId): Forma | undefined;
+}
+
+/**
  * FuzzyNamespace - A namespace that maps Forma objects with their FuzzyID
  *
  * Supports low-entropy UI (LEUI) by computing minimal unique FuzzyIds for set members.
@@ -43,7 +59,7 @@ export interface IFuzzyNamespace {
  * - Invalidates cache when set mutates
  * - Iterator yields [FuzzyId, Forma] tuples for UI rendering
  */
-export class FuzzyNamespace {
+export class FuzzyNamespace implements IMutableNamespace {
   #formas: Forma[] = [];
   #fuzzyIdCache: Map<string, FuzzyId> = new Map();
   #cachedPrefixLen: number | null = null;

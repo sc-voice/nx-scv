@@ -267,7 +267,7 @@ export class Forma extends Identifiable implements IRenderable {
     const { id, name, summary } = this;
     const cls = this.constructor.name;
     const { anchor } = view;
-    const ns = anchor.namespace();
+    const ns = anchor.namespace;
     const theme = view.theme;
     const shortId = theme.nfTrack(ns.fuzzyIdOf(this));
     const indent = view.bodyIndent;

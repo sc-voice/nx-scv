@@ -6,6 +6,7 @@ import { NfPrompt } from './nf-prompt.js';
 import { NfWidget } from './nf-widget.js';
 import { NfSession } from './nf-session.js';
 import { nfTool } from './tools/nf-tool.js';
+import { nfDispatch } from './nf-dispatch.js';
 
 let activeWidget: NfWidget | null = null;
 
@@ -16,6 +17,15 @@ export default function (pi: ExtensionAPI) {
   setInterval(() => {
     NfSession.shared.emit('tick');
   }, 1000);
+
+  pi.registerCommand('nf', {
+    description: 'NameForma command with subcommands (show, hide)',
+    handler: async (args: string, ctx: ExtensionCommandContext) => {
+      const widgetRef = { current: activeWidget };
+      await nfDispatch(args, { ctx, widgetRef });
+      activeWidget = widgetRef.current;
+    },
+  });
 
   pi.registerCommand('nf-prompt', {
     description: 'Display nf-prompt with focused task',
