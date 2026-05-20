@@ -130,7 +130,6 @@ export class REPL {
         try {
           await CLI.exec(args);
           this.world.sync();
-          this.world.logCommand(trimmed, IS_CLAUDE ? 'agent' : 'human');
         } catch (execErr: any) {
           try {
             const msg = String(

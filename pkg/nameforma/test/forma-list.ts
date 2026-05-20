@@ -2,6 +2,7 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import UUID64 from '../src/uuid64.js';
 import { NameForma } from '../src/index.js';
 import { World } from '../src/world.js';
+import { Entity } from '../src/entity.js';
 import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 import { Text } from '@sc-voice/tools';
 import { DBG } from '../src/defines.js';
@@ -17,7 +18,7 @@ const dbg = DBG.FORMA_LIST.TEST;
 /**
  * Test item class with own property and patch delegation
  */
-class TestItem extends Forma {
+class TestItem extends Entity {
   static readonly entity = 'test-item';
 
   color: string;
@@ -34,6 +35,10 @@ class TestItem extends Forma {
     }
     super.patch(cfg);
   }
+
+  protected override populateNamespace(): void {
+    // No child items for test entity
+  }
 }
 
 describe('FormaList', () => {
@@ -47,29 +52,29 @@ describe('FormaList', () => {
     });
 
     expect(list.items).toBe(items);
-    expect(list.parentId).toEqual(world.id);
+    expect(list.parent?.id).toEqual(world.id);
     expect(list.size).toBe(0);
     tempWorld.cleanup();
     dbg &&
       cc.tag1(msg + UOK, 'constructor with parent creates empty list');
   });
 
-  it('FormaList.constructor without parentId', () => {
+  it('FormaList.constructor without parent', () => {
     const msg = 'tfl.ctor.no-parent';
     const items: TestItem[] = [];
     const list = new FormaList<TestItem>(items, TestItem, {});
 
     expect(list.items).toBe(items);
-    expect(list.parentId).toBeUndefined();
+    expect(list.parent?.id).toBeUndefined();
     expect(list.size).toBe(0);
     dbg &&
       cc.tag1(
         msg + UOK,
-        'constructor without parentId creates empty list',
+        'constructor without parent creates empty list',
       );
   });
 
-  it('FormaList.addItem with parentId', () => {
+  it('FormaList.addItem with parent', () => {
     const msg = 'tfl.addItem.with-parent';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
@@ -104,21 +109,21 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'items maintain insertion order');
   });
 
-  it('FormaList.addItem without parentId', () => {
+  it('FormaList.addItem without parent', () => {
     const msg = 'tfl.addItem.no-parent';
     const items: TestItem[] = [];
     const list = new FormaList<TestItem>(items, TestItem, {});
 
-    // Add items without parentId (no related ID check)
+    // Add items without parent (no related ID check)
     const item1 = list.addItem({ name: 'item1' });
     expect(item1.name).toBe('item1');
     expect(list.size).toBe(1);
     expect(items[0]).toBe(item1);
-    dbg && cc.tag1(msg + UOK, 'addItem without parentId works');
+    dbg && cc.tag1(msg + UOK, 'addItem without parent works');
 
     const item2 = list.addItem({ name: 'item2' });
     expect(list.size).toBe(2);
-    dbg && cc.ok1(msg + UOK, 'multiple addItem without parentId works');
+    dbg && cc.ok1(msg + UOK, 'multiple addItem without parent works');
   });
 
   it('FormaList.getItem', () => {

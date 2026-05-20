@@ -1,6 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { Forma } from './forma.js';
+import { Entity } from './entity.js';
 import { type IMutableNamespace } from './fuzzy-namespace.js';
 
 /**
@@ -13,14 +14,14 @@ import { type IMutableNamespace } from './fuzzy-namespace.js';
  * - If neither is an entity: entity = undefined
  */
 export type FormaListEvent<T extends Forma> =
-  | { type: 'add'; item: T; cfg: any; entity?: Forma }
-  | { type: 'patch'; item: T; cfg: any; entity?: Forma }
-  | { type: 'delete'; item: T; entity?: Forma }
+  | { type: 'add'; item: T; cfg: any; entity?: Entity }
+  | { type: 'patch'; item: T; cfg: any; entity?: Entity }
+  | { type: 'delete'; item: T; entity?: Entity }
   | {
       type: 'move';
       item: T;
       options: { before?: FuzzyId | null; after?: FuzzyId | null };
-      entity?: Forma;
+      entity?: Entity;
     };
 
 /**
@@ -68,12 +69,7 @@ export class FormaList<T extends Forma> {
 
   readonly items: T[];
   readonly #ItemClass: typeof Forma;
-  readonly parentId?: UUID64;
-  readonly #parentEntity?: Forma;
-  readonly #itemIsEntity: boolean;
-  readonly #itemEntityType?: string;
-  readonly #parentIsEntity: boolean;
-  readonly #parentEntityType?: string;
+  readonly parent: Entity | null;
   readonly keyField: string;
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
@@ -84,7 +80,7 @@ export class FormaList<T extends Forma> {
     items: T[],
     ItemClass: typeof Forma,
     cfg?: {
-      parent?: Forma;
+      parent?: Entity;
       emitter?: IEventBus;
       keyField?: string;
       namespace?: IMutableNamespace;
@@ -92,24 +88,10 @@ export class FormaList<T extends Forma> {
   ) {
     this.items = items;
     this.#ItemClass = ItemClass;
+    this.parent = cfg?.parent ?? null;
     this.keyField = cfg?.keyField ?? 'id';
     this.#emitter = cfg?.emitter;
     this.#namespace = cfg?.namespace;
-
-    // Determine if ItemClass is an entity
-    this.#itemIsEntity = !!(ItemClass as any).entity;
-    this.#itemEntityType = (ItemClass as any).entity;
-
-    // Store parent entity if provided
-    const parent = cfg?.parent;
-    if (parent) {
-      this.parentId = (parent as Forma).id as UUID64;
-      this.#parentEntity = parent as Forma;
-      this.#parentIsEntity = !!(parent.constructor as any).entity;
-      this.#parentEntityType = (parent.constructor as any).entity;
-    } else {
-      this.#parentIsEntity = false;
-    }
   }
 
   /**
@@ -117,13 +99,13 @@ export class FormaList<T extends Forma> {
    * @param item - The item being mutated
    * @returns { entity? } - The in-memory entity to be persisted
    */
-  #computeEntityInfo(item: T): { entity?: Forma } {
-    if (this.#itemIsEntity) {
+  #computeEntityInfo(item: T): { entity?: Entity } {
+    if (item instanceof Entity) {
       // Item itself is an entity
-      return { entity: item };
-    } else if (this.#parentIsEntity && this.#parentEntity) {
+      return { entity: item as unknown as Entity };
+    } else if (this.parent instanceof Entity) {
       // Item is not an entity, use parent entity
-      return { entity: this.#parentEntity as Forma };
+      return { entity: this.parent };
     }
     return {};
   }
@@ -146,11 +128,11 @@ export class FormaList<T extends Forma> {
 
     // Enforce parent-child ID relationships only for non-entities with entity parents
     // (e.g., Action children of a Task entity, not Task children of World)
-    if (this.parentId && !this.#itemIsEntity && this.#parentIsEntity) {
+    if (this.parent && !(this.#ItemClass.prototype instanceof Entity)) {
       if (cfg.id == null) {
-        cfg.id = UUID64.createRelatedId(this.parentId);
+        cfg.id = UUID64.createRelatedId(this.parent.id);
       }
-      if (!this.parentId.isRelated(cfg.id)) {
+      if (!this.parent.id.isRelated(cfg.id)) {
         throw new Error(`${msg} cannot add unrelated item:${cfg.id}`);
       }
     }

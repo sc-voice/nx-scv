@@ -58,37 +58,6 @@ describe('CLI.exec()', () => {
   });
 });
 
-describe('World.logCommand()', () => {
-  beforeEach(() => {
-    world.logCommand('test cmd 1', 'human');
-  });
-
-  it('should add entry to history', () => {
-    world.logCommand('test cmd 2', 'agent');
-    const history = world.history;
-    expect(history.length).toBeGreaterThan(0);
-    expect(history[0].command).toBe('test cmd 2');
-    expect(history[0].user).toBe('agent');
-  });
-
-  it('should trim to max 10 entries', () => {
-    for (let i = 0; i < 15; i++) {
-      world.logCommand(`cmd ${i}`, 'human');
-    }
-    expect(world.history.length).toBeLessThanOrEqual(10);
-  });
-
-  it('should persist to world.json', () => {
-    const worldPath = path.join(tmpDir, '.nameforma');
-    const world1 = World.fromPath(worldPath);
-    world1.logCommand('persist test', 'human');
-
-    const world2 = World.fromPath(worldPath);
-    const found = world2.history.some((h) => h.command === 'persist test');
-    expect(found).toBe(true);
-  });
-});
-
 describe('nf binary', () => {
   it('should start without crashing', async () => {
     nfTui.clearAll();

@@ -39,7 +39,7 @@ describe('Kafka Integration Tests', () => {
     const worldPath = path.join(tmpDir, '.nameforma');
 
     // Create World with unique ID
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
     topicName = `world-${world.id.base64}`;
 
     // Initialize Kafka client

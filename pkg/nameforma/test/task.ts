@@ -481,7 +481,7 @@ describe('task', () => {
       );
   });
 
-  it('Task.namespace() supports fuzzy ID lookup for actions and references', () => {
+  it('Task.namespace supports fuzzy ID lookup for actions and references', () => {
     const msg = 't2k.namespace.fuzzyid';
     const t2k = new Task({ name: 'test task' });
 
@@ -526,7 +526,7 @@ describe('task', () => {
       );
   });
 
-  it('Task.namespace() throws on ambiguous fuzzy ID match', () => {
+  it('Task.namespace throws on ambiguous fuzzy ID match', () => {
     const msg = 't2k.namespace.ambiguous';
     const t2k = new Task({ name: 'test task' });
     const bus = { emit: () => {}, on: () => {} } as any;
@@ -543,7 +543,7 @@ describe('task', () => {
     dbg && cc.tag1(msg + UOK, 'ambiguous fuzzyId throws error');
   });
 
-  it('Task.namespace() fuzzy IDs update when items deleted', () => {
+  it('Task.namespace fuzzy IDs update when items deleted', () => {
     const msg = 't2k.namespace.fuzzyid.delete';
     const t2k = new Task({ name: 'test task' });
     const bus = { emit: () => {}, on: () => {} } as any;

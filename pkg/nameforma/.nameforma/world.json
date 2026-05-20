@@ -8,11 +8,11 @@
       "summary": "Updated action summary for overlay-nf-widget via task update attempt."
     },
     {
-      "id": "0PuzEuq200Akj7O9XrUo7W",
-      "formaId": "0PuzEscB00Akj7O9XrUo7W",
+      "id": "0Pv2jv0500yXwUmtzsZytW",
+      "formaId": "0Pv2ju5Z00yXwUmtzsZytW",
       "formaType": "task",
-      "name": "Convert Entity to a subclass of Forma",
-      "summary": "Make Task a subclass of Entity"
+      "name": "Decouple the World class from hardcoded 'Task' references by making entity population and namespace synchronization generic based on registered EntityConstructors.",
+      "summary": ""
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",
@@ -21,57 +21,5 @@
     "N18r": "NotImplemenetedError",
     "I10e": "Identifiable",
     "T13a": "TranslationData"
-  },
-  "history": [
-    {
-      "timestamp": "2026-05-02T11:43:17.170Z",
-      "user": "human",
-      "command": "task"
-    },
-    {
-      "timestamp": "2026-05-02T11:43:10.083Z",
-      "user": "human",
-      "command": "tssk"
-    },
-    {
-      "timestamp": "2026-04-30T14:30:49.148Z",
-      "user": "human",
-      "command": "task focus tUp0wV"
-    },
-    {
-      "timestamp": "2026-04-30T14:30:26.874Z",
-      "user": "human",
-      "command": "task list"
-    },
-    {
-      "timestamp": "2026-04-30T14:30:21.057Z",
-      "user": "human",
-      "command": "watch"
-    },
-    {
-      "timestamp": "2026-04-30T14:30:08.289Z",
-      "user": "human",
-      "command": "task add \"Define nf-watch component for pi\" \"Allows pi users to watch the nf task system when using pi\""
-    },
-    {
-      "timestamp": "2026-04-29T20:38:05.535Z",
-      "user": "human",
-      "command": "cd ../.."
-    },
-    {
-      "timestamp": "2026-04-29T20:34:52.200Z",
-      "user": "human",
-      "command": ":q"
-    },
-    {
-      "timestamp": "2026-04-29T20:34:48.183Z",
-      "user": "human",
-      "command": "task list"
-    },
-    {
-      "timestamp": "2026-04-29T20:34:18.224Z",
-      "user": "human",
-      "command": "\\quit"
-    }
-  ]
+  }
 }

@@ -16,7 +16,7 @@ describe('WorldView cursor state management', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-view-test-'));
     const worldPath = path.join(tempDir, '.nameforma');
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
     view = new WorldView(world, 'test');
   });
 

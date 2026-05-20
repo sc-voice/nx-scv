@@ -10,11 +10,12 @@ import path from 'path';
 import os from 'os';
 import { World } from '../src/world.js';
 import { Forma } from '../src/forma.js';
+import { Entity } from '../src/entity.js';
 import { Task } from '../src/task.js';
 import { Action } from '../src/action.js';
 
-// Mock entity class for testing - extends Forma
-class MockEntity extends Forma {
+// Mock entity class for testing - extends Entity
+class MockEntity extends Entity {
   name: string = '';
 
   constructor(cfg: any = {}) {
@@ -38,6 +39,10 @@ class MockEntity extends Forma {
   static fromJson(data: any): MockEntity {
     return new MockEntity(data);
   }
+
+  protected override populateNamespace(): void {
+    // No child items for mock entity
+  }
 }
 
 describe('World Registry - Constructor & Entity Registration', () => {
@@ -57,27 +62,27 @@ describe('World Registry - Constructor & Entity Registration', () => {
 
   describe('Constructor', () => {
     it('should create World and initialize registry', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       expect(world.worldPath).toBe(worldPath);
       expect(fs.existsSync(worldPath)).toBe(true);
     });
 
     it('should start with standard entities auto-registered', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       expect(world.getEntityNames()).toContain('task');
     });
   });
 
   describe('Entity Registration', () => {
     it('should register entity and derive name from EntityClass.entity', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       world.registerEntity(MockEntity);
 
       expect(world.getEntityNames()).toContain('mock');
     });
 
     it('should throw if entity missing entity static property', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       class BadEntity extends Forma {
         patch() {}
         static avroSchema = {};
@@ -89,7 +94,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
     });
 
     it('should throw if entity missing avroSchema static property', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       class BadEntity extends Forma {
         patch() {}
         static entity = 'bad';
@@ -105,7 +110,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
     });
 
     it('should throw if entity missing fromJson static method', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       class BadEntity extends Forma {
         patch() {}
         static entity = 'bad';
@@ -118,7 +123,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
     });
 
     it('should register multiple entity types', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
 
       class AnotherEntity extends Forma {
         patch() {}
@@ -140,7 +145,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
     });
 
     it('should retrieve registered entity constructor by name', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       world.registerEntity(MockEntity);
 
       const ctor = world.entityClassOfName('mock');
@@ -151,7 +156,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
     });
 
     it('should return null for unregistered entity type', () => {
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       expect(world.entityClassOfName('unknown')).toBeNull();
     });
   });
@@ -165,7 +170,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
     world.registerEntity(MockEntity);
   });
 
@@ -464,7 +469,7 @@ describe('World Serialization - save()/load() methods', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
     world.registerEntity(MockEntity);
   });
 
@@ -503,7 +508,6 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.focusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
-        'history',
         'id',
         'numeronym',
       ]); // No worldPath
@@ -522,85 +526,81 @@ describe('World Serialization - save()/load() methods', () => {
   });
 
   describe('load()', () => {
-    it('should load and verify world.json exists and is valid', () => {
+    it('should load existing world and preserve id', () => {
       world.save();
 
-      // Create a new World instance at same path (with different id)
-      const world2 = new World(worldPath);
-      const world2Id = world2.id.toString();
+      // fromPath should load existing world with same id
+      const originalId = world.id.toString();
+      const world2 = World.fromPath(worldPath);
 
-      // load() should not fail
-      expect(() => world2.load()).not.toThrow();
-
-      // world2 keeps its own id (load doesn't change it)
-      expect(world2.id.toString()).toBe(world2Id);
+      expect(world2.id.toString()).toBe(originalId);
     });
 
-    it('should return this for method chaining', () => {
-      world.save();
-
-      const world2 = new World(worldPath);
-      const result = world2.load();
-
-      expect(result).toBe(world2);
-    });
-
-    it('should throw Error if world.json does not exist', () => {
-      const world2 = new World(worldPath);
-
-      expect(() => world2.load()).toThrow(/world.json not found/);
-    });
-
-    it('should throw Error if world.json missing id', () => {
+    it('should throw Error when world.json missing id', () => {
       world.save();
 
       // Corrupt the world.json file to remove id
       const worldFile = path.join(worldPath, 'world.json');
       fs.writeFileSync(worldFile, '{}', 'utf8');
 
-      const world2 = new World(worldPath);
-
-      expect(() => world2.load()).toThrow(/world.json missing id/);
+      expect(() => World.fromPath(worldPath)).toThrow(/World.fromJson: missing id/);
     });
 
-    it('should let JSON parse errors throw naturally', () => {
+    it('should throw Error on invalid JSON', () => {
       world.save();
 
       // Corrupt the world.json file
       const worldFile = path.join(worldPath, 'world.json');
       fs.writeFileSync(worldFile, 'invalid json {', 'utf8');
 
-      const world2 = new World(worldPath);
+      expect(() => World.fromPath(worldPath)).toThrow(SyntaxError);
+    });
 
-      expect(() => world2.load()).toThrow();
+    it('should throw Error when world.json has invalid id format', () => {
+      world.save();
+
+      // Corrupt the id field with invalid format
+      const worldFile = path.join(worldPath, 'world.json');
+      fs.writeFileSync(worldFile, JSON.stringify({ id: 'not-a-valid-uuid64', numeronym: {}, focusStack: [] }), 'utf8');
+
+      expect(() => World.fromPath(worldPath)).toThrow();
     });
   });
 
   describe('round-trip: save() then load()', () => {
-    it('should allow save/load cycle without errors', () => {
+    it('should preserve world id across save/fromPath cycle', () => {
       // Save world state
+      const originalId = world.id.toString();
       world.save();
 
       // Load into new instance at same path
-      const world2 = new World(worldPath);
-      expect(() => world2.load()).not.toThrow();
+      const world2 = World.fromPath(worldPath);
+      expect(world2.id.toString()).toBe(originalId);
     });
 
-    it('should preserve entity data across save/load cycle', () => {
+    it('should preserve focusStack and numeronym across save/load cycle', () => {
       const f7t = world.entityList(MockEntity);
       const entity = f7t.addItem({ name: 'test-entity' });
+
+      // Set up state: focus an entity and add numeronym mapping
+      world.focusForma(entity);
+      world.setNumeronym(new Map([['foo', 'bar'], ['abc', 'xyz']]));
 
       // Save and load world
       world.save();
 
-      const world2 = new World(worldPath);
+      const world2 = World.fromPath(worldPath);
       world2.registerEntity(MockEntity);
-      world2.load();
 
-      // Verify entity can still be loaded (entities are stored separately)
-      const loaded = world2.loadEntity(MockEntity, entity.id);
-      expect(loaded).not.toBeNull();
-      expect(loaded?.name).toBe('test-entity');
+      // Verify focusStack was preserved
+      const focusedEntry = world2.focusedForma(MockEntity.entity);
+      expect(focusedEntry).not.toBeNull();
+      expect(focusedEntry?.formaId.base64).toBe(entity.id.base64);
+
+      // Verify numeronym was preserved
+      const numeronym = world2.getNumeronym();
+      expect(numeronym.get('foo')).toBe('bar');
+      expect(numeronym.get('abc')).toBe('xyz');
     });
   });
 
@@ -619,7 +619,6 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.focusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
-        'history',
         'id',
         'numeronym',
       ]);
@@ -654,10 +653,8 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBe(originalId);
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
-      expect(json.history).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
-        'history',
         'id',
         'numeronym',
       ]);
@@ -668,7 +665,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should persist entity to file when added via entityList', () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
@@ -692,7 +689,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should delete entity file when removed via entityList', () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
@@ -715,7 +712,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should update entity file when patched via entityList', () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
@@ -740,7 +737,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should load persisted entities on entityList() call', () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = new World(worldPath);
+      const world = World.fromPath(worldPath);
       world.registerEntity(Task);
 
       // Add and modify tasks
@@ -750,7 +747,7 @@ describe('World Serialization - save()/load() methods', () => {
       list1.patchItem(task1.id.base64, { name: 'task1-updated' });
 
       // Create new world instance and load
-      const world2 = new World(worldPath);
+      const world2 = World.fromPath(worldPath);
       world2.registerEntity(Task);
       const list2 = world2.entityList(Task);
 
@@ -775,7 +772,7 @@ describe('World - focusStack', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
     world.registerEntity(MockEntity);
   });
 
@@ -1173,7 +1170,7 @@ describe('World - focusStack', () => {
   });
 });
 
-describe('World — namespace()', () => {
+describe('World — namespace', () => {
   let tempDir: string;
   let worldPath: string;
   let world: World;
@@ -1181,7 +1178,7 @@ describe('World — namespace()', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
   });
 
   afterEach(() => {
@@ -1190,7 +1187,7 @@ describe('World — namespace()', () => {
     }
   });
 
-  describe('namespace() method', () => {
+  describe('namespace method', () => {
     it('should return IReadOnlyNamespace interface', () => {
       const ns = world.namespace;
       expect(ns).toBeDefined();
@@ -1210,7 +1207,7 @@ describe('World — namespace()', () => {
       const task2 = list.addItem({ name: 'task2' });
 
       // Create new world instance to test population at construct time
-      const world2 = new World(worldPath);
+      const world2 = World.fromPath(worldPath);
       const ns = world2.namespace;
 
       const items = Array.from(ns);
@@ -1363,7 +1360,7 @@ describe('World — resolveFuzzyId()', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = new World(worldPath);
+    world = World.fromPath(worldPath);
   });
 
   afterEach(() => {

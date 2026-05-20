@@ -37,11 +37,6 @@ const { WORLD } = DBG;
  * Implements IEventBus to receive FormaList mutation events and
  * automatically persist changes to disk.
  */
-interface HistoryEntry {
-  timestamp: string;
-  user: 'agent' | 'human';
-  command: string;
-}
 
 export class World extends Entity implements IEventBus {
   #worldPath: string;
@@ -49,17 +44,17 @@ export class World extends Entity implements IEventBus {
   #numeronym: Map<string, string> = new Map();
   #focusStack: FormaList<Focus>;
   #bus: EventEmitter;
-  #history: HistoryEntry[] = [];
 
   // Export Focus class for use elsewhere
   static Focus = Focus;
 
   /**
-   * Create a World at the given path with optional id
+   * Create a World at the given path with optional id (internal use only)
+   * Use World.fromPath() to get or create a World instance.
    * @param {string} worldPath - Path to .nameforma/ directory
    * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
-  constructor(worldPath: string, id?: UUID64 | string) {
+  private constructor(worldPath: string, id?: UUID64 | string) {
     const worldRoot = path.dirname(worldPath);
     const nfUrl = new NfUrl(worldRoot, '~');
     const name = nfUrl.uri;
@@ -288,7 +283,7 @@ export class World extends Entity implements IEventBus {
       if (EntityClass) {
         const entity = this.loadEntity(EntityClass, focusedEntry.formaId);
         if (entity && 'namespace' in entity) {
-          const nested = (entity as any).namespace().getForma(forma.id.base64);
+          const nested = (entity as any).namespace.getForma(forma.id.base64);
           dbg &&
             cc.ok1(
               msg,
@@ -429,7 +424,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Reload mutable state (focusStack, numeronym, history) from world.json.
+   * Reload mutable state (focusStack, numeronym) from world.json.
    * Used to refresh a long-lived World instance after external writes.
    */
   sync(): void {
@@ -456,44 +451,6 @@ export class World extends Entity implements IEventBus {
         keyField: 'formaId',
       });
     }
-
-    if (data.history && Array.isArray(data.history)) {
-      this.#history = data.history.filter(
-        (e: any) =>
-          e.timestamp &&
-          (e.user === 'agent' || e.user === 'human') &&
-          e.command,
-      );
-    }
-  }
-
-  /**
-   * Load World state from world.json
-   * Validates that world.json exists and contains valid id.
-   * @returns {World} - Returns this for method chaining
-   * @throws {Error} - If world.json does not exist or is invalid
-   */
-  load(): World {
-    const msg = 'world.load';
-    const dbg = WORLD?.LOAD;
-
-    const worldFile = path.join(this.#worldPath, 'world.json');
-
-    if (!fs.existsSync(worldFile)) {
-      throw new Error(`${msg}: world.json not found at ${worldFile}`);
-    }
-
-    const data = fs.readFileSync(worldFile, 'utf8');
-    const json = JSON.parse(data);
-
-    // Verify id exists in loaded data
-    if (!json.id) {
-      throw new Error(`${msg}: world.json missing id`);
-    }
-
-    dbg && cc.ok1(msg, `loaded ${worldFile}`);
-
-    return this;
   }
 
   /**
@@ -899,30 +856,6 @@ export class World extends Entity implements IEventBus {
     return result;
   }
 
-  /**
-   * Log a command to history (max 10 entries). Called after successful execution.
-   * @param {string} cmd - The command that was executed
-   * @param {string} user - 'agent' or 'human'
-   */
-  logCommand(cmd: string, user: 'agent' | 'human' = 'human'): void {
-    const entry: HistoryEntry = {
-      timestamp: new Date().toISOString(),
-      user,
-      command: cmd,
-    };
-    this.#history.unshift(entry);
-    if (this.#history.length > 10) {
-      this.#history.pop();
-    }
-    this.save();
-  }
-
-  /**
-   * Get command history
-   */
-  get history(): HistoryEntry[] {
-    return [...this.#history];
-  }
 
   /**
    * Load or create World from path
@@ -987,17 +920,16 @@ export class World extends Entity implements IEventBus {
       })),
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
-      history: this.#history,
     };
   }
 
   /**
-   * Deserialize World from JSON
+   * Deserialize World from JSON (internal use only)
    * @param {object} data - JSON data with id and optional numeronym and focusStack
    * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
    * @returns {World} - World instance with worldPath set to baseDir
    */
-  static fromJson(data: any, baseDir?: string): World {
+  private static fromJson(data: any, baseDir?: string): World {
     if (!data.id) {
       throw new Error('World.fromJson: missing id');
     }
@@ -1026,16 +958,6 @@ export class World extends Entity implements IEventBus {
       world.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
         keyField: 'formaId',
       });
-    }
-
-    // Restore history if present
-    if (data.history && Array.isArray(data.history)) {
-      world.#history = data.history.filter(
-        (entry: any) =>
-          entry.timestamp &&
-          (entry.user === 'agent' || entry.user === 'human') &&
-          entry.command,
-      );
     }
 
     return world;

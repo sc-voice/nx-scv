@@ -47,9 +47,9 @@
       "id": "0Pv0SRFz00Akj7O9XrUo7W",
       "name": "update World to inherit from Entity",
       "summary": "Make World extend Entity instead of just Forma to inherit namespace management infrastructure",
-      "status": "test",
-      "statusNote": "namespace/mutableNamespace now idiomatic getters",
-      "statusDate": "2026-05-19T13:40:11.845Z"
+      "status": "done",
+      "statusNote": "World extends Entity with namespace infrastructure; getter-based API; redundant code cleaned",
+      "statusDate": "2026-05-19T14:17:18.316Z"
     }
   ],
   "rawReferences": [

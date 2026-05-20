@@ -49,7 +49,21 @@ const opDescriptions = JSON.stringify(
   operations.map(op=>op.description),
 )
 
+export function validateParams(operation: string, params: any): void {
+  const op = operations.find(o => o.name === operation);
 
+  if (!op) {
+    throw new Error(`Unknown operation: ${operation}`);
+  }
+
+  const missing = op.required_parameters.filter((param: string) =>
+    params[param] == null || params[param] === 'null'
+  );
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required parameters for ${operation}: ${missing.join(', ')}`);
+  }
+}
 
 export const nfTool = {
   name: 'nf',
@@ -141,6 +155,8 @@ export const nfTool = {
         value, 
       } = params;
 
+      validateParams(operation, params);
+
       let cmd = 'nf';
 
       if (operation === 'add-task') {
@@ -157,7 +173,7 @@ export const nfTool = {
         }
       } else if (operation === 'focus') {
         cmd += ` task focus ${fuzzy_id}`;
-      } else if (operation === 'ujnfocus') {
+      } else if (operation === 'unfocus') {
         cmd += ` task unfocus ${fuzzy_id}`;
       } else if (operation === 'rename') {
         cmd += ` set ${fuzzy_id}.name` + arg(value);
@@ -174,6 +190,7 @@ export const nfTool = {
       let output = execSync(cmd, { encoding: 'utf8' });
       if (debug) {
         output += `[DEBUG] cmd: ${cmd}\n`;
+        output += `[DEBUG] value: ${value} ${typeof value}\n`;
         output += `[DEBUG] opDescriptions: ${opDescriptions}\n`;
       }
 

@@ -1,0 +1,56 @@
+{
+  "id": "0Pv2ju5Z00yXwUmtzsZytW",
+  "name": "Decouple the World class from hardcoded 'Task' references by making entity population and namespace synchronization generic based on registered EntityConstructors.",
+  "summary": "",
+  "rawActions": [
+    {
+      "id": "0Pv2jvYR00yXwUmtzsZytW",
+      "name": "Analyze all occurrences of 'task' in src/world.ts and identify potential generic replacements or extraction points for the logic.",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-20T00:09:48.955Z"
+    },
+    {
+      "id": "0Pv2kZzG00yXwUmtzsZytW",
+      "name": "Analyze mutation logic (Lines 104-107) that explicitly updates mutableNamespace for 'task' entities.",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-20T00:12:42.704Z"
+    },
+    {
+      "id": "0Pv2kaVF00yXwUmtzsZytW",
+      "name": "Analyze deletion logic (Lines 129-132) that explicitly updates mutableNamespace for 'task' entities upon deletion of nested items.",
+      "summary": "",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-20T00:12:44.879Z"
+    },
+    {
+      "id": "0Pv2kb1X00yXwUmtzsZytW",
+      "name": "Analyze populateNamespace (Lines 154-187) which is hardcoded to only scan the 'task' directory and load Task entities.",
+      "summary": "Refactor populateNamespace to iterate over all registered EntityConstructors instead of hardcoding 'task' directory. Use the registry to find all entity types and load their respective JSON files.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-20T00:12:47.073Z"
+    },
+    {
+      "id": "0Pv2kbWc00yXwUmtzsZytW",
+      "name": "Analyze deletion logic (Line 704) that explicitly removes from namespace if entityType is 'task'.",
+      "summary": "null",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-20T00:12:49.062Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "id": "0Pv2jwZW00yXwUmtzsZytW",
+      "name": "List of hardcoded 'task' references in src/world.ts identified via grep.",
+      "summary": "",
+      "relevance": 1,
+      "source": ""
+    }
+  ]
+}
