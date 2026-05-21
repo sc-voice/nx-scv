@@ -69,6 +69,7 @@ export type FuzzyId = string;
  *    - Deserialized id has all UUID64 methods available
  */
 export class Identifiable {
+  readonly forma: string;
   readonly id: UUID64;
 
   /**
@@ -101,6 +102,7 @@ export class Identifiable {
       throw new Error(`Identifiable constructor: invalid cfg type`);
     }
 
+    this.forma = this.constructor.name;
     this.id = uuid64Id;
   }
 

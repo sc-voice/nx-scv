@@ -37,6 +37,9 @@ const operations = [
   new Operation('task', 'Get current task', [] ),
   new Operation('rename', 'Rename a forma with given value', 
     ['fuzzy_id', 'value']),
+  new Operation('set_action_status', 
+    'Set action status and statusNote values',
+    ['fuzzy_id', 'actionStatus', 'statusNote'] ),
   new Operation('set_field_value', 'Set a Forma field value', 
     ['fuzzy_id', 'field', 'value']),
   new Operation('get', 'Get JSON for a Forma', ['fuzzy_id']), 
@@ -79,6 +82,16 @@ export const nfTool = {
     forma: Type.Optional(
       StringEnum(['task', 'action', 'reference'] as const, {
         description: 'Forma class (required for add operation)',
+      }),
+    ),
+    actionStatus: Type.Optional(
+      StringEnum(['req', 'spec', 'work', 'test', 'manage', 'done'], {
+        description: 'action status workflow states',
+      }),
+    ),
+    statusNote: Type.Optional(
+      Type.String({
+        description: 'Details of status change',
       }),
     ),
     debug: Type.Optional(
@@ -143,6 +156,7 @@ export const nfTool = {
       }
 
       const { 
+        actionStatus,
         debug,
         field, 
         forma,
@@ -151,6 +165,7 @@ export const nfTool = {
         name, 
         operation, 
         relevance, 
+        statusNote,
         summary, 
         value, 
       } = params;
@@ -177,6 +192,8 @@ export const nfTool = {
         cmd += ` task unfocus ${fuzzy_id}`;
       } else if (operation === 'rename') {
         cmd += ` set ${fuzzy_id}.name` + arg(value);
+      } else if (operation === 'set_action_status') {
+        cmd += ` action set ${fuzzy_id} ${actionStatus} ` + arg(statusNote);
       } else if (operation === 'set_field_value') {
         cmd += ` set ${fuzzy_id}.${field}` + arg(value);
       } else if (operation === 'task') {

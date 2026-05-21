@@ -94,6 +94,14 @@ export function zenoStep(n: number): ZenoStep {
   return n as ZenoStep;
 }
 
+/**
+ * ZenoSteps are a measure of semantic detail organized as rows.
+ * Each ZenoStep specifies the minimum number of rows shown.
+ * Zeno rows are arbitrary length with most relevant information 
+ * at the start of the row.
+ * This allows the renderer to wrap/clip the rows
+ * provided by asRenderData() to match the user viewport.
+ */
 export const ZENO_1_ROW_TERSE = zenoStep(0);
 export const ZENO_1_ROW_VERBOSE = zenoStep(1);
 export const ZENO_2_ROWS = zenoStep(2);
@@ -104,6 +112,14 @@ export const ZENO_13_ROWS = zenoStep(6);
 export const ZENO_21_ROWS = zenoStep(7);
 export const ZENO_34_ROWS = zenoStep(8);
 export const ZENO_55_ROWS = zenoStep(9);
+export const ZENO_89_ROWS = zenoStep(10);
+export const ZENO_144_ROWS = zenoStep(11);
+export const ZENO_233_ROWS = zenoStep(12);
+export const ZENO_377_ROWS = zenoStep(13);
+export const ZENO_610_ROWS = zenoStep(14);
+export const ZENO_987_ROWS = zenoStep(15);
+export const ZENO_1597_ROWS = zenoStep(16);
+export const ZENO_2584_ROWS = zenoStep(17);
 
 /**
  * Rendering detail can be specified continously over the range [0..1].

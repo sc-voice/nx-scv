@@ -1,18 +1,16 @@
 import { Command } from 'commander';
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { NfWidget } from './nf-widget.js';
-
-interface PiContext {
-  ctx: ExtensionCommandContext;
-  widgetRef: { current: NfWidget | null };
-}
+import { ZenoCoord } from '../../navigable-view.js';
+import { NfStatus } from './nf-status.js';
+import { NfEditor } from './nf-edit.js';
+import { NfSession } from './nf-session.js';
 
 export async function nfDispatch(
   args: string,
-  piContext: PiContext,
+  ctx: ExtensionCommandContext,
 ): Promise<void> {
   const msg = "nfDispatch";
-  const { ctx, widgetRef } = piContext;
+  const session = NfSession.shared;
 
   if (!ctx.hasUI) {
     ctx.ui.notify('nameforma extension requires interactive mode', 'error');
@@ -29,42 +27,80 @@ export async function nfDispatch(
     });
 
   program
-    .command('show')
-    .description('Display nf-widget with focused task')
+    .command('status')
+    .description('Toggle NameForma status visibility')
     .action(async () => {
-      console.log(msg, "show start");
-      if (widgetRef.current) {
-        widgetRef.current.dispose();
+      const s4s = session.getStatus();
+
+      if (s4s) {
+        session.setStatus(null);
+        ctx.ui.setWidget(NfStatus.WIDGET_NAME, [], { placement: 'belowEditor' });
+        ctx.ui.notify('NameForma status hidden', 'info');
+      } else {
+        const status = new NfStatus(
+          ctx.ui.theme,
+          () => {
+            const s4s = session.getStatus();
+            if (s4s) {
+              ctx.ui.setWidget(NfStatus.WIDGET_NAME, s4s.getContent(), {
+                placement: 'belowEditor',
+              });
+            }
+          },
+        );
+        session.setStatus(status);
+
+        ctx.ui.setWidget(NfStatus.WIDGET_NAME, status.getContent(), {
+          placement: 'belowEditor',
+        });
+
+        ctx.ui.notify('NameForma status displayed', 'info');
       }
-
-      widgetRef.current = new NfWidget(
-        ctx.ui.theme,
-        'nf-widget',
-        () => {
-          if (widgetRef.current) {
-            ctx.ui.setWidget('nf-widget', widgetRef.current.getContent());
-          }
-        },
-      );
-
-      ctx.ui.setWidget('nf-widget', widgetRef.current.getContent());
-      ctx.ui.notify(
-        'nf-widget displayed. Use /nf hide to remove.',
-        'info',
-      );
-      console.log(msg, "show end");
     });
 
   program
-    .command('hide')
-    .description('Hide nf-widget')
+    .command('edit')
+    .description('Open NameForma editor')
     .action(async () => {
-      if (widgetRef.current) {
-        widgetRef.current.dispose();
-        widgetRef.current = null;
+      let editorHandle: any;
+      await ctx.ui.custom(
+        (tui, theme, _keybindings, done) =>
+          new NfEditor(tui, theme, () => {
+            if (editorHandle) {
+              editorHandle.unfocus();
+            }
+            done(undefined);
+          }),
+        {
+          overlay: true,
+          overlayOptions: {
+            width: '100%',
+            anchor: 'top-left',
+          },
+          onHandle: (handle) => {
+            editorHandle = handle;
+            handle.focus();
+          },
+        },
+      );
+    });
+
+  program
+    .command('set <key> <value>')
+    .description('Set NameForma properties (z for anchorStep)')
+    .action(async (key: string, value: string) => {
+      if (key === 'z') {
+        const step = parseInt(value, 10);
+        if (isNaN(step) || step < 0) {
+          ctx.ui.notify(`Invalid anchorStep: ${value}`, 'error');
+          return;
+        }
+        const newCoord = new ZenoCoord(step as any, 0 as any);
+        session.view.zoomTo(newCoord);
+        ctx.ui.notify(`Zoom set to ${step}`, 'info');
+      } else {
+        ctx.ui.notify(`Unknown property: ${key}`, 'error');
       }
-      ctx.ui.setWidget('nf-widget', []);
-      ctx.ui.notify('nf-widget hidden', 'info');
     });
 
   try {

@@ -5,6 +5,7 @@
 
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import { Entity } from '../entity.js';
 import { EntityView } from '../entity-view.js';
 import { LineRenderer } from '../line-renderer.js';
 import { zenoStep, ZenoCoord, ZENO_8_ROWS } from '../navigable-view.js';
@@ -35,7 +36,7 @@ export default class GetCommand {
 
           const { forma } = resolved;
 
-          if (options.json) {
+          if (options.json || !(forma instanceof Entity)) {
             nfTui.log(JSON.stringify(forma, null, 2));
           } else {
             // Parse --zeno, --lines, and --line-width options
@@ -75,6 +76,7 @@ export default class GetCommand {
             lines.forEach(line => nfTui.log(line));
           }
         } catch (err: any) {
+          console.log(err);
           nfTui.error(`✗ Error: ${err.message}`);
           process.exit(1);
         }

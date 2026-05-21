@@ -10,7 +10,7 @@ import type { World } from '../../world.js';
 import type { IRegistry } from '../../registry.js';
 import { NfSession } from './nf-session.js';
 
-export class NfPrompt implements Focusable {
+export class NfEditor implements Focusable {
   focused = false;
   private lines: string[] = [];
   private view: WorldView;
@@ -87,24 +87,26 @@ export class NfPrompt implements Focusable {
       this.view.zenoCoord.pivotStep;
     const header = this.theme.fg(
       'accent',
-      `pi-nameforma ${timeStr} ${zenoStr}`,
+      `NfEdit ${timeStr} ${zenoStr}`,
     );
     const contentLines = this.renderContent();
     this.lines = [header, ...contentLines];
     this.tui.requestRender();
   };
 
-  render(_width: number): string[] {
-    return this.lines.map((line, index) => {
-      if (index === 0) {
-        return `╭ ${line}`;
-      } else if (index === this.lines.length - 1) {
-        return `╰ ${line}`;
-      } else {
-        return `│ ${line}`;
-      }
+  render(width: number): string[] {
+    const rendered = this.lines.map((line, index) => {
+      const border = index === 0 ? '╭' : '│';
+      const coloredBorder = this.theme.fg('border', border);
+      return `${coloredBorder} ${line}`;
     });
+
+    const bottomBorder = this.theme.fg('border', '╰' + '─'.repeat(width - 2) + '╯');
+    rendered.push(bottomBorder);
+
+    return rendered;
   }
+
 
   setAnchor(value: IRegistry): void {
     this.view.setAnchor(value);

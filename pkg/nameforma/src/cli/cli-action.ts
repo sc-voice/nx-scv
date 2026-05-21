@@ -10,6 +10,7 @@ import { Task } from '../task.js';
 import { Action, ActionStatus, ActionTransitions } from '../action.js';
 import { settings } from './settings.js';
 import { confirm } from './confirm.js';
+import UUID64 from '../uuid64.js';
 
 export default class ActionCommand {
   static readonly EXAMPLES: Record<string, string[]> = {
@@ -371,9 +372,14 @@ export default class ActionCommand {
               }
 
               if (settings.isAgent && newStatus === 'done') {
-                const consensusConfirmed = await confirm(
-                  `>>> Action: ${action.id}\n>>> name: ${action.name}\n>>> Transition to '${newStatus}': Was team consulted and consensus gained? (no/yes) `,
-                );
+                const code = new UUID64().base64;
+                const consensusConfirmed = await confirm([
+                  `>>> Confirmation: ${code}`,
+                  `>>> Action: ${action.id}`,
+                  `>>> name: ${action.name}`,
+                  `>>> Transition to '${newStatus}': `,
+                  `>>> Enter confirmation code: `,
+                ].join('\n'), { code });
                 if (!consensusConfirmed) {
                   nfTui.log('Transition cancelled - consensus required');
                   return;

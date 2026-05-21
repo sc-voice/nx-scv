@@ -13,15 +13,15 @@ import { NameFormaTheme } from '../../nameforma-theme.js';
 import { ZenoCoord } from '../../navigable-view.js';
 import { NfSession } from './nf-session.js';
 
-export class NfWidget {
+export class NfStatus {
   private lines: string[] = [];
   private renderer!: LineRenderer;
   public detail: RenderDetail | number = 0;
   private iTheme: ITheme;
+  static readonly WIDGET_NAME = 'nf-status';
 
   constructor(
     private theme: Theme,
-    private key: string,
     private onInvalidate: () => void,
     initialDetail: RenderDetail | number = 0,
   ) {
@@ -66,7 +66,7 @@ export class NfWidget {
     const worldId = NfSession.shared.world?.id.timeId() || '';
     const header = this.theme.fg(
       'accent',
-      `${worldName} ${worldId}▸${zenoStr} ${timeStr}`,
+      `NfStatus: ${worldName} ${worldId}▸${zenoStr} ${timeStr}`,
     );
     const contentLines = this.renderContent();
     this.lines = [header, ...contentLines];
@@ -109,13 +109,10 @@ export class NfWidget {
 
   getContent(): string[] {
     return this.lines.map((line, index) => {
-      if (index === 0) {
-        return `╭ ${line}`;
-      } else if (index === this.lines.length - 1) {
-        return `╰ ${line}`;
-      } else {
-        return `│ ${line}`;
-      }
+      const border =
+        index === 0 ? '╭' : index === this.lines.length - 1 ? '╰' : '│';
+      const coloredBorder = this.theme.fg('border', border);
+      return `${coloredBorder} ${line}`;
     });
   }
 

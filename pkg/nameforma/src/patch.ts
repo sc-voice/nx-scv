@@ -67,12 +67,15 @@ export class Patch extends Identifiable {
     Object.entries(this).forEach((entry) => {
       const [k, vSrc] = entry;
 
-      // Check id: allow if matches, throw if attempting to change
+      // Check unpatchable fields
       if (k === 'id') {
         if (vSrc !== dst[k]) {
-          throw new Error(`${msg} Cannot patch id: ${dst[k]} != ${vSrc}`);
+          throw new Error(`${msg} Cannot patch ${k}: ${dst[k]} != ${vSrc}`);
         }
-        return; // id matches, skip
+        return; // value is unchanged 
+      }
+      if (k === 'forma') {
+        return; // ignore changes silently
       }
 
       // Check if field is patchable

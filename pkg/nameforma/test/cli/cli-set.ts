@@ -68,7 +68,8 @@ describe('CLI: set command', () => {
     ]);
 
     expect(output[0]).toMatch(/✓ Updated: name/);
-    expect(output[1]).toMatch(/Original Name → New Name/);
+    expect(output[1]).toMatch(/  Original Name/);
+    expect(output[2]).toMatch(/→ New Name/);
 
     // Verify persistence
     const world = World.fromPath(tempWorld.worldPath);

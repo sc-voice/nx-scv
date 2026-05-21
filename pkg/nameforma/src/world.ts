@@ -145,45 +145,59 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Populate namespace with all Task entities from disk
+   * Populate namespace with all entities from disk based on registered EntityConstructors
    */
   protected override populateNamespace(): void {
     const msg = 'world.populateNamespace';
     const dbg = WORLD?.ALL;
 
-    const taskDir = path.join(this.#worldPath, 'task');
-    if (!fs.existsSync(taskDir)) {
-      dbg && cc.ok1(msg, 'no tasks directory');
-      return;
-    }
+    const entityNames = this.getEntityNames();
+    let totalLoaded = 0;
 
-    const files = fs
-      .readdirSync(taskDir)
-      .filter((f) => f.endsWith('.json'));
-
-    for (const file of files) {
-      const filePath = path.join(taskDir, file);
-      try {
-        const data = fs.readFileSync(filePath, 'utf8');
-        const entity = JSON.parse(data);
-
-        if (entity.id) {
-          try {
-            entity.id = UUID64.fromString(entity.id);
-          } catch (err) {
-            dbg && cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
-            continue;
-          }
-        }
-
-        const task = Task.fromJson(entity);
-        this.addToNamespace(task);
-      } catch (err) {
-        dbg && cc.bad1(`${msg} failed to load ${filePath}`, err);
+    for (const entityTypeName of entityNames) {
+      const entityDir = path.join(this.#worldPath, entityTypeName);
+      if (!fs.existsSync(entityDir)) {
+        dbg && cc.ok1(msg, `no ${entityTypeName} directory`);
+        continue;
       }
+
+      const files = fs
+        .readdirSync(entityDir)
+        .filter((f) => f.endsWith('.json'));
+
+      const EntityConstructor = this.entityClassOfName(entityTypeName);
+      if (!EntityConstructor) {
+        dbg && cc.bad1(msg, `no EntityConstructor for ${entityTypeName}`);
+        continue;
+      }
+
+      for (const file of files) {
+        const filePath = path.join(entityDir, file);
+        try {
+          const data = fs.readFileSync(filePath, 'utf8');
+          const entity = JSON.parse(data);
+
+          if (entity.id) {
+            try {
+              entity.id = UUID64.fromString(entity.id);
+            } catch (err) {
+              dbg && cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
+              continue;
+            }
+          }
+
+          const instance = EntityConstructor.fromJson(entity);
+          this.addToNamespace(instance);
+          totalLoaded++;
+        } catch (err) {
+          dbg && cc.bad1(`${msg} failed to load ${filePath}`, err);
+        }
+      }
+
+      dbg && cc.ok1(msg, `loaded ${files.length} ${entityTypeName} entities`);
     }
 
-    dbg && cc.ok1(msg, `loaded ${files.length} tasks`);
+    dbg && cc.ok1(msg, `total loaded ${totalLoaded} entities`);
   }
 
   /**

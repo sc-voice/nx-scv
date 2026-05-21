@@ -28,6 +28,7 @@ export class NameFormaTheme implements ITheme {
    */
   static load(themeName: string = 'nameforma'): ITheme {
     const msg = "NameFormaTheme.load";
+    const dbg = 0;
 
     if (themeName === 'nameforma') {
       const targetDir = join(homedir(), '.pi', 'agent', 'themes');
@@ -42,7 +43,7 @@ export class NameFormaTheme implements ITheme {
     initTheme(themeName);
     const theme = (globalThis as any)[THEME_KEY] as Theme;
     if (theme.name === 'nameforma') {
-      cc.ok1(msg, 'loaded theme:', theme?.name);
+      dbg && cc.ok1(msg, 'loaded theme:', theme?.name);
     } else {
       cc.bad1(msg, 'loaded theme:', theme?.name, 'expected: nameforma');
     }

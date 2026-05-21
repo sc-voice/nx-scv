@@ -44,9 +44,9 @@ export default class SetCommand {
           if (options.json) {
             nfTui.log(JSON.stringify(updated, null, 2));
           } else {
-            nfTui.log(`✓ Updated: ${fieldPath}`);
-            nfTui.log(`  ${oldValue} → ${value}`);
-            nfTui.log(`  ${updated.toString()}`);
+            nfTui.log(`✓ Updated: ${fieldPath} (${oldValue}) →`);
+            nfTui.log(`  ${oldValue}`);
+            nfTui.log(`→ ${value}`);
           }
         } catch (err: any) {
           nfTui.error(`✗ Error: ${err.message}`);

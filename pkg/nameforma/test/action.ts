@@ -39,9 +39,9 @@ describe('Action', () => {
     expect(a4n.status).toBe(ActionStatus.spec);
     expect(a4n.statusNote).toBe('starting spec');
 
-    a4n.patch({ status: ActionStatus.work });
-    a4n.patch({ status: ActionStatus.test });
-    a4n.patch({ status: ActionStatus.manage });
+    a4n.patch({ status: ActionStatus.work, statusNote: 'working' });
+    a4n.patch({ status: ActionStatus.test, statusNote: 'testing' });
+    a4n.patch({ status: ActionStatus.manage, statusNote: 'managing' });
     a4n.patch({ status: ActionStatus.done, statusNote: 'complete' });
     expect(a4n.status).toBe(ActionStatus.done);
     expect(a4n.statusNote).toBe('complete');

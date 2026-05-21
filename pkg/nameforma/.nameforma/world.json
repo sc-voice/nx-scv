@@ -13,6 +13,13 @@
       "formaType": "task",
       "name": "Decouple the World class from hardcoded 'Task' references by making entity population and namespace synchronization generic based on registered EntityConstructors.",
       "summary": ""
+    },
+    {
+      "id": "0PvA0sXK00swJu5OqK2adW",
+      "formaId": "0PvA000K00swJu5OqK2adW",
+      "formaType": "task",
+      "name": "Create NameForma Dashboard",
+      "summary": "nf-dashboard.ts should be a top-right overlay that shows the same content as nf-widget.ts"
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

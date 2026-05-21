@@ -15,6 +15,7 @@ export async function confirm(
   options?: {
     input?: NodeJS.ReadableStream;
     output?: NodeJS.WritableStream;
+    code?: string;
   },
 ): Promise<boolean> {
   const { BRIGHT_CYAN, NO_COLOR } = Unicode.LINUX_COLOR;
@@ -27,7 +28,8 @@ export async function confirm(
   const answer = await rl.question(coloredMessage);
   rl.close();
 
-  return answer.toLowerCase() === 'yes';
+  const code = options?.code || 'yes';
+  return answer.toLowerCase() === code.toLowerCase();
 }
 
 /**

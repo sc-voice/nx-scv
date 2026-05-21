@@ -77,7 +77,7 @@ export class Action extends Forma {
   statusDate: Date;
 
   constructor(cfg: any = {}) {
-    const msg = 'a6n.ctor';
+    const msg = 'Action.ctor';
     const dbg = (A6N as any)?.CTOR;
     super(cfg);
 
@@ -94,7 +94,7 @@ export class Action extends Forma {
   }
 
   put(cfg: any = {}): void {
-    const msg = 'a6n.put';
+    const msg = 'Action.put';
     if (cfg.statusDate === undefined) {
       throw new Error(`${msg}: statusDate is required`);
     }
@@ -170,10 +170,10 @@ export class Action extends Forma {
    * @throws {Error} If status transition is not permitted by ActionTransitions
    */
   override patch(cfg: any = {}) {
-    const msg = 'a6n.patch';
+    const msg = 'Action.patch';
     const dbg = (A6N as any)?.PATCH;
     super.patch(cfg);
-    let { status = this.status, statusNote = this.statusNote } = cfg;
+    let { status = this.status, statusNote } = cfg;
     if (status !== this.status) {
       const allowed = ActionTransitions[this.status as ActionStatus] || [];
       if (!allowed.includes(status)) {
@@ -184,7 +184,12 @@ export class Action extends Forma {
       this.statusDate = new Date();
     }
     this.status = status as ActionStatus;
-    this.statusNote = statusNote;
+    if (cfg.status && (statusNote == null || statusNote === '')) {
+      throw new Error(`${msg} statusNote is required`);
+    }
+    if (cfg.statusNote) {
+      this.statusNote = statusNote;
+    }
     dbg && cc.ok1(msg, { status, statusNote });
   }
 
