@@ -3,6 +3,7 @@ import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 
 /**
  * NameForma theme for pi-tui and nameforma cli
@@ -344,4 +345,71 @@ export interface IView {
    * Starts the observation loop/stream for a given renderer and channel.
    */
   observe(): void;
+
+  getCursor(): ICursor;
 }
+
+export abstract class NavigableView implements IView {
+  protected _anchor: IRegistry | null = null;
+  protected _pivot: Forma | null = null;
+  protected _zenoCoord: ZenoCoord;
+  protected _cursor: ICursor | null = null;
+  protected _bodyIndent: string;
+  protected _theme: ITheme;
+
+  constructor() {
+    this._zenoCoord = ZenoCoord.fromRenderDetail(RenderDetail.Row);
+    this._bodyIndent = '  ';
+    this._theme = NameFormaTheme.load();
+  }
+
+  get anchor(): IRegistry {
+    return this._anchor!;
+  }
+
+  get pivot(): Forma {
+    return this._pivot!;
+  }
+
+  get zenoCoord(): ZenoCoord {
+    return this._zenoCoord;
+  }
+
+  get bodyIndent(): string {
+    return this._bodyIndent;
+  }
+
+  get theme(): ITheme {
+    return this._theme;
+  }
+
+  setAnchor(value: IRegistry): void {
+    this._anchor = value;
+  }
+
+  setPivot(value: Forma): void {
+    this._pivot = value;
+  }
+
+  setBodyIndent(value: string): void {
+    this._bodyIndent = value;
+  }
+
+  setTheme(value: ITheme): void {
+    this._theme = value;
+  }
+
+  zoomTo(zeno: ZenoCoord): void {
+    this._zenoCoord = new ZenoCoord(zeno.anchorStep, zeno.pivotStep);
+  }
+
+  getCursor(): ICursor {
+    if (!this._cursor) {
+      throw new Error('Cursor not initialized');
+    }
+    return this._cursor;
+  }
+
+  abstract observe(): void;
+}
+

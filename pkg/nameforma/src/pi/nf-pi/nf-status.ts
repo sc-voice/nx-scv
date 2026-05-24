@@ -1,31 +1,25 @@
 import type { Theme } from '@earendil-works/pi-coding-agent';
 import { LineRenderer } from '../../line-renderer.js';
 import type {
-  IView,
   IRenderable,
-  RenderDetail,
   RenderData,
   ITheme,
 } from '../../navigable-view.js';
 import type { Forma } from '../../forma.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
 
-import { ZenoCoord } from '../../navigable-view.js';
 import { NfSession } from './nf-session.js';
 
 export class NfStatus {
   private lines: string[] = [];
   private renderer!: LineRenderer;
-  public detail: RenderDetail | number = 0;
   private iTheme: ITheme;
   static readonly WIDGET_NAME = 'nf-status';
 
   constructor(
     private theme: Theme,
     private onInvalidate: () => void,
-    initialDetail: RenderDetail | number = 0,
   ) {
-    this.detail = initialDetail;
     this.iTheme = new NameFormaTheme(theme);
     this.update();
     NfSession.shared.on('tick', this.update);
@@ -39,10 +33,6 @@ export class NfStatus {
     return NfSession.shared.pivot;
   }
 
-  get zenoCoord(): ZenoCoord {
-    return ZenoCoord.fromRenderDetail(this.detail);
-  }
-
   private renderContent(): string[] {
     if (!this.anchor) {
       return ['(no anchor)'];
@@ -53,14 +43,13 @@ export class NfStatus {
   }
 
   private update = () => {
-    const zeno = ZenoCoord.fromRenderDetail(this.detail);
+    const zeno = NfSession.shared.view.zenoCoord;
     this.renderer = new LineRenderer({
       theme: this.iTheme,
       zenoStep: zeno.anchorStep,
     });
     const now = new Date();
     const timeStr = now.toLocaleTimeString(undefined, { hour12: false });
-    const detailStr = (this.detail as number).toFixed(1);
     const zenoStr = zeno.anchorStep + '/' + zeno.pivotStep;
     const worldName = NfSession.shared.world?.name || 'nameforma';
     const worldId = NfSession.shared.world?.id.timeId() || '';

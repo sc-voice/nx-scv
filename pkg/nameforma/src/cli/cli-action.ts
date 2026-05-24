@@ -17,8 +17,8 @@ export default class ActionCommand {
     list: ['$ nf action list # list actions for focused task'],
     show: ['$ nf action show ACTION_ID # show a specific action'],
     add: [
-      '$ nf action add "Implement feature" --summary "Add user auth"',
-      '$ nf action add "Write tests" --status req',
+      '$ nf action add "Implement feature" "Add user auth"',
+      '$ nf action add "Write tests" "Get basic tests passing"',
     ],
     delete: ['$ nf action delete ACTION_ID # delete an action'],
     get: [
@@ -185,9 +185,8 @@ export default class ActionCommand {
 
     // action add
     cmd
-      .command('add <name>')
+      .command('add <name> <summary>')
       .description('Add an action to the focused task')
-      .option('-s, --summary <summary>', 'Action summary')
       .addHelpText(
         'after',
         [
@@ -196,7 +195,7 @@ export default class ActionCommand {
           ...ActionCommand.EXAMPLES.add.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((name: string, options: any, cmd: any) => {
+      .action((name: string, summary: string, options: any, cmd: any) => {
         const world = getGlobalOpts().world;
         const task = ActionCommand.getFocusedTask(world);
 
@@ -204,10 +203,7 @@ export default class ActionCommand {
           throw new Error('No task is currently focused');
         }
 
-        const actionConfig: any = { name };
-        if (options.summary) {
-          actionConfig.summary = options.summary;
-        }
+        const actionConfig: any = { name, summary };
 
         const action = task.actions(world).addItem(actionConfig);
         world.save();
@@ -324,31 +320,18 @@ export default class ActionCommand {
           options: any,
           cmd: any,
         ) => {
+          const world = getGlobalOpts().world;
+          const task = ActionCommand.resolveTask(world, options.task);
           const parts = dotref.split('.');
           if (parts.length !== 2) {
             throw new Error('Format: action set <id>.<field> <value>');
           }
-          const [id, field] = parts;
-
-          if (id.length < 3) {
-            throw new Error('ID must be at least 3 characters');
+          const [fuzzyId, field] = parts;
+          const forma = task.namespace.getForma(fuzzyId);
+          if (forma == null) {
+            throw new Error(`Action ${fuzzyId} not found in task ${task.id.base64}`);
           }
-
-          // Validate status field requires exactly 2 values
-          if (field === 'status') {
-            if (values.length !== 2) {
-              throw new Error(
-                'status field requires: <newStatus> <statusNote>',
-              );
-            }
-          } else {
-            if (values.length !== 1) {
-              throw new Error(`${field} field requires exactly one value`);
-            }
-          }
-
-          const world = getGlobalOpts().world;
-          const task = ActionCommand.resolveTask(world, options.task);
+          const id = forma.id.base64;
           const actionList = task.actions(world);
 
           try {

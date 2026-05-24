@@ -2,8 +2,15 @@ import { Type } from 'typebox';
 import { StringEnum } from '@earendil-works/pi-ai';
 import { execSync } from 'child_process';
 
-function arg(s: string) {
-  return s ? ` "${s.replace(/"/g, '\\"')}"` : '';
+export function arg(s: string | null | undefined) {
+  if (s != null) {
+    const str = String(s);
+    if (str.includes('$(')) {
+      throw new Error(`Command substitution not allowed: ${str}`);
+    }
+    return " '" + str.replace(/'/g, '"') + "'";
+  }
+  return '';
 }
 
 class Operation {
@@ -109,7 +116,7 @@ export const nfTool = {
         description: 'Detailed description (required for add)',
       }),
     ),
-    link: Type.Optional(
+    source: Type.Optional(
       Type.String({
         description: 'Source URI for references',
       }),
@@ -161,11 +168,11 @@ export const nfTool = {
         field, 
         forma,
         fuzzy_id, 
-        link, 
         name, 
         operation, 
         relevance, 
         statusNote,
+        source,
         summary, 
         value, 
       } = params;
@@ -180,8 +187,8 @@ export const nfTool = {
         cmd += ` action add` + arg(name) + arg(summary);
       } else if (operation === 'add-reference') {
         cmd += ` reference add` + arg(name) + arg(summary);
-        if (link) {
-          cmd += ' --source' + arg(link);
+        if (source) {
+          cmd += ' --source' + arg(source);
         }
         if (relevance !== undefined) {
           cmd += ` --relevance ${relevance}`;

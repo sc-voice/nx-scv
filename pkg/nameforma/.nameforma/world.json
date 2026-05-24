@@ -15,11 +15,11 @@
       "summary": ""
     },
     {
-      "id": "0PvA0sXK00swJu5OqK2adW",
-      "formaId": "0PvA000K00swJu5OqK2adW",
+      "id": "0PvK-QTG00EhjTN_dUJr7W",
+      "formaId": "0PvGj_Dq00EhjTN_dUJr7W",
       "formaType": "task",
-      "name": "Create NameForma Dashboard",
-      "summary": "nf-dashboard.ts should be a top-right overlay that shows the same content as nf-widget.ts"
+      "name": "Refactor Rendering with RenderBuffer",
+      "summary": "Create a `RenderBuffer` class to encapsulate row budgeting and rendering logic for TUI components."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",

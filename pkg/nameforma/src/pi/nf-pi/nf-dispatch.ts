@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { ZenoCoord } from '../../navigable-view.js';
+import { ZenoCoord, zenoStep } from '../../navigable-view.js';
 import { NfStatus } from './nf-status.js';
 import { NfEditor } from './nf-edit.js';
 import { NfSession } from './nf-session.js';
@@ -87,17 +87,28 @@ export async function nfDispatch(
 
   program
     .command('set <key> <value>')
-    .description('Set NameForma properties (z for anchorStep)')
+    .description('Set NameForma properties (detail for zooming[0..1])')
     .action(async (key: string, value: string) => {
-      if (key === 'z') {
-        const step = parseInt(value, 10);
-        if (isNaN(step) || step < 0) {
-          ctx.ui.notify(`Invalid anchorStep: ${value}`, 'error');
-          return;
+      if (key === 'detail') {
+        const MAX = ZenoCoord.MAX_ZENO_STEP;
+        let newCoord: ZenoCoord;
+        if (value.includes('/')) {
+          const [a, p] = value.split('/').map(Number);
+          if (!Number.isInteger(a) || !Number.isInteger(p) || a < 0 || a > MAX || p < 0 || p > MAX) {
+            ctx.ui.notify(`Invalid ZenoCoord: ${value} (must be a/b where 0 ≤ a,b ≤ ${MAX})`, 'error');
+            return;
+          }
+          newCoord = new ZenoCoord(zenoStep(a), zenoStep(p));
+        } else {
+          const detail = parseFloat(value);
+          if (isNaN(detail) || detail < 0 || detail > 1) {
+            ctx.ui.notify(`Invalid RenderDetail: ${value} (must be in [0..1])`, 'error');
+            return;
+          }
+          newCoord = ZenoCoord.fromRenderDetail(detail);
         }
-        const newCoord = new ZenoCoord(step as any, 0 as any);
         session.view.zoomTo(newCoord);
-        ctx.ui.notify(`Zoom set to ${step}`, 'info');
+        ctx.ui.notify(`Zoom set to ${value}`, 'info');
       } else {
         ctx.ui.notify(`Unknown property: ${key}`, 'error');
       }

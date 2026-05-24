@@ -12,6 +12,7 @@ import {
 import { Task } from './task.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
+import { FormaField } from './forma-field.js';
 import {
   FormaList,
   type IEventBus,
@@ -19,6 +20,20 @@ import {
 } from './forma-list.js';
 import { Focus } from './focus.js';
 import { NfUrl } from './nf-url.js';
+import {
+  RenderData,
+  RenderRow,
+  RenderDetail,
+  IRenderable,
+  IView,
+  ZenoCoord,
+  ZenoStep,
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
+  ZENO_3_ROWS,
+  zenoStepToLines,
+} from './navigable-view.js';
+import { RenderBuffer } from './render-buffer.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -976,4 +991,29 @@ export class World extends Entity implements IEventBus {
 
     return world;
   }
-}
+
+  /**
+   * Render data at given zeno level of semantic detail
+   */
+  override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
+    const { anchorStep, pivotStep } = zeno;
+    const headerData:RenderData = super.renderDataAtZeno(view, zeno);
+    const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
+
+    if (anchorStep <= ZENO_3_ROWS) {
+      return headerData;
+    }
+
+    const focusStack = Array.from(this.#focusStack);
+    const focusItems = focusStack
+      .map(f => this.namespace.getForma((f as Focus).formaId.base64))
+      .filter(Boolean) as Forma[];
+    const buf = new RenderBuffer(view, zenoStepToLines(anchorStep));
+    for (const row of headerData as RenderRow[]) buf.pushRow(row);
+
+    buf.pushRow([ new FormaField('focusStack', false, 'Focus Stack', ''+focusItems.length) ]);
+    buf.pushCollection(focusItems.map(f => f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
+    return buf.getRenderData();
+  } // renderDataAtZeno
+
+} // World

@@ -124,7 +124,7 @@ export default class TaskCommand {
       maxWidth: 74,
     });
 
-    nfTui.log(`Task: ${task.id}`);
+    nfTui.log(`Task: ${world.namespace.fuzzyIdOf(task)}`);
     nfTui.log(`  name: ${task.name}`);
 
     // Display progress
@@ -283,7 +283,7 @@ export default class TaskCommand {
 
           const task = f7t.addItem(taskConfig);
 
-          nfTui.log(`✓ Task added: ${task.id}`);
+          nfTui.log(`✓ Task added: ${world.namespace.fuzzyIdOf(task)}`);
           nfTui.log(`  ${task.toString()}`);
         },
       );
@@ -384,7 +384,7 @@ export default class TaskCommand {
           f7t.patchItem(task.id.base64, updates);
           const updated = f7t.getItem(task.id.base64);
 
-          nfTui.log(`✓ Task updated: ${updated.id}`);
+          nfTui.log(`✓ Task updated: ${world.namespace.fuzzyIdOf(updated)}`);
           nfTui.log(`  ${updated.toString()}`);
         },
       );
@@ -418,8 +418,9 @@ export default class TaskCommand {
           }
         }
 
+        const taskFuzzyId = world.namespace.fuzzyIdOf(task);
         world.delete('task', task.id.toString());
-        nfTui.log(`✓ Task deleted: ${task.id}`);
+        nfTui.log(`✓ Task deleted: ${taskFuzzyId}`);
       });
 
     // task focus

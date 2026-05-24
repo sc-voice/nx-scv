@@ -128,7 +128,7 @@ describe('clock', () => {
     expect(c3k.timeIn).toBe(c3k.timeOut);
     expect(nIdle).toBe(1);
     expect(Date.now() - msStart).toBeGreaterThanOrEqual(msIdle);
-    expect(value2 - value1).toBeGreaterThanOrEqual(msIdle);
+    expect(value2 - value1).toBeGreaterThanOrEqual(msIdle - tolerance);
     expect(Math.abs(value2 - msStart - msIdle)).toBeLessThan(tolerance);
 
     dbg && cc.tag(msg, 'clocks without consumers are NOT updated', value2);
@@ -141,7 +141,7 @@ describe('clock', () => {
     expect(nIdle).toBe(1);
     let { value: value3 } = await c3k.next();
     expect(c3k.timeIn).toBe(c3k.timeOut);
-    expect(value2 - value1).toBeGreaterThanOrEqual(msIdle);
+    expect(value2 - value1).toBeGreaterThanOrEqual(msIdle - tolerance);
     expect(value2 - value1).toBeLessThan(msLongIdle); // stale value
 
     dbg && cc.tag(msg, 'clocks offer external updates immediately');

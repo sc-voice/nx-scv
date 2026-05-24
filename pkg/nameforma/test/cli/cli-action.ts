@@ -77,7 +77,7 @@ describe('CLI: action command', () => {
 
   it('action add with no focused task', async () => {
     try {
-      await testCmd('action', 'add', 'Test Action');
+      await testCmd('action', 'add', 'Test Action', 'test summary');
       expect.fail('Should have thrown');
     } catch (e: any) {
       expect(e.message).toMatch(/No task is currently focused/);
@@ -105,7 +105,7 @@ describe('CLI: action command', () => {
 
     // Add an action to the focused task
     output = [];
-    await testCmd('action', 'add', 'Test Action');
+    await testCmd('action', 'add', 'Test Action', 'test summary');
 
     expect(output[0]).toMatch(/✓ Action added/);
     expect(output[1]).toMatch(/Test Action/);
@@ -139,7 +139,6 @@ describe('CLI: action command', () => {
       'action',
       'add',
       'Test Action',
-      '-s',
       'This is a summary',
     );
 
@@ -172,10 +171,10 @@ describe('CLI: action command', () => {
 
     // Add actions
     output = [];
-    await testCmd('action', 'add', 'Action 1');
+    await testCmd('action', 'add', 'Action 1', 'summary 1');
 
     output = [];
-    await testCmd('action', 'add', 'Action 2');
+    await testCmd('action', 'add', 'Action 2', 'summary 2');
 
     // List actions
     output = [];
@@ -184,7 +183,9 @@ describe('CLI: action command', () => {
     const nonEmptyOutput = output.filter((line) => line.trim());
     expect(nonEmptyOutput[0]).toMatch(/Actions for/);
     expect(nonEmptyOutput[1]).toMatch(/○ 1\. Action 1/);
-    expect(nonEmptyOutput[2]).toMatch(/○ 2\. Action 2/);
+    expect(nonEmptyOutput[2]).toMatch(/summary 1/);
+    expect(nonEmptyOutput[3]).toMatch(/○ 2\. Action 2/);
+    expect(nonEmptyOutput[4]).toMatch(/summary 2/);
   });
 
   it('action show by index', async () => {
@@ -204,7 +205,7 @@ describe('CLI: action command', () => {
 
     // Add an action
     output = [];
-    await testCmd('action', 'add', 'Test Action', '-s', 'Test summary');
+    await testCmd('action', 'add', 'Test Action', 'Test summary');
 
     const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const actionId = actionIdMatch![1];
@@ -239,7 +240,6 @@ describe('CLI: action command', () => {
       'action',
       'add',
       'Original Name',
-      '-s',
       'Original summary',
     );
 
@@ -292,7 +292,6 @@ describe('CLI: action command', () => {
       'action',
       'add',
       'Original Name',
-      '-s',
       'Original summary',
     );
 
@@ -332,12 +331,12 @@ describe('CLI: action command', () => {
 
     // Add actions
     output = [];
-    await testCmd('action', 'add', 'Action 1');
+    await testCmd('action', 'add', 'Action 1', 'summary 1');
     let actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const action1Id = actionIdMatch![1];
 
     output = [];
-    await testCmd('action', 'add', 'Action 2');
+    await testCmd('action', 'add', 'Action 2', 'summary 2');
     actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const action2Id = actionIdMatch![1];
 
@@ -379,7 +378,7 @@ describe('CLI: action command', () => {
 
       // Add action
       output = [];
-      await testCmd('action', 'add', 'Test Action');
+      await testCmd('action', 'add', 'Test Action', 'test summary');
 
       // Get action ID from world
       const w = World.fromPath(tempWorld.worldPath);
