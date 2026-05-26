@@ -15,7 +15,6 @@ export class NfSession extends EventEmitter {
 
   public view: WorldView;
   private currentStatus: NfStatus | null = null;
-  private currentDashboard: OverlayHandle | null = null;
 
   private constructor(world: World) {
     super();
@@ -77,14 +76,4 @@ export class NfSession extends EventEmitter {
     return this.currentStatus;
   }
 
-  setDashboard(handle: OverlayHandle | null): void {
-    if (this.currentDashboard) {
-      this.currentDashboard.hide();
-    }
-    this.currentDashboard = handle;
-  }
-
-  getDashboard(): OverlayHandle | null {
-    return this.currentDashboard;
-  }
 }

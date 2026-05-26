@@ -4,6 +4,7 @@ import { ZenoCoord, zenoStep } from '../../navigable-view.js';
 import { NfStatus } from './nf-status.js';
 import { NfEditor } from './nf-edit.js';
 import { NfSession } from './nf-session.js';
+import { NameFormaTheme } from '../../nameforma-theme.js';
 
 export async function nfDispatch(
   args: string,
@@ -24,6 +25,31 @@ export async function nfDispatch(
       writeOut: (str) => ctx.ui.notify(str.trim(), 'info'),
       writeErr: (str) => ctx.ui.notify(str.trim(), 'error'),
       outputError: (str) => ctx.ui.notify(str.trim(), 'error'),
+    });
+
+  program
+    .command('test <value>')
+    .description('A self-diagnostic')
+    .action(async(value:string = "value?") => {
+      const { notify } = ctx.ui;
+      const theme = NameFormaTheme.load();
+      const msg = [
+        theme.nfBoundary("TEST BEGIN"),
+        new Date(),
+        theme.nfText(JSON.stringify({value}, null, 2)),
+        new Date(),
+      ];
+      switch (value) {
+        case "more":
+          msg.push("one");
+          msg.push("two");
+          msg.push("three");
+          break;
+        default:
+          break;
+      }
+      msg.push(theme.nfBoundary("TEST END"));
+      notify(msg.join("\n"));
     });
 
   program

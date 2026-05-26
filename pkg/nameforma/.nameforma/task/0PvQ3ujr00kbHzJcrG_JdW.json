@@ -1,0 +1,118 @@
+{
+  "forma": "Task",
+  "id": "0PvQ3ujr00kbHzJcrG_JdW",
+  "name": "nf pi extension command: watch",
+  "summary": "Implement the \"watch\" command in the nf extension to monitor convergence of changes to the nf system of record as they are written to the file system.",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PvQ8uIw00kbHzJcrG_JdW",
+      "name": "Define primary requirements and problem statement",
+      "summary": "Document the core purpose of the watch command: allow pi-coding-agent with nf-pi extension to observe real-time changes in the watched entity file. The DEFAULT watched entity is the focused Entity — a Forma with its own persisted JSON file, not embedded Formas. Watch both world.json (to detect focus changes) and the current focused entity file (if any). Output uses ctx.ui.notify with the NameForma theme.",
+      "status": "spec",
+      "statusNote": "requirements defined",
+      "statusDate": "2026-05-24T20:04:12.521Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvQVnRZ00kbHzJcrG_JdW",
+      "name": "Implement NfWatch class",
+      "summary": "Develop the `NfWatch` class in `src/pi/nf-pi/nf-watch.ts`. The implementation must support a mutable `LineRendererConfig` (including `lines`, `..., etc.) to allow the agent to dynamically reconfigure the TUI output via a new `LineRenderer` instance upon configuration changes. The watcher must trigger an immediate stdout emission whenever the watched entity\"s JSON file on disk is updated.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-24T14:58:58.915Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvQraqy00kbHzJcrG_JdW",
+      "name": "Prevent stale Entities: disk/mem synchronization",
+      "summary": "NfWatch must synchronize disk changes with in-memory Entity instances. Strategy: use World.fromPath() for full reload on file change — thorough correctness first, optimize later. loadEntity() is disqualified as it creates unregistered copies that bypass the namespace.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-24T16:34:14.460Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvRcDsM00kbHzJcrG_JdW",
+      "name": "Implement persistent LineRendererConfig for NfWatch",
+      "summary": "Store LineRendererConfig as a persistent nf forma field so the pi agent can configure NfWatch output (lines, zenoStep, lineWidth, etc.) across sessions. Define how the config is stored, retrieved, and applied when NfWatch initializes or reconfigures.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-24T20:06:45.398Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PvQ4lvf00kbHzJcrG_JdW",
+      "name": "nf-status-template",
+      "summary": "Reference implementation for observing NfSession and rendering updates (using widget pattern as a template for logic).",
+      "relevance": 1,
+      "source": "./src/pi/nf-pi/nf-status.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQ4znt00kbHzJcrG_JdW",
+      "name": "nf-dispatch-template",
+      "summary": "Reference for command parsing and registration where the \"watch\" command will be added.",
+      "relevance": 1,
+      "source": "./src/pi/nf-pi/nf-dispatch.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQ9kkn00kbHzJcrG_JdW",
+      "name": "legacy-cli-watch-example",
+      "summary": "Demonstrates the legacy watch display cycle that monitors world.json and the focused entity\"s file.",
+      "relevance": 0.8,
+      "source": "src/cli/cli-watch.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQMVYY00kbHzJcrG_JdW",
+      "name": "nf-watch.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./src/pi/nf-pi/nf-watch.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQPCM800kbHzJcrG_JdW",
+      "name": "nf-session-template",
+      "summary": "Reference for NfSession, which will host and manage the NfWatch instance.",
+      "relevance": 1,
+      "source": "src/pi/nf-pi/nf-session.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQPvsm00kbHzJcrG_JdW",
+      "name": "line-renderer-template",
+      "summary": "Reference for the LineRenderer used to format and render the watched content into lines for the TUI stdout.",
+      "relevance": 1,
+      "source": "src/line-renderer.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQnXNo00kbHzJcrG_JdW",
+      "name": "world-loadEntity",
+      "summary": "loadEntity maps entityType+id to .nameforma/{type}/{id}.json — defines what 'entity file' means in this task",
+      "relevance": 0.5,
+      "source": "src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQpwxa00kbHzJcrG_JdW",
+      "name": "entity-class",
+      "summary": "Entity extends Forma — only Entities have their own persisted JSON files (.nameforma/{entityType}/{id}.json). Embedded Formas (Actions, References) live inside their parent Entity's JSON. World and Task are registered Entities.",
+      "relevance": 0.5,
+      "source": "src/entity.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PvQsO1z00kbHzJcrG_JdW",
+      "name": "pi-extensions-doc",
+      "summary": "pi extension API docs — output channels, ctx.ui methods, widget API, event system",
+      "relevance": 0.5,
+      "source": "../../../pi-mono/packages/coding-agent/docs/extensions.md"
+    }
+  ]
+}

@@ -62,26 +62,6 @@ export class NfStatus {
     this.onInvalidate();
   };
 
-  private renderDataToLines(
-    data: RenderData,
-    indent: string = '',
-  ): string[] {
-    const lines: string[] = [];
-
-    // Check if data is RenderRow[] (array of arrays) or RenderRow (array of cells)
-    if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0])) {
-      // RenderRow[]: array of rows
-      for (const row of data) {
-        lines.push(indent + this.rowToString(row));
-      }
-    } else {
-      // RenderRow: single row of cells
-      lines.push(indent + this.rowToString(data));
-    }
-
-    return lines;
-  }
-
   private rowToString(row: any): string {
     return row
       .map((cell: any) => this.cellToString(cell))

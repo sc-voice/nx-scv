@@ -577,4 +577,68 @@ describe('UUID64 OPB64 Conversions', () => {
     const decoded = UUID64.stringFromOPB64(opb64);
     expect(decoded).toBe(original);
   });
+
+  // forUser tests
+  it('forUser: Claude', () => {
+    const uuid = UUID64.forUser('Claude');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('Cld1XLN3vwNW');
+  });
+
+  it('forUser: Alice Toklas', () => {
+    const uuid = UUID64.forUser('Alice Toklas');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('ATkqmFlx--NW');
+  });
+
+  it('forUser: Alice B Toklas', () => {
+    const uuid = UUID64.forUser('Alice B Toklas');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('ABTqhXzIUwNW');
+  });
+
+  it('forUser: Aia', () => {
+    const uuid = UUID64.forUser('Aia');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('AiakEAhv-wNW');
+  });
+
+  it('forUser: Madonna', () => {
+    const uuid = UUID64.forUser('Madonna');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('Mdn6Puv6AANW');
+
+    // Different spelling same TLA
+    const uuid2 = UUID64.forUser('Madona');
+    expect(uuid2.validate()).toBe(true);
+    expect(uuid2.base64.substring(10, 22)).toBe('Mdn0lboTyKNW');
+  });
+
+  it('forUser: Bob Ao', () => {
+    const uuid = UUID64.forUser('Bob Ao');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('BAo4nubk9ONW');
+  });
+
+  it('forUser: Pi', () => {
+    const uuid = UUID64.forUser('Pi');
+    expect(uuid.validate()).toBe(true);
+    expect(uuid.base64.substring(10, 22)).toBe('Pi_JOUK7MWNW');
+  });
+
+  it('forUser: alice (consistent across calls)', () => {
+    const uuid1 = UUID64.forUser('alice');
+    const uuid2 = UUID64.forUser('alice');
+    expect(uuid1.validate()).toBe(true);
+    expect(uuid2.validate()).toBe(true);
+    expect(uuid1.base64.substring(10, 22)).toBe('alcAzW6oNyNW');
+    expect(uuid2.base64.substring(10, 22)).toBe('alcAzW6oNyNW');
+  });
+
+  it('forUser: alice vs bob (different users)', () => {
+    const uuid_alice = UUID64.forUser('alice');
+    const uuid_bob = UUID64.forUser('bob');
+    expect(uuid_alice.base64.substring(10, 22)).toBe('alcAzW6oNyNW');
+    expect(uuid_bob.base64.substring(10, 22)).toBe('bobWROtsFpNW');
+  });
 });

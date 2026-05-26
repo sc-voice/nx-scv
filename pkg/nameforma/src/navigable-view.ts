@@ -11,6 +11,9 @@ import { NameFormaTheme } from './nameforma-theme.js';
  * or may not require attention
  */
 export interface ITheme {
+  // Normal text
+  nfText(text: string): string;
+
   // A label for a value
   nfLabel(text: string): string;
 

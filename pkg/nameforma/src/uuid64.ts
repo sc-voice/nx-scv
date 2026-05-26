@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { Schema } from './schema.js';
 import { DBG } from './defines.js';
 import { Text } from '@sc-voice/tools';
@@ -164,6 +164,24 @@ class UUID64 {
       UUID64.toUUID64Buffer(uuidv7),
     );
     return new UUID64(uuidv7);
+  }
+
+  /**
+   * Create a UUID64 instance for a given user.
+   * Format: 10 time chars + 3 abbrev chars + 7 hash chars + 2 version chars (NW).
+   * All UUIDs created for the same user share matching hash-derived bits in bytes 8-15.
+   * Timestamp and sequence are always new, so successive calls create different UUIDs.
+   *
+   * @param user User identifier string
+   * @returns UUID64 instance with user-derived relation portion
+   */
+  static forUser(user: string): UUID64 {
+    const abbrev = UUID64.userAbbreviation(user);
+    const hashBytes = createHash('sha256').update(user).digest();
+    const hashOPB64 = UUID64.toOrderPreservingBase64(hashBytes);
+    const hashChars = hashOPB64.substring(0, 7);
+    const timeStr = new UUID64().base64.substring(0, 10);
+    return UUID64.fromString(timeStr + abbrev + hashChars + 'NW');
   }
 
   /**
@@ -630,6 +648,56 @@ class UUID64 {
   // ========================================================================
   // Static Methods (Private)
   // ========================================================================
+
+  /**
+   * Generate a 3-character user abbreviation from a name string.
+   * Rules:
+   * - If name ≤ 3 chars: use name directly (padded to 3 if needed)
+   * - If exactly 3 words: use first letter of each word (TLA)
+   * - Otherwise: first letter of first word + 2 chars from last word
+   *   where we prefer consonants but continue scanning for any char if needed
+   *
+   * @param user User name string
+   * @returns 3-character abbreviation
+   */
+  private static userAbbreviation(user: string): string {
+    const VOWELS = new Set('aeiouAEIOU');
+    const trimmed = user.trim();
+
+    if (trimmed.length <= 3) {
+      return trimmed.padEnd(3, '_');
+    }
+
+    const words = trimmed.split(/\s+/).filter((w) => w.length > 0);
+
+    if (words.length === 3) {
+      return words.map((w) => w[0]).join('');
+    }
+
+    const first = words[0][0];
+    const source =
+      words.length === 1 ? words[0].substring(1) : words[words.length - 1];
+
+    const result: string[] = [];
+    let lastConsonantPos = -1;
+
+    for (let i = 0; i < source.length && result.length < 2; i++) {
+      if (!VOWELS.has(source[i])) {
+        result.push(source[i]);
+        lastConsonantPos = i;
+      }
+    }
+
+    for (
+      let i = lastConsonantPos + 1;
+      i < source.length && result.length < 2;
+      i++
+    ) {
+      result.push(source[i]);
+    }
+
+    return first + result.join('').padEnd(2, '_');
+  }
 
   /**
    * Create a UUID64 buffer with timestamp, sequence, and optional random bytes.
