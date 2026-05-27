@@ -44,6 +44,6 @@
     "should": "^13.2.3"
   },
   "dependencies": {
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.7"
   }
 }
