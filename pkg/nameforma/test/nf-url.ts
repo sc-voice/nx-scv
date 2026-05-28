@@ -65,7 +65,7 @@ describe('NfUrl', () => {
     it('converts @path to ~path', () => {
       const url = new NfUrl('@test/nf-url.ts', '~');
       expect(url.uri).toMatch(
-        /nf:~\/dev\/nx-nameforma\/pkg\/nameforma\/test\/nf-url\.ts/,
+        /nf:~.*\/pkg\/nameforma\/test\/nf-url\.ts/,
       );
       expect(url.resolve()).toBe(__filename);
     });
@@ -92,7 +92,7 @@ describe('NfUrl', () => {
     it('handles nf: prefix in input', () => {
       const url = new NfUrl('nf:@src/nf-url.ts', '~');
       expect(url.uri).toMatch(
-        /nf:~\/dev\/nx-nameforma\/pkg\/nameforma\/src\/nf-url\.ts/,
+        /nf:~.*\/pkg\/nameforma\/src\/nf-url\.ts/,
       );
     });
   });
