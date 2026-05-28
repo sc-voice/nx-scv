@@ -5,10 +5,12 @@
  * Validates ID types
  */
 
+import { execSync } from 'child_process';
 import { nfTui } from './nf-tui.js';
 import { validate as validateUUID } from 'uuid';
 import { Identifiable } from '../identifiable.js';
 import { World } from '../world.js';
+import { User } from '../user.js';
 import UUID64 from '../uuid64.js';
 import type { GlobalOpts } from './nf-cli.js';
 
@@ -63,9 +65,50 @@ export default class IdCommand {
       .option('-g, --generate [count]', 'Generate N UUIDs (default: 1)')
       .option('-s, --save', 'Save numeronym to world')
       .option('-i, --inspect', 'Inspect a numeronym, UUID64 or UUIDv7')
+      .option('--user <user>', 'Generate UUID64 for user')
+      .option('--git-user', 'Generate UUID64 for current git user')
+      .option('--git-email', 'Generate UUID64 for current git user email')
+      .option('--git-observed <commit>', 'Generate UUID64 for git commit observation')
       .action((words: string[], options: any, cmd: any) => {
         const world = getGlobalOpts().world;
         try {
+          // If --user flag is set, generate UUID64 for user
+          if (options.user) {
+            const user = new User(undefined, options.user);
+            const uuid = user.generateUUID64();
+            nfTui.log(uuid.base64);
+            return;
+          }
+
+          // If --git-user flag is set, generate UUID64 for git user name
+          if (options.gitUser) {
+            const gitUserName = execSync('git config user.name', {
+              encoding: 'utf-8',
+            }).trim();
+            const user = new User(undefined, gitUserName);
+            const uuid = user.generateUUID64();
+            nfTui.log(uuid.base64);
+            return;
+          }
+
+          // If --git-email flag is set, generate UUID64 for git user email
+          if (options.gitEmail) {
+            const gitUserEmail = execSync('git config user.email', {
+              encoding: 'utf-8',
+            }).trim();
+            const user = new User(gitUserEmail);
+            const uuid = user.generateUUID64();
+            nfTui.log(uuid.base64);
+            return;
+          }
+
+          // If --git-observed flag is set, generate UUID64 for git commit observation
+          if (options.gitObserved) {
+            const uuid = UUID64.forGitObserved(options.gitObserved);
+            nfTui.log(uuid.base64);
+            return;
+          }
+
           // If --inspect flag is set, inspect the ID or generate and inspect new UUID64
           if (options.inspect) {
             let uuid: UUID64;

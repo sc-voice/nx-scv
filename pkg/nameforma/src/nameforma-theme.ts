@@ -52,6 +52,15 @@ export class NameFormaTheme implements ITheme {
   }
 
   /**
+   * Apply 'customMessageText' color to text 
+   * @param text - Text to colorize
+   * @returns Colorized text suitable for TUI display
+   */
+  nfText(text: string): string {
+    return this.theme.fg('customMessageText', text);
+  }
+
+  /**
    * Apply 'border' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display

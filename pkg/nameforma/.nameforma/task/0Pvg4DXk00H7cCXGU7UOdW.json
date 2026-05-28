@@ -1,0 +1,69 @@
+{
+  "forma": "Task",
+  "id": "0Pvg4DXk00H7cCXGU7UOdW",
+  "name": "Integrate RGA64Stack with Git",
+  "summary": "Implement the integration logic to link RGA64Stack operations (push/pop) with Git observations using UUID64 and RGA64Watermark, ensuring that stack state changes are reflected in git-observable identifiers.",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0Pvg59ca00H7cCXGU7UOdW",
+      "name": "Add watermark field to World class",
+      "summary": "Add a dedicated RGA64Watermark instance to the World class to centrally manage and track commit observations across all stacks.",
+      "status": "manage",
+      "statusNote": "Ready for review",
+      "statusDate": "2026-05-27T18:29:44.963Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvgdUzs00H7cCXGU7UOdW",
+      "name": "Implement validateWatermark synchronization logic",
+      "summary": "Add a dedicated validation step to the World initialization process that pulls current Git context into the watermark instance.",
+      "status": "manage",
+      "statusNote": "Watermark persists automatically on World.fromPath() when git HEAD advances",
+      "statusDate": "2026-05-28T12:47:39.470Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0Pvge0DU00H7cCXGU7UOdW",
+      "name": "Verify implementation via Vitest",
+      "summary": "Create a test case to ensure World.fromPath correctly hydrates the RGA64Watermark with mocked Git context.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-27T18:08:52.062Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0Pvg4Yfr00H7cCXGU7UOdW",
+      "name": "RGA64Stack Implementation",
+      "summary": "Core stack implementation that needs integration logic.",
+      "relevance": 1,
+      "source": "src/rga64-stack.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4ZNG00H7cCXGU7UOdW",
+      "name": "UUID64 Implementation",
+      "summary": "Provides the ID generation and git observation logic.",
+      "relevance": 1,
+      "source": "src/uuid64.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4a4h00H7cCXGU7UOdW",
+      "name": "RGA64Watermark Implementation",
+      "summary": "Manages the safe GC boundary for the stack.",
+      "relevance": 1,
+      "source": "src/rga64-watermark.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4alr00H7cCXGU7UOdW",
+      "name": "World View Implementation",
+      "summary": "The high-level orchestrator that likely manages the lifecycle of stacks and watermarks.",
+      "relevance": 1,
+      "source": "src/world.ts"
+    }
+  ]
+}

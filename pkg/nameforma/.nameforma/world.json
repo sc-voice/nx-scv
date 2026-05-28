@@ -15,11 +15,25 @@
       "summary": ""
     },
     {
-      "id": "0PvA0sXK00swJu5OqK2adW",
-      "formaId": "0PvA000K00swJu5OqK2adW",
+      "id": "0PvK-QTG00EhjTN_dUJr7W",
+      "formaId": "0PvGj_Dq00EhjTN_dUJr7W",
       "formaType": "task",
-      "name": "Create NameForma Dashboard",
-      "summary": "nf-dashboard.ts should be a top-right overlay that shows the same content as nf-widget.ts"
+      "name": "Refactor Rendering with RenderBuffer",
+      "summary": "Create a `RenderBuffer` class to encapsulate row budgeting and rendering logic for TUI components."
+    },
+    {
+      "id": "0PvZjOIq00kbHzJcrG_JdW",
+      "formaId": "0PvQ3ujr00kbHzJcrG_JdW",
+      "formaType": "task",
+      "name": "nf pi extension command: watch",
+      "summary": "Implement the \"watch\" command in the nf extension to monitor convergence of changes to the nf system of record as they are written to the file system."
+    },
+    {
+      "id": "0Pvg4QSh00H7cCXGU7UOdW",
+      "formaId": "0Pvg4DXk00H7cCXGU7UOdW",
+      "formaType": "task",
+      "name": "Integrate RGA64Stack with Git",
+      "summary": "Implement the integration logic to link RGA64Stack operations (push/pop) with Git observations using UUID64 and RGA64Watermark, ensuring that stack state changes are reflected in git-observable identifiers."
     }
   ],
   "id": "0Pqx0UOp00jfar8gojBAdW",
@@ -28,5 +42,8 @@
     "N18r": "NotImplemenetedError",
     "I10e": "Identifiable",
     "T13a": "TranslationData"
+  },
+  "watermark": {
+    "20n1YZVkrlNW": "0PvaV0bO00EH0uUE6jwMdW"
   }
 }

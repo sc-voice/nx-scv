@@ -19,6 +19,7 @@ import {
   ZENO_3_ROWS,
   zenoStepToLines,
 } from './navigable-view.js';
+import { RenderBuffer } from './render-buffer.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
@@ -276,72 +277,35 @@ export class Task extends Entity {
   }
 
   /**
-   * IRenderable: Return renderable data at detail level zeno
+   * Render data at given zeno level of semantic detail
    */
-  override asRenderData(view: IView, zeno: ZenoStep = view.zenoCoord.anchorStep): RenderData {
-    const msg = "Task.asRenderData()";
-    const dbg = 0;
+  override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
+    const { anchorStep, pivotStep } = zeno;
     const { 
       id, name, summary, rawActions:actions, rawReferences:refs 
     } = this;
-    const cls = this.constructor.name;
-    const { anchor } = view;
-    const ns = anchor.namespace;
-    const shortId = ns.fuzzyIdOf(this);
-    const indent = view.bodyIndent;
-    const theme = view.theme;
-    const sep = theme.nfBoundary("|");
-    const headerData:RenderData = super.asRenderData(view, zeno);
-    const ellipsis = [theme.nfLabel('...')];
+    const headerData:RenderData = super.renderDataAtZeno(view, zeno);
+    const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
 
-    if (zeno <= ZENO_3_ROWS) {
+    if (anchorStep <= ZENO_3_ROWS) {
       return headerData;
     }
 
-    const renderData = [...(headerData as RenderRow[])];
-    let rowsAvail = zenoStepToLines(zeno) - headerData.length;
-    dbg > 2 && cc.tag(msg, {rowsAvail});
+    const buf = new RenderBuffer(view, zenoStepToLines(anchorStep));
+    for (const row of headerData as RenderRow[]) buf.pushRow(row);
 
-    if (rowsAvail === 1) {
-      renderData.push([ 
+    if (buf.remainingRows === 1) {
+      buf.pushRow([
         new FormaField('actions', false, 'Actions', ''+actions.length),
         new FormaField('references', false, 'References', ''+refs.length),
       ]);
-      return renderData;
-    } 
-
-    rowsAvail -= 2; // action/reference title rows
-    renderData.push([ new FormaField('actions', false, 'Actions', ''+actions.length) ]);
-    if (rowsAvail < actions.length) {
-      rowsAvail--; // allow for ellipsis
+    } else {
+      buf.pushRow([ new FormaField('actions', false, 'Actions', ''+actions.length) ]);
+      buf.pushCollection(actions.map(a => a.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
+      buf.pushRow([ new FormaField('references', false, 'References', ''+refs.length) ]);
+      buf.pushCollection(refs.map(r => r.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
     }
-    dbg > 2 && cc.tag(msg, {rowsAvail});
-    for (let i = 0; i < actions.length; i++) {
-      if (0 < rowsAvail) {
-        const a4n = actions[i];
-        const row = a4n.asRenderData(view, ZENO_1_ROW_TERSE) as RenderRow;
-        renderData.push(row);
-        rowsAvail--;
-      } else {
-        renderData.push(ellipsis);
-        break;
-      }
-    }
-    renderData.push([ new FormaField('references', false, 'References', ''+refs.length) ]);
-    if (rowsAvail < refs.length) {
-      rowsAvail--; // allow for ellipsis;
-    }
-    for (let i = 0; i < refs.length; i++) {
-      if (0 < rowsAvail) {
-        const ref = refs[i];
-        renderData.push(ref.asRenderData(view, ZENO_1_ROW_TERSE) as RenderRow);
-        rowsAvail--;
-      } else {
-        renderData.push(ellipsis);
-        break;
-      }
-    }
-    return renderData;
-  } // asRenderData
+    return buf.getRenderData();
+  } // renderDataAtZeno
 
 } // Task

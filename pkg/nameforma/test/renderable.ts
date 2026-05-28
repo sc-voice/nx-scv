@@ -109,6 +109,12 @@ describe('renderable', () => {
       expect(coord.pivotStep).toBe(0);
     });
 
+    it('fromRenderDetail at exactly 1 returns (MAX,MAX)', () => {
+      const coord = ZenoCoord.fromRenderDetail(1);
+      expect(coord.anchorStep).toBe(MAX);
+      expect(coord.pivotStep).toBe(MAX);
+    });
+
     it('fromRenderDetail clamps detail >= 1 to (MAX,MAX)', () => {
       const coord = ZenoCoord.fromRenderDetail(1.5);
       expect(coord.anchorStep).toBe(MAX);

@@ -10,21 +10,8 @@
   ],
   "id": "0Pr-SSWU009b1NvN2GE4dW",
   "numeronym": {},
-  "history": [
-    {
-      "timestamp": "2026-04-29T20:40:20.081Z",
-      "user": "human",
-      "command": "task get -v 3"
-    },
-    {
-      "timestamp": "2026-04-29T20:40:09.932Z",
-      "user": "human",
-      "command": "task get"
-    },
-    {
-      "timestamp": "2026-04-29T20:39:52.960Z",
-      "user": "human",
-      "command": "task list"
-    }
-  ]
+  "watermark": {
+    "Karl Lew": "0PvaV0bO00EH0uUE6jwMdW",
+    "20n1YZVkrlNW": "0PvaV0bO00EH0uUE6jwMdW"
+  }
 }

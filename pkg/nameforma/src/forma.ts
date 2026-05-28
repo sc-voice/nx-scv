@@ -263,8 +263,16 @@ export class Forma extends Identifiable implements IRenderable {
   /**
    * IRenderable: Return renderable data at detail level zeno
    */
-  asRenderData(view: IView, zeno: ZenoStep = view.zenoCoord.anchorStep): RenderData {
+  asRenderData(view: IView): RenderData {
+    return this.renderDataAtZeno(view, view.zenoCoord);
+  }
+
+  /**
+   * Render data at given zeno level of semantic detail
+   */
+  renderDataAtZeno(view: IView, zeno:ZenoCoord): RenderData {
     const { id, name, summary } = this;
+    const { anchorStep, pivotStep } = zeno;
     const cls = this.constructor.name;
     const { anchor } = view;
     const ns = anchor.namespace;
@@ -273,12 +281,12 @@ export class Forma extends Identifiable implements IRenderable {
     const indent = view.bodyIndent;
     const sep = theme.nfBoundary("|");
 
-    if (zeno === ZENO_1_ROW_TERSE) {
+    if (anchorStep === ZENO_1_ROW_TERSE) {
       return [ 
         new FormaField('id', false, shortId, `${name}${sep}${summary}`) 
       ];
     }
-    if (zeno === ZENO_1_ROW_VERBOSE) {
+    if (anchorStep === ZENO_1_ROW_VERBOSE) {
       return [
         new FormaField('id', false, `${cls}`, shortId),
         new FormaField('name', true, `name`, name),

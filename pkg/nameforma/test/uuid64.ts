@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import UUID64 from '../src/uuid64.js';
 import { v7 as uuidv7 } from 'uuid';
+import { execSync } from 'child_process';
 
 describe('UUID64', () => {
   // Test: Constructor creates valid instance
@@ -576,5 +577,66 @@ describe('UUID64 OPB64 Conversions', () => {
     const opb64 = UUID64.stringToOPB64(original);
     const decoded = UUID64.stringFromOPB64(opb64);
     expect(decoded).toBe(original);
+  });
+
+  // Test: getSignature returns last 12 characters
+  it('getSignature returns 12-character suffix', () => {
+    const u = new UUID64();
+    const sig = u.getSignature();
+    expect(typeof sig).toBe('string');
+    expect(sig.length).toBe(12);
+    expect(u.base64.substring(10)).toBe(sig);
+  });
+
+  // Test: timeId + getSignature reconstructs base64
+  it('timeId + getSignature reconstructs base64', () => {
+    const u = new UUID64();
+    const reconstructed = u.timeId() + u.getSignature();
+    expect(reconstructed).toBe(u.base64);
+  });
+});
+
+// ============================================================================
+// forGitObserved Tests
+// ============================================================================
+
+describe('UUID64 forGitObserved', () => {
+  // Test: forGitObserved returns a valid UUID64
+  it('forGitObserved() returns a valid UUID64', () => {
+    const u = UUID64.forGitObserved();
+    expect(u.validate()).toBe(true);
+    expect(u.base64.length).toBe(22);
+  });
+
+  // Test: forGitObserved is idempotent
+  it('forGitObserved() is idempotent (same commit → same UUID)', () => {
+    const u1 = UUID64.forGitObserved('HEAD');
+    const u2 = UUID64.forGitObserved('HEAD');
+    expect(u1.base64).toBe(u2.base64);
+    expect(u1.equals(u2)).toBe(true);
+  });
+
+  // Test: timestamp exactly matches git commit timestamp
+  it('getTimestamp() exactly matches git commit timestamp', () => {
+    const gitTimestampStr = execSync('git log -1 HEAD --format=%at', {
+      encoding: 'utf-8',
+    }).trim();
+    const expectedTimestampMs = parseInt(gitTimestampStr, 10) * 1000;
+
+    const u = UUID64.forGitObserved('HEAD');
+    expect(u.getTimestamp()).toBe(expectedTimestampMs);
+  });
+
+  // Test: forGitObserved with specific commit is idempotent
+  it('forGitObserved(hash) is idempotent with specific commit', () => {
+    const hash = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+    const u1 = UUID64.forGitObserved(hash);
+    const u2 = UUID64.forGitObserved(hash);
+    expect(u1.base64).toBe(u2.base64);
+  });
+
+  // Test: invalid commit throws error
+  it('forGitObserved with invalid commit throws error', () => {
+    expect(() => UUID64.forGitObserved('invalid-commit-xyz')).toThrow();
   });
 });
