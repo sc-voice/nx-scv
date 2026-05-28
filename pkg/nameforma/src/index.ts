@@ -25,8 +25,11 @@ import {
 import { Patch } from './patch.js';
 import { Rational } from './rational.js';
 import { Reference } from './reference.js';
+import RGA64Node from './rga64-node.js';
+import RGA64Stack from './rga64-stack.js';
 import { Schema } from './schema.js';
 import { Task } from './task.js';
+import { User } from './user.js';
 import type { IRegistry } from './registry.js';
 export const NameForma = {
   Action,
@@ -47,8 +50,11 @@ export const NameForma = {
   Producer,
   Rational,
   Reference,
+  RGA64Node,
+  RGA64Stack,
   Schema,
   Task,
+  User,
   UUID64,
   _Runner,
   RenderDetail,

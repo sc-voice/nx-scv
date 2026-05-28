@@ -13,6 +13,7 @@ import { Task } from './task.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
+import { User } from './user.js';
 import {
   FormaList,
   type IEventBus,
@@ -34,6 +35,7 @@ import {
   zenoStepToLines,
 } from './navigable-view.js';
 import { RenderBuffer } from './render-buffer.js';
+import RGA64Watermark from './rga64-watermark.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -58,6 +60,7 @@ export class World extends Entity implements IEventBus {
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusStack: FormaList<Focus>;
+  #watermark: RGA64Watermark;
   #bus: EventEmitter;
 
   // Export Focus class for use elsewhere
@@ -80,6 +83,7 @@ export class World extends Entity implements IEventBus {
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
+    this.#watermark = new RGA64Watermark();
     this.#focusStack = new FormaList<Focus>([], Focus as any, {
       keyField: 'formaId',
     });
@@ -453,7 +457,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Reload mutable state (focusStack, numeronym) from world.json.
+   * Reload mutable state (focusStack, numeronym, watermark) from world.json.
    * Used to refresh a long-lived World instance after external writes.
    */
   sync(): void {
@@ -464,6 +468,10 @@ export class World extends Entity implements IEventBus {
 
     if (data.numeronym && typeof data.numeronym === 'object') {
       this.#numeronym = new Map(Object.entries(data.numeronym));
+    }
+
+    if (data.watermark && typeof data.watermark === 'object') {
+      this.#watermark = RGA64Watermark.fromJSON(data.watermark);
     }
 
     if (data.focusStack && Array.isArray(data.focusStack)) {
@@ -773,6 +781,14 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * Get watermark for tracking commit observations
+   * @returns {RGA64Watermark}
+   */
+  get watermark(): RGA64Watermark {
+    return this.#watermark;
+  }
+
+  /**
    * Get focus order (index in focusStack by forma id, 0 = most recent)
    * @param {Forma} ent - Forma or Focus entity
    * @returns {number} - 0-based index if forma is focused (0=most recent), Number.MAX_SAFE_INTEGER if not
@@ -887,6 +903,34 @@ export class World extends Entity implements IEventBus {
 
 
   /**
+   * Synchronize watermark with current git HEAD observation.
+   * Records that the current user has observed the latest commit.
+   * Returns true if watermark was advanced
+   */
+  #validateWatermark(): boolean {
+    const msg = 'world.#validateWatermark';
+    const dbg = WORLD?.CTOR;
+
+    try {
+      const gitDir = path.dirname(this.#worldPath);
+      const user = User.fromGit(gitDir);
+      const userSignature = user.signature();
+
+      // Get current HEAD as UUID64
+      const headUuid = UUID64.forGitObserved('HEAD', gitDir);
+
+      // Update watermark with this observation
+      const advanced = this.#watermark.update(userSignature, headUuid);
+      dbg && cc.ok1(msg, `watermark ${advanced ? 'advanced' : 'unchanged'} for ${userSignature}`);
+      return advanced;
+    } catch (err) {
+      // Not in a git repo or git not available - that's ok
+      dbg && cc.ok1(msg, `skipped: ${err instanceof Error ? err.message : String(err)}`);
+      return false;
+    }
+  }
+
+  /**
    * Load or create World from path
    * Reads .nameforma/world.json if exists, otherwise creates new World
    * @param {string} worldPath - Path to .nameforma/ directory
@@ -898,20 +942,31 @@ export class World extends Entity implements IEventBus {
 
     const worldFile = path.join(worldPath, 'world.json');
 
+    let world: World | undefined;
+
     if (fs.existsSync(worldFile)) {
       const data = fs.readFileSync(worldFile, 'utf8');
       const json = JSON.parse(data);
       dbg && cc.ok1(msg, `loaded ${worldFile}`);
-      return World.fromJson(json, worldPath);
+      world = World.fromJson(json, worldPath);
     }
 
-    // Create new World
-    const world = new World(worldPath);
+    if (world == null) {
+      // Create new World
+      world = new World(worldPath);
 
-    // Save world.json with generated id
-    const worldData = JSON.stringify(world.toJSON(), null, 2);
-    fs.writeFileSync(worldFile, worldData, 'utf8');
-    dbg && cc.ok1(msg, `created ${worldFile}`);
+      // Save world.json with generated id
+      const worldData = JSON.stringify(world.toJSON(), null, 2);
+      fs.writeFileSync(worldFile, worldData, 'utf8');
+      dbg && cc.ok1(msg, `created ${worldFile}`);
+    }
+
+    // Synchronize watermark with current git HEAD and persist if advanced
+    const watermarkAdvanced = world.#validateWatermark();
+    if (watermarkAdvanced) {
+      world.save();
+      dbg && cc.ok1(msg, `saved watermark`);
+    }
 
     return world;
   }
@@ -949,6 +1004,7 @@ export class World extends Entity implements IEventBus {
       })),
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
+      watermark: this.#watermark.toJSON(),
     };
   }
 
@@ -971,6 +1027,11 @@ export class World extends Entity implements IEventBus {
     // Restore numeronym map if present
     if (data.numeronym && typeof data.numeronym === 'object') {
       world.#numeronym = new Map(Object.entries(data.numeronym));
+    }
+
+    // Restore watermark if present
+    if (data.watermark && typeof data.watermark === 'object') {
+      world.#watermark = RGA64Watermark.fromJSON(data.watermark);
     }
 
     // Restore focusStack if present

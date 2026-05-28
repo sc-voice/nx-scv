@@ -113,6 +113,38 @@
       "summary": "pi extension API docs — output channels, ctx.ui methods, widget API, event system",
       "relevance": 0.5,
       "source": "../../../pi-mono/packages/coding-agent/docs/extensions.md"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4FeV00kbHzJcrG_JdW",
+      "name": "RGA64Stack Implementation",
+      "summary": "Core stack implementation that needs integration logic.",
+      "relevance": 1,
+      "source": "src/rga64-stack.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4GHq00kbHzJcrG_JdW",
+      "name": "UUID64 Implementation",
+      "summary": "Provides the ID generation and git observation logic.",
+      "relevance": 1,
+      "source": "src/uuid64.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4Gzp00kbHzJcrG_JdW",
+      "name": "RGA64Watermark Implementation",
+      "summary": "Manages the safe GC boundary for the stack.",
+      "relevance": 1,
+      "source": "src/rga64-watermark.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pvg4HeY00kbHzJcrG_JdW",
+      "name": "World View Implementation",
+      "summary": "The high-level orchestrator that likely manages the lifecycle of stacks and watermarks.",
+      "relevance": 1,
+      "source": "src/world.ts"
     }
   ]
 }

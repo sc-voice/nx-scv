@@ -8,11 +8,14 @@ import {
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { execSync } from 'child_process';
 import { World } from '../src/world.js';
 import { Forma } from '../src/forma.js';
 import { Entity } from '../src/entity.js';
 import { Task } from '../src/task.js';
 import { Action } from '../src/action.js';
+import UUID64 from '../src/uuid64.js';
+import { User } from '../src/user.js';
 
 // Mock entity class for testing - extends Entity
 class MockEntity extends Entity {
@@ -506,10 +509,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
+      expect(json.watermark).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
         'id',
         'numeronym',
+        'watermark',
       ]); // No worldPath
     });
 
@@ -617,10 +622,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
+      expect(json.watermark).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
         'id',
         'numeronym',
+        'watermark',
       ]);
     });
 
@@ -653,10 +660,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.id).toBe(originalId);
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
+      expect(json.watermark).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
         'id',
         'numeronym',
+        'watermark',
       ]);
     });
   });
@@ -1431,5 +1440,100 @@ describe('World — resolveFuzzyId()', () => {
     expect(result).toBeDefined();
     expect(result!.entity.id.base64).toBe(task.id.base64);
     expect(result!.forma.id.base64).toBe(action.id.base64);
+  });
+});
+
+describe('World — watermark persistence', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let userSignature: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-watermark-'));
+    worldPath = path.join(tempDir, '.nameforma');
+
+    // Initialize git repo in tempDir with user.name
+    execSync('git init', { cwd: tempDir });
+    execSync('git config user.name "Test User"', { cwd: tempDir });
+    execSync('git config user.email "test@example.com"', { cwd: tempDir });
+
+    // Create initial commit so HEAD exists
+    fs.writeFileSync(path.join(tempDir, 'README.md'), 'test');
+    execSync('git add README.md', { cwd: tempDir });
+    execSync('git commit -m "initial"', { cwd: tempDir });
+
+    // Get the expected user signature
+    const user = User.fromGit(tempDir);
+    userSignature = user.signature();
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should initialize watermark with git user signature on fromPath', () => {
+    const world = World.fromPath(worldPath);
+
+    expect(world.watermark).toBeDefined();
+    expect(world.watermark.watermarks[userSignature]).toBeDefined();
+  });
+
+  it('should save watermark to world.json', () => {
+    const world = World.fromPath(worldPath);
+    world.save();
+
+    const worldFile = path.join(worldPath, 'world.json');
+    const data = fs.readFileSync(worldFile, 'utf8');
+    const json = JSON.parse(data);
+
+    expect(json.watermark).toBeDefined();
+    expect(json.watermark[userSignature]).toBeDefined();
+  });
+
+  it('should preserve watermark across save/load cycle', () => {
+    const world1 = World.fromPath(worldPath);
+    const uuid1 = world1.watermark.watermarks[userSignature];
+
+    world1.save();
+
+    const world2 = World.fromPath(worldPath);
+    const uuid2 = world2.watermark.watermarks[userSignature];
+
+    expect(uuid2).toBeDefined();
+    expect(uuid2.equals(uuid1)).toBe(true);
+  });
+
+  it('should reject duplicate watermark updates', () => {
+    const world = World.fromPath(worldPath);
+    const gitDir = path.dirname(worldPath);
+    const uuid = UUID64.forGitObserved('HEAD', gitDir);
+
+    // Watermark is already initialized with user signature from validateWatermark
+    expect(world.watermark.watermarks[userSignature]).toBeDefined();
+
+    // Same user and uuid should return false (already exists and not greater)
+    const same = world.watermark.update(userSignature, uuid);
+    expect(same).toBe(false);
+
+    world.save();
+
+    const world2 = World.fromPath(worldPath);
+    expect(world2.watermark.watermarks[userSignature]).toBeDefined();
+    expect(world2.watermark.watermarks[userSignature].equals(uuid)).toBe(true);
+  });
+
+  it('should serialize watermark with base64 strings in world.json', () => {
+    const world = World.fromPath(worldPath);
+    world.save();
+
+    const worldFile = path.join(worldPath, 'world.json');
+    const data = fs.readFileSync(worldFile, 'utf8');
+    const json = JSON.parse(data);
+
+    const userEntry = json.watermark[userSignature];
+    expect(typeof userEntry).toBe('string');
+    expect(userEntry.length).toBeGreaterThan(0);
   });
 });

@@ -1,4 +1,5 @@
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes } from 'crypto';
+import { execSync } from 'child_process';
 import { Schema } from './schema.js';
 import { DBG } from './defines.js';
 import { Text } from '@sc-voice/tools';
@@ -167,21 +168,52 @@ class UUID64 {
   }
 
   /**
-   * Create a UUID64 instance for a given user.
-   * Format: 10 time chars + 3 abbrev chars + 7 hash chars + 2 version chars (NW).
-   * All UUIDs created for the same user share matching hash-derived bits in bytes 8-15.
-   * Timestamp and sequence are always new, so successive calls create different UUIDs.
+   * Create a UUID64 instance from a signature string.
+   * Uses a new timestamp with the provided signature portion (from getSignature()).
+   * Successive calls with the same signature create different UUIDs (different timestamps).
    *
-   * @param user User identifier string
-   * @returns UUID64 instance with user-derived relation portion
+   * @param signature 12-character signature string (e.g., from getSignature())
+   * @returns UUID64 instance with new timestamp and provided signature
    */
-  static forUser(user: string): UUID64 {
-    const abbrev = UUID64.userAbbreviation(user);
-    const hashBytes = createHash('sha256').update(user).digest();
-    const hashOPB64 = UUID64.toOrderPreservingBase64(hashBytes);
-    const hashChars = hashOPB64.substring(0, 7);
+  static forSignature(signature: string): UUID64 {
     const timeStr = new UUID64().base64.substring(0, 10);
-    return UUID64.fromString(timeStr + abbrev + hashChars + 'NW');
+    return UUID64.fromString(timeStr + signature);
+  }
+
+  /**
+   * Create a UUID64 instance deterministically from a git commit (idempotent, not a generator).
+   * The same commit always produces the exact same UUID64.
+   * Timestamp is the commit's author date; random bytes are derived from the commit hash.
+   *
+   * @param commit Git commit reference (hash, branch, tag, or 'HEAD'). Defaults to 'HEAD'.
+   * @returns UUID64 instance with commit timestamp and hash-derived bytes
+   * @throws Error if the commit is not found or git command fails
+   */
+  static forGitObserved(commit: string = 'HEAD', cwd?: string): UUID64 {
+    try {
+      const out = execSync(`git log -1 ${commit} --format=%at%n%H`, {
+        encoding: 'utf-8',
+        ...(cwd ? { cwd } : {}),
+      })
+        .trim()
+        .split('\n');
+      const timestampMs = parseInt(out[0], 10) * 1000;
+      const commitHash = out[1];
+
+      const uuidv7 = Buffer.alloc(16);
+      UUID64.buildTimestampAndSequence(uuidv7, BigInt(timestampMs), 0);
+
+      // Bytes 8-15 derived from commit hash (deterministic)
+      const hashBytes = Buffer.from(commitHash.substring(0, 16), 'hex');
+      hashBytes[0] = (hashBytes[0] & 0x3f) | 0x80; // variant bits
+      hashBytes.copy(uuidv7, 8);
+
+      return new UUID64(uuidv7);
+    } catch (err) {
+      throw new Error(
+        `Failed to get commit info for '${commit}'. Make sure you are in a git repository.`
+      );
+    }
   }
 
   /**
@@ -507,6 +539,17 @@ class UUID64 {
   }
 
   /**
+   * Get the signature portion of the UUID (last 12 base64 characters).
+   * Contains user-derived identity bits: hash, abbreviation, version marker.
+   * Stable across successive UUIDs created for the same user/context.
+   *
+   * @returns 12-character base64 string suffix
+   */
+  getSignature(): string {
+    return this.base64.substring(UUID64.TIME_SEQ_CHARS);
+  }
+
+  /**
    * Extract the timestamp in milliseconds from the UUID.
    *
    * @returns Timestamp in milliseconds
@@ -660,45 +703,6 @@ class UUID64 {
    * @param user User name string
    * @returns 3-character abbreviation
    */
-  private static userAbbreviation(user: string): string {
-    const VOWELS = new Set('aeiouAEIOU');
-    const trimmed = user.trim();
-
-    if (trimmed.length <= 3) {
-      return trimmed.padEnd(3, '_');
-    }
-
-    const words = trimmed.split(/\s+/).filter((w) => w.length > 0);
-
-    if (words.length === 3) {
-      return words.map((w) => w[0]).join('');
-    }
-
-    const first = words[0][0];
-    const source =
-      words.length === 1 ? words[0].substring(1) : words[words.length - 1];
-
-    const result: string[] = [];
-    let lastConsonantPos = -1;
-
-    for (let i = 0; i < source.length && result.length < 2; i++) {
-      if (!VOWELS.has(source[i])) {
-        result.push(source[i]);
-        lastConsonantPos = i;
-      }
-    }
-
-    for (
-      let i = lastConsonantPos + 1;
-      i < source.length && result.length < 2;
-      i++
-    ) {
-      result.push(source[i]);
-    }
-
-    return first + result.join('').padEnd(2, '_');
-  }
-
   /**
    * Create a UUID64 buffer with timestamp, sequence, and optional random bytes.
    *

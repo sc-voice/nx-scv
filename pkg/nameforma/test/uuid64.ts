@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import UUID64 from '../src/uuid64.js';
 import { v7 as uuidv7 } from 'uuid';
+import { execSync } from 'child_process';
 
 describe('UUID64', () => {
   // Test: Constructor creates valid instance
@@ -578,67 +579,64 @@ describe('UUID64 OPB64 Conversions', () => {
     expect(decoded).toBe(original);
   });
 
-  // forUser tests
-  it('forUser: Claude', () => {
-    const uuid = UUID64.forUser('Claude');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('Cld1XLN3vwNW');
+  // Test: getSignature returns last 12 characters
+  it('getSignature returns 12-character suffix', () => {
+    const u = new UUID64();
+    const sig = u.getSignature();
+    expect(typeof sig).toBe('string');
+    expect(sig.length).toBe(12);
+    expect(u.base64.substring(10)).toBe(sig);
   });
 
-  it('forUser: Alice Toklas', () => {
-    const uuid = UUID64.forUser('Alice Toklas');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('ATkqmFlx--NW');
+  // Test: timeId + getSignature reconstructs base64
+  it('timeId + getSignature reconstructs base64', () => {
+    const u = new UUID64();
+    const reconstructed = u.timeId() + u.getSignature();
+    expect(reconstructed).toBe(u.base64);
+  });
+});
+
+// ============================================================================
+// forGitObserved Tests
+// ============================================================================
+
+describe('UUID64 forGitObserved', () => {
+  // Test: forGitObserved returns a valid UUID64
+  it('forGitObserved() returns a valid UUID64', () => {
+    const u = UUID64.forGitObserved();
+    expect(u.validate()).toBe(true);
+    expect(u.base64.length).toBe(22);
   });
 
-  it('forUser: Alice B Toklas', () => {
-    const uuid = UUID64.forUser('Alice B Toklas');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('ABTqhXzIUwNW');
+  // Test: forGitObserved is idempotent
+  it('forGitObserved() is idempotent (same commit → same UUID)', () => {
+    const u1 = UUID64.forGitObserved('HEAD');
+    const u2 = UUID64.forGitObserved('HEAD');
+    expect(u1.base64).toBe(u2.base64);
+    expect(u1.equals(u2)).toBe(true);
   });
 
-  it('forUser: Aia', () => {
-    const uuid = UUID64.forUser('Aia');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('AiakEAhv-wNW');
+  // Test: timestamp exactly matches git commit timestamp
+  it('getTimestamp() exactly matches git commit timestamp', () => {
+    const gitTimestampStr = execSync('git log -1 HEAD --format=%at', {
+      encoding: 'utf-8',
+    }).trim();
+    const expectedTimestampMs = parseInt(gitTimestampStr, 10) * 1000;
+
+    const u = UUID64.forGitObserved('HEAD');
+    expect(u.getTimestamp()).toBe(expectedTimestampMs);
   });
 
-  it('forUser: Madonna', () => {
-    const uuid = UUID64.forUser('Madonna');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('Mdn6Puv6AANW');
-
-    // Different spelling same TLA
-    const uuid2 = UUID64.forUser('Madona');
-    expect(uuid2.validate()).toBe(true);
-    expect(uuid2.base64.substring(10, 22)).toBe('Mdn0lboTyKNW');
+  // Test: forGitObserved with specific commit is idempotent
+  it('forGitObserved(hash) is idempotent with specific commit', () => {
+    const hash = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+    const u1 = UUID64.forGitObserved(hash);
+    const u2 = UUID64.forGitObserved(hash);
+    expect(u1.base64).toBe(u2.base64);
   });
 
-  it('forUser: Bob Ao', () => {
-    const uuid = UUID64.forUser('Bob Ao');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('BAo4nubk9ONW');
-  });
-
-  it('forUser: Pi', () => {
-    const uuid = UUID64.forUser('Pi');
-    expect(uuid.validate()).toBe(true);
-    expect(uuid.base64.substring(10, 22)).toBe('Pi_JOUK7MWNW');
-  });
-
-  it('forUser: alice (consistent across calls)', () => {
-    const uuid1 = UUID64.forUser('alice');
-    const uuid2 = UUID64.forUser('alice');
-    expect(uuid1.validate()).toBe(true);
-    expect(uuid2.validate()).toBe(true);
-    expect(uuid1.base64.substring(10, 22)).toBe('alcAzW6oNyNW');
-    expect(uuid2.base64.substring(10, 22)).toBe('alcAzW6oNyNW');
-  });
-
-  it('forUser: alice vs bob (different users)', () => {
-    const uuid_alice = UUID64.forUser('alice');
-    const uuid_bob = UUID64.forUser('bob');
-    expect(uuid_alice.base64.substring(10, 22)).toBe('alcAzW6oNyNW');
-    expect(uuid_bob.base64.substring(10, 22)).toBe('bobWROtsFpNW');
+  // Test: invalid commit throws error
+  it('forGitObserved with invalid commit throws error', () => {
+    expect(() => UUID64.forGitObserved('invalid-commit-xyz')).toThrow();
   });
 });
