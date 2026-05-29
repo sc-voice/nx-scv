@@ -136,4 +136,6 @@ export class User {
     }
     return this.#signature;
   }
+
+  static readonly UNKNOWN = new User('UNKNOWN@example.com', 'Unknown');
 }

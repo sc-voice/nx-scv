@@ -8,10 +8,18 @@
       "summary": "Define a container that developers can use to work with nx-scv monorepo"
     }
   ],
+  "rgaFocusStack": {
+    "id": "0Pvnt5-F00ZOJ_7OPiHa7W",
+    "name": "Focus Stack",
+    "summary": "",
+    "nodes": [
+      "0Pvnt5-G00cKIZG76UNKNW.0PsMdk-a00VOwDbIaMmFdW.^.@"
+    ]
+  },
   "id": "0Pr-SSWU009b1NvN2GE4dW",
   "numeronym": {},
   "watermark": {
     "Karl Lew": "0PvaV0bO00EH0uUE6jwMdW",
-    "20n1YZVkrlNW": "0PvlHqVu00qUijWJ-nzBtW"
+    "20n1YZVkrlNW": "0PvlJ7_e00QHf7pqu7_jdW"
   }
 }

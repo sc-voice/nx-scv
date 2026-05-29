@@ -2,6 +2,7 @@ import UUID64 from './uuid64.js';
 import { Forma } from './forma.js';
 import RGA64Node from './rga64-node.js';
 import { Schema } from './schema.js';
+import { User } from './user.js';
 
 /**
  * RGA64Stack - A Replicable Growable Array stack using UUID64 identifiers.
@@ -29,9 +30,10 @@ export class RGA64Stack extends Forma {
   /**
    * Push a value to the top of the stack.
    * Creates a new leaf node with parent pointing to current top.
+   * Node id is derived from user's signature for CRDT conflict resolution.
    */
-  push(value: UUID64): RGA64Node {
-    const id = new UUID64();
+  push(value: UUID64, user: User = User.UNKNOWN): RGA64Node {
+    const id = user.generateUUID64();
     const parent = this._top()?.id ?? null;
     const node = new RGA64Node(id, value, parent, false);
     this.nodes.push(node);
@@ -74,13 +76,22 @@ export class RGA64Stack extends Forma {
     const top = this.peek();
     if (!top) return undefined;
 
-    const deleted = top.copy({ deleted: true });
-    const topIdStr = top.id.toString();
-    const idx = this.nodes.findIndex((n) => n.id.toString() === topIdStr);
-    if (idx >= 0) {
-      this.nodes[idx] = deleted;
-    }
-    return deleted;
+    top.delete();
+    return top;
+  }
+
+  /**
+   * Remove a node by value from anywhere in the stack.
+   * Searches for a node with matching value and marks it as deleted (tombstone).
+   * Returns the deleted node or undefined if not found.
+   */
+  remove(value: UUID64): RGA64Node | undefined {
+    const valueStr = value.toString();
+    const node = this.nodes.find((n) => !n.deleted && n.value.toString() === valueStr);
+    if (!node) return undefined;
+
+    node.delete();
+    return node;
   }
 
   /**

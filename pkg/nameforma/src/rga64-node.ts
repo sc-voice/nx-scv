@@ -14,7 +14,7 @@ export class RGA64Node {
   readonly id: UUID64;
   readonly value: UUID64;
   readonly parent: UUID64 | null;
-  readonly deleted: boolean;
+  private _deleted: boolean;
 
   constructor(
     id: UUID64,
@@ -25,7 +25,11 @@ export class RGA64Node {
     this.id = id;
     this.value = value;
     this.parent = parent;
-    this.deleted = deleted;
+    this._deleted = deleted;
+  }
+
+  get deleted(): boolean {
+    return this._deleted;
   }
 
   /**
@@ -90,8 +94,15 @@ export class RGA64Node {
       overrides?.id ?? this.id,
       overrides?.value ?? this.value,
       overrides?.parent !== undefined ? overrides.parent : this.parent,
-      overrides?.deleted ?? this.deleted
+      overrides?.deleted !== undefined ? overrides.deleted : this._deleted
     );
+  }
+
+  /**
+   * Mark this node as deleted (tombstone). One-way per CRDT rules.
+   */
+  delete(): void {
+    this._deleted = true;
   }
 
   /**

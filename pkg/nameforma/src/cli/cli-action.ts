@@ -383,7 +383,7 @@ export default class ActionCommand {
             if (err.message.includes('invalid transition')) {
               throw err;
             }
-            throw new Error(`Action not found: ${id}`);
+            throw new Error(`Error: ${err.message}`);
           }
         },
       );

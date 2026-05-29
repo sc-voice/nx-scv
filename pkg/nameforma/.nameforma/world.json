@@ -34,8 +34,28 @@
       "formaType": "task",
       "name": "Integrate RGA64Stack with Git",
       "summary": "Implement the integration logic to link RGA64Stack operations (push/pop) with Git observations using UUID64 and RGA64Watermark, ensuring that stack state changes are reflected in git-observable identifiers."
+    },
+    {
+      "id": "0PvlRQj3002TdTYXyhFzNW",
+      "formaId": "0PvlRQ1J002TdTYXyhFzNW",
+      "formaType": "task",
+      "name": "Replace focusStack with RGA64Stack in world.ts",
+      "summary": "Refactor World class to use RGA64Stack instead of FormaList for the focus stack. This involves updating initialization, mutation methods (focusForma, unfocusForma), retrieval methods (focusedForma, focusOrder), and persistence logic (toJSON/fromJson)."
     }
   ],
+  "rgaFocusStack": {
+    "id": "0PvlfF0Y00xMiwtBx0ON7W",
+    "name": "Focus Stack",
+    "summary": "",
+    "nodes": [
+      "0PvlfF0Z00SDtCGfUqnOtW.0PurmuK-00bvTa7C9N4cdW.^.@",
+      "0PvlfF0Z01cCfxiVsgGXNW.0Pv2ju5Z00yXwUmtzsZytW.0PvlfF0Z00SDtCGfUqnOtW.@",
+      "0PvlfF0Z02lHxGZ-ihCI7W.0PvGj_Dq00EhjTN_dUJr7W.0PvlfF0Z01cCfxiVsgGXNW.@",
+      "0PvlfF0Z03uXorCdLzqONW.0PvQ3ujr00kbHzJcrG_JdW.0PvlfF0Z02lHxGZ-ihCI7W.@",
+      "0PvlfF0Z04tBu2sNJK-PNW.0Pvg4DXk00H7cCXGU7UOdW.0PvlfF0Z03uXorCdLzqONW.@",
+      "0PvlfF0Z05uh6Ok3mGN97W.0PvlRQ1J002TdTYXyhFzNW.0PvlfF0Z04tBu2sNJK-PNW.@"
+    ]
+  },
   "id": "0Pqx0UOp00jfar8gojBAdW",
   "numeronym": {
     "F13n": "FormaCollection",
@@ -44,6 +64,6 @@
     "T13a": "TranslationData"
   },
   "watermark": {
-    "20n1YZVkrlNW": "0PvlHqVu00qUijWJ-nzBtW"
+    "20n1YZVkrlNW": "0PvlJ7_e00QHf7pqu7_jdW"
   }
 }

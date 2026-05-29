@@ -36,6 +36,7 @@ import {
 } from './navigable-view.js';
 import { RenderBuffer } from './render-buffer.js';
 import RGA64Watermark from './rga64-watermark.js';
+import RGA64Stack from './rga64-stack.js';
 
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -60,6 +61,7 @@ export class World extends Entity implements IEventBus {
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusStack: FormaList<Focus>;
+  #rgaFocusStack: RGA64Stack;
   #watermark: RGA64Watermark;
   #bus: EventEmitter;
 
@@ -87,6 +89,7 @@ export class World extends Entity implements IEventBus {
     this.#focusStack = new FormaList<Focus>([], Focus as any, {
       keyField: 'formaId',
     });
+    this.#rgaFocusStack = new RGA64Stack({ name: 'Focus Stack' });
     this.#bus = new EventEmitter();
 
     // Register standard entities
@@ -457,7 +460,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Reload mutable state (focusStack, numeronym, watermark) from world.json.
+   * Reload mutable state (focusStack, numeronym, watermark, rgaFocusStack) from world.json.
    * Used to refresh a long-lived World instance after external writes.
    */
   sync(): void {
@@ -487,6 +490,10 @@ export class World extends Entity implements IEventBus {
       this.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
         keyField: 'formaId',
       });
+    }
+
+    if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
+      this.#rgaFocusStack = RGA64Stack.fromJSON(data.rgaFocusStack);
     }
   }
 
@@ -1002,6 +1009,7 @@ export class World extends Entity implements IEventBus {
         name: f.name,
         summary: f.summary,
       })),
+      rgaFocusStack: this.#rgaFocusStack.toJSON(),
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
       watermark: this.#watermark.toJSON(),
@@ -1048,6 +1056,16 @@ export class World extends Entity implements IEventBus {
       world.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
         keyField: 'formaId',
       });
+    }
+
+    // Restore rgaFocusStack if present
+    if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
+      world.#rgaFocusStack = RGA64Stack.fromJSON(data.rgaFocusStack);
+    } else if (Array.from(world.#focusStack).length > 0) {
+      // Sync focusStack to rgaFocusStack if the latter is missing (backward compatibility)
+      for (const focus of Array.from(world.#focusStack)) {
+        world.#rgaFocusStack.push(focus.formaId);
+      }
     }
 
     return world;

@@ -510,10 +510,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
       expect(json.watermark).toBeDefined();
+      expect(json.rgaFocusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
         'id',
         'numeronym',
+        'rgaFocusStack',
         'watermark',
       ]); // No worldPath
     });
@@ -623,10 +625,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
       expect(json.watermark).toBeDefined();
+      expect(json.rgaFocusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
         'id',
         'numeronym',
+        'rgaFocusStack',
         'watermark',
       ]);
     });
@@ -661,10 +665,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.numeronym).toBeDefined();
       expect(json.focusStack).toBeDefined();
       expect(json.watermark).toBeDefined();
+      expect(json.rgaFocusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusStack',
         'id',
         'numeronym',
+        'rgaFocusStack',
         'watermark',
       ]);
     });

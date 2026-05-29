@@ -1,0 +1,54 @@
+{
+  "forma": "Task",
+  "id": "0PvlRQ1J002TdTYXyhFzNW",
+  "name": "Incremental Refactor: focusStack to RGA64Stack (Multi-phase)",
+  "summary": "Refactor World class to use RGA64Stack instead of FormaList for the focus stack. This involves updating initialization, mutation methods (focusForma, unfocusForma), retrieval methods (focusedForma, focusOrder), and persistence logic (toJSON/fromJson).",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PvlSvjT002TdTYXyhFzNW",
+      "name": "Add RGA64Stack as shadow stack",
+      "summary": "Add #rgaFocusStack property initialized as new RGA64Stack({ name: 'Focus Stack' }). In World.fromJSON(), if rgaFocusStack is empty but focusStack has entries, sync by pushing each forma id into rgaFocusStack.",
+      "status": "done",
+      "statusNote": "focusStack synced",
+      "statusDate": "2026-05-28T18:15:24.169Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvlTfWq002TdTYXyhFzNW",
+      "name": "Update mutations for shadowing",
+      "summary": "Modify focusForma and unfocusForma in World.ts to perform updates on both the original #focusStack and the new #rgaFocusStack.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-28T16:41:43.733Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvlWX8Y002TdTYXyhFzNW",
+      "name": "test-name",
+      "summary": "peaches",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-05-28T16:54:15.843Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PvlrvnH002TdTYXyhFzNW",
+      "name": "Implement remove(value) in RGA64Stack",
+      "summary": "Add a new method `remove(value: UUID64)` to `RGA64Stack` that searches the stack for a node containing the specified value and marks it as deleted (tombstone) if found. This is required to support the \"rearrange\" behavior in World.ts.",
+      "status": "manage",
+      "statusNote": "Ready for review",
+      "statusDate": "2026-05-29T03:41:42.316Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PvlU7HH002TdTYXyhFzNW",
+      "name": "RGA64Stack API Reference",
+      "summary": "Reference to the RGA64Stack implementation and its tests to understand the target API for replacement.",
+      "relevance": 1,
+      "source": "test/rga64-stack.ts"
+    }
+  ]
+}
