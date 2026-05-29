@@ -796,6 +796,14 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * Get RGA focus stack for CRDT-based focus tracking
+   * @returns {RGA64Stack}
+   */
+  get rgaFocusStack(): RGA64Stack {
+    return this.#rgaFocusStack;
+  }
+
+  /**
    * Get focus order (index in focusStack by forma id, 0 = most recent)
    * @param {Forma} ent - Forma or Focus entity
    * @returns {number} - 0-based index if forma is focused (0=most recent), Number.MAX_SAFE_INTEGER if not
@@ -828,6 +836,7 @@ export class World extends Entity implements IEventBus {
     // Remove if already in stack (by formaId)
     try {
       this.#focusStack.deleteItem(formaIdStr);
+      this.#rgaFocusStack.remove(forma.id);
     } catch {
       // Not in stack, that's fine
     }
@@ -835,6 +844,7 @@ export class World extends Entity implements IEventBus {
     // Create new Focus entry from entity and add to stack
     const focus = Focus.fromEntity(forma);
     this.#focusStack.addItem(focus);
+    this.#rgaFocusStack.push(forma.id);
   }
 
   /**
@@ -845,6 +855,7 @@ export class World extends Entity implements IEventBus {
     const formaIdStr = forma.id.base64;
     try {
       this.#focusStack.deleteItem(formaIdStr);
+      this.#rgaFocusStack.remove(forma.id);
     } catch {
       // Not in stack, that's fine
     }

@@ -18,9 +18,9 @@
       "id": "0PvlTfWq002TdTYXyhFzNW",
       "name": "Update mutations for shadowing",
       "summary": "Modify focusForma and unfocusForma in World.ts to perform updates on both the original #focusStack and the new #rgaFocusStack.",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-05-28T16:41:43.733Z"
+      "status": "manage",
+      "statusNote": "RGA64 traversal fixed per Gemma4 feedback - testing synchronization",
+      "statusDate": "2026-05-29T14:05:18.125Z"
     },
     {
       "forma": "Action",

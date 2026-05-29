@@ -16,6 +16,7 @@ import { Task } from '../src/task.js';
 import { Action } from '../src/action.js';
 import UUID64 from '../src/uuid64.js';
 import { User } from '../src/user.js';
+import RGA64Node from '../src/rga64-node.js';
 
 // Mock entity class for testing - extends Entity
 class MockEntity extends Entity {
@@ -1181,6 +1182,84 @@ describe('World - focusStack', () => {
       } finally {
         fs.rmSync(worldPath, { recursive: true, force: true });
       }
+    });
+  });
+
+  describe('TEMP: focusStack ↔ rgaFocusStack synchronization (remove when full RGA64Stack transition complete)', () => {
+    const getRgaFocusIds = (world: World): string[] => {
+      const values = world.rgaFocusStack.values();
+      return values.map((v: any) => v.base64);
+    };
+
+    const getFocusStackIds = (world: World): string[] => {
+      const stack = Array.from(world.focusStack);
+      return stack.map(f => f.formaId.base64);
+    };
+
+    it('should synchronize on focusForma', () => {
+      const list = world.entityList(MockEntity);
+      const entity = list.addItem({ name: 'test' });
+
+      world.focusForma(entity);
+
+      const focusIds = getFocusStackIds(world);
+      const rgaIds = getRgaFocusIds(world);
+      expect(focusIds).toEqual(rgaIds);
+      expect(focusIds).toContain(entity.id.base64);
+    });
+
+    it('should synchronize on unfocusForma', () => {
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+
+      world.focusForma(e1);
+      world.focusForma(e2);
+      world.unfocusForma(e1);
+
+      const focusIds = getFocusStackIds(world);
+      const rgaIds = getRgaFocusIds(world);
+      expect(focusIds).toEqual(rgaIds);
+      expect(focusIds).toContain(e2.id.base64);
+      expect(focusIds).not.toContain(e1.id.base64);
+    });
+
+    it('should synchronize on moving entity to top (re-focus)', () => {
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+      const e3 = list.addItem({ name: 'e3' });
+
+      world.focusForma(e1);
+      world.focusForma(e2);
+      world.focusForma(e3);
+      world.focusForma(e1); // Move e1 to top
+
+      const focusIds = getFocusStackIds(world);
+      const rgaIds = getRgaFocusIds(world);
+      expect(focusIds).toEqual(rgaIds);
+      expect(focusIds[0]).toBe(e1.id.base64);
+      expect(focusIds.length).toBe(3);
+    });
+
+    it('should remain synchronized after multiple operations', () => {
+      const list = world.entityList(MockEntity);
+      const entities = Array.from({ length: 5 }, (_, i) =>
+        list.addItem({ name: `e${i}` })
+      );
+
+      // Perform various operations
+      entities.forEach((e, i) => world.focusForma(e));
+
+      //world.unfocusForma(entities[1]);
+      //world.focusForma(entities[2]);
+      //world.unfocusForma(entities[3]);
+
+      const focusIds = getFocusStackIds(world);
+      const rgaIds = getRgaFocusIds(world);
+      console.log('focusIds', focusIds.map(v=>v.substring(6,11)));
+      console.log('rgaIds', rgaIds.map(v=>v.substring(6,11)));
+      expect(focusIds).toEqual(rgaIds);
     });
   });
 });
