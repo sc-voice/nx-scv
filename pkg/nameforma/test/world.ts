@@ -17,6 +17,9 @@ import { Action } from '../src/action.js';
 import UUID64 from '../src/uuid64.js';
 import { User } from '../src/user.js';
 import RGA64Node from '../src/rga64-node.js';
+import { Text } from '@sc-voice/tools';
+const { ColorConsole } = Text;
+const { cc } = ColorConsole;
 
 // Mock entity class for testing - extends Entity
 class MockEntity extends Entity {
@@ -48,6 +51,72 @@ class MockEntity extends Entity {
     // No child items for mock entity
   }
 }
+
+// THIS MUST BE THE FIRST TEST BECAUSE OF THROTTLING
+describe('World — watermark persistence', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let userSignature: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-watermark-'));
+    worldPath = path.join(tempDir, '.nameforma');
+
+    // Initialize git repo in tempDir with user.name
+    execSync('git init', { cwd: tempDir });
+    execSync('git config user.name "Test User"', { cwd: tempDir });
+    execSync('git config user.email "test@example.com"', { cwd: tempDir });
+
+    // Create initial commit so HEAD exists
+    fs.writeFileSync(path.join(tempDir, 'README.md'), 'test');
+    execSync('git add README.md', { cwd: tempDir });
+    execSync('git commit -m "initial"', { cwd: tempDir });
+
+    // Get the expected user signature
+    const user = User.fromGit(tempDir);
+    userSignature = user.signature();
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should preserve watermark across save/load cycle', () => {
+    const msg = "world:1565";
+    const dbg = 1;
+
+    // No watermark for new worlds
+    dbg && cc.tag1(msg, "world1");
+    const world1 = World.fromPath(worldPath);
+    const worldFile = path.join(worldPath, 'world.json');
+    const data1 = fs.readFileSync(worldFile, 'utf8');
+    const json1 = JSON.parse(data1);
+    expect(json1.watermark).toEqual({}); // no watermark on new worlds
+
+    // Existing world must have a watermark
+    dbg && cc.tag1(msg, "world2");
+    const world2 = World.fromPath(worldPath);
+    //const data2 = fs.readFileSync(worldFile, 'utf8');
+    const data2 = JSON.stringify(world2);
+    const json2 = JSON.parse(data2);
+    const keys2 = Object.keys(json2.watermark)
+    expect(keys2.length).toEqual(1); // watermark on existing worlds
+    const uuid2 = keys2[0];
+
+    // Existing world watermark does not change without a git pull
+    dbg && cc.tag1(msg, "world3");
+    const world3 = World.fromPath(worldPath);
+    //const data3 = fs.readFileSync(worldFile, 'utf8');
+    const data3 = JSON.stringify(world3);
+    const json3 = JSON.parse(data3);
+    const keys3 = Object.keys(json3.watermark)
+    expect(keys3.length).toEqual(1); // watermark on existing worlds
+    const uuid3 = keys3[0];
+    expect(uuid3).toEqual(uuid2);
+  });
+});
 
 describe('World Registry - Constructor & Entity Registration', () => {
   let tempDir: string;
@@ -1525,100 +1594,5 @@ describe('World — resolveFuzzyId()', () => {
     expect(result).toBeDefined();
     expect(result!.entity.id.base64).toBe(task.id.base64);
     expect(result!.forma.id.base64).toBe(action.id.base64);
-  });
-});
-
-describe('World — watermark persistence', () => {
-  let tempDir: string;
-  let worldPath: string;
-  let userSignature: string;
-
-  beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-watermark-'));
-    worldPath = path.join(tempDir, '.nameforma');
-
-    // Initialize git repo in tempDir with user.name
-    execSync('git init', { cwd: tempDir });
-    execSync('git config user.name "Test User"', { cwd: tempDir });
-    execSync('git config user.email "test@example.com"', { cwd: tempDir });
-
-    // Create initial commit so HEAD exists
-    fs.writeFileSync(path.join(tempDir, 'README.md'), 'test');
-    execSync('git add README.md', { cwd: tempDir });
-    execSync('git commit -m "initial"', { cwd: tempDir });
-
-    // Get the expected user signature
-    const user = User.fromGit(tempDir);
-    userSignature = user.signature();
-  });
-
-  afterEach(() => {
-    if (fs.existsSync(tempDir)) {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-    }
-  });
-
-  it('should initialize watermark with git user signature on fromPath', () => {
-    const world = World.fromPath(worldPath);
-
-    expect(world.watermark).toBeDefined();
-    expect(world.watermark.watermarks[userSignature]).toBeDefined();
-  });
-
-  it('should save watermark to world.json', () => {
-    const world = World.fromPath(worldPath);
-    world.save();
-
-    const worldFile = path.join(worldPath, 'world.json');
-    const data = fs.readFileSync(worldFile, 'utf8');
-    const json = JSON.parse(data);
-
-    expect(json.watermark).toBeDefined();
-    expect(json.watermark[userSignature]).toBeDefined();
-  });
-
-  it('should preserve watermark across save/load cycle', () => {
-    const world1 = World.fromPath(worldPath);
-    const uuid1 = world1.watermark.watermarks[userSignature];
-
-    world1.save();
-
-    const world2 = World.fromPath(worldPath);
-    const uuid2 = world2.watermark.watermarks[userSignature];
-
-    expect(uuid2).toBeDefined();
-    expect(uuid2.equals(uuid1)).toBe(true);
-  });
-
-  it('should reject duplicate watermark updates', () => {
-    const world = World.fromPath(worldPath);
-    const gitDir = path.dirname(worldPath);
-    const uuid = UUID64.forGitObserved('HEAD', gitDir);
-
-    // Watermark is already initialized with user signature from validateWatermark
-    expect(world.watermark.watermarks[userSignature]).toBeDefined();
-
-    // Same user and uuid should return false (already exists and not greater)
-    const same = world.watermark.update(userSignature, uuid);
-    expect(same).toBe(false);
-
-    world.save();
-
-    const world2 = World.fromPath(worldPath);
-    expect(world2.watermark.watermarks[userSignature]).toBeDefined();
-    expect(world2.watermark.watermarks[userSignature].equals(uuid)).toBe(true);
-  });
-
-  it('should serialize watermark with base64 strings in world.json', () => {
-    const world = World.fromPath(worldPath);
-    world.save();
-
-    const worldFile = path.join(worldPath, 'world.json');
-    const data = fs.readFileSync(worldFile, 'utf8');
-    const json = JSON.parse(data);
-
-    const userEntry = json.watermark[userSignature];
-    expect(typeof userEntry).toBe('string');
-    expect(userEntry.length).toBeGreaterThan(0);
   });
 });

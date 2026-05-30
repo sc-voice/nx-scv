@@ -186,12 +186,36 @@ class UUID64 {
    * Timestamp is the commit's author date; random bytes are derived from the commit hash.
    *
    * @param commit Git commit reference (hash, branch, tag, or 'HEAD'). Defaults to 'HEAD'.
-   * @returns UUID64 instance with commit timestamp and hash-derived bytes
+   * @returns Object with uuid64, timestamp (Date), and commit hash
    * @throws Error if the commit is not found or git command fails
    */
-  static forGitObserved(commit: string = 'HEAD', cwd?: string): UUID64 {
+  static forGitObserved(commit: string = 'HEAD', cwd?: string): { uuid64: UUID64; timestamp: Date; commit: string } {
     try {
-      const out = execSync(`git log -1 ${commit} --format=%at%n%H`, {
+      // DO NOT Refresh origin tracking to ensure merge-base uses current remote state
+      // THIS IS HUGELY SLOW >> 1s
+      //try {
+        //execSync('git fetch', {
+          //encoding: 'utf-8',
+          //...(cwd ? { cwd } : {}),
+        //});
+      //} catch {
+         //// No remote or fetch failed - will use local commits as truth
+      //}
+
+      let commitToUse = commit;
+
+      // Find latest commit shared with origin (or use local commit if no remote)
+      try {
+        commitToUse = execSync(`git merge-base ${commit} origin/HEAD`, {
+          encoding: 'utf-8',
+          ...(cwd ? { cwd } : {}),
+        }).trim();
+      } catch {
+        // No remote or merge-base failed - use commit as-is (local truth)
+        commitToUse = commit;
+      }
+
+      const out = execSync(`git log -1 ${commitToUse} --format=%at%n%H`, {
         encoding: 'utf-8',
         ...(cwd ? { cwd } : {}),
       })
@@ -208,7 +232,11 @@ class UUID64 {
       hashBytes[0] = (hashBytes[0] & 0x3f) | 0x80; // variant bits
       hashBytes.copy(uuidv7, 8);
 
-      return new UUID64(uuidv7);
+      return {
+        uuid64: new UUID64(uuidv7),
+        timestamp: new Date(timestampMs),
+        commit: commitHash,
+      };
     } catch (err) {
       throw new Error(
         `Failed to get commit info for '${commit}'. Make sure you are in a git repository.`

@@ -603,35 +603,40 @@ describe('UUID64 OPB64 Conversions', () => {
 describe('UUID64 forGitObserved', () => {
   // Test: forGitObserved returns a valid UUID64
   it('forGitObserved() returns a valid UUID64', () => {
-    const u = UUID64.forGitObserved();
+    const { uuid64: u } = UUID64.forGitObserved();
     expect(u.validate()).toBe(true);
     expect(u.base64.length).toBe(22);
   });
 
   // Test: forGitObserved is idempotent
   it('forGitObserved() is idempotent (same commit → same UUID)', () => {
-    const u1 = UUID64.forGitObserved('HEAD');
-    const u2 = UUID64.forGitObserved('HEAD');
+    const { uuid64: u1 } = UUID64.forGitObserved('HEAD');
+    const { uuid64: u2 } = UUID64.forGitObserved('HEAD');
     expect(u1.base64).toBe(u2.base64);
     expect(u1.equals(u2)).toBe(true);
   });
 
   // Test: timestamp exactly matches git commit timestamp
   it('getTimestamp() exactly matches git commit timestamp', () => {
-    const gitTimestampStr = execSync('git log -1 HEAD --format=%at', {
+    // forGitObserved returns the shared commit with origin (via merge-base)
+    const sharedCommit = execSync('git merge-base HEAD origin/HEAD 2>/dev/null || git rev-parse HEAD', {
+      encoding: 'utf-8',
+      shell: '/bin/bash',
+    }).trim();
+    const gitTimestampStr = execSync(`git log -1 ${sharedCommit} --format=%at`, {
       encoding: 'utf-8',
     }).trim();
     const expectedTimestampMs = parseInt(gitTimestampStr, 10) * 1000;
 
-    const u = UUID64.forGitObserved('HEAD');
+    const { uuid64: u } = UUID64.forGitObserved('HEAD');
     expect(u.getTimestamp()).toBe(expectedTimestampMs);
   });
 
   // Test: forGitObserved with specific commit is idempotent
   it('forGitObserved(hash) is idempotent with specific commit', () => {
     const hash = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
-    const u1 = UUID64.forGitObserved(hash);
-    const u2 = UUID64.forGitObserved(hash);
+    const { uuid64: u1 } = UUID64.forGitObserved(hash);
+    const { uuid64: u2 } = UUID64.forGitObserved(hash);
     expect(u1.base64).toBe(u2.base64);
   });
 

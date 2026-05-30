@@ -5,7 +5,7 @@ import UUID64 from '../src/uuid64.js';
 describe('RGA64Watermark', () => {
   it('update records a user UUID64 and returns true', () => {
     const wm = new RGA64Watermark();
-    const uuid = UUID64.forGitObserved();
+    const uuid = new UUID64();
     const result = wm.update('alice@example.com', uuid);
     expect(result).toBe(true);
     expect(wm.watermarks['alice@example.com'].equals(uuid)).toBe(true);
@@ -13,9 +13,9 @@ describe('RGA64Watermark', () => {
 
   it('minObservedTime returns the minimum timestamp', () => {
     const wm = new RGA64Watermark();
-    const uuid1 = UUID64.forGitObserved('HEAD~2');
-    const uuid2 = UUID64.forGitObserved('HEAD');
-    const uuid3 = UUID64.forGitObserved('HEAD~1');
+    const uuid1 = new UUID64();
+    const uuid2 = new UUID64();
+    const uuid3 = new UUID64();
 
     wm.update('alice@example.com', uuid2);
     wm.update('bob@example.com', uuid1);
@@ -36,8 +36,8 @@ describe('RGA64Watermark', () => {
 
   it('toJSON serializes watermarks to base64 strings', () => {
     const wm = new RGA64Watermark();
-    const uuid1 = UUID64.forGitObserved();
-    const uuid2 = UUID64.forGitObserved('HEAD~1');
+    const uuid1 = new UUID64();
+    const uuid2 = new UUID64();
     wm.update('alice@example.com', uuid1);
     wm.update('bob@example.com', uuid2);
     const json = wm.toJSON();
@@ -48,8 +48,8 @@ describe('RGA64Watermark', () => {
   });
 
   it('fromJSON deserializes base64 strings to watermarks', () => {
-    const uuid1 = UUID64.forGitObserved();
-    const uuid2 = UUID64.forGitObserved('HEAD~1');
+    const uuid1 = new UUID64();
+    const uuid2 = new UUID64();
     const data = {
       'alice@example.com': uuid1.base64,
       'bob@example.com': uuid2.base64,
@@ -61,8 +61,8 @@ describe('RGA64Watermark', () => {
 
   it('round-trips through JSON', () => {
     const wm1 = new RGA64Watermark();
-    const uuid1 = UUID64.forGitObserved('HEAD~1');
-    const uuid2 = UUID64.forGitObserved();
+    const uuid1 = new UUID64();
+    const uuid2 = new UUID64();
     wm1.update('alice@example.com', uuid1);
     wm1.update('bob@example.com', uuid2);
 
@@ -83,8 +83,9 @@ describe('RGA64Watermark', () => {
 
   it('update advances to newer UUID64 and returns true', () => {
     const wm = new RGA64Watermark();
-    const uuid1 = UUID64.forGitObserved('HEAD~1');
-    const uuid2 = UUID64.forGitObserved();
+    // Use pushed commits to ensure merge-base returns different commits
+    const uuid1 = new UUID64();
+    const uuid2 = new UUID64();
     const result1 = wm.update('alice@example.com', uuid1);
     const result2 = wm.update('alice@example.com', uuid2);
     expect(result1).toBe(true);
@@ -94,7 +95,7 @@ describe('RGA64Watermark', () => {
 
   it('update rejects same UUID64 and returns false', () => {
     const wm = new RGA64Watermark();
-    const uuid = UUID64.forGitObserved();
+    const uuid = new UUID64();
     const result1 = wm.update('alice@example.com', uuid);
     const result2 = wm.update('alice@example.com', uuid);
     expect(result1).toBe(true);
@@ -104,8 +105,8 @@ describe('RGA64Watermark', () => {
 
   it('update rejects older UUID64 (monotonicity) and returns false', () => {
     const wm = new RGA64Watermark();
-    const uuid1 = UUID64.forGitObserved('HEAD~1');
-    const uuid2 = UUID64.forGitObserved();
+    const uuid1 = new UUID64();
+    const uuid2 = new UUID64();
     const result1 = wm.update('alice@example.com', uuid2);
     const result2 = wm.update('alice@example.com', uuid1);
     expect(result1).toBe(true);

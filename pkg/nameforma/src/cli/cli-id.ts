@@ -104,8 +104,8 @@ export default class IdCommand {
 
           // If --git-observed flag is set, generate UUID64 for git commit observation
           if (options.gitObserved) {
-            const uuid = UUID64.forGitObserved(options.gitObserved);
-            nfTui.log(uuid.base64);
+            const json = UUID64.forGitObserved(options.gitObserved);
+            nfTui.log(JSON.stringify(json));
             return;
           }
 

@@ -141,6 +141,7 @@ const WORLD = {
   LOAD: 0,
   LIST: 0,
   DELETE: 0,
+  WATERMARK: 1,
 };
 
 const FORMA_LIST = {

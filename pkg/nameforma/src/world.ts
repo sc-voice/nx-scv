@@ -42,9 +42,12 @@ const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { WORLD } = DBG;
 
+const THROTTLE = { watermark: 0 }
+
 /**
  * Standard entities registered by default in World
  */
+
 /**
  * World class manages persistent entity storage in .nameforma/ directory
  * World is a singleton that maintains local preferences and is
@@ -55,7 +58,6 @@ const { WORLD } = DBG;
  * Implements IEventBus to receive FormaList mutation events and
  * automatically persist changes to disk.
  */
-
 export class World extends Entity implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
@@ -927,7 +929,16 @@ export class World extends Entity implements IEventBus {
    */
   #validateWatermark(): boolean {
     const msg = 'world.#validateWatermark';
-    const dbg = WORLD?.CTOR;
+    const dbg = WORLD?.WATERMARK;
+
+    THROTTLE.watermark++;
+    if (1 == THROTTLE.watermark) {
+      dbg && cc.ok1(msg, THROTTLE.watermark, "validating...");
+    } else {
+      dbg && cc.ok1(msg, THROTTLE.watermark, "(ignored)");
+      return false;
+    }
+    const startTime = performance.now();
 
     try {
       const gitDir = path.dirname(this.#worldPath);
@@ -935,15 +946,17 @@ export class World extends Entity implements IEventBus {
       const userSignature = user.signature();
 
       // Get current HEAD as UUID64
-      const headUuid = UUID64.forGitObserved('HEAD', gitDir);
+      const { uuid64: headUuid } = UUID64.forGitObserved('HEAD', gitDir);
 
       // Update watermark with this observation
       const advanced = this.#watermark.update(userSignature, headUuid);
-      dbg && cc.ok1(msg, `watermark ${advanced ? 'advanced' : 'unchanged'} for ${userSignature}`);
+      const elapsedMs = performance.now() - startTime;
+      dbg && cc.ok1(msg, `${advanced ? 'advanced' : 'unchanged'} for ${userSignature} (${elapsedMs.toFixed(2)}ms)`);
       return advanced;
     } catch (err) {
       // Not in a git repo or git not available - that's ok
-      dbg && cc.ok1(msg, `skipped: ${err instanceof Error ? err.message : String(err)}`);
+      const elapsedMs = performance.now() - startTime;
+      dbg && cc.ok1(msg, `skipped (${elapsedMs.toFixed(2)}ms): ${err instanceof Error ? err.message : String(err)}`);
       return false;
     }
   }
@@ -967,9 +980,13 @@ export class World extends Entity implements IEventBus {
       const json = JSON.parse(data);
       dbg && cc.ok1(msg, `loaded ${worldFile}`);
       world = World.fromJson(json, worldPath);
-    }
-
-    if (world == null) {
+      // Synchronize watermark with current git HEAD and persist if advanced
+      const watermarkAdvanced = world.#validateWatermark();
+      if (watermarkAdvanced) {
+        world.save();
+        dbg && cc.ok1(msg, `saved watermark`);
+      }
+    } else {
       // Create new World
       world = new World(worldPath);
 
@@ -977,13 +994,6 @@ export class World extends Entity implements IEventBus {
       const worldData = JSON.stringify(world.toJSON(), null, 2);
       fs.writeFileSync(worldFile, worldData, 'utf8');
       dbg && cc.ok1(msg, `created ${worldFile}`);
-    }
-
-    // Synchronize watermark with current git HEAD and persist if advanced
-    const watermarkAdvanced = world.#validateWatermark();
-    if (watermarkAdvanced) {
-      world.save();
-      dbg && cc.ok1(msg, `saved watermark`);
     }
 
     return world;
