@@ -9,27 +9,27 @@
       "id": "0Pvg59ca00H7cCXGU7UOdW",
       "name": "Add watermark field to World class",
       "summary": "Add a dedicated RGA64Watermark instance to the World class to centrally manage and track commit observations across all stacks.",
-      "status": "manage",
-      "statusNote": "Ready for review",
-      "statusDate": "2026-05-27T18:29:44.963Z"
+      "status": "done",
+      "statusNote": "Setting status to done as requested.",
+      "statusDate": "2026-05-30T03:03:55.696Z"
     },
     {
       "forma": "Action",
       "id": "0PvgdUzs00H7cCXGU7UOdW",
       "name": "Implement validateWatermark synchronization logic",
       "summary": "Add a dedicated validation step to the World initialization process that pulls current Git context into the watermark instance.",
-      "status": "manage",
-      "statusNote": "Watermark persists automatically on World.fromPath() when git HEAD advances",
-      "statusDate": "2026-05-28T12:47:39.470Z"
+      "status": "done",
+      "statusNote": "Setting status to done as requested.",
+      "statusDate": "2026-05-30T03:04:31.947Z"
     },
     {
       "forma": "Action",
       "id": "0Pvge0DU00H7cCXGU7UOdW",
       "name": "Verify implementation via Vitest",
       "summary": "Create a test case to ensure World.fromPath correctly hydrates the RGA64Watermark with mocked Git context.",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-05-27T18:08:52.062Z"
+      "status": "done",
+      "statusNote": "Setting status to done as requested.",
+      "statusDate": "2026-05-30T03:04:46.004Z"
     }
   ],
   "rawReferences": [

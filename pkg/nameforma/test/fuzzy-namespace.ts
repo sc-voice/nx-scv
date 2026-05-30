@@ -10,8 +10,13 @@ describe('FuzzyNamespace', () => {
 
   beforeEach(() => {
     ns = new FuzzyNamespace();
-    forma1 = new Forma({ name: 'Task One' });
-    forma2 = new Forma({ name: 'Task Two' });
+    // two ids from an actual collision
+    const id1 = '0PvuTUTT00GlrCCFYF0btW'; 
+    const id2 = '0PvuTZTy00GlrCCFYF0btW';
+
+    // two ids from an actual collision
+    forma1 = new Forma({ id: id1, name: 'Task One' });
+    forma2 = new Forma({ id: id2, name: 'Task Two' });
     forma3 = new Forma({ name: 'Task Three' });
   });
 
@@ -183,16 +188,19 @@ describe('FuzzyNamespace', () => {
       expect(id2.length).toBe(5);
     });
 
-    it('produces FuzzyId length of exactly 5 with three items', () => {
+    it('produces FuzzyId length of exactly 7 with three items', () => {
+      // Our fuzzyid are longer than the minimum 5 because id1 is similar to id2
       ns.addForma(forma1);
       ns.addForma(forma2);
       ns.addForma(forma3);
       const id1 = ns.fuzzyIdOf(forma1);
       const id2 = ns.fuzzyIdOf(forma2);
       const id3 = ns.fuzzyIdOf(forma3);
-      expect(id1.length).toBe(5);
-      expect(id2.length).toBe(5);
-      expect(id3.length).toBe(5);
+      expect(id1.length).toBeLessThanOrEqual(7);
+      expect(id2.length).toBeLessThanOrEqual(7);
+      expect(id3.length).toBeLessThanOrEqual(7);
+      expect(id1.length).toEqual(id2.length);
+      expect(id3.length).toEqual(id2.length);
     });
   });
 

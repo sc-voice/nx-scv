@@ -1,0 +1,166 @@
+import { FormaList } from './forma-list.js';
+import { Focus } from './focus.js';
+import { Forma } from './forma.js';
+import RGA64Stack from './rga64-stack.js';
+
+export class FocusManager {
+  #focusStack: FormaList<Focus>;
+  #rgaFocusStack: RGA64Stack;
+
+  constructor() {
+    this.#focusStack = new FormaList<Focus>([], Focus as any, {
+      keyField: 'formaId',
+    });
+    this.#rgaFocusStack = new RGA64Stack({ name: 'Focus Stack' });
+  }
+
+  get focusStack(): FormaList<Focus> {
+    return this.#focusStack;
+  }
+
+  get rgaFocusStack(): RGA64Stack {
+    return this.#rgaFocusStack;
+  }
+
+  get size(): number {
+    return Array.from(this.#focusStack).length;
+  }
+
+  setFocusStack(focusStack: FormaList<Focus>): void {
+    this.#focusStack = focusStack;
+  }
+
+  setRgaFocusStack(rgaFocusStack: RGA64Stack): void {
+    this.#rgaFocusStack = rgaFocusStack;
+  }
+
+  focusForma(forma: Forma): void {
+    const formaIdStr = forma.id.base64;
+
+    // Remove if already in stack (by formaId)
+    try {
+      this.#focusStack.deleteItem(formaIdStr);
+      this.#rgaFocusStack.remove(forma.id);
+    } catch {
+      // Not in stack, that's fine
+    }
+
+    // Create new Focus entry from entity and add to stack
+    const focus = Focus.fromEntity(forma);
+    this.#focusStack.addItem(focus);
+    this.#rgaFocusStack.push(forma.id);
+  }
+
+  unfocusForma(forma: Forma): void {
+    const formaIdStr = forma.id.base64;
+    try {
+      this.#focusStack.deleteItem(formaIdStr);
+      this.#rgaFocusStack.remove(forma.id);
+    } catch {
+      // Not in stack, that's fine
+    }
+  }
+
+  focusOrder(ent: Forma): number {
+    // For Focus items (which have formaId), lookup by formaId
+    // For regular Forma items (Task, etc.), lookup by id
+    const isFocus = ent instanceof Focus;
+    const lookupId = isFocus ? (ent as any).formaId : ent.id;
+    const lookupIdStr =
+      typeof lookupId === 'string' ? lookupId : lookupId.base64;
+
+    const items = Array.from(this.#focusStack);
+    // Most recent is at end of FormaList, so iterate backwards
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].formaId.base64 === lookupIdStr) {
+        return items.length - 1 - i; // Position from most recent
+      }
+    }
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  focusedForma(formaType: string): Focus | null {
+    // Most recent is at end of FormaList, iterate backwards
+    const items = Array.from(this.#focusStack);
+    for (let i = items.length - 1; i >= 0; i--) {
+      if (items[i].formaType === formaType) {
+        return items[i];
+      }
+    }
+    return null;
+  }
+
+  getFocusStackReversed(): FormaList<Focus> {
+    // Return new FormaList with items reversed (most recent first)
+    const items = Array.from(this.#focusStack).reverse();
+    return new FormaList<Focus>(items, Focus as any, {
+      keyField: 'formaId',
+    });
+  }
+
+  validate(isValid: (focus: Focus) => boolean): boolean {
+    const before = Array.from(this.#focusStack);
+    const valid = before.filter(isValid);
+
+    if (valid.length === before.length) return false;
+
+    // Remove invalid entries from rgaFocusStack
+    for (const focus of before) {
+      if (!valid.includes(focus)) {
+        this.#rgaFocusStack.remove(focus.formaId);
+      }
+    }
+
+    // Update focusStack
+    this.setFocusStack(new FormaList<Focus>(valid, Focus as any, {
+      keyField: 'formaId',
+    }));
+
+    return true;
+  }
+
+  toJSON(): any {
+    return {
+      focusStack: Array.from(this.#focusStack).map((f) => ({
+        id: f.id.toString(),
+        formaId: f.formaId.toString(),
+        formaType: f.formaType,
+        name: f.name,
+        summary: f.summary,
+      })),
+      rgaFocusStack: this.#rgaFocusStack.toJSON(),
+    };
+  }
+
+  static fromJSON(data: any): FocusManager {
+    const fm = new FocusManager();
+
+    // Restore focusStack if present
+    if (data.focusStack && Array.isArray(data.focusStack)) {
+      const focuses = data.focusStack.map((f: any) =>
+        Focus.fromJson({
+          id: f.id,
+          formaId: f.formaId,
+          formaType: f.formaType,
+          name: f.name,
+          summary: f.summary,
+        }),
+      );
+      fm.setFocusStack(new FormaList<Focus>(focuses, Focus as any, {
+        keyField: 'formaId',
+      }));
+    }
+
+    // Restore rgaFocusStack if present
+    if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
+      fm.setRgaFocusStack(RGA64Stack.fromJSON(data.rgaFocusStack));
+    } else if (Array.from(fm.focusStack).length > 0) {
+      // Sync focusStack to rgaFocusStack if the latter is missing (backward compatibility)
+      for (const focus of Array.from(fm.focusStack)) {
+        fm.rgaFocusStack.push(focus.formaId);
+      }
+    }
+
+    return fm;
+  }
+}

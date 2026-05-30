@@ -97,6 +97,14 @@ export class FuzzyNamespace implements IMutableNamespace {
    * @throws Error if ambiguous (multiple matches) or not found
    */
   getForma(fuzzyId: FuzzyId): Forma | undefined {
+    const formas = this.#formas;
+    // TimeId filter exact match of fuzzyIdOf
+    const timeIdMatches = formas.filter(f => f.id.timeId().endsWith(fuzzyId));
+    if (timeIdMatches.length === 1) {
+      return timeIdMatches[0];
+    }
+
+    // User generated fuzzyId may result in multiple matches
     const filter = Identifiable.idFilter(fuzzyId);
     const matches = this.#formas.filter((forma) =>
       filter(forma.id.base64),

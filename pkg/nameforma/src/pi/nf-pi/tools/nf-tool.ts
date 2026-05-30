@@ -200,7 +200,7 @@ export const nfTool = {
       } else if (operation === 'rename') {
         cmd += ` set ${fuzzy_id}.name` + arg(value);
       } else if (operation === 'set_action_status') {
-        cmd += ` action set ${fuzzy_id} ${actionStatus} ` + arg(statusNote);
+        cmd += ` action set ${fuzzy_id}.status ${actionStatus} ` + arg(statusNote);
       } else if (operation === 'set_field_value') {
         cmd += ` set ${fuzzy_id}.${field}` + arg(value);
       } else if (operation === 'task') {

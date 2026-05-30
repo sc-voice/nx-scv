@@ -20,6 +20,7 @@ import {
   type FormaListEvent,
 } from './forma-list.js';
 import { Focus } from './focus.js';
+import { FocusManager } from './focus-manager.js';
 import { NfUrl } from './nf-url.js';
 import {
   RenderData,
@@ -62,8 +63,7 @@ export class World extends Entity implements IEventBus {
   #worldPath: string;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
-  #focusStack: FormaList<Focus>;
-  #rgaFocusStack: RGA64Stack;
+  #focusManager: FocusManager;
   #watermark: RGA64Watermark;
   #bus: EventEmitter;
 
@@ -88,10 +88,7 @@ export class World extends Entity implements IEventBus {
 
     this.#worldPath = worldPath;
     this.#watermark = new RGA64Watermark();
-    this.#focusStack = new FormaList<Focus>([], Focus as any, {
-      keyField: 'formaId',
-    });
-    this.#rgaFocusStack = new RGA64Stack({ name: 'Focus Stack' });
+    this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
 
     // Register standard entities
@@ -226,31 +223,33 @@ export class World extends Entity implements IEventBus {
 
   /**
    * Resolve fuzzy ID with world namespace as primary, focused entity's namespace as secondary.
+   * Verifies against RGA64Stack implementation.
    * @param {string} fuzzyId - Fuzzy ID to resolve
    * @returns {{ entity: Forma, forma: Forma } | undefined} - entity is the serializing entity; forma is the matched forma
    */
   resolveFuzzyId(fuzzyId: string): { entity: Forma; forma: Forma } | undefined {
-    const msg = 'world.resolveFuzzyId';
+    const msg = 'world.resolveFuzzyIdRGA';
     const dbg = WORLD?.ALL;
 
-    // Try focused entity's namespace (primary)
-    const focusedEntry = Array.from(this.#focusStack).at(-1);
-    if (focusedEntry) {
-      const EntityClass = this.entityClassOfName(focusedEntry.formaType);
-      if (EntityClass) {
-        const entity = this.loadEntity(EntityClass, focusedEntry.formaId);
-        if (entity && 'namespace' in entity) {
-          const nested = (entity as any).namespace.getForma(fuzzyId);
-          if (nested) {
-            dbg && cc.ok1(msg, `found in focused ${focusedEntry.formaType} namespace: ${fuzzyId}`);
-            return { entity, forma: nested };
-          }
-        }
+    // Get focused entity
+    const focusedNode = this.#focusManager.rgaFocusStack.peek();
+    const focusedEntity = focusedNode?.value
+      ? this.namespace.getForma(focusedNode.value.base64)
+      : null;
+
+    // Primary namespace is in focused entity
+    if (focusedEntity) {
+      const nsPrimary = (focusedEntity as any)?.namespace;
+      const forma = nsPrimary.getForma(fuzzyId);
+      if (forma) {
+        dbg && cc.ok1(msg, `found in focused entity namespace: ${fuzzyId}`);
+        return { entity: focusedEntity, forma };
       }
     }
 
-    // Try world namespace (secondary)
-    const forma = this.namespace.getForma(fuzzyId);
+    // Secondary namespace is the world
+    const nsSecondary = this.namespace;
+    const forma = nsSecondary.getForma(fuzzyId);
     if (forma) {
       dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
       return { entity: forma, forma };
@@ -309,7 +308,7 @@ export class World extends Entity implements IEventBus {
     }
 
     // Try focused entity's namespace
-    const focusedEntry = Array.from(this.#focusStack).at(-1);
+    const focusedEntry = Array.from(this.#focusManager.focusStack).at(-1);
     dbg &&
       cc.ok1(
         msg,
@@ -489,13 +488,13 @@ export class World extends Entity implements IEventBus {
           summary: f.summary,
         }),
       );
-      this.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
+      this.#focusManager.setFocusStack(new FormaList<Focus>(focuses, Focus as any, {
         keyField: 'formaId',
-      });
+      }));
     }
 
     if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
-      this.#rgaFocusStack = RGA64Stack.fromJSON(data.rgaFocusStack);
+      this.#focusManager.setRgaFocusStack(RGA64Stack.fromJSON(data.rgaFocusStack));
     }
   }
 
@@ -753,7 +752,7 @@ export class World extends Entity implements IEventBus {
 
     // Remove from focus stack if present
     try {
-      this.#focusStack.deleteItem(id);
+      this.#focusManager.focusStack.deleteItem(id);
     } catch {
       // Not in focus stack, that's fine
     }
@@ -802,7 +801,7 @@ export class World extends Entity implements IEventBus {
    * @returns {RGA64Stack}
    */
   get rgaFocusStack(): RGA64Stack {
-    return this.#rgaFocusStack;
+    return this.#focusManager.rgaFocusStack;
   }
 
   /**
@@ -811,21 +810,7 @@ export class World extends Entity implements IEventBus {
    * @returns {number} - 0-based index if forma is focused (0=most recent), Number.MAX_SAFE_INTEGER if not
    */
   focusOrder(ent: Forma): number {
-    // For Focus items (which have formaId), lookup by formaId
-    // For regular Forma items (Task, etc.), lookup by id
-    const isFocus = ent instanceof Focus;
-    const lookupId = isFocus ? (ent as any).formaId : ent.id;
-    const lookupIdStr =
-      typeof lookupId === 'string' ? lookupId : lookupId.base64;
-
-    const items = Array.from(this.#focusStack);
-    // Most recent is at end of FormaList, so iterate backwards
-    for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].formaId.base64 === lookupIdStr) {
-        return items.length - 1 - i; // Position from most recent
-      }
-    }
-    return Number.MAX_SAFE_INTEGER;
+    return this.#focusManager.focusOrder(ent);
   }
 
   /**
@@ -833,20 +818,7 @@ export class World extends Entity implements IEventBus {
    * @param {Forma} forma - Forma to focus
    */
   focusForma(forma: any): void {
-    const formaIdStr = forma.id.base64;
-
-    // Remove if already in stack (by formaId)
-    try {
-      this.#focusStack.deleteItem(formaIdStr);
-      this.#rgaFocusStack.remove(forma.id);
-    } catch {
-      // Not in stack, that's fine
-    }
-
-    // Create new Focus entry from entity and add to stack
-    const focus = Focus.fromEntity(forma);
-    this.#focusStack.addItem(focus);
-    this.#rgaFocusStack.push(forma.id);
+    this.#focusManager.focusForma(forma);
   }
 
   /**
@@ -854,13 +826,7 @@ export class World extends Entity implements IEventBus {
    * @param {Forma} forma - Forma to unfocus
    */
   unfocusForma(forma: any): void {
-    const formaIdStr = forma.id.base64;
-    try {
-      this.#focusStack.deleteItem(formaIdStr);
-      this.#rgaFocusStack.remove(forma.id);
-    } catch {
-      // Not in stack, that's fine
-    }
+    this.#focusManager.unfocusForma(forma);
   }
 
   /**
@@ -869,14 +835,7 @@ export class World extends Entity implements IEventBus {
    * @returns {Focus|null} - Focus entry or null
    */
   focusedForma(formaType: string): Focus | null {
-    // Most recent is at end of FormaList, iterate backwards
-    const items = Array.from(this.#focusStack);
-    for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].formaType === formaType) {
-        return items[i];
-      }
-    }
-    return null;
+    return this.#focusManager.focusedForma(formaType);
   }
 
   /**
@@ -884,11 +843,7 @@ export class World extends Entity implements IEventBus {
    * @returns {FormaList<Focus>} - FormaList of focuses in reverse chronological order
    */
   get focusStack(): FormaList<Focus> {
-    // Return new FormaList with items reversed (most recent first)
-    const items = Array.from(this.#focusStack).reverse();
-    return new FormaList<Focus>(items, Focus as any, {
-      keyField: 'formaId',
-    });
+    return this.#focusManager.getFocusStackReversed();
   }
 
   /**
@@ -898,9 +853,8 @@ export class World extends Entity implements IEventBus {
   override validate(opts: any = {}): boolean {
     let result = super.validate(opts);
 
-    const msg = 'w3d.validate';
-    const before = Array.from(this.#focusStack);
-    const valid = before.filter((focus) => {
+    const beforeSize = this.#focusManager.size;
+    const cleaned = this.#focusManager.validate((focus) => {
       try {
         const EntityClass = this.entityClassOfName(focus.formaType);
         if (!EntityClass) return false;
@@ -909,15 +863,15 @@ export class World extends Entity implements IEventBus {
         return false;
       }
     });
-    if (valid.length === before.length) return false;
-    this.#focusStack = new FormaList<Focus>(valid, Focus as any, {
-      keyField: 'formaId',
-    });
-    if (before.length - valid.length > 0) {
+
+    if (!cleaned) return false;
+
+    if (beforeSize > this.#focusManager.size) {
       console.warn(
-        `Cleaned ${before.length - valid.length} stale focus entries`,
+        `Cleaned ${beforeSize - this.#focusManager.size} stale focus entries`,
       );
     }
+
     return result;
   }
 
@@ -1022,15 +976,10 @@ export class World extends Entity implements IEventBus {
    */
   toJSON(): any {
     this.validate();
+    const focusManagerData = this.#focusManager.toJSON();
     return {
-      focusStack: Array.from(this.#focusStack).map((f) => ({
-        id: f.id.toString(),
-        formaId: f.formaId.toString(),
-        formaType: f.formaType,
-        name: f.name,
-        summary: f.summary,
-      })),
-      rgaFocusStack: this.#rgaFocusStack.toJSON(),
+      focusStack: focusManagerData.focusStack,
+      rgaFocusStack: focusManagerData.rgaFocusStack,
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
       watermark: this.#watermark.toJSON(),
@@ -1044,6 +993,8 @@ export class World extends Entity implements IEventBus {
    * @returns {World} - World instance with worldPath set to baseDir
    */
   private static fromJson(data: any, baseDir?: string): World {
+    const msg = "W3D.fromJson";
+    const dbg = WORLD.LOAD;
     if (!data.id) {
       throw new Error('World.fromJson: missing id');
     }
@@ -1063,29 +1014,15 @@ export class World extends Entity implements IEventBus {
       world.#watermark = RGA64Watermark.fromJSON(data.watermark);
     }
 
-    // Restore focusStack if present
-    if (data.focusStack && Array.isArray(data.focusStack)) {
-      const focuses = data.focusStack.map((f: any) =>
-        Focus.fromJson({
-          id: f.id,
-          formaId: f.formaId,
-          formaType: f.formaType,
-          name: f.name,
-          summary: f.summary,
-        }),
-      );
-      world.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
-        keyField: 'formaId',
-      });
-    }
-
-    // Restore rgaFocusStack if present
-    if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
-      world.#rgaFocusStack = RGA64Stack.fromJSON(data.rgaFocusStack);
-    } else if (Array.from(world.#focusStack).length > 0) {
-      // Sync focusStack to rgaFocusStack if the latter is missing (backward compatibility)
-      for (const focus of Array.from(world.#focusStack)) {
-        world.#rgaFocusStack.push(focus.formaId);
+    // Restore focus stacks
+    if ((data.focusStack && Array.isArray(data.focusStack)) ||
+        (data.rgaFocusStack && typeof data.rgaFocusStack === 'object')) {
+      world.#focusManager = FocusManager.fromJSON(data);
+      if (data.rgaFocusStack && Array.from(world.#focusManager.focusStack).length > 0) {
+        dbg && cc.ok1(msg, data.id, "rgaFocusStack found");
+      } else if (!data.rgaFocusStack && Array.from(world.#focusManager.focusStack).length > 0) {
+        dbg && cc.ok1(msg, data.id, "rgaFocusStack regenerate");
+        world.save();
       }
     }
 
@@ -1104,7 +1041,7 @@ export class World extends Entity implements IEventBus {
       return headerData;
     }
 
-    const focusStack = Array.from(this.#focusStack);
+    const focusStack = Array.from(this.#focusManager.focusStack);
     const focusItems = focusStack
       .map(f => this.namespace.getForma((f as Focus).formaId.base64))
       .filter(Boolean) as Forma[];
