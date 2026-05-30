@@ -10,7 +10,7 @@
       "name": "Add references for World and affected files",
       "summary": "Add references to src/world.ts, test/world.ts, and other potentially affected files as identified in the investigation.",
       "status": "done",
-      "statusNote": "done",
+      "statusNote": "Already done, but ensuring status is set.",
       "statusDate": "2026-05-30T11:51:54.062Z"
     },
     {
@@ -18,54 +18,54 @@
       "id": "0PvuTZTy00GlrCCFYF0btW",
       "name": "Action: Implement FocusManager state initialization",
       "summary": "Create the FocusManager class and initialize focusStack and rgaFocusStack in its constructor.",
-      "status": "manage",
-      "statusNote": "implementation reviewed",
-      "statusDate": "2026-05-30T12:03:18.221Z"
+      "status": "done",
+      "statusNote": "Completed as requested.",
+      "statusDate": "2026-05-30T13:16:38.948Z"
     },
     {
       "forma": "Action",
       "id": "0PvuTa6N00GlrCCFYF0btW",
       "name": "Action: Implement FocusManager focus/unfocus logic",
       "summary": "Move focusForma and unfocusForma logic from World to FocusManager.",
-      "status": "manage",
-      "statusNote": "implementation reviewed",
-      "statusDate": "2026-05-30T12:06:58.319Z"
+      "status": "done",
+      "statusNote": "Completed as requested.",
+      "statusDate": "2026-05-30T13:16:40.489Z"
     },
     {
       "forma": "Action",
       "id": "0PvuTalY00GlrCCFYF0btW",
       "name": "Action: Implement FocusManager retrieval and ordering logic",
       "summary": "Move focusedForma, focusOrder, and focusStack getter logic from World to FocusManager.",
-      "status": "manage",
-      "statusNote": "implementation reviewed",
-      "statusDate": "2026-05-30T12:26:19.289Z"
+      "status": "done",
+      "statusNote": "Completed as requested.",
+      "statusDate": "2026-05-30T13:16:42.007Z"
     },
     {
       "forma": "Action",
       "id": "0PvuTbO400GlrCCFYF0btW",
       "name": "Action: Implement FocusManager validation/cleanup logic",
       "summary": "Move the validate method (stale entry cleanup) from World to FocusManager.",
-      "status": "manage",
-      "statusNote": "implementation reviewed",
-      "statusDate": "2026-05-30T12:49:56.455Z"
+      "status": "done",
+      "statusNote": "Completed as requested.",
+      "statusDate": "2026-05-30T13:16:43.559Z"
     },
     {
       "forma": "Action",
       "id": "0PvuTc0900GlrCCFYF0btW",
       "name": "Action: Implement FocusManager persistence (JSON)",
       "summary": "Implement toJSON and fromJSON methods in FocusManager for persisting focus state.",
-      "status": "manage",
-      "statusNote": "implementation reviewed",
-      "statusDate": "2026-05-30T12:59:35.040Z"
+      "status": "done",
+      "statusNote": "Completed as requested.",
+      "statusDate": "2026-05-30T13:16:45.095Z"
     },
     {
       "forma": "Action",
       "id": "0Pvu_jz000GlrCCFYF0btW",
       "name": "Move focus tests to test/focus-manager.ts",
       "summary": "Extract focus-related tests from test/world.ts and move to dedicated test/focus-manager.ts test file.",
-      "status": "manage",
-      "statusNote": "implementation reviewed",
-      "statusDate": "2026-05-30T13:10:22.733Z"
+      "status": "done",
+      "statusNote": "Completed as requested.",
+      "statusDate": "2026-05-30T13:16:46.632Z"
     }
   ],
   "rawReferences": [
