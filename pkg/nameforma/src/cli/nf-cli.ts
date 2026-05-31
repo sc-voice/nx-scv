@@ -128,7 +128,7 @@ export class REPL {
         }
 
         try {
-          await CLI.exec(args);
+          await NfCLI.exec(args);
           this.world.sync();
         } catch (execErr: any) {
           try {
@@ -167,9 +167,11 @@ export function resolveWorld(worldPath?: string): World {
   return World.fromPath(worldPath);
 }
 
-export class CLI {
+/** NameForma command-line interface for managing tasks, formas, and schemas */
+export class NfCLI {
   private program: Command;
 
+  /** Initialize NfCLI with commander program */
   constructor() {
     this.program = this.createProgram();
   }
@@ -329,16 +331,36 @@ export class CLI {
     return helpFlag ? [...result, helpFlag] : result;
   }
 
+  /** Parse command-line arguments and execute matching command
+   * @param argv Node process argv format (program, script, ...args)
+   * @returns Promise resolving to commander Command
+   * @example
+   * const cli = new NfCLI();
+   * await cli.parseArgv(['node', 'nf', 'task', 'list']);
+   */
   parseArgv(argv: string[]): Promise<Command> {
     const processed = this.preprocessArgv(argv);
     return this.program.parseAsync(processed);
   }
 
+  /** Create new CLI instance and execute command with given arguments
+   * @param args Command arguments (no program/script prefix)
+   * @returns Promise resolving to commander Command
+   * @example
+   * await NfCLI.exec(['task', 'add', 'My Task']);
+   */
   static exec(args: string[]): Promise<Command> {
-    const cli = new CLI();
+    const cli = new NfCLI();
     return cli.parseArgv(['node', 'nf', ...args]);
   }
 
+  /** Get underlying commander program instance for advanced usage
+   * @returns Commander Command object
+   * @example
+   * const cli = new NfCLI();
+   * const program = cli.getProgram();
+   * console.log(program.version());
+   */
   getProgram(): Command {
     return this.program;
   }
@@ -390,7 +412,7 @@ if (!isTestRunner) {
       process.exit(1);
     });
   } else {
-    const cli = new CLI();
+    const cli = new NfCLI();
     cli.parseArgv(process.argv).catch((err) => {
       nfTui.error(err);
       process.exit(1);

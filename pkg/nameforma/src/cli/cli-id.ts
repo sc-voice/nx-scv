@@ -5,13 +5,13 @@
  * Validates ID types
  */
 
-import { execSync } from 'child_process';
 import { nfTui } from './nf-tui.js';
 import { validate as validateUUID } from 'uuid';
 import { Identifiable } from '../identifiable.js';
 import { World } from '../world.js';
 import { User } from '../user.js';
 import UUID64 from '../uuid64.js';
+import { defaultGitCLI } from '../git-cli.js';
 import type { GlobalOpts } from './nf-cli.js';
 
 export default class IdCommand {
@@ -82,9 +82,7 @@ export default class IdCommand {
 
           // If --git-user flag is set, generate UUID64 for git user name
           if (options.gitUser) {
-            const gitUserName = execSync('git config user.name', {
-              encoding: 'utf-8',
-            }).trim();
+            const gitUserName = defaultGitCLI.configGet('user.name');
             const user = new User(undefined, gitUserName);
             const uuid = user.generateUUID64();
             nfTui.log(uuid.base64);
@@ -93,9 +91,7 @@ export default class IdCommand {
 
           // If --git-email flag is set, generate UUID64 for git user email
           if (options.gitEmail) {
-            const gitUserEmail = execSync('git config user.email', {
-              encoding: 'utf-8',
-            }).trim();
+            const gitUserEmail = defaultGitCLI.configGet('user.email');
             const user = new User(gitUserEmail);
             const uuid = user.generateUUID64();
             nfTui.log(uuid.base64);

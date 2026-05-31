@@ -578,14 +578,14 @@ describe('World Serialization - save()/load() methods', () => {
 
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
-      expect(json.focusStack).toBeDefined();
+      expect(json.focusManager).toBeDefined();
+      expect(json.focusManager.focusStack).toBeDefined();
       expect(json.watermark).toBeDefined();
-      expect(json.rgaFocusStack).toBeDefined();
+      expect(json.focusManager.rgaFocusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
-        'focusStack',
+        'focusManager',
         'id',
         'numeronym',
-        'rgaFocusStack',
         'watermark',
       ]); // No worldPath
     });
@@ -693,14 +693,14 @@ describe('World Serialization - save()/load() methods', () => {
       const json = JSON.parse(data);
       expect(json.id).toBeDefined();
       expect(json.numeronym).toBeDefined();
-      expect(json.focusStack).toBeDefined();
+      expect(json.focusManager).toBeDefined();
+      expect(json.focusManager.focusStack).toBeDefined();
       expect(json.watermark).toBeDefined();
-      expect(json.rgaFocusStack).toBeDefined();
+      expect(json.focusManager.rgaFocusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
-        'focusStack',
+        'focusManager',
         'id',
         'numeronym',
-        'rgaFocusStack',
         'watermark',
       ]);
     });
@@ -733,14 +733,14 @@ describe('World Serialization - save()/load() methods', () => {
       const json = JSON.parse(data);
       expect(json.id).toBe(originalId);
       expect(json.numeronym).toBeDefined();
-      expect(json.focusStack).toBeDefined();
+      expect(json.focusManager).toBeDefined();
+      expect(json.focusManager.focusStack).toBeDefined();
       expect(json.watermark).toBeDefined();
-      expect(json.rgaFocusStack).toBeDefined();
+      expect(json.focusManager.rgaFocusStack).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
-        'focusStack',
+        'focusManager',
         'id',
         'numeronym',
-        'rgaFocusStack',
         'watermark',
       ]);
     });

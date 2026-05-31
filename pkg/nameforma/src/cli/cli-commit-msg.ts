@@ -3,11 +3,11 @@
  * Scans focused tasks for actions marked done since last commit
  */
 
-import { execSync } from 'child_process';
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import { TuiList } from './tui-list.js';
+import { defaultGitCLI } from '../git-cli.js';
 import type { GlobalOpts } from './nf-cli.js';
 
 export default class CommitMsgCommand {
@@ -15,11 +15,9 @@ export default class CommitMsgCommand {
    * Get the date of the last commit on current branch
    * Returns ISO timestamp string
    */
-  static getLastCommitDate(): Date {
+  static getLastCommitDate(gitCLI = defaultGitCLI): Date {
     try {
-      const dateStr = execSync('git log -1 --format=%ai', {
-        encoding: 'utf-8',
-      }).trim();
+      const dateStr = gitCLI.log('-1 --format=%ai');
       return new Date(dateStr);
     } catch (err) {
       throw new Error(

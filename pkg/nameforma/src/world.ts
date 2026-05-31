@@ -14,6 +14,7 @@ import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { User } from './user.js';
+import { GitCLI } from './git-cli.js';
 import {
   FormaList,
   type IEventBus,
@@ -61,6 +62,7 @@ const THROTTLE = { watermark: 0 }
  */
 export class World extends Entity implements IEventBus {
   #worldPath: string;
+  #gitCLI: GitCLI;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusManager: FocusManager;
@@ -87,6 +89,7 @@ export class World extends Entity implements IEventBus {
     const dbg = WORLD?.CTOR;
 
     this.#worldPath = worldPath;
+    this.#gitCLI = new GitCLI(path.dirname(worldPath));
     this.#watermark = new RGA64Watermark();
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
@@ -461,7 +464,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Reload mutable state (focusStack, numeronym, watermark, rgaFocusStack) from world.json.
+   * Reload mutable state (focusManager, numeronym, watermark) from world.json.
    * Used to refresh a long-lived World instance after external writes.
    */
   sync(): void {
@@ -478,23 +481,8 @@ export class World extends Entity implements IEventBus {
       this.#watermark = RGA64Watermark.fromJSON(data.watermark);
     }
 
-    if (data.focusStack && Array.isArray(data.focusStack)) {
-      const focuses = data.focusStack.map((f: any) =>
-        Focus.fromJson({
-          id: f.id,
-          formaId: f.formaId,
-          formaType: f.formaType,
-          name: f.name,
-          summary: f.summary,
-        }),
-      );
-      this.#focusManager.setFocusStack(new FormaList<Focus>(focuses, Focus as any, {
-        keyField: 'formaId',
-      }));
-    }
-
-    if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
-      this.#focusManager.setRgaFocusStack(RGA64Stack.fromJSON(data.rgaFocusStack));
+    if (data.focusManager) {
+      this.#focusManager = FocusManager.fromJSON(data.focusManager);
     }
   }
 
@@ -899,7 +887,7 @@ export class World extends Entity implements IEventBus {
       const userSignature = user.signature();
 
       // Get current HEAD as UUID64
-      const { uuid64: headUuid } = UUID64.forGitObserved('HEAD', gitDir);
+      const { uuid64: headUuid } = UUID64.forGitObserved('HEAD', this.#gitCLI);
 
       // Update watermark with this observation
       const advanced = this.#watermark.update(userSignature, headUuid);
@@ -976,11 +964,8 @@ export class World extends Entity implements IEventBus {
    */
   toJSON(): any {
     this.validate();
-    const focusManagerData = this.#focusManager.toJSON();
     return {
-      //focusManager: focusManagerData,
-      focusStack: focusManagerData.focusStack,
-      rgaFocusStack: focusManagerData.rgaFocusStack,
+      focusManager: this.#focusManager.toJSON(),
       id: this.id,
       numeronym: Object.fromEntries(this.#numeronym),
       watermark: this.#watermark.toJSON(),
@@ -1015,16 +1000,8 @@ export class World extends Entity implements IEventBus {
       world.#watermark = RGA64Watermark.fromJSON(data.watermark);
     }
 
-    // Restore focus stacks
-    if ((data.focusStack && Array.isArray(data.focusStack)) ||
-        (data.rgaFocusStack && typeof data.rgaFocusStack === 'object')) {
-      world.#focusManager = FocusManager.fromJSON(data);
-      if (data.rgaFocusStack && Array.from(world.#focusManager.focusStack).length > 0) {
-        dbg && cc.ok1(msg, data.id, "rgaFocusStack found");
-      } else if (!data.rgaFocusStack && Array.from(world.#focusManager.focusStack).length > 0) {
-        dbg && cc.ok1(msg, data.id, "rgaFocusStack regenerate");
-        world.save();
-      }
+    if (data.focusManager) {
+      world.#focusManager = FocusManager.fromJSON(data.focusManager);
     }
 
     return world;

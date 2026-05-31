@@ -2,6 +2,7 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import UUID64 from '../src/uuid64.js';
 import { v7 as uuidv7 } from 'uuid';
 import { execSync } from 'child_process';
+import { MockGitCLI } from './git-cli.js';
 
 describe('UUID64', () => {
   // Test: Constructor creates valid instance
@@ -643,5 +644,28 @@ describe('UUID64 forGitObserved', () => {
   // Test: invalid commit throws error
   it('forGitObserved with invalid commit throws error', () => {
     expect(() => UUID64.forGitObserved('invalid-commit-xyz')).toThrow();
+  });
+
+  // Test: forGitObserved with mock when merge-base fails
+  it('forGitObserved falls back to commit when merge-base fails', () => {
+    const mockGit = new MockGitCLI();
+    mockGit.setMergeBaseFails(true);
+    // When merge-base fails, should use commit as-is
+    mockGit.setLog('-1 HEAD --format=%at%n%H', '1700000000\nabcd1234567890123456789012345678');
+
+    const result = UUID64.forGitObserved('HEAD', mockGit);
+    expect(result.uuid64.validate()).toBe(true);
+    expect(result.commit).toBe('abcd1234567890123456789012345678');
+  });
+
+  // Test: forGitObserved with mock successful merge-base
+  it('forGitObserved uses merge-base result', () => {
+    const mockGit = new MockGitCLI();
+    mockGit.setMergeBase('HEAD', 'origin/HEAD', 'abc123xyz');
+    mockGit.setLog('-1 abc123xyz --format=%at%n%H', '1700000000\nabc123xyz890123456789012345678');
+
+    const result = UUID64.forGitObserved('HEAD', mockGit);
+    expect(result.uuid64.validate()).toBe(true);
+    expect(result.commit).toBe('abc123xyz890123456789012345678');
   });
 });

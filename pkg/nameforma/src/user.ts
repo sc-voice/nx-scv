@@ -1,8 +1,8 @@
-import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { createHash } from 'crypto';
 import UUID64 from './uuid64.js';
+import { IGitCLI, GitCLI } from './git-cli.js';
 
 export class User {
   readonly email: string;
@@ -91,7 +91,7 @@ export class User {
     return hashChars + abbrev + 'NW';
   }
 
-  static fromGit(gitDir: string): User {
+  static fromGit(gitDir: string, gitCLI?: IGitCLI): User {
     let current = gitDir;
     while (current !== '/') {
       const gitPath = join(current, '.git');
@@ -107,15 +107,9 @@ export class User {
     }
 
     try {
-      const email = execSync('git config user.email', {
-        encoding: 'utf-8',
-        cwd: gitDir,
-      }).trim();
-
-      const name = execSync('git config user.name', {
-        encoding: 'utf-8',
-        cwd: gitDir,
-      }).trim();
+      const cli = gitCLI || new GitCLI(gitDir);
+      const email = cli.configGet('user.email');
+      const name = cli.configGet('user.name');
 
       return new User(email, name);
     } catch (err) {

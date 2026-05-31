@@ -1,8 +1,0 @@
-{
-  "forma": "Task",
-  "id": "0PvvOWSb0021jPoG94USdW",
-  "name": "Analyze failure in @test/rga64-stack.ts",
-  "summary": "Investigate why the test @test/rga64-stack.ts is failing and identify the root cause.",
-  "rawActions": [],
-  "rawReferences": []
-}

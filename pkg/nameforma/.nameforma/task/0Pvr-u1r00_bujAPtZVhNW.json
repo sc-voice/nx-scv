@@ -1,8 +1,0 @@
-{
-  "forma": "Task",
-  "id": "0Pvr-u1r00_bujAPtZVhNW",
-  "name": "Analyze validateWatermark performance",
-  "summary": "Analyze why `validateWatermark` in `src/world.ts` takes more than 1 second to execute.",
-  "rawActions": [],
-  "rawReferences": []
-}

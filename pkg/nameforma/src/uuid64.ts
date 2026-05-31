@@ -1,8 +1,8 @@
 import { randomBytes } from 'crypto';
-import { execSync } from 'child_process';
 import { Schema } from './schema.js';
 import { DBG } from './defines.js';
 import { Text } from '@sc-voice/tools';
+import { IGitCLI, GitCLI } from './git-cli.js';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 
@@ -189,37 +189,20 @@ class UUID64 {
    * @returns Object with uuid64, timestamp (Date), and commit hash
    * @throws Error if the commit is not found or git command fails
    */
-  static forGitObserved(commit: string = 'HEAD', cwd?: string): { uuid64: UUID64; timestamp: Date; commit: string } {
+  static forGitObserved(commit: string = 'HEAD', gitCLI?: IGitCLI): { uuid64: UUID64; timestamp: Date; commit: string } {
     try {
-      // DO NOT Refresh origin tracking to ensure merge-base uses current remote state
-      // THIS IS HUGELY SLOW >> 1s
-      //try {
-        //execSync('git fetch', {
-          //encoding: 'utf-8',
-          //...(cwd ? { cwd } : {}),
-        //});
-      //} catch {
-         //// No remote or fetch failed - will use local commits as truth
-      //}
-
+      const cli = gitCLI || new GitCLI();
       let commitToUse = commit;
 
       // Find latest commit shared with origin (or use local commit if no remote)
       try {
-        commitToUse = execSync(`git merge-base ${commit} origin/HEAD`, {
-          encoding: 'utf-8',
-          ...(cwd ? { cwd } : {}),
-        }).trim();
+        commitToUse = cli.mergeBase(commit, 'origin/HEAD');
       } catch {
         // No remote or merge-base failed - use commit as-is (local truth)
         commitToUse = commit;
       }
 
-      const out = execSync(`git log -1 ${commitToUse} --format=%at%n%H`, {
-        encoding: 'utf-8',
-        ...(cwd ? { cwd } : {}),
-      })
-        .trim()
+      const out = cli.log(`-1 ${commitToUse} --format=%at%n%H`)
         .split('\n');
       const timestampMs = parseInt(out[0], 10) * 1000;
       const commitHash = out[1];
@@ -237,8 +220,8 @@ class UUID64 {
         timestamp: new Date(timestampMs),
         commit: commitHash,
       };
-    } catch (err) {
-      throw new Error(
+    } catch (err: any) {
+      throw new Error(err.stderr?.trim() || err.message ||
         `Failed to get commit info for '${commit}'. Make sure you are in a git repository.`
       );
     }

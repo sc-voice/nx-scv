@@ -260,11 +260,11 @@ describe('FocusManager', () => {
       const data = fs.readFileSync(worldFile, 'utf8');
       const json = JSON.parse(data);
 
-      expect(json.focusStack).toBeDefined();
-      expect(Array.isArray(json.focusStack)).toBe(true);
-      expect(json.focusStack[0].formaId).toBe(entity.id.base64);
-      expect(json.focusStack[0].formaType).toBe('mock');
-      expect(json.focusStack[0].name).toBe('test');
+      expect(json.focusManager.focusStack).toBeDefined();
+      expect(Array.isArray(json.focusManager.focusStack)).toBe(true);
+      expect(json.focusManager.focusStack[0].formaId).toBe(entity.id.base64);
+      expect(json.focusManager.focusStack[0].formaType).toBe('mock');
+      expect(json.focusManager.focusStack[0].name).toBe('test');
     });
 
     it('should restore focusStack with UUID64 id and targetId objects', () => {
@@ -477,8 +477,8 @@ describe('FocusManager', () => {
 
         // Serialize — should clean stale entries
         const json = world.toJSON();
-        expect(json.focusStack.length).toBe(1);
-        expect(json.focusStack[0].formaId).toBe(m2.id.toString());
+        expect(json.focusManager.focusStack.length).toBe(1);
+        expect(json.focusManager.focusStack[0].formaId).toBe(m2.id.toString());
       } finally {
         fs.rmSync(worldPath, { recursive: true, force: true });
       }

@@ -9,7 +9,7 @@ import {
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { CLI, REPL, resolveWorld } from '../../src/cli/nf-cli.js';
+import { NfCLI, REPL, resolveWorld } from '../../src/cli/nf-cli.js';
 import { World } from '../../src/world.js';
 import { nfTui, TestReplRenderer } from '../../src/cli/nf-tui.js';
 
@@ -29,7 +29,7 @@ afterAll(() => {
 });
 
 function exec(...args: string[]) {
-  return CLI.exec(['-w', worldPath, ...args]);
+  return NfCLI.exec(['-w', worldPath, ...args]);
 }
 
 beforeEach(() => {

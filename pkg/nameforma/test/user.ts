@@ -1,15 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { execSync } from 'child_process';
 import { User } from '../src/user.js';
 import UUID64 from '../src/uuid64.js';
+import { MockGitCLI } from './git-cli.js';
 
 describe('User', () => {
-  const expectedEmail = execSync('git config user.email', {
-    encoding: 'utf-8',
-  }).trim();
-  const expectedName = execSync('git config user.name', {
-    encoding: 'utf-8',
-  }).trim();
+  const mockGit = new MockGitCLI();
+  mockGit.setConfig('user.email', 'test@example.com');
+  mockGit.setConfig('user.name', 'Test User');
+  const expectedEmail = 'test@example.com';
+  const expectedName = 'Test User';
 
   describe('constructor', () => {
     it('requires at least email or name', () => {
@@ -31,27 +30,27 @@ describe('User', () => {
 
   describe('fromGit', () => {
     it('reads git config', () => {
-      const user = User.fromGit(process.cwd());
+      const user = User.fromGit(process.cwd(), mockGit);
       expect(user.email).toBe(expectedEmail);
       expect(user.name).toBe(expectedName);
     });
 
     it('signature returns 12-char base64 string', () => {
-      const user = User.fromGit(process.cwd());
+      const user = User.fromGit(process.cwd(), mockGit);
       const sig = user.signature();
       expect(sig).toHaveLength(12);
       expect(/^[A-Za-z0-9+/_-]+$/).toBeTruthy();
     });
 
     it('generateUUID64 returns valid UUID64', () => {
-      const user = User.fromGit(process.cwd());
+      const user = User.fromGit(process.cwd(), mockGit);
       const uuid = user.generateUUID64();
       expect(uuid).toBeInstanceOf(UUID64);
       expect(UUID64.validate(uuid.base64)).toBe(true);
     });
 
     it('signature is stable for same user', () => {
-      const user = User.fromGit(process.cwd());
+      const user = User.fromGit(process.cwd(), mockGit);
       const sig1 = user.signature();
       const sig2 = user.signature();
       expect(sig1).toBe(sig2);

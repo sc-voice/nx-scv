@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { CLI } from '../../src/cli/nf-cli.js';
+import { NfCLI } from '../../src/cli/nf-cli.js';
 import { World } from '../../src/world.js';
 import { Task } from '../../src/task.js';
 import { createTempWorld } from './helpers.js';
 
 describe('CLI: set command', () => {
-  let cli: CLI;
+  let cli: NfCLI;
   let output: string[];
   let errors: string[];
   let originalLog: any;
@@ -29,7 +29,7 @@ describe('CLI: set command', () => {
       errors.push(args.join(' '));
     };
 
-    cli = new CLI();
+    cli = new NfCLI();
   });
 
   afterEach(() => {
