@@ -63,6 +63,7 @@ describe('CLI: set command', () => {
       'set',
       '-w',
       tempWorld.worldPath,
+      '--',
       `${taskId}.name`,
       'New Name',
     ]);
@@ -103,6 +104,7 @@ describe('CLI: set command', () => {
       'set',
       '-w',
       tempWorld.worldPath,
+      '--',
       `${taskId}.summary`,
       'New Summary',
     ]);
@@ -168,9 +170,10 @@ describe('CLI: set command', () => {
       'set',
       '-w',
       tempWorld.worldPath,
+      '--json',
+      '--',
       `${taskId}.name`,
       'Updated',
-      '--json',
     ]);
 
     const jsonOutput = output.join('\n');
