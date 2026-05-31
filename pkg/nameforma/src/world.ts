@@ -232,9 +232,9 @@ export class World extends Entity implements IEventBus {
     const dbg = WORLD?.ALL;
 
     // Get focused entity
-    const focusedNode = this.#focusManager.rgaFocusStack.peek();
-    const focusedEntity = focusedNode?.value
-      ? this.namespace.getForma(focusedNode.value.base64)
+    const focusId = this.#focusManager.peek();
+    const focusedEntity = focusId
+      ? this.namespace.getForma(focusId.base64)
       : null;
 
     // Primary namespace is in focused entity
@@ -851,28 +851,27 @@ export class World extends Entity implements IEventBus {
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
   override validate(opts: any = {}): boolean {
-    let result = super.validate(opts);
+    const result = super.validate(opts);
 
     const beforeSize = this.#focusManager.size;
-    const cleaned = this.#focusManager.validate((focus) => {
+    const isValid = this.#focusManager.validate((focus) => {
       try {
-        const EntityClass = this.entityClassOfName(focus.formaType);
-        if (!EntityClass) return false;
-        return this.loadEntity(EntityClass, focus.formaId) !== null;
+        // Check if entity file exists on disk, regardless of registration
+        const idStr = typeof focus.formaId === 'string' ? focus.formaId : focus.formaId.toString();
+        const filePath = path.join(this.#worldPath, focus.formaType, `${idStr}.json`);
+        return fs.existsSync(filePath);
       } catch {
         return false;
       }
     });
 
-    if (!cleaned) return false;
-
-    if (beforeSize > this.#focusManager.size) {
+    if (!isValid) {
       console.warn(
         `Cleaned ${beforeSize - this.#focusManager.size} stale focus entries`,
       );
     }
 
-    return result;
+    return result && isValid;
   }
 
 
@@ -936,9 +935,10 @@ export class World extends Entity implements IEventBus {
       world = World.fromJson(json, worldPath);
       // Synchronize watermark with current git HEAD and persist if advanced
       const watermarkAdvanced = world.#validateWatermark();
-      if (watermarkAdvanced) {
+      const isValid = world.validate();
+      if (!isValid || watermarkAdvanced) {
         world.save();
-        dbg && cc.ok1(msg, `saved watermark`);
+        dbg && cc.ok1(msg, `saved`);
       }
     } else {
       // Create new World
@@ -978,6 +978,7 @@ export class World extends Entity implements IEventBus {
     this.validate();
     const focusManagerData = this.#focusManager.toJSON();
     return {
+      //focusManager: focusManagerData,
       focusStack: focusManagerData.focusStack,
       rgaFocusStack: focusManagerData.rgaFocusStack,
       id: this.id,

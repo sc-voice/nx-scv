@@ -2,6 +2,7 @@ import { FormaList } from './forma-list.js';
 import { Focus } from './focus.js';
 import { Forma } from './forma.js';
 import RGA64Stack from './rga64-stack.js';
+import UUID64 from './uuid64.js';
 
 export class FocusManager {
   #focusStack: FormaList<Focus>;
@@ -90,6 +91,11 @@ export class FocusManager {
     return null;
   }
 
+  peek(): UUID64 | null {
+    const topNode = this.#rgaFocusStack.peek();
+    return topNode ? topNode.value : null;
+  }
+
   getFocusStackReversed(): FormaList<Focus> {
     // Return new FormaList with items reversed (most recent first)
     const items = Array.from(this.#focusStack).reverse();
@@ -102,21 +108,23 @@ export class FocusManager {
     const before = Array.from(this.#focusStack);
     const valid = before.filter(isValid);
 
-    if (valid.length === before.length) return false;
+    const validIds = new Set(valid.map((f) => f.formaId.toString()));
 
-    // Remove invalid entries from rgaFocusStack
-    for (const focus of before) {
-      if (!valid.includes(focus)) {
-        this.#rgaFocusStack.remove(focus.formaId);
+    // Remove stale/orphaned active rgaFocusStack nodes not in valid set
+    for (const node of this.#rgaFocusStack.nodes(false)) {
+      if (!node.deleted && !validIds.has(node.value.toString())) {
+        node.delete();
       }
     }
+
+    if (valid.length === before.length) return true;
 
     // Update focusStack
     this.setFocusStack(new FormaList<Focus>(valid, Focus as any, {
       keyField: 'formaId',
     }));
 
-    return true;
+    return false;
   }
 
   toJSON(): any {

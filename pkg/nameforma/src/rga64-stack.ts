@@ -118,13 +118,12 @@ export class RGA64Stack extends Forma {
 
     if (!activeNodes.length) return [];
 
-    // Find leaves using full node set for parent lookup (includes tombstones)
     const allParentIds = new Set(
       this.#nodes
         .filter((n) => n.parent !== null)
         .map((n) => n.parent!.toString())
     );
-    const leaves = activeNodes.filter((n) => !allParentIds.has(n.id.toString()));
+    const leaves = this.#nodes.filter((n) => !allParentIds.has(n.id.toString()));
 
     if (leaves.length === 0) return [];
 

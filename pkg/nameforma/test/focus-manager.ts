@@ -11,6 +11,7 @@ import os from 'os';
 import { World } from '../src/world.js';
 import { Forma } from '../src/forma.js';
 import { Entity } from '../src/entity.js';
+import { FocusManager } from '../src/focus-manager.js';
 
 // Mock entity class for testing - extends Entity
 class MockEntity extends Entity {
@@ -382,28 +383,28 @@ describe('FocusManager', () => {
         );
         fs.unlinkSync(m2FilePath);
 
-        // Call validate and check returns true (entries were removed)
-        expect(world.validate()).toBe(true);
+        // Call validate and check returns false (entries were removed)
+        expect(world.validate()).toBe(false);
         expect(Array.from(world.focusStack).length).toBe(2);
 
-        // Call validate again — should return false (no more stale entries)
-        expect(world.validate()).toBe(false);
+        // Call validate again — should return true (no more stale entries)
+        expect(world.validate()).toBe(true);
       } finally {
         fs.rmSync(worldPath, { recursive: true, force: true });
       }
     });
 
-    it('returns false when focusStack is empty', () => {
+    it('returns true when focusStack is empty', () => {
       const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
       try {
         const world = World.fromPath(worldPath);
-        expect(world.validate()).toBe(false);
+        expect(world.validate()).toBe(true);
       } finally {
         fs.rmSync(worldPath, { recursive: true, force: true });
       }
     });
 
-    it('returns false when all entries are valid', () => {
+    it('returns true when all entries are valid', () => {
       const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
       try {
         const world = World.fromPath(worldPath);
@@ -412,7 +413,43 @@ describe('FocusManager', () => {
         const m1 = world.entityList(MockEntity).addItem({ name: 'mock1' });
         world.focusForma(m1);
 
+        expect(world.validate()).toBe(true);
+      } finally {
+        fs.rmSync(worldPath, { recursive: true, force: true });
+      }
+    });
+
+    it('removes orphaned rgaFocusStack nodes when focusStack entry is stale', () => {
+      const worldPath = fs.mkdtempSync(path.join(os.tmpdir(), 'nf-'));
+      try {
+        const world = World.fromPath(worldPath);
+        world.registerEntity(MockEntity);
+
+        const m1 = world.entityList(MockEntity).addItem({ name: 'mock1' });
+        const m2 = world.entityList(MockEntity).addItem({ name: 'mock2' });
+        world.focusForma(m1);
+        world.focusForma(m2);
+
+        let nodesBefore = world.rgaFocusStack.nodes(false);
+        expect(nodesBefore[0].value.base64).toEqual(m1.id.base64)
+        expect(nodesBefore[0].deleted).toEqual(false);
+        expect(nodesBefore[1].value.base64).toEqual(m2.id.base64)
+        expect(nodesBefore[1].deleted).toEqual(false);
+        expect(nodesBefore.length).toBe(2);
+
+        fs.unlinkSync(path.join(worldPath, 'mock', `${m2.id.base64}.json`));
+
         expect(world.validate()).toBe(false);
+
+        let nodesAfter = world.rgaFocusStack.nodes(false);
+        console.log('nodesAfter', nodesAfter.map(n=>n.value.timeId()));
+        expect(nodesAfter[0].value.base64).toEqual(m1.id.base64);
+        expect(nodesAfter[0].deleted).toEqual(false);
+        expect(nodesAfter[1].value.base64).toEqual(m2.id.base64);
+        expect(nodesAfter[1].deleted).toEqual(true);
+        expect(nodesAfter.length).toBe(2);
+        expect(world.rgaFocusStack.nodes().length).toBe(1);
+        expect(world.rgaFocusStack.nodes()[0].value.toString()).toBe(m1.id.base64);
       } finally {
         fs.rmSync(worldPath, { recursive: true, force: true });
       }
@@ -517,6 +554,75 @@ describe('FocusManager', () => {
       const focusIds = getFocusStackIds(world);
       const rgaIds = getRgaFocusIds(world);
       expect(focusIds).toEqual(rgaIds);
+    });
+  });
+
+  describe('FocusManager serialization', () => {
+    it('should serialize empty focusManager to JSON', () => {
+      const fm = new FocusManager();
+      const json = fm.toJSON();
+
+      expect(json).toBeDefined();
+      expect(json.focusStack).toBeDefined();
+      expect(Array.isArray(json.focusStack)).toBe(true);
+      expect(json.focusStack.length).toBe(0);
+      expect(json.rgaFocusStack).toBeDefined();
+    });
+
+    it('should serialize focusManager with items to JSON', () => {
+      const fm = new FocusManager();
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+
+      fm.focusForma(e1);
+      fm.focusForma(e2);
+
+      const json = fm.toJSON();
+
+      expect(json.focusStack.length).toBe(2);
+      expect(json.focusStack[0].formaId).toBe(e1.id.base64);
+      expect(json.focusStack[1].formaId).toBe(e2.id.base64);
+      expect(json.focusStack[1].formaType).toBe('mock');
+    });
+
+    it('should deserialize JSON to focusManager', () => {
+      const fm = new FocusManager();
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+
+      fm.focusForma(e1);
+      fm.focusForma(e2);
+
+      const json = fm.toJSON();
+      const restored = FocusManager.fromJSON(json);
+
+      expect(restored).toBeDefined();
+      expect(Array.from(restored.focusStack).length).toBe(2);
+      const items = Array.from(restored.focusStack);
+      expect(items[0].formaId.base64).toBe(e1.id.base64);
+      expect(items[1].formaId.base64).toBe(e2.id.base64);
+    });
+
+    it('should round-trip focusManager through serialization', () => {
+      const fm = new FocusManager();
+      const list = world.entityList(MockEntity);
+      const e1 = list.addItem({ name: 'e1' });
+      const e2 = list.addItem({ name: 'e2' });
+      const e3 = list.addItem({ name: 'e3' });
+
+      fm.focusForma(e1);
+      fm.focusForma(e2);
+      fm.focusForma(e3);
+
+      const json = fm.toJSON();
+      const restored = FocusManager.fromJSON(json);
+
+      const originalIds = Array.from(fm.focusStack).map(f => f.formaId.base64);
+      const restoredIds = Array.from(restored.focusStack).map(f => f.formaId.base64);
+
+      expect(restoredIds).toEqual(originalIds);
     });
   });
 });

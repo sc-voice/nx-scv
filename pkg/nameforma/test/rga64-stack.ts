@@ -86,6 +86,59 @@ describe('RGA64Stack', () => {
     expect(nodes[2].value).toBe(value1);
   });
 
+  it('remove tombstones a node by value', () => {
+    const stack = new RGA64Stack();
+    const value1 = new UUID64();
+    const value2 = new UUID64();
+    const value3 = new UUID64();
+
+    stack.push(value1);
+    stack.push(value2);
+    stack.push(value3);
+
+    const removed = stack.remove(value2);
+    expect(removed).toBeDefined();
+    expect(removed!.value).toBe(value2);
+    expect(removed!.deleted).toBe(true);
+
+    const nodes = stack.nodes();
+    expect(nodes).toHaveLength(2);
+    expect(nodes[0].value).toBe(value3);
+    expect(nodes[1].value).toBe(value1);
+
+    const values = stack.values();
+    expect(values).toHaveLength(2);
+    expect(values[0]).toBe(value3);
+    expect(values[1]).toBe(value1);
+  });
+
+  it('remove top node tombstones leaf, leaving bottom node active', () => {
+    const stack = new RGA64Stack();
+    const value1 = new UUID64();
+    const value2 = new UUID64();
+
+    stack.push(value1);
+    stack.push(value2);
+
+    let nodesBefore = stack.nodes(false);
+    expect(nodesBefore[0].value.base64).toEqual(value1.base64);
+    expect(nodesBefore[0].deleted).toEqual(false);
+    expect(nodesBefore[1].value.base64).toEqual(value2.base64);
+    expect(nodesBefore[1].deleted).toEqual(false);
+    expect(nodesBefore.length).toBe(2);
+
+    stack.remove(value2);
+
+    let nodesAfter = stack.nodes(false);
+    expect(nodesAfter[0].value.base64).toEqual(value1.base64);
+    expect(nodesAfter[0].deleted).toEqual(false);
+    expect(nodesAfter[1].value.base64).toEqual(value2.base64);
+    expect(nodesAfter[1].deleted).toEqual(true);
+    expect(nodesAfter.length).toBe(2);
+    expect(stack.nodes().length).toBe(1);
+    expect(stack.nodes()[0].value.base64).toBe(value1.base64);
+  });
+
   it('values() returns values from nodes in order', () => {
     const stack = new RGA64Stack();
     const value1 = new UUID64();
