@@ -196,6 +196,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'get',
+      '--',
       taskId,
     ]);
 
@@ -234,8 +235,9 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'delete',
-        partialId,
         '--force',
+        '--',
+        partialId,
       ]);
 
       expect(output.length).toBeGreaterThan(0);
@@ -271,8 +273,9 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'delete',
-        taskId,
         '--force',
+        '--',
+        taskId,
       ]);
 
       expect(output.length).toBeGreaterThan(0);
@@ -306,8 +309,9 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'delete',
-        taskId,
         '--force',
+        '--',
+        taskId,
       ]);
 
       output.length = 0;
@@ -351,8 +355,9 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'delete',
-        taskId,
         '--force',
+        '--',
+        taskId,
       ]);
 
       output.length = 0;
@@ -366,6 +371,7 @@ describe('CLI: task command', () => {
           '-w',
           tempWorld.worldPath,
           'get',
+          '--',
           taskId,
         ]),
       ).rejects.toThrow(/Task not found/);
@@ -402,8 +408,9 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'delete',
-        taskIds[1],
         '--force',
+        '--',
+        taskIds[1],
       ]);
 
       expect(countTasks(tempWorld.worldPath)).toBe(2);
@@ -493,8 +500,9 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'delete',
-        taskId,
         '--force',
+        '--',
+        taskId,
       ]);
 
       // Verify output shows the full task ID, not the search string
@@ -564,6 +572,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'get',
+      '--',
       taskId,
     ]);
 
@@ -601,6 +610,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'get',
+      '--',
       taskId,
     ]);
 
@@ -665,6 +675,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'get',
+      '--',
       taskId,
     ]);
 
@@ -796,6 +807,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'get',
+        '--',
         taskId,
       ]);
 
@@ -846,6 +858,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'get',
+        '--',
         taskId,
       ]);
 
@@ -1034,6 +1047,7 @@ describe('CLI: task command', () => {
         '-w',
         tempWorld.worldPath,
         'set',
+        '--',
         `${taskId}.name`,
         'Changed Name',
       ]);
@@ -1244,6 +1258,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       task.id.base64,
     ]);
 
@@ -1265,6 +1280,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       taskA.id.base64,
     ]);
     output.length = 0;
@@ -1275,6 +1291,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       taskB.id.base64,
     ]);
     output.length = 0;
@@ -1285,6 +1302,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       taskA.id.base64,
     ]);
 
@@ -1304,6 +1322,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       task.id.base64,
     ]);
     output.length = 0;
@@ -1314,6 +1333,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'unfocus',
+      '--',
       task.id.base64,
     ]);
 
@@ -1334,6 +1354,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       taskA.id.base64,
     ]);
     output.length = 0;
@@ -1344,6 +1365,7 @@ describe('CLI: task command', () => {
       '-w',
       tempWorld.worldPath,
       'focus',
+      '--',
       taskB.id.base64,
     ]);
     output.length = 0;

@@ -190,7 +190,7 @@ export class CLI {
     );
     const version = pkgJson.version;
 
-    let globalOpts: GlobalOpts = { world: resolveWorld(), verbosity: 0 };
+    let globalOpts: GlobalOpts | null = null;
 
     program
       .name('nameforma')
@@ -228,7 +228,10 @@ export class CLI {
         if (opts.agent) settings.isAgent = true;
       });
 
-    const getGlobalOpts = () => globalOpts;
+    const getGlobalOpts = (): GlobalOpts => {
+      if (!globalOpts) throw new Error('getGlobalOpts called before preAction');
+      return globalOpts;
+    };
 
     TaskCommand.registerCommand(
       program.command('task').description('Manage tasks'),
