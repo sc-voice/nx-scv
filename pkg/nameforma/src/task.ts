@@ -2,6 +2,7 @@ import { DBG } from './defines.js';
 import { Entity } from './entity.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { FormaField } from './forma-field.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
@@ -264,12 +265,14 @@ export class Task extends Entity {
     const msg = 't2k.tuiRowStrings';
     let { id, name, summary } = this;
     let progressValue = this.progress();
-    let { itemId = id.timeId(), bullet } = cfg;
+    const { 
+      theme=NameFormaTheme.shared, itemId = id.timeId(), bullet 
+    } = cfg;
 
     const { NO_COLOR } = Unicode.LINUX_COLOR;
     const pct = Math.round(progressValue * 100);
     const coloredPct = `${this.progressColor()}${pct}%${NO_COLOR}`;
-    let row = [itemId, [coloredPct, name, summary].join(UBAR)];
+    let row = [itemId, [coloredPct, name, summary].join(theme.nfBoundary(UBAR))];
     if (bullet) {
       row.unshift(bullet);
     }

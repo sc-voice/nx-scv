@@ -112,7 +112,7 @@ describe('Forma', () => {
         theme: {
           nfLabel: (t: string) => t,
           nfBoundary: (t: string) => t,
-          nfTrack: (t: string) => t,
+          nfLink: (t: string) => t,
           nfNominal: (t: string) => t,
           nfWarn: (t: string) => t,
           nfAttend: (t: string) => t,

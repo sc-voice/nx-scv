@@ -21,7 +21,7 @@ export interface ITheme {
   nfBoundary(text: string): string;
 
   // Identifiable and navigable
-  nfTrack(text: string): string;
+  nfLink(text: string): string;
 
   // Aligned to expectations
   nfNominal(text: string): string;

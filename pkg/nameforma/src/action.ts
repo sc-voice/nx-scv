@@ -1,5 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Forma } from './forma.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import { Unicode, ColorConsole } from '@sc-voice/tools/text';
@@ -237,6 +238,7 @@ export class Action extends Forma {
     let row = super.tuiRowStrings(cfg);
     let id = row.shift()!;
     let statusNote = this.statusNote ? `(${this.statusNote})` : '';
+    const { theme = NameFormaTheme.shared } = cfg;
     const {
       BRIGHT_GREEN,
       BRIGHT_RED,
@@ -261,6 +263,7 @@ export class Action extends Forma {
     const dateStr = Action.shortDate(this.statusDate) + URAR;
     const status = this.status;
     const coloredStatus = c ? `${c}${status}${NO_COLOR}` : status;
-    return [id, [dateStr + coloredStatus, ...row, statusNote].join(UBAR)];
+    const sep = theme.nfBoundary(UBAR);
+    return [id, [dateStr + coloredStatus, ...row, statusNote].join(sep)];
   }
 }

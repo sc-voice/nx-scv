@@ -1,5 +1,6 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 import {
   RenderData,
   RenderDetail,
@@ -29,6 +30,7 @@ export interface ListItemStringCfg {
   itemId?: string;
   bullet?: string;
   separator?: string;
+  theme?: NameFormaTheme;
 }
 
 /**
@@ -240,9 +242,12 @@ export class Forma extends Identifiable implements IRenderable {
    */
   tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
     const msg = 'f3a.tuiRowStrings';
-    let { id, name = 'name?', summary } = this;
-    let { itemId = id.timeId(), bullet, separator = ' ' } = cfg;
-    let row = [itemId, name];
+    const { id, name = 'name?', summary } = this;
+    const { 
+      theme = NameFormaTheme.shared, itemId = id.timeId(), bullet, separator = ' ' 
+    } = cfg;
+    const idLink = theme.nfLink(itemId);
+    let row = [idLink, name];
     if (bullet != null) {
       row.unshift(bullet);
     }
@@ -257,7 +262,9 @@ export class Forma extends Identifiable implements IRenderable {
    */
   listItemString(cfg: ListItemStringCfg = {}): string {
     const msg = 'f3a.listItemString';
-    return this.tuiRowStrings(cfg).join(' ');
+    const { theme = NameFormaTheme.shared } = cfg;
+    const sep = theme.nfBoundary("|");
+    return this.tuiRowStrings(cfg).join(sep);
   }
 
   /**
@@ -277,7 +284,7 @@ export class Forma extends Identifiable implements IRenderable {
     const { anchor } = view;
     const ns = anchor.namespace;
     const theme = view.theme;
-    const shortId = theme.nfTrack(ns.fuzzyIdOf(this));
+    const shortId = theme.nfLink(ns.fuzzyIdOf(this));
     const indent = view.bodyIndent;
     const sep = theme.nfBoundary("|");
 

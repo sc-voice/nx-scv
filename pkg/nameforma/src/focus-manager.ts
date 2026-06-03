@@ -24,11 +24,8 @@ export class FocusManager {
   }
 
   get size(): number {
-    return Array.from(this.#focusStack).length;
-  }
-
-  setFocusStack(focusStack: FormaList<Focus>): void {
-    this.#focusStack = focusStack;
+    //return Array.from(this.#focusStack).length;
+    return this.#rgaFocusStack.size;
   }
 
   setRgaFocusStack(rgaFocusStack: RGA64Stack): void {
@@ -67,25 +64,23 @@ export class FocusManager {
     // For regular Forma items (Task, etc.), lookup by id
     const isFocus = ent instanceof Focus;
     const lookupId = isFocus ? (ent as any).formaId : ent.id;
-    const lookupIdStr =
-      typeof lookupId === 'string' ? lookupId : lookupId.base64;
 
-    const items = Array.from(this.#focusStack);
-    // Most recent is at end of FormaList, so iterate backwards
-    for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].formaId.base64 === lookupIdStr) {
-        return items.length - 1 - i; // Position from most recent
+    const nodes = Array.from(this.#rgaFocusStack.nodes(true));
+    // nodes() returns nodes top-to-bottom with leaf (most recent) first
+    for (let i = 0; i < nodes.length; i++) {
+      if (nodes[i].value.equals(lookupId)) {
+        return i; // Position from most recent
       }
     }
     return Number.MAX_SAFE_INTEGER;
   }
 
   focusedForma(formaType: string): Focus | null {
-    // Most recent is at end of FormaList, iterate backwards
-    const items = Array.from(this.#focusStack);
-    for (let i = items.length - 1; i >= 0; i--) {
-      if (items[i].formaType === formaType) {
-        return items[i];
+    // Iterate through rgaFocusStack (most recent first) to find first item of type
+    for (const node of this.#rgaFocusStack.nodes(true)) {
+      const focus = this.#focusStack.getItem(node.value.toString());
+      if (focus && focus.formaType === formaType) {
+        return focus;
       }
     }
     return null;
@@ -120,9 +115,9 @@ export class FocusManager {
     if (valid.length === before.length) return true;
 
     // Update focusStack
-    this.setFocusStack(new FormaList<Focus>(valid, Focus as any, {
+    this.#focusStack = new FormaList<Focus>(valid, Focus as any, {
       keyField: 'formaId',
-    }));
+    });
 
     return false;
   }
@@ -154,9 +149,9 @@ export class FocusManager {
           summary: f.summary,
         }),
       );
-      fm.setFocusStack(new FormaList<Focus>(focuses, Focus as any, {
+      fm.#focusStack = new FormaList<Focus>(focuses, Focus as any, {
         keyField: 'formaId',
-      }));
+      });
     }
 
     // Restore rgaFocusStack if present

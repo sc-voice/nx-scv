@@ -181,12 +181,14 @@ export default class TaskCommand {
         const itemId = references.itemListId(reference) + ':';
         const line = reference.listItemString({ itemId });
         const maxLines = verbosity > 1 ? verbosity + 1 : 1;
+        // wrapIndent is based on visible length of itemId, not including ANSI codes in the formatted line
+        const wrapIndent = itemId.length + 1;
         const wrapped = tui.wrapAndTruncate(
           line,
           74,
           maxLines,
           'ellipsis',
-          itemId.length + 1,
+          wrapIndent,
         );
         wrapped.split('\n').forEach((l) => nfTui.log(`    ${l}`));
       });
@@ -209,8 +211,8 @@ export default class TaskCommand {
       fBullet: (index: number, item: any) => {
         const focusOrder = world.focusOrder(item);
         return focusOrder < Number.MAX_SAFE_INTEGER
-          ? Unicode.CIRCLED_BULLET
-          : Unicode.BULLET;
+          ? (index === 0 ? Unicode.CIRCLED_BULLET : Unicode.WHITE_BULLET)
+          : Unicode.BUL_HYPHEN;
       },
     };
     new TuiList(entityList, world, prefs).render();
@@ -468,13 +470,11 @@ export default class TaskCommand {
         world.save();
 
         nfTui.log(UOK + `Task unfocused:` + UNC, task.listItemString());
-        const stack = Array.from(world.focusStack);
-        nfTui.log(`Focus stack (${stack.length}):`);
-        if (stack.length > 0) {
-          for (const focus of stack) {
-            const t = world.loadEntity(Task, focus.formaId.base64);
-            if (t) TaskCommand.displayTask(world, t, -2);
-          }
+        const values = world.rgaFocusStack.values();
+        nfTui.log(`Focus stack (${values.length}):`);
+        for (const id of values) {
+          const t = world.loadEntity(Task, id.base64);
+          if (t) TaskCommand.displayTask(world, t, -2);
         }
       });
   }

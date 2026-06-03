@@ -1,6 +1,7 @@
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 
 import { Unicode, ColorConsole } from '@sc-voice/tools/text';
 const { cc } = ColorConsole;
@@ -111,11 +112,15 @@ export class Reference extends Forma {
   override tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
     const msg = 't2k.tuiRowStrings';
     let { id, name, summary, relevance, source = '' } = this;
-    let { itemId = id.timeId(), bullet } = cfg;
+    let {
+      theme=NameFormaTheme.shared, itemId = id.timeId(), bullet
+    } = cfg;
 
+    let linkId = theme.nfLink(itemId);
+    const sep = theme.nfBoundary(UBAR);
     let row = [
-      itemId,
-      [relevance.toFixed(1), name, summary, source].join(UBAR),
+      linkId,
+      [relevance.toFixed(1), name, summary, source].join(sep),
     ];
     if (bullet) {
       row.unshift(bullet);

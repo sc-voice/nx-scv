@@ -1,25 +1,17 @@
 {
-  "focusStack": [
-    {
-      "id": "0PsmBY3600VOwDbIaMmFdW",
-      "formaId": "0PsMdk-a00VOwDbIaMmFdW",
-      "formaType": "task",
-      "name": "Container for nx-scv development",
-      "summary": "Define a container that developers can use to work with nx-scv monorepo"
+  "focusManager": {
+    "focusStack": [],
+    "rgaFocusStack": {
+      "id": "0Pw8ivlR00Ujq3YZRbEw7W",
+      "name": "Focus Stack",
+      "summary": "",
+      "nodes": []
     }
-  ],
-  "rgaFocusStack": {
-    "id": "0Pvnt5-F00ZOJ_7OPiHa7W",
-    "name": "Focus Stack",
-    "summary": "",
-    "nodes": [
-      "0Pvnt5-G00cKIZG76UNKNW.0PsMdk-a00VOwDbIaMmFdW.^.@"
-    ]
   },
   "id": "0Pr-SSWU009b1NvN2GE4dW",
   "numeronym": {},
   "watermark": {
     "Karl Lew": "0PvaV0bO00EH0uUE6jwMdW",
-    "20n1YZVkrlNW": "0PvntbeG00p7QrjgaT3etW"
+    "20n1YZVkrlNW": "0Pv-_vvm00vi0iSu6xpodW"
   }
 }

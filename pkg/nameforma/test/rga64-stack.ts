@@ -25,7 +25,9 @@ describe('RGA64Stack', () => {
     const value2 = new UUID64();
 
     const node1 = stack.push(value1, alice);
+    expect(stack.size).toBe(1);
     const node2 = stack.push(value2, alice);
+    expect(stack.size).toBe(2);
 
     expect(stack.nodes()).toHaveLength(2);
     expect(node1.value).toBe(value1);
@@ -61,10 +63,12 @@ describe('RGA64Stack', () => {
     const value1 = new UUID64();
 
     stack.push(value1);
+    expect(stack.size).toBe(1);
     const popped = stack.pop();
 
     expect(popped).toBeDefined();
     expect(popped?.deleted).toBe(true);
+    expect(stack.size).toBe(0);
     expect(stack.peek()).toBeUndefined();
   });
 
@@ -95,11 +99,13 @@ describe('RGA64Stack', () => {
     stack.push(value1);
     stack.push(value2);
     stack.push(value3);
+    expect(stack.size).toBe(3);
 
     const removed = stack.remove(value2);
     expect(removed).toBeDefined();
     expect(removed!.value).toBe(value2);
     expect(removed!.deleted).toBe(true);
+    expect(stack.size).toBe(2);
 
     const nodes = stack.nodes();
     expect(nodes).toHaveLength(2);
@@ -207,11 +213,14 @@ describe('RGA64Stack', () => {
 
     // User1 pushes
     const node1 = stack.push(value1);
+    expect(stack.size).toBe(1);
     // User2 pushes concurrently (simulated as separate node)
     const node2 = new RGA64Node(new UUID64(), value2, node1.id, false);
     stack.add(node2);
+    expect(stack.size).toBe(2);
     // User1 pushes again
     const node3 = stack.push(value3);
+    expect(stack.size).toBe(3);
 
     // peek() should return the one with highest id (most recent leaf)
     const top = stack.peek();
@@ -250,6 +259,7 @@ describe('RGA64Stack', () => {
 
     const value = new UUID64();
     stack1.push(value);
+    expect(stack1.size).toBe(1);
 
     const json = stack1.toJSON();
     const stack2 = RGA64Stack.fromJSON(json);
@@ -258,6 +268,7 @@ describe('RGA64Stack', () => {
     expect(stack2.summary).toBe('Test');
     expect(stack2.nodes(false)).toHaveLength(1);
     expect(stack2.nodes((false))[0].value.toString()).toBe(value.toString());
+    expect(stack2.size).toBe(1);
   });
 
   it('round-trips nodes through JSON', () => {

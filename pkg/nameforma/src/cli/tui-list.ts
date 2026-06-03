@@ -1,5 +1,6 @@
 import { nfTui } from './nf-tui.js';
 import { Forma } from '../forma.js';
+import { NameFormaTheme } from '../nameforma-theme.js';
 import { FormaList } from '../forma-list.js';
 import { World } from '../world.js';
 import { Unicode } from '@sc-voice/tools/text';
@@ -104,29 +105,70 @@ export class TuiList<T extends Forma> {
     textOverflow?: 'ellipsis' | 'hidden',
     wrapIndent: number = 0,
   ): string {
-    // Find where content actually starts (first non-space character)
-    const contentStart = text.search(/\S/);
-    const indentPos =
-      contentStart >= 0 ? contentStart + wrapIndent : wrapIndent;
+    // ANSI escape sequence pattern: \x1b[...m or \033[...m
+    const ansiPattern = /\x1b\[[0-9;]*m/g;
+
+    // Get visible length of string (excluding ANSI codes)
+    const visibleLength = (str: string): number => {
+      return str.replace(ansiPattern, '').length;
+    };
+
+    // Find where visible content actually starts (first non-space character, ignoring ANSI codes)
+    let visibleContentStart = 0;
+    let rawPos = 0;
+    while (rawPos < text.length) {
+      const ansiMatch = text.slice(rawPos).match(/^\x1b\[[0-9;]*m/);
+      if (ansiMatch) {
+        rawPos += ansiMatch[0].length;
+      } else if (text[rawPos] === ' ') {
+        visibleContentStart++;
+        rawPos++;
+      } else {
+        break; // Found first non-space
+      }
+    }
+    const indentPos = visibleContentStart + wrapIndent;
     const indentStr = ' '.repeat(Math.max(0, indentPos));
     const continuationWidth = Math.max(1, maxWidth - indentPos);
 
-    // Helper to wrap text at word boundaries
+    // Helper to wrap text at word boundaries, accounting for ANSI codes
     const wrapLine = (line: string, width: number): string[] => {
       const result: string[] = [];
       let remaining = line;
 
-      while (remaining.length > 0) {
-        if (remaining.length <= width) {
+      while (visibleLength(remaining) > 0) {
+        if (visibleLength(remaining) <= width) {
           result.push(remaining);
           break;
         }
 
-        // Find last space within width
+        // Find last space within visible width
         let breakPoint = width;
-        const lastSpace = remaining.lastIndexOf(' ', width);
-        if (lastSpace > 0) {
-          breakPoint = lastSpace;
+        let visPos = 0;
+        let rawPos = 0;
+        let lastSpaceRaw = -1;
+
+        while (rawPos < remaining.length && visPos < width) {
+          const char = remaining[rawPos];
+          if (char === ' ' && visPos <= width) {
+            lastSpaceRaw = rawPos;
+          }
+
+          // Check if we're at the start of an ANSI code
+          const ansiMatch = remaining.slice(rawPos).match(/^\x1b\[[0-9;]*m/);
+          if (ansiMatch) {
+            rawPos += ansiMatch[0].length;
+          } else {
+            visPos++;
+            rawPos++;
+          }
+        }
+
+        // Use the last space if found, otherwise break at width
+        if (lastSpaceRaw > 0) {
+          breakPoint = lastSpaceRaw;
+        } else {
+          breakPoint = rawPos;
         }
 
         // Extract line and trim trailing whitespace
@@ -169,10 +211,27 @@ export class TuiList<T extends Forma> {
       const kLast = keptLines.length - 1;
       const lastLine = keptLines[kLast];
       const availWidth = kLast === 0 ? maxWidth : maxWidth;
+
+      // Helper to slice at a visible character position (accounting for ANSI codes)
+      const sliceAtVisiblePos = (str: string, visiblePos: number): string => {
+        let rawPos = 0;
+        let visPos = 0;
+        while (rawPos < str.length && visPos < visiblePos) {
+          const ansiMatch = str.slice(rawPos).match(/^\x1b\[[0-9;]*m/);
+          if (ansiMatch) {
+            rawPos += ansiMatch[0].length;
+          } else {
+            visPos++;
+            rawPos++;
+          }
+        }
+        return str.slice(0, rawPos);
+      };
+
       keptLines[kLast] =
         textOverflow === 'ellipsis'
-          ? lastLine.slice(0, availWidth - 1) + '…'
-          : lastLine.slice(0, availWidth);
+          ? sliceAtVisiblePos(lastLine, availWidth - 1) + '…'
+          : sliceAtVisiblePos(lastLine, availWidth);
     }
 
     return keptLines.join('\n');
@@ -181,6 +240,7 @@ export class TuiList<T extends Forma> {
   render(): void {
     const items = Array.from(this.list);
     const resolved = this.resolvePreferences(this.prefs);
+    const theme = NameFormaTheme.shared;
 
     // Print title with item count
     nfTui.log(`${resolved.title} (${items.length}):`);
@@ -218,7 +278,8 @@ export class TuiList<T extends Forma> {
     for (let index = 0; index < rows.length; index++) {
       const item = rows[index];
       const bullet = fBullet(index, item);
-      const itemId = this.list.itemListId(item);
+      const listId = this.list.itemListId(item);
+      const itemId = theme.nfLink(listId);
       let line = item.listItemString({ itemId, bullet });
 
       // Wrap and truncate text based on preferences
@@ -232,7 +293,8 @@ export class TuiList<T extends Forma> {
 
       const focusOrder = this.world.focusOrder(item);
       if (focusOrder === 0) {
-        nfTui.log(`${focusColor1}${line}${RESET}`);
+        //nfTui.log(`${focusColor1}${line}${RESET}`);
+        nfTui.log(theme.nfNominal(line));
       } else if (primary && item.id.isRelated(primary.id)) {
         nfTui.log(`${focusColor2}${line}${RESET}`);
       } else {

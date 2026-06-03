@@ -165,6 +165,13 @@ export class RGA64Stack extends Forma {
   }
 
   /**
+   * Get count of active nodes in the stack.
+   */
+  get size(): number {
+    return this.nodes(true).length;
+  }
+
+  /**
    * Merge a node from another user's stack.
    * Adds the node if it doesn't exist, updates if it does.
    */

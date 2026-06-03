@@ -20,7 +20,7 @@
     "format": "npx biome format --write src test",
     "test": "npm run test:unit",
     "test:unit": "npm run build && vitest --config test/vitest.config.mjs run --project=unit",
-    "test:test": "npm run build && vitest --config test/vitest.config.mjs watch",
+    "test:test": "npm run build && vitest --config test/vitest.config.mjs watch --project=unit",
     "test:integration": "npm run tansu:start && npm run build && vitest run --config test/vitest.config.mjs --project=integration",
     "tansu:install": "./scripts/tansu-install",
     "tansu:start": "./scripts/tansu-start",

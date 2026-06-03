@@ -3,8 +3,8 @@ import { NameFormaTheme } from '../dist/nameforma-theme.js';
 import type { ITheme } from '../dist/navigable-view.js';
 
 describe('NameFormaTheme', () => {
-  it('NameFormaTheme.load returns ITheme', () => {
-    const theme = NameFormaTheme.load();
+  it('NameFormaTheme.shared returns cached ITheme', () => {
+    const theme = NameFormaTheme.shared;
     expect(theme).toBeDefined();
     expect(theme).toHaveProperty('nfLabel');
   });
@@ -14,21 +14,23 @@ describe('NameFormaTheme', () => {
     expect(theme).toBeDefined();
   });
 
-  it('nfLabel returns text with ANSI styling', () => {
-    const theme = NameFormaTheme.load();
-    const result = theme.nfLabel('label');
+  it('all nf methods apply styling and preserve text', () => {
+    const theme = NameFormaTheme.shared;
+    const methods = [
+      'nfText',
+      'nfBoundary',
+      'nfLink',
+      'nfNominal',
+      'nfWarn',
+      'nfAttend',
+      'nfFree',
+      'nfLabel',
+    ] as const;
 
-    expect(typeof result).toBe('string');
-    expect(result.length > 0).toBe(true);
-    // Verify styling was applied (ANSI codes present, not just plain text)
-    expect(result).not.toBe('label');
-  });
-
-  it('nfLabel preserves text content', () => {
-    const theme = NameFormaTheme.load();
-    const text = 'important label';
-    const result = theme.nfLabel(text);
-
-    expect(result).toContain(text);
+    methods.forEach((method) => {
+      const result = theme[method]('test');
+      expect(result).toContain('test');
+      expect(result).not.toBe('test');
+    });
   });
 });

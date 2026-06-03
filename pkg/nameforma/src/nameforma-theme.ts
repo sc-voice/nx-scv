@@ -19,7 +19,20 @@ const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
  * directory on first load, ensuring consistent behavior in CLI and extension contexts.
  */
 export class NameFormaTheme implements ITheme {
+  private static _shared: ITheme | null = null;
+
   constructor(private theme: Theme) {}
+
+  /**
+   * Cached singleton instance of the nameforma theme.
+   * @returns ITheme instance with nameforma colors
+   */
+  static get shared(): ITheme {
+    if (!this._shared) {
+      this._shared = this.load();
+    }
+    return this._shared;
+  }
 
   /**
    * Load and initialize the nameforma theme, installing to ~/.pi/agent/themes/ if needed.
@@ -70,11 +83,11 @@ export class NameFormaTheme implements ITheme {
   }
 
   /**
-   * Apply 'border' color to text 
+   * Apply 'borderAccent' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
-  nfTrack(text: string): string {
+  nfLink(text: string): string {
     return this.theme.fg('borderAccent', text);
   }
 

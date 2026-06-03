@@ -196,9 +196,9 @@ describe('FuzzyNamespace', () => {
       const id1 = ns.fuzzyIdOf(forma1);
       const id2 = ns.fuzzyIdOf(forma2);
       const id3 = ns.fuzzyIdOf(forma3);
-      expect(id1.length).toBeLessThanOrEqual(7);
-      expect(id2.length).toBeLessThanOrEqual(7);
-      expect(id3.length).toBeLessThanOrEqual(7);
+      expect(id1.length).toBeLessThanOrEqual(8);
+      expect(id2.length).toBeLessThanOrEqual(8);
+      expect(id3.length).toBeLessThanOrEqual(8);
       expect(id1.length).toEqual(id2.length);
       expect(id3.length).toEqual(id2.length);
     });

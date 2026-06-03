@@ -18,7 +18,7 @@
 		"toolErrorBg": "#3c2828",
 		"customMsgBg": "#2d2838",
     "nfBoundary": "#00C0EE",
-    "nfTrack": "#BB77FF",
+    "nfLink": "#BB77FF",
     "nfWarn": "#CCCC00",
     "nfAttend": "#ff5555",
     "nfNominal": "#50fa7b",
@@ -27,7 +27,7 @@
 	"colors": {
 		"accent": "accent",
 		"border": "nfBoundary",
-		"borderAccent": "nfTrack",
+		"borderAccent": "nfLink",
 		"borderMuted": "darkGray",
 		"success": "nfNominal",
 		"error": "nfAttend",
