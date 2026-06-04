@@ -5,7 +5,9 @@
 
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import { NameFormaTheme } from '../nameforma-theme.js';
 import type { GlobalOpts } from './nf-cli.js';
+const theme = NameFormaTheme.shared;
 
 export default class SetCommand {
   static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
@@ -44,9 +46,10 @@ export default class SetCommand {
           if (options.json) {
             nfTui.log(JSON.stringify(updated, null, 2));
           } else {
-            nfTui.log(`✓ Updated: ${fieldPath} (${oldValue}) →`);
-            nfTui.log(`  ${oldValue}`);
-            nfTui.log(`→ ${value}`);
+            let id = forma.id.base64.replace(formaId, theme.nfLink(formaId));
+            nfTui.log(`✓ ${theme.nfBoundary("Updated:")} ${id}.${fieldPath}`);
+            nfTui.log(`  ${theme.nfAttend(oldValue)}`);
+            nfTui.log(`→ ${theme.nfNominal(value)}`);
           }
         } catch (err: any) {
           nfTui.error(`✗ Error: ${err.message}`);

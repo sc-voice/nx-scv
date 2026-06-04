@@ -187,10 +187,14 @@ export class FormaList<T extends Forma> {
    * @throws If no item found or multiple items match (ambiguous)
    */
   getItem(id: FuzzyId): T {
-    const filter = Identifiable.idFilter(id);
-    const matches = this.#filterItems((item) =>
-      filter(this.#itemId(item)),
-    );
+    const filter1 = Identifiable.idFilter(id, id.length, false);
+    let matches = this.#filterItems((item) => filter1(this.#itemId(item)));
+
+    if (matches.length === 0) {
+      // Ignore case
+      const filter2 = Identifiable.idFilter(id, id.length, true);
+      matches = this.#filterItems((item) => filter2(this.#itemId(item)))
+    }
 
     if (matches.length === 0) {
       throw new Error(`getItem: no item found for "${id}"`);

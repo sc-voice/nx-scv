@@ -99,7 +99,7 @@ export class FuzzyNamespace implements IMutableNamespace {
   getForma(fuzzyId: FuzzyId): Forma | undefined {
     const formas = this.#formas;
     // TimeId filter exact match of fuzzyIdOf
-    const timeIdMatches = formas.filter(f => f.id.timeId().endsWith(fuzzyId));
+    const timeIdMatches = formas.filter(f => f.id.timeId().includes(fuzzyId));
     if (timeIdMatches.length === 1) {
       return timeIdMatches[0];
     }

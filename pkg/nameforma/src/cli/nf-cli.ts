@@ -26,7 +26,11 @@ import type { IReplRenderer } from './nf-tui.js';
 
 const execAsync = promisify(exec);
 
-export type GlobalOpts = { world: World; verbosity: number };
+export type GlobalOpts = {
+  world: World;
+  verbosity: number;
+  testRunner: boolean;
+};
 
 export class REPL {
   private world: World;
@@ -220,11 +224,16 @@ export class NfCLI {
         '--agent',
         'Run as agent (requires consensus for done/manage transitions)',
       )
+      .option(
+        '--test-runner',
+        'Run as test runner (for vitest/jest integration)',
+      )
       .hook('preAction', (thisCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
         globalOpts = {
           world: resolveWorld(opts.world),
           verbosity: parseInt(opts.verbose || '0', 10),
+          testRunner: opts.testRunner || false,
         };
         if (opts.debug) process.env.DEBUG = '1';
         if (opts.agent) settings.isAgent = true;
@@ -366,45 +375,16 @@ export class NfCLI {
   }
 }
 
-const isTestRunner = process.argv.some(
-  (arg) => arg.includes('vitest') || arg.includes('jest'),
-);
+const isTestRunner = process.argv.includes('--test-runner');
 
 if (!isTestRunner) {
   const argsIdx = process.argv.indexOf('--args');
   if (argsIdx !== -1) {
     console.log(JSON.stringify(process.argv.slice(argsIdx + 1)));
     process.exit(0);
-  } else if (process.argv.includes('--pi-tui-test')) {
-    const { TUI, Text, ProcessTerminal } = await import(
-      '@earendil-works/pi-tui'
-    );
-    const tui = new TUI(new ProcessTerminal());
-    const scrollText = new Text();
-    tui.addChild(scrollText);
-    const footerText = new Text();
-    tui.showOverlay(footerText, { anchor: 'bottom-left' });
-    tui.start();
-    const lines: string[] = [];
-    const interval = setInterval(() => {
-      const len = 3 + Math.floor(Math.random() * 18);
-      const word = Array.from({ length: len }, () =>
-        String.fromCharCode(97 + Math.floor(Math.random() * 26)),
-      ).join('');
-      lines.push(word);
-      if (lines.length > 75) lines.shift();
-      scrollText.setText(lines.join('\n'));
-      footerText.setText(new Date().toLocaleTimeString());
-      tui.requestRender();
-    }, 200);
-    const stop = () => {
-      clearInterval(interval);
-      tui.stop();
-      process.exit(0);
-    };
-    setTimeout(stop, 30000);
-    process.on('SIGINT', stop);
-  } else if (process.argv.length <= 2) {
+  }
+
+  if (process.argv.length <= 2) {
     const world = resolveWorld(process.env.WORLD);
     const repl = new REPL(world);
     repl.start().catch((err) => {

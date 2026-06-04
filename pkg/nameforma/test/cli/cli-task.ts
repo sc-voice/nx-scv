@@ -12,6 +12,8 @@ import path from 'path';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import { NfCLI } from '../../src/cli/nf-cli.js';
+import { nfTui } from '../../src/cli/nf-tui.js';
+import { CliRenderer } from '../../src/cli/nf-tui.js';
 import { World } from '../../src/world.js';
 import {
   createTempWorld,
@@ -48,6 +50,9 @@ describe('CLI: task command', () => {
     console.error = (...args) => {
       errors.push(args.join(' '));
     };
+
+    // Reset nfTui to use mocked console
+    nfTui.setRenderer(new CliRenderer());
 
     // Create CLI instance
     cli = new NfCLI();
