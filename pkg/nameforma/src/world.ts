@@ -21,7 +21,7 @@ import {
   type FormaListEvent,
 } from './forma-list.js';
 import { Focus } from './focus.js';
-import { FocusManager } from './focus-manager.js';
+import { FocusManager, type IFocusManager } from './focus-manager.js';
 import { NfUrl } from './nf-url.js';
 import {
   RenderData,
@@ -281,24 +281,11 @@ export class World extends Entity implements IEventBus {
 
     // Find the serializing entity
     const inWorld = this.namespace.getForma(forma.id.base64);
-    dbg &&
-      cc.ok1(
-        msg,
-        `inWorld=${inWorld ? 'found' : 'not found'}, inWorld.id=${inWorld?.id.base64}`,
-      );
-
     if (inWorld) {
       // Top-level forma in world namespace
-      dbg && cc.ok1(msg, `patching world entity ${forma.id.base64}`);
       const EntityClass = this.entityClassOfName(
         (forma.constructor as any).entity,
       );
-      dbg &&
-        cc.ok1(
-          msg,
-          `EntityClass=${(EntityClass as any).entity || EntityClass?.constructor.name}`,
-        );
-
       if (!EntityClass) {
         throw new Error(`Unknown entity type for ${forma.id.base64}`);
       }
@@ -311,43 +298,22 @@ export class World extends Entity implements IEventBus {
     }
 
     // Try focused entity's namespace
-    const focusedEntry = Array.from(this.#focusManager.focusStack).at(-1);
-    dbg &&
-      cc.ok1(
-        msg,
-        `focusedEntry=${focusedEntry ? `${focusedEntry.formaType}/${focusedEntry.formaId}` : 'none'}`,
-      );
-
-    if (focusedEntry) {
-      const EntityClass = this.entityClassOfName(focusedEntry.formaType);
-      if (EntityClass) {
-        const entity = this.loadEntity(EntityClass, focusedEntry.formaId);
-        if (entity && 'namespace' in entity) {
-          const nested = (entity as any).namespace.getForma(forma.id.base64);
-          dbg &&
-            cc.ok1(
-              msg,
-              `nested=${nested ? 'found' : 'not found'} in ${focusedEntry.formaType}`,
-            );
-
-          if (nested) {
-            dbg &&
-              cc.ok1(
-                msg,
-                `patching nested ${forma.id.base64} in ${focusedEntry.formaType}`,
-              );
-            nested.patch({ [fieldPath]: value });
-            this.emit('change', {
-              type: 'patch',
-              item: nested,
-              cfg: { [fieldPath]: value },
-              entity,
-            });
-            dbg && cc.ok1(msg, `patched nested, result.id=${nested.id.base64}`);
-            return nested;
-          }
-        }
-      }
+    const focusId = this.#focusManager.peek();
+    const entity = focusId && this.namespace.getForma(focusId.base64);
+    const EntityClass = this.entityClassOfName((entity as any).formaType);
+    if (EntityClass == null) {
+      throw new Error(`Forma not found in any namespace: ${forma.id.base64}`);
+    }
+    const nested = (entity as any).namespace.getForma(forma.id.base64);
+    if (nested) {
+      nested.patch({ [fieldPath]: value });
+      this.emit('change', {
+        type: 'patch',
+        item: nested,
+        cfg: { [fieldPath]: value },
+        entity,
+      });
+      return nested;
     }
 
     throw new Error(`Forma not found in any namespace: ${forma.id.base64}`);
@@ -733,17 +699,11 @@ export class World extends Entity implements IEventBus {
       return;
     }
 
-    // Remove from namespace if task
-    if (entityType === 'task') {
-      this.mutableNamespace.removeForma(id);
-    }
+    // Remove from namespace
+    this.mutableNamespace.removeForma(id);
 
     // Remove from focus stack if present
-    try {
-      this.#focusManager.focusStack.deleteItem(id);
-    } catch {
-      // Not in focus stack, that's fine
-    }
+    this.#focusManager.unfocus(UUID64.fromString(id));
 
     fs.unlinkSync(filePath);
     dbg && cc.ok1(msg, `deleted ${filePath}`);
@@ -785,6 +745,14 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * Get the focus manager
+   * @returns {IFocusManager}
+   */
+  get focusManager(): IFocusManager {
+    return this.#focusManager;
+  }
+
+  /**
    * Get RGA focus stack for CRDT-based focus tracking
    * @returns {RGA64Stack}
    */
@@ -793,23 +761,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Get focus order (index in focusStack by forma id, 0 = most recent)
-   * @param {Forma} ent - Forma or Focus entity
-   * @returns {number} - 0-based index if forma is focused (0=most recent), Number.MAX_SAFE_INTEGER if not
-   */
-  focusOrder(ent: Forma): number {
-    return this.#focusManager.focusOrder(ent);
-  }
-
-  /**
-   * Focus a forma (push to top of stack, move if already focused)
-   * @param {Forma} forma - Forma to focus
-   */
-  focusForma(forma: any): void {
-    this.#focusManager.focusForma(forma);
-  }
-
-  /**
+   * @deprectated
    * Unfocus a forma (remove from stack)
    * @param {Forma} forma - Forma to unfocus
    */
@@ -818,41 +770,39 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Get focused forma of a given type (most recent)
-   * @param {string} formaType - Type name (e.g., 'task')
-   * @returns {Focus|null} - Focus entry or null
+   * Get focused forma of a given type (most recent).
+   * Uses entity registry to validate type and namespace to resolve current entity state.
+   * @param {string} formaType - Registered entity type name (e.g., 'task')
+   * @returns {Forma|null} - Focused entity or null
    */
-  focusedForma(formaType: string): Focus | null {
-    return this.#focusManager.focusedForma(formaType);
+  focusedForma(formaType: string): Forma | null {
+    if (!this.entityClassOfName(formaType)) return null;
+    for (const id of this.#focusManager.ids()) {
+      const entity = this.namespace.getForma(id.base64);
+      if (entity && (entity.constructor as any).entity === formaType) {
+        return entity;
+      }
+    }
+    return null;
   }
 
   /**
-   * Get focusStack as FormaList, ordered by recency (newest first)
-   * @returns {FormaList<Focus>} - FormaList of focuses in reverse chronological order
-   */
-  get focusStack(): FormaList<Focus> {
-    return this.#focusManager.getFocusStackReversed();
-  }
-
-  /**
-   * Remove stale entries from focusStack where backing entity no longer exists
+   * Remove stale entries from focusManager where backing entity no longer exists
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
   override validate(opts: any = {}): boolean {
     const result = super.validate(opts);
 
     const beforeSize = this.#focusManager.size;
-    const isValid = this.#focusManager.validate((focus) => {
-      try {
-        // Check if entity file exists on disk, regardless of registration
-        const idStr = typeof focus.formaId === 'string' ? focus.formaId : focus.formaId.toString();
-        const filePath = path.join(this.#worldPath, focus.formaType, `${idStr}.json`);
-        return fs.existsSync(filePath);
-      } catch {
-        return false;
-      }
-    });
+    for (const id of this.#focusManager.ids()) {
+      const idStr = id.toString();
+      const exists = fs.readdirSync(this.#worldPath, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .some(d => fs.existsSync(path.join(this.#worldPath, d.name, `${idStr}.json`)));
+      if (!exists) this.#focusManager.unfocus(id);
+    }
 
+    const isValid = this.#focusManager.size === beforeSize;
     if (!isValid) {
       console.warn(
         `Cleaned ${beforeSize - this.#focusManager.size} stale focus entries`,
@@ -974,7 +924,7 @@ export class World extends Entity implements IEventBus {
 
   /**
    * Deserialize World from JSON (internal use only)
-   * @param {object} data - JSON data with id and optional numeronym and focusStack
+   * @param {object} data - JSON data with id and optional numeronym and focusManager
    * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
    * @returns {World} - World instance with worldPath set to baseDir
    */
@@ -1019,14 +969,14 @@ export class World extends Entity implements IEventBus {
       return headerData;
     }
 
-    const focusStack = Array.from(this.#focusManager.focusStack);
-    const focusItems = focusStack
-      .map(f => this.namespace.getForma((f as Focus).formaId.base64))
+    const focusIds = this.#focusManager.ids();
+    const focusItems = focusIds
+      .map(id => this.namespace.getForma(id.base64))
       .filter(Boolean) as Forma[];
     const buf = new RenderBuffer(view, zenoStepToLines(anchorStep));
     for (const row of headerData as RenderRow[]) buf.pushRow(row);
 
-    buf.pushRow([ new FormaField('focusStack', false, 'Focus Stack', ''+focusItems.length) ]);
+    buf.pushRow([ new FormaField('focusManager', false, 'Focus Manager', ''+focusItems.length) ]);
     buf.pushCollection(focusItems.map(f => f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
     return buf.getRenderData();
   } // renderDataAtZeno

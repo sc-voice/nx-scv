@@ -32,11 +32,7 @@ export default class ActionCommand {
   };
 
   static getFocusedTask(world: World): Task | null {
-    const focus = world.focusedForma('task');
-    if (!focus) {
-      return null;
-    }
-    return world.loadFuzzy(Task, focus.formaId.toString()) || null;
+    return world.focusedForma('task') as Task | null;
   }
 
   static resolveTask(world: World, taskId?: string): Task {
@@ -45,11 +41,9 @@ export default class ActionCommand {
       if (!task) throw new Error(`Task not found: ${taskId}`);
       return task;
     }
-    const focus = world.focusedForma('task');
-    if (!focus)
+    const task = world.focusedForma('task') as Task | null;
+    if (!task)
       throw new Error('No task focused and --task not specified');
-    const task = world.loadEntity(Task, focus.formaId.base64);
-    if (!task) throw new Error(`Focused task not found: ${focus.formaId}`);
     return task;
   }
 

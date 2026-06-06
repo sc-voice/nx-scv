@@ -1,28 +1,5 @@
 {
   "focusManager": {
-    "focusStack": [
-      {
-        "id": "0PutDgcY00bvTa7C9N4cdW",
-        "formaId": "0PurmuK-00bvTa7C9N4cdW",
-        "formaType": "task",
-        "name": "Introduce \"/nf\" command refactor",
-        "summary": "Updated action summary for overlay-nf-widget via task update attempt."
-      },
-      {
-        "id": "0PvK-QTG00EhjTN_dUJr7W",
-        "formaId": "0PvGj_Dq00EhjTN_dUJr7W",
-        "formaType": "task",
-        "name": "Refactor Rendering with RenderBuffer",
-        "summary": "Create a `RenderBuffer` class to encapsulate row budgeting and rendering logic for TUI components."
-      },
-      {
-        "id": "0Pw8Gqhq00kbHzJcrG_JdW",
-        "formaId": "0PvQ3ujr00kbHzJcrG_JdW",
-        "formaType": "task",
-        "name": "nf pi extension command: watch",
-        "summary": "Implement the \"watch\" command in the nf extension to monitor convergence of changes to the nf system of record as they are written to the file system."
-      }
-    ],
     "rgaFocusStack": {
       "id": "0Pvuk3Ux00Rt9XDAtOFG7W",
       "name": "Focus Stack",
@@ -39,7 +16,12 @@
         "0Pv-ePX800cKIZG76UNKNW.0Pv-eJUT00aBuAeDYqaY7W.0Pvuk3Uy00cKIZG76UNKNW.-",
         "0Pv-lSEU01cKIZG76UNKNW.0Pv-kyaR00vxr0LlXGNeNW.0Pvuk3Uy00cKIZG76UNKNW.-",
         "0Pw8Gqhq01cKIZG76UNKNW.0PvQ3ujr00kbHzJcrG_JdW.0Pvuk3Ux01cKIZG76UNKNW.@",
-        "0PwIa1En01cKIZG76UNKNW.0PwE0Wg_002KGh6VUFsCdW.0Pw8Gqhq01cKIZG76UNKNW.-"
+        "0PwIa1En01cKIZG76UNKNW.0PwE0Wg_002KGh6VUFsCdW.0Pw8Gqhq01cKIZG76UNKNW.-",
+        "0PwNCvHO01cKIZG76UNKNW.0PwNCjEo00eJP-XrNLCV7W.0Pw8Gqhq01cKIZG76UNKNW.@",
+        "0PwPKMKU01cKIZG76UNKNW.0PwPKK02009DR-cFAmt4tW.0PwNCvHO01cKIZG76UNKNW.-",
+        "0PwShuz201cKIZG76UNKNW.0PwSefap00MnSYV_LeUntW.0PwNCvHO01cKIZG76UNKNW.-",
+        "0PwTp1Q801cKIZG76UNKNW.0PwTo_U_0052FJaULY9fNW.0PwShuz201cKIZG76UNKNW.-",
+        "0PwTp5yk01cKIZG76UNKNW.0PwSefap00MnSYV_LeUntW.0PwTp1Q801cKIZG76UNKNW.@"
       ]
     }
   },

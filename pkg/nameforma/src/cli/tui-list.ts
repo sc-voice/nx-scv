@@ -251,7 +251,7 @@ export class TuiList<T extends Forma> {
 
     // Sort: focusOrder asc, then itemListId descending (most recent first)
     const sorted = items.sort((a, b) => {
-      const cmp = this.world.focusOrder(a) - this.world.focusOrder(b);
+      const cmp = this.world.focusManager.focusOrder(a.id) - this.world.focusManager.focusOrder(b.id);
       return (
         cmp ||
         this.list.itemListId(b).localeCompare(this.list.itemListId(a))
@@ -272,14 +272,14 @@ export class TuiList<T extends Forma> {
 
     // primary focus item (focusOrder===0) used for UUID64 relatedness check
     const primary = sorted.find(
-      (item) => this.world.focusOrder(item) === 0,
+      (item) => this.world.focusManager.focusOrder(item.id) === 0,
     );
 
     for (let index = 0; index < rows.length; index++) {
       const item = rows[index];
       const bullet = fBullet(index, item);
       const listId = this.list.itemListId(item);
-      const itemId = theme.nfLink(listId);
+      const itemId = theme.nfLink(` ${listId} `);
       let line = item.listItemString({ itemId, bullet });
 
       // Wrap and truncate text based on preferences
@@ -291,7 +291,7 @@ export class TuiList<T extends Forma> {
         wrapIndent,
       );
 
-      const focusOrder = this.world.focusOrder(item);
+      const focusOrder = this.world.focusManager.focusOrder(item.id);
       if (focusOrder === 0) {
         //nfTui.log(`${focusColor1}${line}${RESET}`);
         nfTui.log(theme.nfNominal(line));

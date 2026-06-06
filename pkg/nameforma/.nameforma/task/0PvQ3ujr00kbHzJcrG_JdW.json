@@ -39,6 +39,24 @@
       "status": "req",
       "statusNote": "",
       "statusDate": "2026-05-24T20:06:45.398Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PwNCjlF00kbHzJcrG_JdW",
+      "name": "Refactor src/world.ts",
+      "summary": "Update all occurrences of `focusManager.focusStack` in `src/world.ts` to use an alternative abstraction or method.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-05T09:52:33.231Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PwNCkFw00kbHzJcrG_JdW",
+      "name": "Check for alternative methods in focusManager",
+      "summary": "Examine `focusManager` and its associated classes/interfaces to identify suitable replacement methods or abstractions for direct manipulation of `focusStack`.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-05T09:52:35.322Z"
     }
   ],
   "rawReferences": [

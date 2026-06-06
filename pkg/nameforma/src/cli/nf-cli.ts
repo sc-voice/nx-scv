@@ -19,7 +19,6 @@ import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
-import CommitMsgCommand from './cli-commit-msg.js';
 import { World } from '../world.js';
 import { IS_CLAUDE } from './env.js';
 import type { IReplRenderer } from './nf-tui.js';
@@ -291,14 +290,6 @@ export class NfCLI {
       program
         .command('doc')
         .description('Display TUI-formatted documentation'),
-      getGlobalOpts,
-    );
-    CommitMsgCommand.registerCommand(
-      program
-        .command('commit-msg')
-        .description(
-          'List done actions from focused tasks since last commit',
-        ),
       getGlobalOpts,
     );
 

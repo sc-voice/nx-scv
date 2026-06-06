@@ -63,14 +63,9 @@ export default class TaskCommand {
     }
 
     world.validate();
-    const focus = world.focusedForma('task');
-    if (!focus) {
-      throw new Error('No task focused');
-    }
-
-    const task = world.loadEntity(Task, focus.formaId.base64);
+    const task = world.focusedForma('task') as Task | null;
     if (!task) {
-      throw new Error(`Task not found: ${focus.formaId}`);
+      throw new Error('No task focused');
     }
     return task;
   }
@@ -209,7 +204,7 @@ export default class TaskCommand {
       title: 'Tasks',
       wrapIndent: 13,
       fBullet: (index: number, item: any) => {
-        const focusOrder = world.focusOrder(item);
+        const focusOrder = world.focusManager.focusOrder(item);
         return focusOrder < Number.MAX_SAFE_INTEGER
           ? (index === 0 ? Unicode.CIRCLED_BULLET : Unicode.WHITE_BULLET)
           : Unicode.BUL_HYPHEN;
@@ -443,7 +438,7 @@ export default class TaskCommand {
         const { world, verbosity } = getGlobalOpts();
         const task = TaskCommand.resolveTask(world, id);
 
-        world.focusForma(task);
+        world.focusManager.focusForma(task);
         world.save();
 
         nfTui.log(UOK + `Task focused:` + UNC, task.listItemString());
@@ -466,7 +461,7 @@ export default class TaskCommand {
         const world = getGlobalOpts().world;
         const task = TaskCommand.resolveTask(world, id);
 
-        world.unfocusForma(task);
+        world.focusManager.unfocus(task.id);
         world.save();
 
         nfTui.log(UOK + `Task unfocused:` + UNC, task.listItemString());

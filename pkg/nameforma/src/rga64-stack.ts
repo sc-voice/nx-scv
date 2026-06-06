@@ -161,7 +161,7 @@ export class RGA64Stack extends Forma {
    * @returns {UUID64[]} - Array of values from active nodes
    */
   values(): UUID64[] {
-    return this.nodes().map((node) => node.value);
+    return this.nodes(true).map((node) => node.value);
   }
 
   /**

@@ -33,11 +33,7 @@ export default class ReferenceCommand {
   };
 
   static getFocusedTask(world: World): Task | null {
-    const focus = world.focusedForma('task');
-    if (!focus) {
-      return null;
-    }
-    return world.loadFuzzy(Task, focus.formaId.toString()) || null;
+    return world.focusedForma('task') as Task | null;
   }
 
   static probeSource(

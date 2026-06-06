@@ -272,10 +272,10 @@ export class Task extends Entity {
     const { NO_COLOR } = Unicode.LINUX_COLOR;
     const pct = Math.round(progressValue * 100);
     const coloredPct = `${this.progressColor()}${pct}%${NO_COLOR}`;
-    let row = [itemId, [coloredPct, name, summary].join(theme.nfBoundary(UBAR))];
-    if (bullet) {
-      row.unshift(bullet);
-    }
+    let prefix = bullet
+      ? `${bullet}${itemId}${coloredPct}`
+      : `${itemId}${coloredPct}`;
+    let row = [prefix, [name, summary].join(theme.nfBoundary(UBAR))];
     return row;
   }
 

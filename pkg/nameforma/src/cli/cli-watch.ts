@@ -113,44 +113,37 @@ export default class WatchCommand {
 
                 // Reload world to detect focus changes
                 world = World.fromPath(worldPath);
-                const newFocus = world.focusedForma('task');
+                const newTask = world.focusedForma('task') as Task | null;
 
                 // Check if focused task changed
                 if (
-                  newFocus &&
-                  newFocus.formaId.base64 !== task.id.base64
+                  newTask &&
+                  newTask.id.base64 !== task.id.base64
                 ) {
                   const oldTaskId = world.namespace.fuzzyIdOf(task);
-                  const newTask = world.loadEntity(
-                    Task,
-                    newFocus.formaId.base64,
+                  task = newTask;
+                  taskFilePath = path.join(
+                    worldPath,
+                    'task',
+                    `${task.id.base64}.json`,
                   );
 
-                  if (newTask) {
-                    task = newTask;
-                    taskFilePath = path.join(
-                      worldPath,
-                      'task',
-                      `${task.id.base64}.json`,
-                    );
+                  nfTui.log(
+                    `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
+                  );
+                  nfTui.log(
+                    `📌 Focus changed from ${oldTaskId} to ${world.namespace.fuzzyIdOf(task)}`,
+                  );
 
-                    nfTui.log(
-                      `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
-                    );
-                    nfTui.log(
-                      `📌 Focus changed from ${oldTaskId} to ${world.namespace.fuzzyIdOf(task)}`,
-                    );
-
-                    // Reset task file mtime for the new task
-                    if (fs.existsSync(taskFilePath)) {
-                      mtimes.task = fs
-                        .statSync(taskFilePath)
-                        .mtime.getTime();
-                    }
-
-                    TaskCommand.displayTask(world, task, verbosity);
-                    WatchCommand.displayStatusLine(verbosity);
+                  // Reset task file mtime for the new task
+                  if (fs.existsSync(taskFilePath)) {
+                    mtimes.task = fs
+                      .statSync(taskFilePath)
+                      .mtime.getTime();
                   }
+
+                  TaskCommand.displayTask(world, task, verbosity);
+                  WatchCommand.displayStatusLine(verbosity);
                 }
               }
             }

@@ -91,8 +91,8 @@ describe('TuiList', () => {
       const task3 = entityList.addItem({ name: 'Task 3' });
       const task4 = entityList.addItem({ name: 'Task 4' });
 
-      world.focusForma(task3); // focusOrder = 1
-      world.focusForma(task1); // focusOrder = 0 (most recent)
+      world.focusManager.focusForma(task3); // focusOrder = 1
+      world.focusManager.focusForma(task1); // focusOrder = 0 (most recent)
       // task2 and task4 remain unfocused; task4 is more recent
 
       const consoleSpy = vi.spyOn(console, 'log');
@@ -122,7 +122,7 @@ describe('TuiList', () => {
       const entityList = world.entityList(Task);
       const focused = entityList.addItem({ name: 'Focused Task' });
       const unfocused = entityList.addItem({ name: 'Unfocused Task' });
-      world.focusForma(focused);
+      world.focusManager.focusForma(focused);
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
@@ -145,7 +145,7 @@ describe('TuiList', () => {
     it('should visually distinguish related items (UUID64.isRelated)', () => {
       const entityList = world.entityList(Task);
       const primary = entityList.addItem({ name: 'Primary' });
-      world.focusForma(primary);
+      world.focusManager.focusForma(primary);
 
       const relatedId = UUID64.createRelatedId(primary.id);
       const related = entityList.addItem({
