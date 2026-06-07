@@ -33,7 +33,7 @@ const FORMA = {
 
 const RGA64 = {
   ANY: 0,
-  COMPACT: 1,
+  COMPACT: 0,
 }
 
 const IDENTIFIABLE = {
@@ -146,8 +146,8 @@ const WORLD = {
   LOAD: 0,
   LIST: 0,
   DELETE: 0,
-  VALIDATE: 1,
-  WATERMARK: 1,
+  VALIDATE: 0,
+  WATERMARK: 0,
 };
 
 const FORMA_LIST = {

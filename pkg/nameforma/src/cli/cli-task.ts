@@ -6,6 +6,7 @@
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
+import { Forma } from '../forma.js';
 import { User } from '../user.js';
 import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
@@ -204,8 +205,8 @@ export default class TaskCommand {
     const prefs = {
       title: 'Tasks',
       wrapIndent: 13,
-      fBullet: (index: number, item: any) => {
-        const focusOrder = world.focusManager.focusOrder(item);
+      fBullet: (index: number, item: Forma) => {
+        const focusOrder = world.focusManager.focusOrder(item.id);
         return focusOrder < Number.MAX_SAFE_INTEGER
           ? (index === 0 ? Unicode.CIRCLED_BULLET : Unicode.WHITE_BULLET)
           : Unicode.BUL_HYPHEN;
