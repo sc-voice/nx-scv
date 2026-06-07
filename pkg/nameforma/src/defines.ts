@@ -31,6 +31,11 @@ const FORMA = {
   VALIDATE: 0,
 };
 
+const RGA64 = {
+  ANY: 0,
+  COMPACT: 1,
+}
+
 const IDENTIFIABLE = {
   TEST: 0,
 };
@@ -141,7 +146,8 @@ const WORLD = {
   LOAD: 0,
   LIST: 0,
   DELETE: 0,
-  WATERMARK: 0,
+  VALIDATE: 1,
+  WATERMARK: 1,
 };
 
 const FORMA_LIST = {
@@ -163,6 +169,7 @@ export const DBG = {
   PATCHABLE,
   RATIONAL,
   REFERENCE,
+  RGA64,
   RUNNER,
   SCHEMA,
   SEQUENCE,

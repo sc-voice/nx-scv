@@ -45,12 +45,12 @@ class MockEntity extends Entity {
 }
 
 describe('FocusManager', () => {
-  describe('FocusManager.focusForma()', () => {
-    it('should derive formaType from entity static property', () => {
+  describe('FocusManager.focus()', () => {
+    it('should push id onto focus stack', () => {
       const fm = new FocusManager();
       const entity = new MockEntity({ name: 'test' });
 
-      fm.focusForma(entity);
+      fm.focus(entity.id);
 
       expect(fm.peek()?.base64).toBe(entity.id.base64);
     });
@@ -62,8 +62,8 @@ describe('FocusManager', () => {
       const e1 = new MockEntity({ name: 'e1' });
       const e2 = new MockEntity({ name: 'e2' });
 
-      fm.focusForma(e1);
-      fm.focusForma(e2);
+      fm.focus(e1.id);
+      fm.focus(e2.id);
       expect(fm.size).toBe(2);
 
       const removed = fm.unfocus(e1.id);
@@ -78,9 +78,9 @@ describe('FocusManager', () => {
       const e2 = new MockEntity({ name: 'e2' });
       const e3 = new MockEntity({ name: 'e3' });
 
-      fm.focusForma(e1);
-      fm.focusForma(e2);
-      fm.focusForma(e3);
+      fm.focus(e1.id);
+      fm.focus(e2.id);
+      fm.focus(e3.id);
 
       const removed = fm.unfocus();
       expect(removed?.base64).toBe(e3.id.base64);
@@ -97,7 +97,7 @@ describe('FocusManager', () => {
       const e1 = new MockEntity({ name: 'e1' });
       const e2 = new MockEntity({ name: 'e2' });
 
-      fm.focusForma(e1);
+      fm.focus(e1.id);
       expect(fm.unfocus(e2.id)).toBeNull();
       expect(fm.size).toBe(1);
     });
@@ -111,9 +111,9 @@ describe('FocusManager', () => {
       const e3 = new MockEntity({ name: 'e3' });
       const e4 = new MockEntity({ name: 'e4' });
 
-      fm.focusForma(e1);
-      fm.focusForma(e2);
-      fm.focusForma(e3);
+      fm.focus(e1.id);
+      fm.focus(e2.id);
+      fm.focus(e3.id);
 
       expect(fm.focusOrder(e3.id)).toBe(0);
       expect(fm.focusOrder(e2.id)).toBe(1);
@@ -134,9 +134,9 @@ describe('FocusManager', () => {
       const e2 = new MockEntity({ name: 'e2' });
       const e3 = new MockEntity({ name: 'e3' });
 
-      fm.focusForma(e1);
-      fm.focusForma(e2);
-      fm.focusForma(e3);
+      fm.focus(e1.id);
+      fm.focus(e2.id);
+      fm.focus(e3.id);
 
       const json = fm.toJSON();
       const restored = FocusManager.fromJSON(json);
@@ -174,7 +174,7 @@ describe('FocusManager world', () => {
       const list = world.entityList(MockEntity);
       const e1 = list.addItem({ name: 'e1' });
 
-      world.focusManager.focusForma(e1);
+      world.focusManager.focus(e1.id);
 
       const focused = world.focusedForma('mock');
       expect(focused).not.toBeNull();
@@ -192,8 +192,8 @@ describe('FocusManager world', () => {
       const e1 = list.addItem({ name: 'e1' });
       const e2 = list.addItem({ name: 'e2' });
 
-      world.focusManager.focusForma(e1);
-      world.focusManager.focusForma(e2);
+      world.focusManager.focus(e1.id);
+      world.focusManager.focus(e2.id);
 
       const focused = world.focusedForma('mock');
       expect(focused?.id.base64).toBe(e2.id.base64);
@@ -206,8 +206,8 @@ describe('FocusManager world', () => {
       const e1 = list.addItem({ name: 'e1' });
       const e2 = list.addItem({ name: 'e2' });
 
-      world.focusManager.focusForma(e1);
-      world.focusManager.focusForma(e2);
+      world.focusManager.focus(e1.id);
+      world.focusManager.focus(e2.id);
       world.save();
 
       const world2 = World.fromPath(worldPath);
@@ -222,7 +222,7 @@ describe('FocusManager world', () => {
       const list = world.entityList(MockEntity);
       const entity = list.addItem({ name: 'test' });
 
-      world.focusManager.focusForma(entity);
+      world.focusManager.focus(entity.id);
       world.save();
 
       const world2 = World.fromPath(worldPath);
@@ -239,7 +239,7 @@ describe('FocusManager world', () => {
       const list = world.entityList(MockEntity);
       const entity = list.addItem({ name: 'test' });
 
-      world.focusManager.focusForma(entity);
+      world.focusManager.focus(entity.id);
       expect(world.focusManager.size).toBe(1);
 
       world.delete('mock', entity.id.base64);
@@ -253,9 +253,9 @@ describe('FocusManager world', () => {
       const e2 = list.addItem({ name: 'e2' });
       const e3 = list.addItem({ name: 'e3' });
 
-      world.focusManager.focusForma(e1);
-      world.focusManager.focusForma(e2);
-      world.focusManager.focusForma(e3);
+      world.focusManager.focus(e1.id);
+      world.focusManager.focus(e2.id);
+      world.focusManager.focus(e3.id);
 
       expect(world.focusManager.size).toBe(3);
 
@@ -273,7 +273,7 @@ describe('FocusManager world', () => {
       const e1 = list.addItem({ name: 'e1' });
       const e2 = list.addItem({ name: 'e2' });
 
-      world.focusManager.focusForma(e1);
+      world.focusManager.focus(e1.id);
       expect(() => world.delete('mock', e2.id.base64)).not.toThrow();
       expect(world.focusManager.size).toBe(1);
     });
@@ -286,8 +286,8 @@ describe('FocusManager world', () => {
       const e2 = list.addItem({ name: 'e2' });
       const e3 = list.addItem({ name: 'e3' });
 
-      world.focusManager.focusForma(e2);
-      world.focusManager.focusForma(e1);
+      world.focusManager.focus(e2.id);
+      world.focusManager.focus(e1.id);
 
       const entities = [e3, e2, e1];
       const sorted = entities.sort(

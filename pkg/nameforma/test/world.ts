@@ -660,7 +660,7 @@ describe('World Serialization - save()/load() methods', () => {
       const entity = f7t.addItem({ name: 'test-entity' });
 
       // Set up state: focus an entity and add numeronym mapping
-      world.focusManager.focusForma(entity);
+      world.focusManager.focus(entity.id);
       world.setNumeronym(new Map([['foo', 'bar'], ['abc', 'xyz']]));
 
       // Save and load world
@@ -1058,7 +1058,7 @@ describe('World — resolveFuzzyId()', () => {
     // first. Overlapping namespaces are not currently possible by construction, but the
     // priority order (world > focus) defines the tiebreak if that assumption ever breaks.
     const task = world.entityList(Task).addItem({ name: 'focused task' });
-    world.focusManager.focusForma(task);
+    world.focusManager.focus(task.id);
 
     const result = world.resolveFuzzyId(task.id.base64);
 
@@ -1069,7 +1069,7 @@ describe('World — resolveFuzzyId()', () => {
 
   it('returns { entity: task, forma: action } for action in focused task namespace', () => {
     const task = world.entityList(Task).addItem({ name: 'parent task' });
-    world.focusManager.focusForma(task);
+    world.focusManager.focus(task.id);
     const action = task.actions(world).addItem({ name: 'nested action' });
 
     const result = world.resolveFuzzyId(action.id.base64);
@@ -1082,13 +1082,13 @@ describe('World — resolveFuzzyId()', () => {
 
   it('resolves action after world reload (round-trip serialization)', () => {
     const task = world.entityList(Task).addItem({ name: 'parent task' });
-    world.focusManager.focusForma(task);
+    world.focusManager.focus(task.id);
     const action = task.actions(world).addItem({ name: 'nested action' });
     world.save();
 
     const w2 = World.fromPath(worldPath);
     const focused = w2.focusedForma('task') as Task | null;
-    w2.focusManager.focusForma(focused!);
+    w2.focusManager.focus(focused!.id);
 
     const result = w2.resolveFuzzyId(action.id.base64);
 
@@ -1120,7 +1120,7 @@ describe('World — validate()', () => {
     const world = World.fromPath(worldPath);
     world.registerEntity(MockEntity);
     const e1 = world.entityList(MockEntity).addItem({ name: 'e1' });
-    world.focusManager.focusForma(e1);
+    world.focusManager.focus(e1.id);
     expect(world.validate()).toBe(true);
   });
 
@@ -1130,9 +1130,9 @@ describe('World — validate()', () => {
     const e1 = world.entityList(MockEntity).addItem({ name: 'e1' });
     const e2 = world.entityList(MockEntity).addItem({ name: 'e2' });
     const e3 = world.entityList(MockEntity).addItem({ name: 'e3' });
-    world.focusManager.focusForma(e1);
-    world.focusManager.focusForma(e2);
-    world.focusManager.focusForma(e3);
+    world.focusManager.focus(e1.id);
+    world.focusManager.focus(e2.id);
+    world.focusManager.focus(e3.id);
     expect(world.focusManager.size).toBe(3);
 
     fs.unlinkSync(path.join(worldPath, 'mock', `${e2.id.base64}.json`));
@@ -1145,7 +1145,7 @@ describe('World — validate()', () => {
     const world = World.fromPath(worldPath);
     world.registerEntity(MockEntity);
     const e1 = world.entityList(MockEntity).addItem({ name: 'e1' });
-    world.focusManager.focusForma(e1);
+    world.focusManager.focus(e1.id);
     fs.unlinkSync(path.join(worldPath, 'mock', `${e1.id.base64}.json`));
     expect(world.validate()).toBe(false);
     expect(world.validate()).toBe(true);

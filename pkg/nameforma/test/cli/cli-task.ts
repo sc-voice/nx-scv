@@ -736,11 +736,11 @@ describe('CLI: task command', () => {
       const taskId = idMatch ? idMatch[1] : null;
       expect(taskId).not.toBeNull();
 
-      // Focus the task by loading world and calling focusForma
+      // Focus the task by loading world and calling focus
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       expect(task).not.toBeNull();
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -927,7 +927,7 @@ describe('CLI: task command', () => {
       // Focus the task
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -968,7 +968,7 @@ describe('CLI: task command', () => {
 
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -1007,7 +1007,7 @@ describe('CLI: task command', () => {
 
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -1080,7 +1080,7 @@ describe('CLI: task command', () => {
 
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -1118,7 +1118,7 @@ describe('CLI: task command', () => {
 
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -1156,7 +1156,7 @@ describe('CLI: task command', () => {
 
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;
@@ -1200,7 +1200,7 @@ describe('CLI: task command', () => {
 
       const world = World.fromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
-      world.focusManager.focusForma(task!);
+      world.focusManager.focus(task!.id);
       world.save();
 
       output.length = 0;

@@ -761,15 +761,6 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * @deprectated
-   * Unfocus a forma (remove from stack)
-   * @param {Forma} forma - Forma to unfocus
-   */
-  unfocusForma(forma: any): void {
-    this.#focusManager.unfocusForma(forma);
-  }
-
-  /**
    * Get focused forma of a given type (most recent).
    * Uses entity registry to validate type and namespace to resolve current entity state.
    * @param {string} formaType - Registered entity type name (e.g., 'task')
@@ -791,22 +782,23 @@ export class World extends Entity implements IEventBus {
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
   override validate(opts: any = {}): boolean {
+    const msg = "w3d.validate";
     const result = super.validate(opts);
+    const fm = this.#focusManager;
+    const dbg = WORLD.VALIDATE;
 
-    const beforeSize = this.#focusManager.size;
-    for (const id of this.#focusManager.ids()) {
+    const beforeSize = fm.size;
+    for (const id of fm.ids()) {
       const idStr = id.toString();
       const exists = fs.readdirSync(this.#worldPath, { withFileTypes: true })
         .filter(d => d.isDirectory())
         .some(d => fs.existsSync(path.join(this.#worldPath, d.name, `${idStr}.json`)));
-      if (!exists) this.#focusManager.unfocus(id);
+      if (!exists) fm.unfocus(id);
     }
 
-    const isValid = this.#focusManager.size === beforeSize;
+    const isValid = fm.size === beforeSize;
     if (!isValid) {
-      console.warn(
-        `Cleaned ${beforeSize - this.#focusManager.size} stale focus entries`,
-      );
+      dbg && cc.ok1(msg, `Cleaned ${beforeSize - fm.size} entries`);
     }
 
     return result && isValid;
@@ -818,9 +810,9 @@ export class World extends Entity implements IEventBus {
    * Records that the current user has observed the latest commit.
    * Returns true if watermark was advanced
    */
-  #validateWatermark(): boolean {
-    const msg = 'world.#validateWatermark';
-    const dbg = WORLD?.WATERMARK;
+  #syncWatermark(): boolean {
+    const msg = 'w3d.#syncWatermark';
+    const dbg = DBG.WORLD.WATERMARK;
 
     THROTTLE.watermark++;
     if (1 == THROTTLE.watermark) {
@@ -841,6 +833,12 @@ export class World extends Entity implements IEventBus {
 
       // Update watermark with this observation
       const advanced = this.#watermark.update(userSignature, headUuid);
+
+      // Compact focus stack with updated watermark
+      if (advanced) {
+        this.#focusManager.compact(this.#watermark.minObservedTime());
+      }
+
       const elapsedMs = performance.now() - startTime;
       dbg && cc.ok1(msg, `${advanced ? 'advanced' : 'unchanged'} for ${userSignature} (${elapsedMs.toFixed(2)}ms)`);
       return advanced;
@@ -872,7 +870,7 @@ export class World extends Entity implements IEventBus {
       dbg && cc.ok1(msg, `loaded ${worldFile}`);
       world = World.fromJson(json, worldPath);
       // Synchronize watermark with current git HEAD and persist if advanced
-      const watermarkAdvanced = world.#validateWatermark();
+      const watermarkAdvanced = world.#syncWatermark();
       const isValid = world.validate();
       if (!isValid || watermarkAdvanced) {
         world.save();

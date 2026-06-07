@@ -1,8 +1,13 @@
 import UUID64 from './uuid64.js';
 import { Forma } from './forma.js';
 import RGA64Node from './rga64-node.js';
+import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import { User } from './user.js';
+import { Text } from '@sc-voice/tools';
+
+const { ColorConsole } = Text;
+const { cc } = ColorConsole;
 
 /**
  * RGA64Stack - A Replicable Growable Array stack using UUID64 identifiers.
@@ -196,8 +201,12 @@ export class RGA64Stack extends Forma {
    *
    * @param minObservedTime Safe GC boundary: tombstones with timestamp >= minObservedTime
    *        are too recent and must be kept; those < minObservedTime are old enough to GC.
+   * @returns {boolean} - True if compacted
    */
-  compact(minObservedTime: number): void {
+  compact(minObservedTime: number): boolean {
+    const msg = 'R8k.compact';
+    const dbg = DBG.RGA64.COMPACT;
+
     // Find all parent ids referenced by active nodes
     const activeParentIds = new Set(
       this.#nodes
@@ -206,12 +215,22 @@ export class RGA64Stack extends Forma {
     );
 
     // Remove tombstones that are both structurally unreferenced and old enough
+    const nodesBefore = this.#nodes.length;
     this.#nodes = this.#nodes.filter(
       (n) =>
         !n.deleted || // Keep all active nodes
         activeParentIds.has(n.id.toString()) || // Keep tombstones that are load-bearing
         n.id.getTimestamp() >= minObservedTime // Keep tombstones that are too recent
     );
+    const nodesAfter = this.#nodes.length;
+
+    if (nodesBefore === nodesAfter) {
+      dbg && cc.ok1(msg, 'n/a');
+      return false;
+    }
+
+    dbg && cc.ok1(msg, `compacted: ${nodesBefore} → ${nodesAfter} nodes`);
+    return true;
   }
 
   /**

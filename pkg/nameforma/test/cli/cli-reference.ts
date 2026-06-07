@@ -99,7 +99,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -129,7 +129,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -165,7 +165,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -204,7 +204,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -226,7 +226,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -256,7 +256,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -283,7 +283,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -317,7 +317,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -356,7 +356,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -397,7 +397,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -430,7 +430,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -496,7 +496,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -520,7 +520,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 
@@ -554,7 +554,7 @@ describe('CLI: reference command', () => {
     {
       const w = World.fromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
-      w.focusManager.focusForma(t);
+      w.focusManager.focus(t.id);
       w.save();
     }
 

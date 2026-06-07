@@ -1,11 +1,12 @@
 import RGA64Stack from './rga64-stack.js';
 import UUID64 from './uuid64.js';
 import { Forma } from './forma.js';
+import { User } from './user.js';
 
 /** Manages the focus stack of entities. */
 export interface IFocusManager {
-  /** Push id onto focus stack, removing if already present. */
-  focusForma(forma: Forma): void; // DEPRECATED
+  /** Push id onto focus stack with user signature. Removes if already present. */
+  focus(id: UUID64, user?: any): void;
 
   /** Remove id from focus stack. Returns removed id or null if not found. */
   unfocus(id?: UUID64): UUID64 | null;
@@ -18,6 +19,9 @@ export interface IFocusManager {
 
   /** Get position of id in focus stack (0 = most recent). Returns MAX_SAFE_INTEGER if not found. */
   focusOrder(id: UUID64): number;
+
+  /** Remove tombstones older than minObservedTime (safe GC for distributed CRDT). */
+  compact(minObservedTime: number): boolean;
 
   /** Number of items in focus stack. */
   get size(): number;
@@ -45,27 +49,9 @@ export class FocusManager implements IFocusManager {
     this.#rgaFocusStack = rgaFocusStack;
   }
 
-  /** Push forma onto focus stack, removing if already present.
-   *  @deprecated Use focus(id) instead.
-   */
-  focusForma(forma: Forma): void {
-    try {
-      this.#rgaFocusStack.remove(forma.id);
-    } catch {
-      // Not in stack, that's fine
-    }
-    this.#rgaFocusStack.push(forma.id);
-  }
-
-  /** Remove forma from focus stack.
-   *  @deprecated Use unfocus(id) instead.
-   */
-  unfocusForma(forma: Forma): void {
-    try {
-      this.#rgaFocusStack.remove(forma.id);
-    } catch {
-      // Not in stack, that's fine
-    }
+  /** Push id onto focus stack. Removes if already present (deduped by push).  */
+  focus(id: UUID64, user: User = User.UNKNOWN): void {
+    this.#rgaFocusStack.push(id, user);
   }
 
   /** Remove id from focus stack. If id not provided, removes top item. Returns removed id or null. */
@@ -95,6 +81,11 @@ export class FocusManager implements IFocusManager {
   peek(): UUID64 | null {
     const topNode = this.#rgaFocusStack.peek();
     return topNode ? topNode.value : null;
+  }
+
+  /** Remove tombstones older than minObservedTime (safe GC for distributed CRDT). */
+  compact(minObservedTime: number): boolean {
+    return this.#rgaFocusStack.compact(minObservedTime);
   }
 
   /** Serialize to JSON. */

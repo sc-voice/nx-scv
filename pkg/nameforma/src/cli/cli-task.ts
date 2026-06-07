@@ -6,6 +6,7 @@
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
+import { User } from '../user.js';
 import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
 import { confirmDelete } from './confirm.js';
@@ -438,7 +439,14 @@ export default class TaskCommand {
         const { world, verbosity } = getGlobalOpts();
         const task = TaskCommand.resolveTask(world, id);
 
-        world.focusManager.focusForma(task);
+        try {
+          const gitDir = world.worldPath.replace(/.nameforma$/, '');
+          const user = User.fromGit(gitDir);
+          world.focusManager.focus(task.id, user);
+        } catch {
+          // Not in git repo, use default user
+          world.focusManager.focus(task.id);
+        }
         world.save();
 
         nfTui.log(UOK + `Task focused:` + UNC, task.listItemString());
