@@ -1,29 +1,43 @@
 import type { IView, RenderRow } from './navigable-view.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 
+const theme = NameFormaTheme.shared;
+
+/**
+ * A RenderRow buffer that collects rows up to a given budget.
+ * @param {number} rowBudget maximum number of rows
+ */
 export class RenderBuffer {
+  readonly rowBudget: number;
+
   private readonly _view: IView;
-  private _remainingRows: number;
   private _rows: RenderRow[];
+  private _truncated: number;
+
 
   constructor(view: IView, rowBudget: number) {
-    if (rowBudget < 0) {
-      throw new RangeError(`RenderBuffer: rowBudget must be >= 0, got ${rowBudget}`);
+    if (rowBudget <= 0) {
+      throw new RangeError(`RenderBuffer: rowBudget must be > 0, got ${rowBudget}`);
     }
     this._view = view;
-    this._remainingRows = rowBudget;
+    this.rowBudget = rowBudget;
     this._rows = [];
+    this._truncated = 0;
   }
 
   get remainingRows(): number {
-    return this._remainingRows;
+    return this.rowBudget - this._rows.length;
   }
 
-  pushRow(row: RenderRow): void {
-    if (this._remainingRows <= 0) {
-      throw new RangeError('RenderBuffer: row budget exhausted');
-    }
+  pushRow(row: RenderRow): boolean {
+    if (this.remainingRows <= 0) {
+      this._truncated = this._truncated <= 0 ? 2 : this._truncated+1;
+      this._rows[this._rows.length-1] = [theme.nfAway(`[…+${this._truncated}]`)];
+      return false;
+    } 
+
     this._rows.push(row);
-    this._remainingRows--;
+    return true;
   }
 
   getRenderData(): RenderRow[] {
@@ -31,18 +45,8 @@ export class RenderBuffer {
   }
 
   pushCollection(rows: RenderRow[]): void {
-    if (rows.length > 0 && this._remainingRows <= 0) {
-      throw new RangeError('RenderBuffer: row budget exhausted');
-    }
-    const willTruncate = rows.length > this._remainingRows;
-    const limit = willTruncate ? this._remainingRows - 1 : rows.length;
-    for (let i = 0; i < limit; i++) {
-      this.pushRow(rows[i]);
-    }
-    if (willTruncate) {
-      const omitted = rows.length - limit;
-      this._rows.push([`… [${omitted}]`]);
-      this._remainingRows--;
+    for (const row of rows) {
+      this.pushRow(row);
     }
   }
 }

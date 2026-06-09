@@ -10,6 +10,7 @@ import {
   validateEntity,
 } from './entity.js';
 import { Task } from './task.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
@@ -45,6 +46,7 @@ const { cc } = ColorConsole;
 const { WORLD } = DBG;
 
 const THROTTLE = { watermark: 0 }
+const theme = NameFormaTheme.shared;
 
 /**
  * Standard entities registered by default in World
@@ -854,14 +856,6 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Get RGA focus stack for CRDT-based focus tracking
-   * @returns {RGA64Stack}
-   */
-  get rgaFocusStack(): RGA64Stack {
-    return this.#focusManager.rgaFocusStack;
-  }
-
-  /**
    * Get focused forma of a given type (most recent).
    * Uses entity registry to validate type and namespace to resolve current entity state.
    * @param {string} formaType - Registered entity type name (e.g., 'task')
@@ -1059,27 +1053,68 @@ export class World extends Entity implements IEventBus {
     return world;
   }
 
+  get entityComparator(): (a:Entity,b:Entity)=>number {
+    return (a:Entity, b:Entity): number => {
+      const fm = this.#focusManager;
+      const cmp = fm.focusOrder(a.id) - fm.focusOrder(b.id);
+      return cmp || b.id.compare(a.id);
+    }
+  }
+
   /**
    * Render data at given zeno level of semantic detail
    */
   override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
+    const msg = 'w3d.renderDataAtZeno';
     const { anchorStep, pivotStep } = zeno;
     const headerData:RenderData = super.renderDataAtZeno(view, zeno);
     const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
+    const dbg = 1;
 
     if (anchorStep <= ZENO_3_ROWS) {
       return headerData;
     }
-
-    const focusIds = this.#focusManager.ids();
-    const focusItems = focusIds
-      .map(id => this.namespace.getForma(id.base64))
-      .filter(Boolean) as Forma[];
     const buf = new RenderBuffer(view, zenoStepToLines(anchorStep));
     for (const row of headerData as RenderRow[]) buf.pushRow(row);
 
-    buf.pushRow([ new FormaField('focusManager', false, 'Focus Manager', ''+focusItems.length) ]);
-    buf.pushCollection(focusItems.map(f => f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
+    const focusIds = this.#focusManager.ids();
+
+    const entityNames = this.getEntityNames();
+    for (const eName of entityNames) {
+      const ec = this.entityClassOfName(eName);
+      if (ec == null) {
+        dbg && cc.bad1(msg, `entityhClassOfName(${eName})`);
+        continue;
+      }
+      const c8r = this.entityComparator;
+      let formas = this.entityList(ec).sort(c8r);
+      buf.pushRow([ new FormaField(eName, false, ec.entity, ''+formas.size) ]);
+      for (const f of formas) {
+        const row = f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow;
+        let bullet = "-";
+        switch (this.#focusManager.focusOrder(f.id)) {
+          case 0: // Top focus
+            //bullet = theme.nfNominal("▶");
+            bullet = theme.nfNominal("●");
+            break;
+          case 1: // Top focus
+            bullet = theme.nfWarn("⦿");
+            break;
+          default: // Other focus
+            bullet = theme.nfAttend("◦");
+            break;
+          case Number.MAX_SAFE_INTEGER: // Not focused
+            bullet = theme.nfAway("-");
+            break;
+            
+        }
+        row.unshift(bullet);
+        if (!buf.pushRow(row)) {
+          break;
+        }
+      } // for formas
+    } // for entitNames
+
     return buf.getRenderData();
   } // renderDataAtZeno
 

@@ -116,7 +116,7 @@ describe('Forma', () => {
           nfNominal: (t: string) => t,
           nfWarn: (t: string) => t,
           nfAttend: (t: string) => t,
-          nfFree: (t: string) => t,
+          nfAway: (t: string) => t,
         },
         setAnchor: () => {},
         setPivot: () => {},
@@ -142,13 +142,15 @@ describe('Forma', () => {
     expect(dataAll[1][0].name).toBe('summary');
     expect(dataAll[1][0].value).toBe('A test forma for verification');
 
-    // Row (anchor=0): single row with FormaField
+    // Row (anchor=0): single row with id, name, summary
     const ns = new FuzzyNamespace();
     ns.addForma(f);
     const dataRow = f.asRenderData(createMockView(RenderDetail.Row));
     expect(Array.isArray(dataRow)).toBe(true);
-    expect(dataRow).toHaveLength(1);
+    expect(dataRow).toHaveLength(3);
     expect(dataRow[0]).toBeInstanceOf(FormaField);
+    expect(dataRow[1]).toBe('test-forma');
+    expect(dataRow[2]).toBe('A test forma for verification');
   });
 
   it('classes', () => {

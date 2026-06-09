@@ -119,11 +119,11 @@ export class NameFormaTheme implements ITheme {
   }
 
   /**
-   * Apply 'muted' color to text 
+   * Apply 'muted' color to text that indicates fading attention
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
-  nfFree(text: string): string {
+  nfAway(text: string): string {
     return this.theme.fg('muted', text);
   }
 

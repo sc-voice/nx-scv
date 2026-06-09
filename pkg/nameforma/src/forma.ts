@@ -290,7 +290,9 @@ export class Forma extends Identifiable implements IRenderable {
 
     if (anchorStep === ZENO_1_ROW_TERSE) {
       return [ 
-        new FormaField('id', false, shortId, `${name}${sep}${summary}`) 
+        new FormaField('id', false, shortId, ''),
+        name,
+        summary,
       ];
     }
     if (anchorStep === ZENO_1_ROW_VERBOSE) {

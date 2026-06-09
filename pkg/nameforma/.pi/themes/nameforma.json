@@ -22,7 +22,7 @@
     "nfWarn": "#CCCC00",
     "nfAttend": "#ff5555",
     "nfNominal": "#50fa7b",
-    "nfFree": "#2F8A44"
+    "nfAway": "#2F8A44"
 	},
 	"colors": {
 		"accent": "accent",
@@ -32,7 +32,7 @@
 		"success": "nfNominal",
 		"error": "nfAttend",
 		"warning": "nfWarn",
-		"muted": "nfFree",
+		"muted": "nfAway",
 		"dim": "dimGray",
 		"text": "",
 		"thinkingText": "gray",

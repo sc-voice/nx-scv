@@ -121,6 +121,37 @@ describe('FocusManager', () => {
       expect(fm.focusOrder(e4.id)).toBe(Number.MAX_SAFE_INTEGER);
     });
   });
+
+  describe('FocusManager.isFocused()', () => {
+    it('should return true for focused entities', () => {
+      const fm = new FocusManager();
+      const e1 = new MockEntity({ name: 'e1' });
+      const e2 = new MockEntity({ name: 'e2' });
+
+      fm.focus(e1.id);
+      fm.focus(e2.id);
+
+      expect(fm.isFocused(e1)).toBe(true);
+      expect(fm.isFocused(e2)).toBe(true);
+    });
+
+    it('should return false for unfocused entities', () => {
+      const fm = new FocusManager();
+      const e1 = new MockEntity({ name: 'e1' });
+      const e2 = new MockEntity({ name: 'e2' });
+
+      fm.focus(e1.id);
+
+      expect(fm.isFocused(e2)).toBe(false);
+    });
+
+    it('should return false on empty stack', () => {
+      const fm = new FocusManager();
+      const e1 = new MockEntity({ name: 'e1' });
+
+      expect(fm.isFocused(e1)).toBe(false);
+    });
+  });
   describe('FocusManager serialization', () => {
     it('should serialize empty focusManager to JSON', () => {
       const fm = new FocusManager();

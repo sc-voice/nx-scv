@@ -23,7 +23,7 @@ describe('NameFormaTheme', () => {
       'nfNominal',
       'nfWarn',
       'nfAttend',
-      'nfFree',
+      'nfAway',
       'nfLabel',
     ] as const;
 

@@ -78,7 +78,7 @@ describe('LineRenderer: nfLabel styling', () => {
       nfNominal: vi.fn((text: string) => text),
       nfWarn: vi.fn((text: string) => text),
       nfAttend: vi.fn((text: string) => text),
-      nfFree: vi.fn((text: string) => text),
+      nfAway: vi.fn((text: string) => text),
     };
     const themedRenderer = new LineRenderer({ theme: mockTheme });
     const field = new FormaField('fname', false, 'First name', 'Sam');

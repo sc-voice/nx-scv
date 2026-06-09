@@ -10,9 +10,8 @@ describe('RenderBuffer', () => {
     expect(buf.remainingRows).toBe(5);
   });
 
-  it('initializes with zero budget', () => {
-    const buf = new RenderBuffer(mockView, 0);
-    expect(buf.remainingRows).toBe(0);
+  it('throws on zero rowBudget', () => {
+    expect(() => new RenderBuffer(mockView, 0)).toThrow(RangeError);
   });
 
   it('throws on negative rowBudget', () => {
@@ -35,23 +34,23 @@ describe('RenderBuffer', () => {
     it('ellipsis shows correct omitted count', () => {
       const buf = new RenderBuffer(mockView, 3);
       buf.pushCollection([['a'], ['b'], ['c'], ['d'], ['e']]);
-      // budget=3: limit=2, push a,b then ellipsis '… [3]'
+      // budget=3: limit=2, push a,b then ellipsis '[…+3]'
       const data = buf.getRenderData();
       expect(data.length).toBe(3);
       expect(data[0]).toEqual(['a']);
       expect(data[1]).toEqual(['b']);
-      expect(data[2][0]).toBe('… [3]');
+      // ellipsis text contains […+3] (with ANSI styling applied)
+      expect(data[2][0]).toMatch(/\[…\+3\]/);
     });
 
-    it('throws when budget exhausted and collection non-empty', () => {
-      const buf = new RenderBuffer(mockView, 0);
-      expect(() => buf.pushCollection([['a']])).toThrow(RangeError);
+    it('throws when creating 0-budget buffer', () => {
+      expect(() => new RenderBuffer(mockView, 0)).toThrow(RangeError);
     });
 
     it('no-op on empty collection regardless of budget', () => {
-      const buf = new RenderBuffer(mockView, 0);
+      const buf = new RenderBuffer(mockView, 1);
       expect(() => buf.pushCollection([])).not.toThrow();
-      expect(buf.remainingRows).toBe(0);
+      expect(buf.remainingRows).toBe(1);
     });
   });
 
@@ -62,15 +61,22 @@ describe('RenderBuffer', () => {
       expect(buf.remainingRows).toBe(2);
     });
 
-    it('throws when budget is zero', () => {
-      const buf = new RenderBuffer(mockView, 0);
-      expect(() => buf.pushRow(['a'])).toThrow(RangeError);
-    });
-
-    it('throws when budget goes negative', () => {
+    it('adds ellipsis when budget exhausted', () => {
       const buf = new RenderBuffer(mockView, 1);
       buf.pushRow(['a']);
-      expect(() => buf.pushRow(['b'])).toThrow(RangeError);
+      const result = buf.pushRow(['b']);
+      expect(result).toBe(false);
+      expect(buf.getRenderData().length).toBe(1);
+      expect(buf.getRenderData()[0][0]).toMatch(/\[…\+/);
+    });
+
+    it('adds ellipsis when budget goes negative', () => {
+      const buf = new RenderBuffer(mockView, 1);
+      buf.pushRow(['a']);
+      const result = buf.pushRow(['b']);
+      expect(result).toBe(false);
+      expect(buf.getRenderData().length).toBe(1);
+      expect(buf.getRenderData()[0][0]).toMatch(/\[…\+/);
     });
   });
 });

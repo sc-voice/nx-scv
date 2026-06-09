@@ -474,7 +474,7 @@ export default class TaskCommand {
         world.save();
 
         nfTui.log(UOK + `Task unfocused:` + UNC, task.listItemString());
-        const values = world.rgaFocusStack.values();
+        const values = world.focusManager.ids();
         nfTui.log(`Focus stack (${values.length}):`);
         for (const id of values) {
           const t = world.loadEntity(Task, id.base64);

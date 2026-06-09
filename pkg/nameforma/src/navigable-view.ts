@@ -17,10 +17,10 @@ export interface ITheme {
   // A label for a value
   nfLabel(text: string): string;
 
-  // Boundary with peripheral alignment
+  // Static boundary with peripheral alignment
   nfBoundary(text: string): string;
 
-  // Identifiable and navigable
+  // Attention transition: identifiable and navigable
   nfLink(text: string): string;
 
   // Aligned to expectations
@@ -32,8 +32,8 @@ export interface ITheme {
   // Requires immediate attention
   nfAttend(text: string): string;
 
-  // Unattended and free
-  nfFree(text: string): string;
+  // Attention fading, ignorable
+  nfAway(text: string): string;
 }
 
 /**

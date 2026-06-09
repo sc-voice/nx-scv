@@ -20,6 +20,9 @@ export interface IFocusManager {
   /** Get position of id in focus stack (0 = most recent). Returns MAX_SAFE_INTEGER if not found. */
   focusOrder(id: UUID64): number;
 
+  /** Check if a forma is in the focus stack. */
+  isFocused(forma: Forma): boolean;
+
   /** Remove tombstones older than minObservedTime (safe GC for distributed CRDT). */
   compact(minObservedTime: number): boolean;
 
@@ -29,29 +32,42 @@ export interface IFocusManager {
 
 /** Manages the focus stack using RGA64 replicated list. */
 export class FocusManager implements IFocusManager {
-  #rgaFocusStack: RGA64Stack;
+  private _rgaFocusStack: RGA64Stack;
+  private _focusOrderCache: Map<string, number> | null = null;
 
   constructor() {
-    this.#rgaFocusStack = new RGA64Stack({ name: 'Focus Stack' });
+    this._rgaFocusStack = new RGA64Stack({ name: 'Focus Stack' });
   }
 
-  get rgaFocusStack(): RGA64Stack {
-    return this.#rgaFocusStack;
+  /** Invalidate focusOrder cache when stack mutates. */
+  private _invalidateCache(): void {
+    this._focusOrderCache = null;
+  }
+
+  /** Build or return cached focusOrder map. */
+  private _getFocusOrderMap(): Map<string, number> {
+    if (this._focusOrderCache) {
+      return this._focusOrderCache;
+    }
+
+    const map = new Map<string, number>();
+    const ids = this.ids();
+    for (let i = 0; i < ids.length; i++) {
+      map.set(ids[i].base64, i);
+    }
+    this._focusOrderCache = map;
+    return map;
   }
 
   /** Number of items in focus stack. */
   get size(): number {
-    return this.#rgaFocusStack.size;
-  }
-
-  /** Replace the RGA focus stack (for deserialization). */
-  setRgaFocusStack(rgaFocusStack: RGA64Stack): void {
-    this.#rgaFocusStack = rgaFocusStack;
+    return this._rgaFocusStack.size;
   }
 
   /** Push id onto focus stack. Removes if already present (deduped by push).  */
   focus(id: UUID64, user: User = User.UNKNOWN): void {
-    this.#rgaFocusStack.push(id, user);
+    this._rgaFocusStack.push(id, user);
+    this._invalidateCache();
   }
 
   /** Remove id from focus stack. If id not provided, removes top item. Returns removed id or null. */
@@ -59,39 +75,42 @@ export class FocusManager implements IFocusManager {
     const idToRemove = id || this.peek();
     if (!idToRemove) return null;
 
-    const removed = this.#rgaFocusStack.remove(idToRemove);
-    return removed ? idToRemove : null;
+    const removed = this._rgaFocusStack.remove(idToRemove);
+    if (removed) {
+      this._invalidateCache();
+      return idToRemove;
+    }
+    return null;
   }
 
   ids(): UUID64[] {
-    return this.#rgaFocusStack.values();
+    return this._rgaFocusStack.values();
   }
 
   focusOrder(id: UUID64): number {
-    const ids = this.ids();
-    for (let i = 0; i < ids.length; i++) {
-      if (ids[i].equals(id)) {
-        return i; // Position from most recent
-      }
-    }
-    return Number.MAX_SAFE_INTEGER;
+    const map = this._getFocusOrderMap();
+    return map.get(id.base64) ?? Number.MAX_SAFE_INTEGER;
+  }
+
+  isFocused(forma: Forma): boolean {
+    return this.focusOrder(forma.id) !== Number.MAX_SAFE_INTEGER;
   }
 
   /** Get most recent id in focus stack, or null if empty. */
   peek(): UUID64 | null {
-    const topNode = this.#rgaFocusStack.peek();
+    const topNode = this._rgaFocusStack.peek();
     return topNode ? topNode.value : null;
   }
 
   /** Remove tombstones older than minObservedTime (safe GC for distributed CRDT). */
   compact(minObservedTime: number): boolean {
-    return this.#rgaFocusStack.compact(minObservedTime);
+    return this._rgaFocusStack.compact(minObservedTime);
   }
 
   /** Serialize to JSON. */
   toJSON(): any {
     return {
-      rgaFocusStack: this.#rgaFocusStack.toJSON(),
+      rgaFocusStack: this._rgaFocusStack.toJSON(),
     };
   }
 
@@ -101,14 +120,15 @@ export class FocusManager implements IFocusManager {
 
     // Restore rgaFocusStack if present
     if (data.rgaFocusStack && typeof data.rgaFocusStack === 'object') {
-      fm.setRgaFocusStack(RGA64Stack.fromJSON(data.rgaFocusStack));
+      fm._rgaFocusStack = RGA64Stack.fromJSON(data.rgaFocusStack);
     } else if (data.focusStack && Array.isArray(data.focusStack)) {
       // Backward compatibility: sync old focusStack data to new rgaFocusStack
       for (const f of data.focusStack) {
-        fm.#rgaFocusStack.push(UUID64.fromString(f.formaId));
+        fm._rgaFocusStack.push(UUID64.fromString(f.formaId));
       }
     }
 
+    fm._invalidateCache();
     return fm;
   }
 }
