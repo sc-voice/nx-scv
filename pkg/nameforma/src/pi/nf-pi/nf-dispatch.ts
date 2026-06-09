@@ -4,7 +4,10 @@ import { ZenoCoord, zenoStep } from '../../navigable-view.js';
 import { NfStatus } from './nf-status.js';
 import { NfEditor } from './nf-edit.js';
 import { NfSession } from './nf-session.js';
+import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
+
+let nfWatchInstance: NfWatch | null = null;
 
 export async function nfDispatch(
   args: string,
@@ -109,6 +112,21 @@ export async function nfDispatch(
           },
         },
       );
+    });
+
+  program
+    .command('watch')
+    .description('Watch .nameforma files and display status updates')
+    .action(async () => {
+      if (nfWatchInstance) {
+        await nfWatchInstance.stop();
+        nfWatchInstance = null;
+        ctx.ui.notify('NameForma watch stopped', 'info');
+      } else {
+        nfWatchInstance = new NfWatch(ctx);
+        await nfWatchInstance.start();
+        ctx.ui.notify('NameForma watch started', 'info');
+      }
     });
 
   program

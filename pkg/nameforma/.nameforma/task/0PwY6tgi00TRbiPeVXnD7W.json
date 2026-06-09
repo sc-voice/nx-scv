@@ -1,0 +1,25 @@
+{
+  "forma": "Task",
+  "id": "0PwY6tgi00TRbiPeVXnD7W",
+  "name": "add watch command to nf-pi",
+  "summary": "show current nf world or focus status that is updated when .nameforma files are added/removed/changed",
+  "rawActions": [],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PwY8Ioh00TRbiPeVXnD7W",
+      "name": "NfWatch implementation",
+      "summary": "Primary implementation of the NfWatch class for monitoring .nameforma files.",
+      "relevance": 1,
+      "source": "file://./src/pi/nf-pi/nf-watch.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PwY8zoZ00TRbiPeVXnD7W",
+      "name": "nf-dispatch reference",
+      "summary": "Reference for command parsing and dispatching within the nf extension.",
+      "relevance": 1,
+      "source": "file://./src/pi/nf-pi/nf-dispatch.ts"
+    }
+  ]
+}
