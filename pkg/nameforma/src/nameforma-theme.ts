@@ -1,6 +1,6 @@
 import type { Theme } from '@earendil-works/pi-coding-agent';
 import { initTheme } from '@earendil-works/pi-coding-agent';
-import type { ITheme } from './navigable-view.js';
+import type { INameFormaTheme } from './navigable-view.js';
 import { Text } from '@sc-voice/tools';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
@@ -18,16 +18,16 @@ const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
  * but our custom nameforma.json lives in .pi/themes/. This class copies it to the user
  * directory on first load, ensuring consistent behavior in CLI and extension contexts.
  */
-export class NameFormaTheme implements ITheme {
-  private static _shared: ITheme | null = null;
+export class NameFormaTheme implements INameFormaTheme {
+  private static _shared: INameFormaTheme | null = null;
 
   constructor(private theme: Theme) {}
 
   /**
    * Cached singleton instance of the nameforma theme.
-   * @returns ITheme instance with nameforma colors
+   * @returns INameFormaTheme instance with nameforma colors
    */
-  static get shared(): ITheme {
+  static get shared(): INameFormaTheme {
     if (!this._shared) {
       this._shared = this.load();
     }
@@ -37,9 +37,9 @@ export class NameFormaTheme implements ITheme {
   /**
    * Load and initialize the nameforma theme, installing to ~/.pi/agent/themes/ if needed.
    * @param themeName - Theme name to load (default: 'nameforma')
-   * @returns ITheme instance with nameforma colors
+   * @returns INameFormaTheme instance with nameforma colors
    */
-  static load(themeName: string = 'nameforma'): ITheme {
+  static load(themeName: string = 'nameforma'): INameFormaTheme {
     const msg = "NameFormaTheme.load";
     const dbg = 0;
 
@@ -71,6 +71,13 @@ export class NameFormaTheme implements ITheme {
    */
   nfText(text: string): string {
     return this.theme.fg('customMessageText', text);
+  }
+
+  /**
+   * Secondary text or annotation
+   */
+  nfNote(text: string): string {
+    return this.theme.fg('dim', text);
   }
 
   /**

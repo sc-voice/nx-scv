@@ -1,8 +1,6 @@
 import { Command } from 'commander';
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import { ZenoCoord, zenoStep } from '../../navigable-view.js';
-import { NfStatus } from './nf-status.js';
-import { NfEditor } from './nf-edit.js';
 import { NfSession } from './nf-session.js';
 import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
@@ -53,65 +51,6 @@ export async function nfDispatch(
       }
       msg.push(theme.nfBoundary("TEST END"));
       notify(msg.join("\n"));
-    });
-
-  program
-    .command('status')
-    .description('Toggle NameForma status visibility')
-    .action(async () => {
-      const s4s = session.getStatus();
-
-      if (s4s) {
-        session.setStatus(null);
-        ctx.ui.setWidget(NfStatus.WIDGET_NAME, [], { placement: 'belowEditor' });
-        ctx.ui.notify('NameForma status hidden', 'info');
-      } else {
-        const status = new NfStatus(
-          ctx.ui.theme,
-          () => {
-            const s4s = session.getStatus();
-            if (s4s) {
-              ctx.ui.setWidget(NfStatus.WIDGET_NAME, s4s.getContent(), {
-                placement: 'belowEditor',
-              });
-            }
-          },
-        );
-        session.setStatus(status);
-
-        ctx.ui.setWidget(NfStatus.WIDGET_NAME, status.getContent(), {
-          placement: 'belowEditor',
-        });
-
-        ctx.ui.notify('NameForma status displayed', 'info');
-      }
-    });
-
-  program
-    .command('edit')
-    .description('Open NameForma editor')
-    .action(async () => {
-      let editorHandle: any;
-      await ctx.ui.custom(
-        (tui, theme, _keybindings, done) =>
-          new NfEditor(tui, theme, () => {
-            if (editorHandle) {
-              editorHandle.unfocus();
-            }
-            done(undefined);
-          }),
-        {
-          overlay: true,
-          overlayOptions: {
-            width: '100%',
-            anchor: 'top-left',
-          },
-          onHandle: (handle) => {
-            editorHandle = handle;
-            handle.focus();
-          },
-        },
-      );
     });
 
   program

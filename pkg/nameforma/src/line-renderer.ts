@@ -1,4 +1,6 @@
-import type { RenderData, RenderCell, RenderRow, ZenoStep, ITheme } from './navigable-view.js';
+import type { 
+  RenderData, RenderCell, RenderRow, ZenoStep, INameFormaTheme 
+} from './navigable-view.js';
 import { ZENO_1_ROW_TERSE } from './navigable-view.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { FormaField } from './forma-field.js';
@@ -8,7 +10,7 @@ import { FormaField } from './forma-field.js';
  * array of strings suitable for TUI display.
  */
 export interface LineRendererConfig {
-  theme?: ITheme;
+  theme?: INameFormaTheme;
   zenoStep?: ZenoStep;
   indentChar?: string;
   precision?: number;
@@ -22,7 +24,7 @@ export interface LineRendererConfig {
  * array of strings suitable for TUI display.
  */
 export class LineRenderer {
-  public readonly theme: ITheme;
+  public readonly theme: INameFormaTheme;
   public readonly zenoStep: ZenoStep;
   public readonly indentChar: string;
   public readonly precision: number;

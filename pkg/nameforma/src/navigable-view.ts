@@ -10,9 +10,12 @@ import { NameFormaTheme } from './nameforma-theme.js';
  * for displaying status of observables that may
  * or may not require attention
  */
-export interface ITheme {
-  // Normal text
+export interface INameFormaTheme {
+  // Primary text, terse
   nfText(text: string): string;
+
+  // Secondary text, inspectable
+  nfNote(text: string): string;
 
   // A label for a value
   nfLabel(text: string): string;
@@ -322,7 +325,7 @@ export interface IView {
   readonly pivot: Forma;
   readonly zenoCoord: ZenoCoord;
   readonly bodyIndent: string;
-  readonly theme: ITheme;
+  readonly theme: INameFormaTheme;
 
   /**
    * Sets the primary subject of observation.
@@ -342,7 +345,7 @@ export interface IView {
 
   zoomTo(zeno: ZenoCoord): void;
 
-  setTheme(theme: ITheme): void;
+  setTheme(theme: INameFormaTheme): void;
 
   /**
    * Starts the observation loop/stream for a given renderer and channel.
@@ -358,7 +361,7 @@ export abstract class NavigableView implements IView {
   protected _zenoCoord: ZenoCoord;
   protected _cursor: ICursor | null = null;
   protected _bodyIndent: string;
-  protected _theme: ITheme;
+  protected _theme: INameFormaTheme;
 
   constructor() {
     this._zenoCoord = ZenoCoord.fromRenderDetail(RenderDetail.Row);
@@ -382,7 +385,7 @@ export abstract class NavigableView implements IView {
     return this._bodyIndent;
   }
 
-  get theme(): ITheme {
+  get theme(): INameFormaTheme {
     return this._theme;
   }
 
@@ -398,7 +401,7 @@ export abstract class NavigableView implements IView {
     this._bodyIndent = value;
   }
 
-  setTheme(value: ITheme): void {
+  setTheme(value: INameFormaTheme): void {
     this._theme = value;
   }
 

@@ -110,13 +110,14 @@ describe('Forma', () => {
         zenoCoord: ZenoCoord.fromRenderDetail(detail),
         bodyIndent: '  ',
         theme: {
-          nfLabel: (t: string) => t,
-          nfBoundary: (t: string) => t,
-          nfLink: (t: string) => t,
-          nfNominal: (t: string) => t,
-          nfWarn: (t: string) => t,
-          nfAttend: (t: string) => t,
-          nfAway: (t: string) => t,
+          nfLabel: (t: string) => 'nfLabel-'+t,
+          nfBoundary: (t: string) => 'nfBoundary-'+t,
+          nfLink: (t: string) => 'nfLink-'+t,
+          nfNominal: (t: string) => 'nfNominal-'+t,
+          nfWarn: (t: string) => 'nfWarn-'+t,
+          nfAttend: (t: string) => 'nfAttend-'+t,
+          nfAway: (t: string) => 'nfAway-'+t,
+          nfNote: (t: string) => 'nfNote-'+t,
         },
         setAnchor: () => {},
         setPivot: () => {},
@@ -140,7 +141,7 @@ describe('Forma', () => {
     expect(dataAll[0][1].value).toBe('test-forma');
     expect(dataAll[1][0]).toBeInstanceOf(FormaField);
     expect(dataAll[1][0].name).toBe('summary');
-    expect(dataAll[1][0].value).toBe('A test forma for verification');
+    expect(dataAll[1][0].value).toBe('nfNote-A test forma for verification');
 
     // Row (anchor=0): single row with id, name, summary
     const ns = new FuzzyNamespace();
@@ -150,7 +151,7 @@ describe('Forma', () => {
     expect(dataRow).toHaveLength(3);
     expect(dataRow[0]).toBeInstanceOf(FormaField);
     expect(dataRow[1]).toBe('test-forma');
-    expect(dataRow[2]).toBe('A test forma for verification');
+    expect(dataRow[2]).toBe('nfNote-A test forma for verification');
   });
 
   it('classes', () => {

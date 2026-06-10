@@ -278,12 +278,13 @@ export class Forma extends Identifiable implements IRenderable {
    * Render data at given zeno level of semantic detail
    */
   renderDataAtZeno(view: IView, zeno:ZenoCoord): RenderData {
-    const { id, name, summary } = this;
+    const theme = view.theme;
+    const { id, name } = this;
+    const summary = theme.nfNote(this.summary);
     const { anchorStep, pivotStep } = zeno;
     const cls = this.constructor.name;
     const { anchor } = view;
     const ns = anchor.namespace;
-    const theme = view.theme;
     const shortId = theme.nfLink(ns.fuzzyIdOf(this));
     const indent = view.bodyIndent;
     const sep = theme.nfBoundary("|");
