@@ -74,7 +74,7 @@ export default function (pi: ExtensionAPI) {
 
   // The nf CLI within Pi provides minimalist NameForma UX
   pi.registerCommand('nf', {
-    description: 'NameForma command with subcommands (status, edit)',
+    description: 'NameForma command with subcommands (help, watch)',
     handler: async (args: string, ctx: ExtensionCommandContext) => {
       await nfDispatch(args, ctx);
     },

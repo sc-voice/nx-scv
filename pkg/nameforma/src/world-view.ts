@@ -107,10 +107,4 @@ export class WorldView extends NavigableView {
     ] as Forma;
     return true;
   }
-
-  observe(): void {
-    setInterval(() => {
-      nfTui.logTo(this.channel, 'WorldView.observe: TBD', new Date());
-    }, 1000);
-  }
 }

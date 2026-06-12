@@ -13,10 +13,9 @@ const { cc } = ColorConsole;
 const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
 
 /**
- * NameFormaTheme - Provides yellow label coloring via pi-coding-agent Theme API.
- * Handles theme installation: pi-coding-agent's initTheme() searches ~/.pi/agent/themes/,
- * but our custom nameforma.json lives in .pi/themes/. This class copies it to the user
- * directory on first load, ensuring consistent behavior in CLI and extension contexts.
+ * NameFormaTheme - A attention-based color palette for pi-coding-agent Theme API.
+ * Default package theme: .pi/agent/themes/nameforma.json
+ * Installed theme: ~/.pi/themes/nameforma.json
  */
 export class NameFormaTheme implements INameFormaTheme {
   private static _shared: INameFormaTheme | null = null;
@@ -65,6 +64,7 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
+   * Standard attention
    * Apply 'customMessageText' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
@@ -81,6 +81,7 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
+   * A boundary marks a static transition in attention
    * Apply 'border' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
@@ -90,6 +91,7 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
+   * A link points to a destination anchor
    * Apply 'borderAccent' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
@@ -99,6 +101,7 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
+   * A transient value that matches expectations
    * Apply 'success' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
@@ -108,6 +111,7 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
+   * A transient value that may require attention
    * Apply 'warning' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
@@ -117,6 +121,7 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
+   * A transient value the requires immediate attention
    * Apply 'error' color to text 
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
@@ -135,11 +140,11 @@ export class NameFormaTheme implements INameFormaTheme {
   }
 
   /**
-   * Apply 'border' color to text (used for field labels)
+   * Apply 'customMessageLabel' color to text (used for field labels)
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
-  nfLabel(text: string): string {
-    return text ? this.theme.fg('border', text + ':') : '';
+  nfLabel(text: string, suffix: string = ':'): string {
+    return text ? this.theme.fg('customMessageLabel', text + suffix) : '';
   }
 }

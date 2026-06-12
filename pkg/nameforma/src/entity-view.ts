@@ -17,7 +17,4 @@ export class EntityView extends NavigableView {
     throw new Error('setPivot not yet supported in EntityView');
   }
 
-  observe(): void {
-    // TBD
-  }
 }

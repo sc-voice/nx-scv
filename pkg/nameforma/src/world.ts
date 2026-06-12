@@ -36,6 +36,7 @@ import {
   ZENO_1_ROW_VERBOSE,
   ZENO_3_ROWS,
   zenoStepToLines,
+  linesToZenoStep,
 } from './navigable-view.js';
 import { RenderBuffer } from './render-buffer.js';
 import RGA64Watermark from './rga64-watermark.js';

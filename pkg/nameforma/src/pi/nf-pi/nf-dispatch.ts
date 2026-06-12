@@ -1,9 +1,14 @@
 import { Command } from 'commander';
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { ZenoCoord, zenoStep } from '../../navigable-view.js';
+import { 
+  NavigableView, ZenoCoord, zenoStep 
+} from '../../navigable-view.js';
 import { NfSession } from './nf-session.js';
 import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
+
+const DEFAULT_WATCH_LINES =  7;
+const BASE_10 = 10;
 
 let nfWatchInstance: NfWatch | null = null;
 
@@ -13,6 +18,8 @@ export async function nfDispatch(
 ): Promise<void> {
   const msg = "nfDispatch";
   const session = NfSession.shared;
+  const { view } = session;
+  const { notify } = ctx.ui;
 
   if (!ctx.hasUI) {
     ctx.ui.notify('nameforma extension requires interactive mode', 'error');
@@ -29,39 +36,38 @@ export async function nfDispatch(
     });
 
   program
-    .command('test <value>')
-    .description('A self-diagnostic')
-    .action(async(value:string = "value?") => {
-      const { notify } = ctx.ui;
-      const theme = NameFormaTheme.load();
-      const msg = [
-        theme.nfBoundary("TEST BEGIN"),
-        new Date(),
-        theme.nfText(JSON.stringify({value}, null, 2)),
-        new Date(),
-      ];
-      switch (value) {
-        case "more":
-          msg.push("one");
-          msg.push("two");
-          msg.push("three");
-          break;
-        default:
-          break;
-      }
-      msg.push(theme.nfBoundary("TEST END"));
-      notify(msg.join("\n"));
-    });
-
-  program
     .command('watch')
+    .option('-l, --lines <val>', '<MAX_LINES(7)>[@DETAIL]')
+    .option('-q, --quit', 'Close NfWatch')
     .description('Watch .nameforma files and display status updates')
-    .action(async () => {
-      if (nfWatchInstance) {
+    .action(async (options:any) => {
+      if (options.lines) {
+        const [sLines, sDetail] = options.lines?.split('@');
+        const lines = parseInt(sLines);
+        const detail = (sDetail && parseFloat(sDetail)) ?? view.detail;
+        if (Number.isNaN(lines) || lines <= 0) {
+          throw new Error(`--lines:${options.lines}?`);
+        }
+        view.setMaxLines(lines);
+        if (sLines && (typeof detail === 'number')) {
+          if (Number.isNaN(detail) || detail < 0 || 1 < detail) {
+            throw new Error(`line detail must be between 0 and 1: ${sDetail}?`);
+          }
+          view.setDetail(detail);
+        }
+        const zc = NavigableView.linesToZenoCoord(lines, detail);
+        view.zoomTo(zc);
+        
+        notify(`detail: ${detail} ${session.view.detail}`, 'warning');
+      } else {
+        notify('options:'+JSON.stringify(options), 'warning');
+      }
+
+      if (nfWatchInstance && options.quit) {
         await nfWatchInstance.stop();
         nfWatchInstance = null;
         ctx.ui.notify('NameForma watch stopped', 'info');
-      } else {
+      } else if (nfWatchInstance == null) {
         nfWatchInstance = new NfWatch(ctx);
         await nfWatchInstance.start();
         ctx.ui.notify('NameForma watch started', 'info');
@@ -95,6 +101,31 @@ export async function nfDispatch(
       } else {
         ctx.ui.notify(`Unknown property: ${key}`, 'error');
       }
+    });
+
+  program
+    .command('test <value>')
+    .description('A self-diagnostic')
+    .action(async(value:string = "value?") => {
+      const { notify } = ctx.ui;
+      const theme = NameFormaTheme.load();
+      const msg = [
+        theme.nfBoundary("TEST BEGIN"),
+        new Date(),
+        theme.nfText(JSON.stringify({value}, null, 2)),
+        new Date(),
+      ];
+      switch (value) {
+        case "more":
+          msg.push("one");
+          msg.push("two");
+          msg.push("three");
+          break;
+        default:
+          break;
+      }
+      msg.push(theme.nfBoundary("TEST END"));
+      notify(msg.join("\n"));
     });
 
   try {

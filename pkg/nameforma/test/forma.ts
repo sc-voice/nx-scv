@@ -124,7 +124,6 @@ describe('Forma', () => {
         setBodyIndent: () => {},
         setTheme: () => {},
         zoomTo: () => {},
-        observe: () => {},
       };
     };
 

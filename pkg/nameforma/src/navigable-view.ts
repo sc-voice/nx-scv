@@ -85,6 +85,7 @@ export type RenderRow = | RenderCell[]
 export type RenderData = RenderRow | RenderRow[];
 
 const MAX_ZENO_STEP = 17;
+const MIN_ZENO_STEP = 0;
 
 /**
  * ZenoStep: branded integer [0..MAX_ZENO_STEP] for stepped detail levels.
@@ -104,7 +105,7 @@ export function zenoStep(n: number): ZenoStep {
 /**
  * ZenoSteps are a measure of semantic detail organized as rows.
  * Each ZenoStep specifies the minimum number of rows shown.
- * Zeno rows are arbitrary length with most relevant information 
+ * Zeno rows are arbitrary length with most relevant information
  * at the start of the row.
  * This allows the renderer to wrap/clip the rows
  * provided by asRenderData() to match the user viewport.
@@ -196,8 +197,13 @@ export class ZenoCoord {
   static readonly MAX_ZENO_STEP = 17;
 
   constructor(anchorStep: ZenoStep, pivotStep: ZenoStep) {
-    this.anchorStep = anchorStep;
-    this.pivotStep = pivotStep;
+    this.anchorStep = zenoStep(anchorStep);
+    this.pivotStep = zenoStep(pivotStep);
+  }
+
+  toString(): string {
+    let { anchorStep:a, pivotStep:p } = this;
+    return `Z(${a},${p})`;
   }
 
   toRenderDetail(): number {
@@ -247,6 +253,22 @@ export function zenoStepToLines(step: ZenoStep): number {
     );
   }
   return ZenoLines[step];
+}
+
+export function linesToZenoStep(lines: number): ZenoStep {
+  if (!Number.isInteger(lines) || lines < 1) {
+    throw new RangeError(`linesToZenoStep: lines must be positive integer, got ${lines}`);
+  }
+  let best = 0;
+  for (let i = 0; i <= MAX_ZENO_STEP; i++) {
+    if (ZenoLines[i] === lines) {
+      return zenoStep(i);
+    }
+    if (ZenoLines[i] < lines) {
+      best = i;
+    }
+  }
+  return zenoStep(best);
 }
 
 /**
@@ -326,15 +348,13 @@ export interface IView {
   readonly zenoCoord: ZenoCoord;
   readonly bodyIndent: string;
   readonly theme: INameFormaTheme;
+  readonly maxLines: number;
+  readonly detail: number;
 
-  /**
-   * Sets the primary subject of observation.
-   */
+  /** Sets the primary subject of observation.  */
   setAnchor(value: IRegistry): void;
 
-  /**
-   * Shifts the perspective within the existing anchor.
-   */
+  /** Shifts the perspective within the existing anchor.  */
   setPivot(value: Forma): void;
 
   /**
@@ -347,12 +367,19 @@ export interface IView {
 
   setTheme(theme: INameFormaTheme): void;
 
-  /**
-   * Starts the observation loop/stream for a given renderer and channel.
-   */
-  observe(): void;
+  /** Set maximum lines displayed (may invalidate)  */
+  setMaxLines(value: number): void;
+
+  /** Set pivot detail (0:no detail; 1:full detail) (may invalidate) */
+  setDetail(value: number): void;
 
   getCursor(): ICursor;
+
+  /** Mark view as stale. @see validate() */ 
+  invalidate(): void;
+
+  /** Execute callback to refresh view if stale */
+  validate(action: () => void): void;
 }
 
 export abstract class NavigableView implements IView {
@@ -362,11 +389,34 @@ export abstract class NavigableView implements IView {
   protected _cursor: ICursor | null = null;
   protected _bodyIndent: string;
   protected _theme: INameFormaTheme;
+  protected _maxLines: number = 7;
+  protected _detail: number = 0;
+
+  #dirty: boolean = true;
 
   constructor() {
     this._zenoCoord = ZenoCoord.fromRenderDetail(RenderDetail.Row);
     this._bodyIndent = '  ';
     this._theme = NameFormaTheme.load();
+  }
+
+  /** Convert a line budget and pivot bias into a ZenoCoord
+   * This method provides semantic 1D or 2D zoom apportioning
+   * anchor lines vertically and pivot lines horizontally
+   * @param {number} lines integer line budget
+   * @param {number} bias lines towards anchor(0:default) or pivot(1)
+   */
+  static linesToZenoCoord(lines:number, bias:number = 0): ZenoCoord {
+    if (lines <= 0) {
+      throw new Error(`invalid lines:${lines}`);
+    }
+    const pivotLines = Math.max(1, Math.floor(bias * lines));
+    const anchorLines = Math.max(1, lines - pivotLines);
+    console.log({lines, anchorLines, pivotLines});
+    const zAnchor = linesToZenoStep(anchorLines);
+    const zPivot = linesToZenoStep(pivotLines);
+
+    return new ZenoCoord(zAnchor, zPivot);
   }
 
   get anchor(): IRegistry {
@@ -389,6 +439,14 @@ export abstract class NavigableView implements IView {
     return this._theme;
   }
 
+  get maxLines(): number {
+    return this._maxLines;
+  }
+
+  get detail(): number {
+    return this._detail;
+  }
+
   setAnchor(value: IRegistry): void {
     this._anchor = value;
   }
@@ -405,8 +463,39 @@ export abstract class NavigableView implements IView {
     this._theme = value;
   }
 
+  setMaxLines(value: number): void {
+    if (value <= 0) {
+      throw new Error(`expect positive integer:${value}`);
+    }
+    this._maxLines = value;
+    this.invalidate();
+  }
+
+  setDetail(value: number): void {
+    if (value < 0 || 1 < value) {
+      throw new Error(`expect value between 0 and 1:${value}`);
+    }
+    this._detail = value;
+    this.invalidate();
+  }
+
   zoomTo(zeno: ZenoCoord): void {
     this._zenoCoord = new ZenoCoord(zeno.anchorStep, zeno.pivotStep);
+    this.invalidate();
+  }
+
+  /**
+   * Called when view state changes and needs re-observation.
+   */
+  invalidate(): void {
+    this.#dirty = true;
+  }
+
+  validate(action: () => void): void {
+    if (this.#dirty) {
+      action();
+      this.#dirty = false;
+    }
   }
 
   getCursor(): ICursor {
@@ -416,6 +505,5 @@ export abstract class NavigableView implements IView {
     return this._cursor;
   }
 
-  abstract observe(): void;
 }
 

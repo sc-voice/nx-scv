@@ -9,34 +9,54 @@ import type { Forma } from '../../forma.js';
  * that represent the convergence of the nf system of record.
  */
 export class NfWatch {
-  #active: boolean;
-  #theme: ReturnType<typeof NameFormaTheme.load>;
-  #renderer: any;
-  #ctx: any;
-  lines: string[] = [];
+  private _active: boolean;
+  private _theme: ReturnType<typeof NameFormaTheme.load>;
+  private _renderer: any;
+  private _ctx: any;
+  private _invalidateInterval: NodeJS.Timeout | null = null;
+  private _validateInterval: NodeJS.Timeout | null = null;
+  private _lines: string[] = [];
+  private _bias: number;
 
   constructor(ctx: any) {
-    this.#ctx = ctx;
-    this.#active = true;
-    this.#theme = NameFormaTheme.load();
-    this.update();
-    NfSession.shared.on('tick', () => this.update());
+    this._ctx = ctx;
+    this._active = true;
+    this._theme = NameFormaTheme.load();
+    this._bias = 0;
+    this.startTimers();
+  }
+
+  private startTimers(): void {
+    const view = NfSession.shared.view;
+
+    this._invalidateInterval = setInterval(() => {
+      view.invalidate();
+    }, 1000);
+
+    this._validateInterval = setInterval(() => {
+      view.validate(() => this.update());
+    }, 200);
+  }
+
+  private stopTimers(): void {
+    if (this._invalidateInterval) clearInterval(this._invalidateInterval);
+    if (this._validateInterval) clearInterval(this._validateInterval);
+    this._invalidateInterval = null;
+    this._validateInterval = null;
   }
 
   public async start(): Promise<void> {
-    if (!this.#active) {
-      this.#active = true;
-      this.update();
+    if (!this._active) {
+      this._active = true;
+      this.startTimers();
     }
-    // TODO: Implement file system watching logic using chokidar or similar
   }
 
   public async stop(): Promise<void> {
-    if (this.#active) {
-      this.#active = false;
-      this.update();
+    if (this._active) {
+      this._active = false;
+      this.stopTimers();
     }
-    // TODO: Implement cleanup logic
   }
 
   get anchor(): IRenderable | null {
@@ -53,41 +73,47 @@ export class NfWatch {
     }
 
     const renderData = this.anchor.asRenderData(NfSession.shared.view);
-    return this.#renderer.render(renderData);
+    return this._renderer.render(renderData);
   }
 
-  update = () => {
-    if (!this.#active) {
+  private update(): void {
+    if (!this._active) {
       return;
     }
-    const theme = this.#theme;
-    const { notify } = this.#ctx.ui;
+    const { _theme:theme } = this;
+    const { notify } = this._ctx.ui;
     const { world, view } = NfSession.shared;
     if (world == null) {
       notify("world?");
       return;
     }
+    const { maxLines, detail, anchor, pivot } = view;
     const zeno = view.zenoCoord;
-    this.#renderer = new LineRenderer({
+    this._renderer = new LineRenderer({
       theme,
+      lines: maxLines,
       zenoStep: zeno.anchorStep,
     });
     const now = new Date();
     const timeStr = now.toLocaleTimeString(undefined, { hour12: false });
-    const zenoStr = zeno.anchorStep + '/' + zeno.pivotStep;
+    const zenoStr = 'Z' + zeno.anchorStep + '/' + zeno.pivotStep;
     world.sync();
     const worldName = world.name || 'name?';
     const worldId = world.id.timeId() || 'id?';
     const header = [
-      theme.nfBoundary(`${timeStr} NfWatch anchor:`),
+      theme.nfBoundary(`${timeStr} NfWatch`),
+      theme.nfLabel(`anchor`),
       worldId,
-      theme.nfBoundary('zeno'),
-      zenoStr,
+      theme.nfLabel(`pivot`),
+      (pivot && world.namespace.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
+      theme.nfLabel('lines'),
+      `${maxLines}@${detail}`,
+      theme.nfNote(zenoStr),
     ].join(' ');
 
     const contentLines = this.renderContent();
-    this.lines = [header, ...contentLines];
-    notify(this.lines.join('\n'));
-  };
+    this._lines = [header, ...contentLines];
+    notify(this._lines.join('\n'));
+  }
 
 }

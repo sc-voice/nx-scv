@@ -17,6 +17,7 @@ export interface LineRendererConfig {
   lines?: number;
   lineWidth?: number;
   wrapIndent?: number;
+  wrapCells?: boolean;
 }
 
 /**
@@ -31,6 +32,7 @@ export class LineRenderer {
   public readonly lines: number;
   public readonly lineWidth: number;
   public readonly wrapIndent: number;
+  public readonly wrapCells: boolean;
 
   constructor(config?: LineRendererConfig) {
     this.theme = config?.theme ?? NameFormaTheme.load();
@@ -40,6 +42,7 @@ export class LineRenderer {
     this.lines = config?.lines ?? Number.MAX_SAFE_INTEGER;
     this.lineWidth = config?.lineWidth ?? 75;
     this.wrapIndent = config?.wrapIndent ?? 2;
+    this.wrapCells = config?.wrapCells ?? false;
   }
 
   /**
@@ -50,6 +53,7 @@ export class LineRenderer {
    * @returns An array of formatted strings.
    */
   public render(data: RenderData, currentIndent: string = ''): string[] {
+    const { theme } = this;
     // Convert to RenderRow[]
     const rows: RenderRow[] = Array.isArray(data) && data.length > 0 && Array.isArray(data[0])
       ? (data as RenderRow[])
@@ -80,9 +84,9 @@ export class LineRenderer {
       const rowWasClipped = allocatedCount < rowLines.length;
 
       // Add ellipsis if we still have budget and row was clipped
-      if (rowWasClipped && totalLinesUsed < this.lines) {
-        result.push(currentIndent + '...');
-        totalLinesUsed++;
+      if (rowWasClipped) {
+        const ellipsis = theme.nfWarn(' …');
+        result.push(result.pop() + ellipsis);
       }
 
       if (totalLinesUsed >= this.lines) break;
@@ -212,7 +216,8 @@ export class LineRenderer {
   }
 
   public rowStrings(data: RenderRow): string[] {
-    return data.map((item) => this.cellString(item));
+    const cellStrings = data.map((item) => this.cellString(item));
+    return this.wrapCells ? cellStrings : [ cellStrings.join(' ') ];
   }
 
   private isObject(val: any): val is Record<string, any> {
