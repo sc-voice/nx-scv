@@ -284,7 +284,7 @@ export class Forma extends Identifiable implements IRenderable {
     const { anchorStep, pivotStep } = zeno;
     const cls = this.constructor.name;
     const { anchor } = view;
-    const ns = anchor.namespace;
+    const ns = view.namespace;
     const shortId = theme.nfLink(ns.fuzzyIdOf(this));
     const indent = view.bodyIndent;
     const sep = theme.nfBoundary("|");

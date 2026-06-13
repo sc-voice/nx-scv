@@ -40,7 +40,7 @@ export abstract class Entity extends Forma implements IRegistry {
    * Get the mutable namespace for subclass use (e.g., FormaList operations)
    * Lazy initialization: creates namespace and populates on first access
    */
-  protected get mutableNamespace(): IMutableNamespace {
+  get mutableNamespace(): IMutableNamespace {
     if (!this.#namespace) {
       this.#namespace = new FuzzyNamespace();
       this.populateNamespace();

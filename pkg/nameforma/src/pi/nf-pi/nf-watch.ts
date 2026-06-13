@@ -105,7 +105,7 @@ export class NfWatch {
       theme.nfLabel(`anchor`),
       worldId,
       theme.nfLabel(`pivot`),
-      (pivot && world.namespace.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
+      (pivot && view.namespace.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
       theme.nfLabel('lines'),
       `${maxLines}@${detail}`,
       theme.nfNote(zenoStr),

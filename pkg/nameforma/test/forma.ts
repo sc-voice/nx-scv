@@ -106,6 +106,7 @@ describe('Forma', () => {
       return {
         anchor: mockAnchor,
         pivot: null as any,
+        namespace: ns,
         detail,
         zenoCoord: ZenoCoord.fromRenderDetail(detail),
         bodyIndent: '  ',

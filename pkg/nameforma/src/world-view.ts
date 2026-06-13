@@ -25,6 +25,7 @@ export class WorldView extends NavigableView {
     super();
     this.world = world;
     this.channel = channel;
+    this.setAnchor(world);
   }
 
   override setAnchor(value: IRegistry): void {

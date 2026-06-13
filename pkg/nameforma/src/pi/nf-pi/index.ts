@@ -16,7 +16,7 @@ const theme = NameFormaTheme.shared;
  * onTerminalInput swallows SGR mouse events
  * intercepting OS stdin events is really hacky and fragile
  */
-const MOUSE_CLICKS=true
+const MOUSE_CLICKS=false
 const mouse = { row:'', col: '' }
 
 export default function (pi: ExtensionAPI) {
