@@ -83,6 +83,7 @@ export class NfWatch {
     const { _theme:theme } = this;
     const { notify } = this._ctx.ui;
     const { world, view } = NfSession.shared;
+    const { namespace:ns } = view;
     if (world == null) {
       notify("world?");
       return;
@@ -103,9 +104,9 @@ export class NfWatch {
     const header = [
       theme.nfBoundary(`${timeStr} NfWatch`),
       theme.nfLabel(`anchor`),
-      worldId,
+      ns.fuzzyIdOf(anchor),
       theme.nfLabel(`pivot`),
-      (pivot && view.namespace.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
+      (pivot && ns.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
       theme.nfLabel('lines'),
       `${maxLines}@${detail}`,
       theme.nfNote(zenoStr),

@@ -11,11 +11,7 @@ import {
   ZENO_3_ROWS,
   ZENO_5_ROWS,
   ZENO_8_ROWS,
-  ViewNamespace,
 } from '../src/navigable-view.js';
-import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
-import { Forma } from '../src/forma.js';
-import UUID64 from '../src/uuid64.js';
 import { Text } from '@sc-voice/tools';
 
 const { ColorConsole } = Text;
@@ -44,7 +40,7 @@ describe('navigable-view', () => {
       expect(linesToZenoStep(8)).toBe(ZENO_8_ROWS);
       expect(linesToZenoStep(8)).toBe(zenoStep(5));
 
-      cc.ok1(msg, 'lines correctly converted to ZenoSteps');
+      //cc.ok1(msg, 'lines correctly converted to ZenoSteps');
     });
 
     it('should reject invalid input', () => {
@@ -54,7 +50,7 @@ describe('navigable-view', () => {
       expect(() => linesToZenoStep(-1)).toThrow(RangeError);
       expect(() => linesToZenoStep(1.5)).toThrow(RangeError);
 
-      cc.ok1(msg, 'invalid input properly rejected');
+      //cc.ok1(msg, 'invalid input properly rejected');
     });
   });
 
@@ -70,7 +66,7 @@ describe('navigable-view', () => {
       expect(zenoStepToLines(ZENO_5_ROWS)).toBe(5);
       expect(zenoStepToLines(ZENO_8_ROWS)).toBe(8);
 
-      cc.ok1(msg, 'line counts correct for each ZenoStep');
+      //cc.ok1(msg, 'line counts correct for each ZenoStep');
     });
   });
 
@@ -163,165 +159,4 @@ describe('navigable-view', () => {
     });
   });
 
-  describe('ViewNamespace', () => {
-    let anchorNs: FuzzyNamespace;
-    let pivotNs: FuzzyNamespace;
-    let viewNs: ViewNamespace;
-    let forma1: Forma;
-    let forma2: Forma;
-    let forma3: Forma;
-
-    beforeEach(() => {
-      anchorNs = new FuzzyNamespace();
-      pivotNs = new FuzzyNamespace();
-      viewNs = new ViewNamespace(anchorNs, pivotNs);
-
-      forma1 = new Forma({ id: new UUID64(), name: 'forma1' });
-      forma2 = new Forma({ id: new UUID64(), name: 'forma2' });
-      forma3 = new Forma({ id: new UUID64(), name: 'forma3' });
-    });
-
-    describe('merging', () => {
-      it('includes formas from both anchor and pivot namespaces', () => {
-        anchorNs.addForma(forma1);
-        pivotNs.addForma(forma2);
-
-        const merged = Array.from(viewNs).map(([_, f]) => f);
-        expect(merged).toHaveLength(2);
-        expect(merged).toContain(forma1);
-        expect(merged).toContain(forma2);
-      });
-
-      it('deduplicates formas present in both anchor and pivot', () => {
-        anchorNs.addForma(forma1);
-        pivotNs.addForma(forma1);
-
-        const merged = Array.from(viewNs).map(([_, f]) => f);
-        expect(merged).toHaveLength(1);
-        expect(merged[0]).toBe(forma1);
-      });
-
-      it('prefers anchor namespace in deduplication', () => {
-        anchorNs.addForma(forma1);
-        anchorNs.addForma(forma2);
-        pivotNs.addForma(forma2);
-        pivotNs.addForma(forma3);
-
-        const merged = Array.from(viewNs).map(([_, f]) => f);
-        expect(merged).toHaveLength(3);
-        expect(merged).toContain(forma1);
-        expect(merged).toContain(forma2);
-        expect(merged).toContain(forma3);
-      });
-    });
-
-    describe('getForma', () => {
-      it('finds formas in anchor namespace', () => {
-        anchorNs.addForma(forma1);
-        pivotNs.addForma(forma2);
-        const found1 = viewNs.getForma(forma1.id.base64);
-        expect(found1).toBe(forma1);
-        const found2 = viewNs.getForma(forma2.id.base64);
-        expect(found2).toBe(forma2);
-        const found3 = viewNs.getForma(forma3.id.base64);
-        expect(found3).toBeUndefined();
-      });
-    });
-
-    describe('fuzzyIdOf', () => {
-      it('returns fuzzyId for forma in anchor namespace', () => {
-        anchorNs.addForma(forma1);
-        pivotNs.addForma(forma2);
-        const fuzzy1 = viewNs.fuzzyIdOf(forma1);
-        const fuzzy2 = viewNs.fuzzyIdOf(forma2);
-        const found1 = viewNs.getForma(fuzzy1);
-        expect(found1).toBe(forma1);
-        const found2 = viewNs.getForma(fuzzy2);
-        expect(found2).toBe(forma2);
-
-        // normal fuzzy ids are 5-6 chars, but when UUID64s are created
-        // rapidly, we need to include the time sequence as well
-        expect(fuzzy1.length).toBeLessThan(8);
-      });
-    });
-
-    describe('cache invalidation', () => {
-      it('caches merged namespace on first access', () => {
-        anchorNs.addForma(forma1);
-        const merged1 = Array.from(viewNs);
-        const merged2 = Array.from(viewNs);
-        // Both iterations should use same cache
-        expect(merged1.length).toBe(merged2.length);
-      });
-
-      it('invalidates cache when anchor namespace changes', () => {
-        anchorNs.addForma(forma1);
-        const merged1 = Array.from(viewNs).map(([_, f]) => f);
-
-        anchorNs.addForma(forma2);
-        const merged2 = Array.from(viewNs).map(([_, f]) => f);
-
-        expect(merged1).toHaveLength(1);
-        expect(merged2).toHaveLength(2);
-      });
-
-      it('invalidates cache when pivot namespace changes', () => {
-        pivotNs.addForma(forma1);
-        const merged1 = Array.from(viewNs).map(([_, f]) => f);
-
-        pivotNs.addForma(forma2);
-        const merged2 = Array.from(viewNs).map(([_, f]) => f);
-
-        expect(merged1).toHaveLength(1);
-        expect(merged2).toHaveLength(2);
-      });
-    });
-
-    describe('mutation routing', () => {
-      it('removeForma removes from anchor namespace', () => {
-        anchorNs.addForma(forma1);
-        const removed = viewNs.removeForma(forma1.id.base64);
-
-        expect(removed).toBe(forma1);
-        expect(viewNs.getForma(forma1.id.base64)).toBeUndefined();
-      });
-
-      it('removeForma removes from pivot namespace if not in anchor', () => {
-        pivotNs.addForma(forma2);
-        const removed = viewNs.removeForma(forma2.id.base64);
-
-        expect(removed).toBe(forma2);
-        expect(viewNs.getForma(forma2.id.base64)).toBeUndefined();
-      });
-
-      it('removeForma returns undefined for unknown formas', () => {
-        const removed = viewNs.removeForma(forma1.id.base64);
-        expect(removed).toBeUndefined();
-      });
-
-      it('addForma throws ambiguous operation error', () => {
-        expect(() => viewNs.addForma(forma1)).toThrow('Ambiguous operation');
-      });
-    });
-
-    describe('iterator', () => {
-      it('iterates over merged namespace', () => {
-        anchorNs.addForma(forma1);
-        pivotNs.addForma(forma2);
-
-        const entries = Array.from(viewNs);
-        expect(entries).toHaveLength(2);
-        expect(entries.map(([_, f]) => f)).toContain(forma1);
-        expect(entries.map(([_, f]) => f)).toContain(forma2);
-      });
-
-      it('returns [fuzzyId, forma] tuples', () => {
-        anchorNs.addForma(forma1);
-        const [fuzzyId, forma] = Array.from(viewNs)[0];
-
-        expect(viewNs.getForma(fuzzyId)).toBe(forma1);
-        expect(forma).toBe(forma1);
-      });
-    });
-  });
 });

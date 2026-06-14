@@ -78,7 +78,7 @@ describe('DocCommand', () => {
       // Allow for ANSI codes and markdown table content
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, '');
       //0PsmmIHG00auPU-q_AgmtW
-      console.error('DEBUG', cleanLine.length, cleanLine);
+      //console.error('DEBUG', cleanLine.length, cleanLine);
       expect(cleanLine.length).toBeLessThanOrEqual(100);
     });
   });

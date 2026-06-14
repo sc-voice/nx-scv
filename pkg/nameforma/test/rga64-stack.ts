@@ -161,12 +161,12 @@ describe('RGA64Stack', () => {
       value2.base64,
       value1.base64,
     ]);
-    console.log("oldNodes", oldNodes.map(n=>n.toJSON()));
+    //console.log("oldNodes", oldNodes.map(n=>n.toJSON()));
 
     stack.push(value2); // Push value2 again
     const newValues = stack.values().map(v => v.timeId());
     const newNodes = stack.nodes(false);
-    console.log("newNodes", newNodes.map(n=>n.toJSON()));
+    //console.log("newNodes", newNodes.map(n=>n.toJSON()));
     expect(newNodes.map(n=>n.id.timeId())).toEqual(oldNodes.map(n=>n.id.timeId()));
     expect(newValues).toEqual([
       value2.timeId(), // New top of stack

@@ -4,7 +4,10 @@ import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
 import { NameFormaTheme } from './nameforma-theme.js';
-import { FuzzyNamespace, type IMutableNamespace, type IReadOnlyNamespace } from './fuzzy-namespace.js';
+import { FuzzyNamespace, type IReadOnlyNamespace } from './fuzzy-namespace.js';
+import { ViewNamespace } from './view-namespace.js';
+
+export { ViewNamespace } from './view-namespace.js';
 
 /**
  * NameForma theme for pi-tui and nameforma cli
@@ -384,111 +387,6 @@ export interface IView {
   validate(action: () => void): void;
 }
 
-/**
- * ViewNamespace - Routes mutations to anchor/pivot while presenting unified FuzzyId resolution.
- * Merges anchor and pivot namespaces for reading; routes writes to anchor namespace.
- */
-export class ViewNamespace implements IMutableNamespace {
-  private anchorNs: IMutableNamespace;
-  private pivotNs: IMutableNamespace;
-
-  constructor(anchor: IMutableNamespace, pivot: IMutableNamespace) {
-    this.anchorNs = anchor;
-    this.pivotNs = pivot;
-  }
-
-  /** Compute merged namespace from anchor + pivot */
-  private getMerged(): FuzzyNamespace {
-    const merged = new FuzzyNamespace();
-    const seen = new Set<string>();
-
-    for (const [, forma] of this.anchorNs) {
-      merged.addForma(forma);
-      seen.add(forma.id.base64);
-    }
-
-    for (const [, forma] of this.pivotNs) {
-      if (!seen.has(forma.id.base64)) {
-        merged.addForma(forma);
-      }
-    }
-
-    return merged;
-  }
-
-  [Symbol.iterator](): Iterator<[string, Forma]> {
-    return this.getMerged()[Symbol.iterator]();
-  }
-
-  getForma(fuzzyId: string): Forma | undefined {
-    return this.anchorNs.getForma(fuzzyId) ?? this.pivotNs.getForma(fuzzyId);
-  }
-
-  fuzzyIdOf(forma: Forma): string {
-    const msg = "N11w.fuzzyIdOf"
-    const { anchorNs, pivotNs } = this;
-    const base64 = forma.id.base64;
-    const inA = anchorNs.getForma(base64);
-    const fzA = anchorNs.fuzzyIdOf(forma);
-    const dbg = 0;
-
-    // unique fuzzy ids
-    if (inA && pivotNs.getForma(fzA) == null) {
-      dbg && console.log(msg, {base64, fzA});
-      return fzA; 
-    }
-    const inP = pivotNs.getForma(base64);
-    const fzP = pivotNs.fuzzyIdOf(forma);
-    if (inP && anchorNs.getForma(fzP) == null) {
-      dbg && console.log(msg, {base64, fzP});
-      return fzP;
-    }
-
-    // Forma is in neither namespace
-    if (!inA && !inP) {
-      dbg && console.log(msg, {base64});
-      return base64;
-    }
-
-    // Forma is in both namespaces with same fuzzy id
-    if (inA && inP && fzA === fzP) {
-      dbg && console.log(msg, "both", {base64, fzA});
-      return fzA;
-    }
-
-    dbg && console.log(msg, {base64, inA:!!inA, inP:!!inP, fzA, fzP});
-
-    const timeId = forma.id.timeId();
-    const tid = timeId.substring(timeId.indexOf(fzA));
-    const tidA = anchorNs.getForma(tid);
-    const tidP = pivotNs.getForma(tid);
-    if (tidA && (tidP == null || tidP === tidA)) {
-      dbg && console.log(msg, "tidA", {tid});
-      return tid;
-    }
-    if (tidP) {
-      dbg && console.log(msg, "tidB", {tid});
-      return tid;
-    }
-
-    throw new Error(`${msg} unknown failure`);
-  }
-
-  /** addForma is ambiguous in a ViewNamespace.  Client should mutate 
-   * underlying namespaces and invalidate this one.
-   */
-  addForma(forma: Forma): void {
-    throw new Error('Ambiguous operation. Invalidate and mutate ancor/pivot directly.');
-  }
-
-  removeForma(fuzzyId: string): Forma | undefined {
-    let removed = this.anchorNs.removeForma(fuzzyId);
-    if (!removed) {
-      removed = this.pivotNs.removeForma(fuzzyId);
-    }
-    return removed;
-  }
-}
 
 export class NavigableView implements IView {
   protected _anchor: IRegistry | null = null;
@@ -521,7 +419,6 @@ export class NavigableView implements IView {
     }
     const pivotLines = Math.max(1, Math.floor(bias * lines));
     const anchorLines = Math.max(1, lines - pivotLines);
-    console.log({lines, anchorLines, pivotLines});
     const zAnchor = linesToZenoStep(anchorLines);
     const zPivot = linesToZenoStep(pivotLines);
 
