@@ -1,0 +1,13 @@
+import { describe, it, expect } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import { createTempWorld } from '../../Users/visakha/dev/nx-nameforma/pkg/nameforma/test/cli/helpers.js';
+
+describe('repro', () => {
+  it('createTempWorld creates world.json', () => {
+    const tw = createTempWorld();
+    console.log('worldPath', tw.worldPath);
+    console.log('exists', fs.existsSync(path.join(tw.worldPath, 'world.json')));
+    console.log('dir contents', fs.readdirSync(tw.worldPath));
+  });
+});

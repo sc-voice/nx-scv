@@ -946,11 +946,12 @@ export class World extends Entity implements IEventBus {
     }
   }
 
-  /**
+  /** @deprecated
    * Load or create World from path
-   * Reads .nameforma/world.json if exists, otherwise creates new World
+   * Reads .nameforma/world.json if exists, otherwise creates new World only if create option is true
    * @param {string} worldPath - Path to .nameforma/ directory
    * @returns {World} - World instance with persistent or new id
+   * @throws {Error} - If world not found and create is not true
    */
   static fromPath(worldPath: string): World {
     const msg = 'world.fromPath';
@@ -961,26 +962,77 @@ export class World extends Entity implements IEventBus {
     let world: World | undefined;
 
     if (fs.existsSync(worldFile)) {
-      const data = fs.readFileSync(worldFile, 'utf8');
-      const json = JSON.parse(data);
-      dbg && cc.ok1(msg, `loaded ${worldFile}`);
-      world = World.fromJson(json, worldPath);
-      // Synchronize watermark with current git HEAD and persist if advanced
-      const watermarkAdvanced = world.#syncWatermark();
-      const isValid = world.validate();
-      if (!isValid || watermarkAdvanced) {
-        world.save();
-        dbg && cc.ok1(msg, `saved`);
-      }
+      world = World.load(worldPath);
     } else {
-      // Create new World
-      world = new World(worldPath);
-
-      // Save world.json with generated id
-      const worldData = JSON.stringify(world.toJSON(), null, 2);
-      fs.writeFileSync(worldFile, worldData, 'utf8');
-      dbg && cc.ok1(msg, `created ${worldFile}`);
+      world = World.create(worldPath);
     }
+
+    // Initialize sync cursor to now
+    world.#lastSyncTime = Date.now();
+
+    return world;
+  }
+
+  /**
+   * Load World from path and throws if it does not exist
+   * Reads .nameforma/world.json 
+   * @param {string} worldPath - Path to .nameforma/ directory
+   * @returns {World} - World instance with persistent or new id
+   * @throws {Error} - If world not found and create is not true
+   */
+  static load(worldPath: string): World {
+    const msg = 'world.load';
+    const dbg = WORLD?.CTOR;
+
+    const worldFile = path.join(worldPath, 'world.json');
+    if (!fs.existsSync(worldFile)) {
+      throw new Error(`World not found at ${worldPath}. Run 'nf init ${worldPath}' to create one.`);
+    }
+
+    let world: World | undefined;
+    const data = fs.readFileSync(worldFile, 'utf8');
+    const json = JSON.parse(data);
+    dbg && cc.ok1(msg, `loaded ${worldFile}`);
+    world = World.fromJson(json, worldPath);
+    // Synchronize watermark with current git HEAD and persist if advanced
+    const watermarkAdvanced = world.#syncWatermark();
+    const isValid = world.validate();
+    if (!isValid || watermarkAdvanced) {
+      world.save();
+      dbg && cc.ok1(msg, `saved`);
+    }
+
+    // Initialize sync cursor to now
+    world.#lastSyncTime = Date.now();
+
+    return world;
+  }
+
+  /**
+   * Create new World at path. Throws Error if world exists.
+   * Creates .nameforma/world.json
+   * @param {string} worldPath - Path to .nameforma/ directory
+   * @returns {World} - World instance with persistent or new id
+   * @throws {Error} - If world not found and create is not true
+   */
+  static create(worldPath: string): World {
+    const msg = 'world.create';
+    const dbg = WORLD?.CTOR;
+
+    const worldFile = path.join(worldPath, 'world.json');
+
+    let world: World | undefined;
+
+    if (fs.existsSync(worldFile)) {
+      throw new Error(`World exists at ${worldPath}`);
+    }
+    // Create new World only if create flag is true
+    world = new World(worldPath);
+
+    // Save world.json with generated id
+    const worldData = JSON.stringify(world.toJSON(), null, 2);
+    fs.writeFileSync(worldFile, worldData, 'utf8');
+    dbg && cc.ok1(msg, `created ${worldFile}`);
 
     // Initialize sync cursor to now
     world.#lastSyncTime = Date.now();

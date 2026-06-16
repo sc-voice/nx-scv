@@ -11,7 +11,8 @@ export default defineConfig({
           include: ['test/**/*.ts'],
           exclude: [
             'test/vitest.config.mjs',
-            'test/**/*helpers*',
+            'test/**/helpers.ts',
+            'test/**/*.helpers.ts',
             'test/**/*.integration.ts',
           ],
           setupFiles: [],

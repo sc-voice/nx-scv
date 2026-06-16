@@ -6,24 +6,40 @@ import { World } from '../../src/world.js';
 import type { GlobalOpts } from '../../src/cli/nf-cli.js';
 
 /**
- * Create an isolated temporary world for testing
- * @param {string} prefix - Prefix for temp directory name (default: 'nameforma-test')
- * @returns {object} - { worldPath, cleanup() }
+ * Create an isolated temporary directoryt
+ * @param {string} prefix - Prefix for temp directory name (default: 'nf-test')
  */
-export function createTempWorld(prefix = 'nameforma-test') {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
-  const worldPath = path.join(tempDir, '.nameforma');
-  fs.mkdirSync(worldPath, { recursive: true });
-
-  return {
-    worldPath,
+export function createTempDir(prefix = 'nf-test') {
+  const tempDir: string = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  return { 
     tempDir,
     cleanup() {
       if (fs.existsSync(tempDir)) {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
-    },
-  };
+    }
+  }
+}
+
+/**
+ * Create an isolated temporary world for testing
+ * @param {string} prefix - Prefix for temp directory name (default: 'nf-test')
+ * @returns {object} - { worldPath, cleanup() }
+ */
+export function createTempWorld(prefix = 'nf-test') {
+  const { tempDir, cleanup } = createTempDir(prefix);
+  const worldPath = path.join(tempDir, '.nameforma');
+  fs.mkdirSync(worldPath, { recursive: true });
+
+  // Force world creation in tests so world.json exists
+  const world = World.create(worldPath);
+  const msg = 'createTempWorld';
+  const jsonPath = path.join(worldPath, "world.json");
+  if (!fs.existsSync(jsonPath)) {
+    throw new Error(`${msg} ${jsonPath}?`);
+  }
+
+  return { worldPath, tempDir, cleanup };
 }
 
 /**

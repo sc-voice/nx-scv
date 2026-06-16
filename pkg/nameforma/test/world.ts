@@ -235,6 +235,62 @@ describe('World Registry - Constructor & Entity Registration', () => {
   });
 });
 
+describe('World.create()', () => {
+  let tempDir: string;
+  let worldPath: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-create-test-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    fs.mkdirSync(worldPath, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('creates world.json and returns a World with the given worldPath', () => {
+    const world = World.create(worldPath);
+    expect(world.worldPath).toBe(worldPath);
+    expect(fs.existsSync(path.join(worldPath, 'world.json'))).toBe(true);
+  });
+
+  it('throws if world.json already exists', () => {
+    World.create(worldPath);
+    expect(() => World.create(worldPath)).toThrow(/World exists at/);
+  });
+});
+
+describe('World.load()', () => {
+  let tempDir: string;
+  let worldPath: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-load-test-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    fs.mkdirSync(worldPath, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('throws if world.json does not exist', () => {
+    expect(() => World.load(worldPath)).toThrow(/World not found at/);
+  });
+
+  it('loads a world created by World.create() with the same id', () => {
+    const created = World.create(worldPath);
+    const loaded = World.load(worldPath);
+    expect(loaded.id.base64).toBe(created.id.base64);
+    expect(loaded.worldPath).toBe(worldPath);
+  });
+});
+
 describe('World Storage - Save, Load, List, Delete', () => {
   let tempDir: string;
   let worldPath: string;

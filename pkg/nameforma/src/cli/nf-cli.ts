@@ -9,8 +9,8 @@ import { stdin as input, stdout as output } from 'process';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import TaskCommand from './cli-task.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { readFileSync, realpathSync } from 'fs';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import IdCommand from './cli-id.js';
 import GetCommand from './cli-get.js';
@@ -19,6 +19,7 @@ import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
+import InitCommand from './cli-init.js';
 import { World } from '../world.js';
 import { IS_CLAUDE } from './env.js';
 import type { IReplRenderer } from './nf-tui.js';
@@ -161,13 +162,18 @@ export class REPL {
 }
 
 export function resolveWorld(worldPath?: string): World {
-  if (!worldPath) {
-    worldPath =
-      World.findWorld() || path.join(process.cwd(), '.nameforma');
-  } else if (!worldPath.endsWith('.nameforma')) {
-    worldPath = path.join(worldPath, '.nameforma');
+  let resolvedPath = worldPath;
+  if (!resolvedPath) {
+    resolvedPath = World.findWorld() || undefined;
+    if (!resolvedPath) {
+      throw new Error(
+        `No world found. Run 'nf init' in your project directory to create one.`,
+      );
+    }
+  } else if (!resolvedPath.endsWith('.nameforma')) {
+    resolvedPath = path.join(resolvedPath, '.nameforma');
   }
-  return World.fromPath(worldPath);
+  return World.load(resolvedPath);
 }
 
 /** NameForma command-line interface for managing tasks, formas, and schemas */
@@ -229,8 +235,25 @@ export class NfCLI {
       )
       .hook('preAction', (thisCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
+        // Check if this is an init command
+        // In Commander, the subcommand name is in _name or can be checked via args
+        const cmdName = thisCommand._name || thisCommand.name?.();
+        const isInitCommand =
+          cmdName === 'init' ||
+          process.argv.includes('init');
+
+        let world: World | undefined;
+        if (!isInitCommand) {
+          try {
+            world = resolveWorld(opts.world);
+          } catch (err) {
+            nfTui.error(err instanceof Error ? err.message : String(err));
+            process.exit(1);
+          }
+        }
+
         globalOpts = {
-          world: resolveWorld(opts.world),
+          world: world as any,
           verbosity: parseInt(opts.verbose || '0', 10),
           testRunner: opts.testRunner || false,
         };
@@ -243,6 +266,10 @@ export class NfCLI {
       return globalOpts;
     };
 
+    InitCommand.registerCommand(
+      program.command('init').description('Initialize a new world'),
+      getGlobalOpts,
+    );
     TaskCommand.registerCommand(
       program.command('task').description('Manage tasks'),
       getGlobalOpts,
@@ -366,27 +393,33 @@ export class NfCLI {
   }
 }
 
-const isTestRunner = process.argv.includes('--test-runner');
+const isMainModule =
+  process.argv[1] !== undefined &&
+  realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
 
-if (!isTestRunner) {
-  const argsIdx = process.argv.indexOf('--args');
-  if (argsIdx !== -1) {
-    console.log(JSON.stringify(process.argv.slice(argsIdx + 1)));
-    process.exit(0);
-  }
+if (isMainModule) {
+  const isTestRunner = process.argv.includes('--test-runner');
 
-  if (process.argv.length <= 2) {
-    const world = resolveWorld(process.env.WORLD);
-    const repl = new REPL(world);
-    repl.start().catch((err) => {
-      nfTui.error(err);
-      process.exit(1);
-    });
-  } else {
-    const cli = new NfCLI();
-    cli.parseArgv(process.argv).catch((err) => {
-      nfTui.error(err);
-      process.exit(1);
-    });
+  if (!isTestRunner) {
+    const argsIdx = process.argv.indexOf('--args');
+    if (argsIdx !== -1) {
+      console.log(JSON.stringify(process.argv.slice(argsIdx + 1)));
+      process.exit(0);
+    }
+
+    if (process.argv.length <= 2) {
+      const world = resolveWorld(process.env.WORLD);
+      const repl = new REPL(world);
+      repl.start().catch((err) => {
+        nfTui.error(err);
+        process.exit(1);
+      });
+    } else {
+      const cli = new NfCLI();
+      cli.parseArgv(process.argv).catch((err) => {
+        nfTui.error(err);
+        process.exit(1);
+      });
+    }
   }
 }

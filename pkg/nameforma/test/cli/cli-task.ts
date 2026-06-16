@@ -9,6 +9,7 @@ import { execSync } from 'child_process';
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { NameForma } from '../../src/index.js';
 import TaskCommand from '../../src/cli/cli-task.js';
 import { NfCLI } from '../../src/cli/nf-cli.js';
@@ -16,11 +17,12 @@ import { nfTui } from '../../src/cli/nf-tui.js';
 import { CliRenderer } from '../../src/cli/nf-tui.js';
 import { World } from '../../src/world.js';
 import {
+  createTempDir,
   createTempWorld,
   readTaskFile,
   listTaskFiles,
   countTasks,
-} from './helpers';
+} from './helpers.js';
 
 const { Task, Rational } = NameForma;
 
@@ -1414,28 +1416,34 @@ describe('CLI: nameforma package script', () => {
       );
 
       expect(output).toMatch(/No tasks/);
+      tempWorld.cleanup();
     } finally {
       tempWorld.cleanup();
     }
   });
 
   it('cli task list without -w uses current directory', () => {
-    const tempWorld = createTempWorld();
+    const { tempDir, cleanup } = createTempDir("NF1427-");
+    console.log('tempDir:', tempDir);
+    const worldFilePath = path.join(tempDir, '.nameforma', 'world.json');
     try {
       // Create symlink to CLI executable in temp directory
       const cliPath = path.join(process.cwd(), 'dist/cli/nf-cli.js');
-      const symlinkPath = path.join(tempWorld.tempDir, 'nf-cli.js');
+      const symlinkPath = path.join(tempDir, 'nf-cli.js');
       fs.symlinkSync(cliPath, symlinkPath);
 
+      // World.json should not exist
+      expect(!fs.existsSync(worldFilePath));
+
       // Run CLI from temp directory without -w option
-      const output = execSync('node nf-cli.js task list', {
-        cwd: tempWorld.tempDir,
+      const output = execSync('node nf-cli.js init; node nf-cli.js task list', {
+        cwd: tempDir,
         encoding: 'utf8',
       });
 
       expect(output).toMatch(/No tasks/);
     } finally {
-      tempWorld.cleanup();
+      cleanup();
     }
   });
 });
