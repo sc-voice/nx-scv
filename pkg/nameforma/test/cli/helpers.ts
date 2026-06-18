@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
-import { World } from '../../src/world.js';
-import type { GlobalOpts } from '../../src/cli/nf-cli.js';
+import { World } from '@sc-voice/nameforma';
+import type { GlobalOpts } from '@sc-voice/nameforma/internal';
 
 /**
  * Create an isolated temporary directoryt
@@ -92,6 +92,7 @@ export function createTestCmd(program: Command, worldPath: string) {
   let globalOpts: GlobalOpts = {
     world: World.fromPath(worldPath),
     verbosity: 0,
+    testRunner: true,
   };
 
   program
@@ -109,6 +110,7 @@ export function createTestCmd(program: Command, worldPath: string) {
       globalOpts = {
         world: World.fromPath(resolvedPath),
         verbosity: parseInt(opts.verbose || '0', 10),
+        testRunner: true,
       };
     });
 
@@ -131,6 +133,7 @@ export function createTestProgram(worldPath: string) {
   let globalOpts: GlobalOpts = {
     world: World.fromPath(worldPath),
     verbosity: 0,
+    testRunner: true,
   };
 
   program
@@ -147,6 +150,7 @@ export function createTestProgram(worldPath: string) {
       globalOpts = {
         world: World.fromPath(resolvedPath),
         verbosity: 0,
+        testRunner: true,
       };
     });
 

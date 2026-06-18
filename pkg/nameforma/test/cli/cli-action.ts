@@ -7,13 +7,10 @@ import {
 } from '@sc-voice/vitest';
 import { Command } from 'commander';
 import { execSync } from 'child_process';
-import { NameForma } from '../../src/index.js';
-import TaskCommand from '../../src/cli/cli-task.js';
+import { Task, World } from '@sc-voice/nameforma';
+import { TaskCommand } from '@sc-voice/nameforma/internal';
 import ActionCommand from '../../src/cli/cli-action.js';
 import { createTempWorld, createTestCmd } from './helpers.js';
-import { World } from '../../src/world.js';
-
-const { Task } = NameForma;
 
 describe('CLI: action command', () => {
   let program;

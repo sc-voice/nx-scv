@@ -9,9 +9,10 @@ import {
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { NfCLI, REPL, resolveWorld } from '../../src/cli/nf-cli.js';
-import { World } from '../../src/world.js';
-import { nfTui, TestReplRenderer } from '../../src/cli/nf-tui.js';
+import { REPL, resolveWorld } from '../../src/cli/nf-cli.js';
+import { World } from '@sc-voice/nameforma';
+import { NfCLI, nfTui } from '@sc-voice/nameforma/internal';
+import { TestReplRenderer } from '../../src/cli/nf-tui.js';
 
 let tmpDir: string;
 let world: World;

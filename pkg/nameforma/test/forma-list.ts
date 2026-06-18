@@ -1,14 +1,8 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import UUID64 from '../src/uuid64.js';
-import { NameForma } from '../src/index.js';
-import { World } from '../src/world.js';
-import { Entity } from '../src/entity.js';
-import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
+import { UUID64, Forma, World, Entity } from '@sc-voice/nameforma';
+import { FormaList, FuzzyNamespace, DBG } from '@sc-voice/nameforma/internal';
 import { Text } from '@sc-voice/tools';
-import { DBG } from '../src/defines.js';
 import { createTempWorld } from './cli/helpers.js';
-
-const { Forma, FormaList } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -84,7 +78,7 @@ describe('FormaList', () => {
     });
 
     // Add items
-    const item1 = list.addItem({ name: 'item1' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
     expect(item1.name).toBe('item1');
     // TestItem IS an entity, so IDs should NOT be related to parent (relationship only for non-entities with entity parents)
     expect(item1.id.isRelated(world.id)).toBe(false);
@@ -96,8 +90,8 @@ describe('FormaList', () => {
         'addItem creates item without parent relationship (item is entity)',
       );
 
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
     expect(list.size).toBe(3);
     expect(items.length).toBe(3);
     dbg && cc.tag1(msg + UOK, 'multiple addItem works');
@@ -115,13 +109,13 @@ describe('FormaList', () => {
     const list = new FormaList<TestItem>(items, TestItem, {});
 
     // Add items without parent (no related ID check)
-    const item1 = list.addItem({ name: 'item1' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
     expect(item1.name).toBe('item1');
     expect(list.size).toBe(1);
     expect(items[0]).toBe(item1);
     dbg && cc.tag1(msg + UOK, 'addItem without parent works');
 
-    const item2 = list.addItem({ name: 'item2' });
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
     expect(list.size).toBe(2);
     dbg && cc.ok1(msg + UOK, 'multiple addItem without parent works');
   });
@@ -135,9 +129,9 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
 
     // Get existing items
     expect(list.getItem(item1.id.base64)).toBe(item1);
@@ -160,9 +154,9 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
 
     // Delete middle item
     const deleted = list.deleteItem(item2.id.base64);
@@ -193,8 +187,8 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'original' });
-    const item2 = list.addItem({ name: 'item2' });
+    const item1 = list.addItem(new TestItem({ name: 'original' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
 
     // Patch existing item
     const patched = list.patchItem(item1.id.base64, { name: 'updated' });
@@ -218,9 +212,9 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
 
     // Move item3 before item1 (to start)
     list.moveItem(item3.id.base64, { before: item1.id.base64 });
@@ -254,9 +248,9 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
 
     // Move item1 after item3 (to end)
     list.moveItem(item1.id.base64, { after: item3.id.base64 });
@@ -289,9 +283,9 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
 
     // Move item1 to end (no options)
     list.moveItem(item1.id.base64, {});
@@ -310,7 +304,7 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
     const fakeId = new UUID64().base64;
 
     // Move non-existent item
@@ -340,9 +334,9 @@ describe('FormaList', () => {
     });
 
     expect(list.size).toBe(0);
-    list.addItem({ name: 'item1' });
+    list.addItem(new TestItem({ name: 'item1' }));
     expect(list.size).toBe(1);
-    list.addItem({ name: 'item2' });
+    list.addItem(new TestItem({ name: 'item2' }));
     expect(list.size).toBe(2);
     list.deleteItem(items[0].id.base64);
     expect(list.size).toBe(1);
@@ -358,9 +352,9 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
 
     // Test for...of loop
     const collected: TestItem[] = [];
@@ -385,8 +379,8 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
 
     // Verify items array is mutated directly
     expect(items.length).toBe(2);
@@ -401,7 +395,7 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'deleteItem mutates wrapped array directly');
 
     // moveItem mutates array
-    const item3 = list.addItem({ name: 'item3' });
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
     list.moveItem(item3.id.base64, { before: item2.id.base64 });
     expect(items[0]).toBe(item3);
     expect(items[1]).toBe(item2);
@@ -417,8 +411,8 @@ describe('FormaList', () => {
       parent: world,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
 
     // Get by full ID
     expect(list.getItem(item1.id.base64)).toBe(item1);
@@ -456,7 +450,7 @@ describe('FormaList', () => {
       name: 'name1',
       summary: 'summary1',
     });
-    list.addItem({ id: id1, name: 'name1', summary: 'summary1' });
+    list.addItem(new TestItem({ id: id1, name: 'name1', summary: 'summary1' }));
     expect(list.itemListId(forma1)).toBe('ekDWc');
 
     // Add second item - now multiple items, common prefix/suffix
@@ -468,7 +462,7 @@ describe('FormaList', () => {
       name: 'name2',
       summary: 'summary2',
     });
-    list.addItem({ id: id2, name: 'name2', summary: 'summary2' });
+    list.addItem(new TestItem({ id: id2, name: 'name2', summary: 'summary2' }));
     expect(list.itemListId(forma1)).toBe('kDWc0');
     expect(list.itemListId(forma2)).toBe('jD4s0');
 
@@ -484,7 +478,7 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const list = new FormaList<TestItem>(items, TestItem, {});
 
-    const item = list.addItem({ name: 'original', color: 'blue' });
+    const item = list.addItem(new TestItem({ name: 'original', color: 'blue' }));
     const originalId = item.id.base64;
 
     // Patch subclass field (color)
@@ -534,7 +528,7 @@ describe('FormaList', () => {
     });
 
     // Add item
-    const item1 = list.addItem({ name: 'item1' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
     expect(events.length).toBe(1);
     expect(events[0].type).toBe('add');
     expect(events[0].item).toBe(item1);
@@ -558,7 +552,7 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'deleteItem emits change event');
 
     // Move item (add another first)
-    const item2 = list.addItem({ name: 'item2' });
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
     events.length = 0; // Reset
     list.moveItem(item2.id.base64, { before: null });
     expect(events.length).toBe(1);
@@ -578,12 +572,12 @@ describe('FormaList', () => {
       namespace,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
     expect(namespace.getForma(item1.id.base64)).toBe(item1);
     dbg && cc.tag1(msg + UOK, 'addItem adds to namespace');
 
-    const item2 = list.addItem({ name: 'item2' });
-    const item3 = list.addItem({ name: 'item3' });
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
+    const item3 = list.addItem(new TestItem({ name: 'item3' }));
     expect(namespace.getForma(item2.id.base64)).toBe(item2);
     expect(namespace.getForma(item3.id.base64)).toBe(item3);
     dbg && cc.tag1(msg + UOK, 'multiple addItem updates namespace');
@@ -598,8 +592,8 @@ describe('FormaList', () => {
       namespace,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
-    const item2 = list.addItem({ name: 'item2' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
+    const item2 = list.addItem(new TestItem({ name: 'item2' }));
     expect(namespace.getForma(item1.id.base64)).toBe(item1);
     expect(namespace.getForma(item2.id.base64)).toBe(item2);
 
@@ -622,7 +616,7 @@ describe('FormaList', () => {
       namespace,
     });
 
-    const item1 = list.addItem({ name: 'item1' });
+    const item1 = list.addItem(new TestItem({ name: 'item1' }));
     const formaInNamespace = namespace.getForma(item1.id.base64);
 
     list.patchItem(item1.id.base64, { name: 'updated' });

@@ -8,47 +8,15 @@ import {
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { World } from '../src/world.js';
-import { Forma } from '../src/forma.js';
-import { Entity } from '../src/entity.js';
-import { FocusManager } from '../src/focus-manager.js';
+import { World, Task } from '@sc-voice/nameforma';
+import { FocusManager } from '@sc-voice/nameforma/internal';
 
-// Mock entity class for testing - extends Entity
-class MockEntity extends Entity {
-  name: string = '';
-
-  constructor(cfg: any = {}) {
-    super({ id: cfg.id });
-    this.patch(cfg);
-  }
-
-  static entity = 'mock';
-  static override get avroSchema() {
-    return {
-      name: 'MockEntity',
-      namespace: 'test',
-      type: 'record',
-      fields: [
-        ...Forma.avroSchema.fields,
-        { name: 'name', type: 'string' },
-      ],
-    };
-  }
-
-  static fromJson(data: any): MockEntity {
-    return new MockEntity(data);
-  }
-
-  protected override populateNamespace(): void {
-    // No child items for mock entity
-  }
-}
 
 describe('FocusManager', () => {
   describe('FocusManager.focus()', () => {
     it('should push id onto focus stack', () => {
       const fm = new FocusManager();
-      const entity = new MockEntity({ name: 'test' });
+      const entity = new Task({ name: 'test' });
 
       fm.focus(entity.id);
 
@@ -59,8 +27,8 @@ describe('FocusManager', () => {
   describe('FocusManager.unfocus()', () => {
     it('should remove specified id and return it', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
 
       fm.focus(e1.id);
       fm.focus(e2.id);
@@ -74,9 +42,9 @@ describe('FocusManager', () => {
 
     it('should remove current focus when no id provided', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
-      const e3 = new MockEntity({ name: 'e3' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+      const e3 = new Task({ name: 'e3' });
 
       fm.focus(e1.id);
       fm.focus(e2.id);
@@ -94,8 +62,8 @@ describe('FocusManager', () => {
 
     it('should return null for non-existent id', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
 
       fm.focus(e1.id);
       expect(fm.unfocus(e2.id)).toBeNull();
@@ -106,10 +74,10 @@ describe('FocusManager', () => {
   describe('FocusManager.focusOrder()', () => {
     it('should return correct order for focused entities and MAX_SAFE_INTEGER for unfocused', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
-      const e3 = new MockEntity({ name: 'e3' });
-      const e4 = new MockEntity({ name: 'e4' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+      const e3 = new Task({ name: 'e3' });
+      const e4 = new Task({ name: 'e4' });
 
       fm.focus(e1.id);
       fm.focus(e2.id);
@@ -125,8 +93,8 @@ describe('FocusManager', () => {
   describe('FocusManager.isFocused()', () => {
     it('should return true for focused entities', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
 
       fm.focus(e1.id);
       fm.focus(e2.id);
@@ -137,8 +105,8 @@ describe('FocusManager', () => {
 
     it('should return false for unfocused entities', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
 
       fm.focus(e1.id);
 
@@ -147,7 +115,7 @@ describe('FocusManager', () => {
 
     it('should return false on empty stack', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
+      const e1 = new Task({ name: 'e1' });
 
       expect(fm.isFocused(e1)).toBe(false);
     });
@@ -161,9 +129,9 @@ describe('FocusManager', () => {
 
     it('should round-trip focusManager through serialization', () => {
       const fm = new FocusManager();
-      const e1 = new MockEntity({ name: 'e1' });
-      const e2 = new MockEntity({ name: 'e2' });
-      const e3 = new MockEntity({ name: 'e3' });
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+      const e3 = new Task({ name: 'e3' });
 
       fm.focus(e1.id);
       fm.focus(e2.id);
@@ -189,7 +157,6 @@ describe('FocusManager world', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
     world = World.fromPath(worldPath);
-    world.registerEntity(MockEntity);
   });
 
   afterEach(() => {
@@ -202,15 +169,15 @@ describe('FocusManager world', () => {
 
   describe('focusedForma', () => {
     it('should return most recently focused entity of type', () => {
-      const list = world.entityList(MockEntity);
-      const e1 = list.addItem({ name: 'e1' });
+      const list = world.entityList(Task);
+      const e1 = list.addItem(new Task({ name: 'e1' }));
 
       world.focusManager.focus(e1.id);
 
-      const focused = world.focusedForma('mock');
+      const focused = world.focusedForma('task');
       expect(focused).not.toBeNull();
       expect(focused?.id.base64).toBe(e1.id.base64);
-      expect((focused?.constructor as any).entity).toBe('mock');
+      expect((focused?.constructor as any).entity).toBe('task');
     });
 
     it('should return null if type not in stack', () => {
@@ -219,30 +186,30 @@ describe('FocusManager world', () => {
     });
 
     it('should return first (most recent) when multiple of same type', () => {
-      const list = world.entityList(MockEntity);
-      const e1 = list.addItem({ name: 'e1' });
-      const e2 = list.addItem({ name: 'e2' });
+      const list = world.entityList(Task);
+      const e1 = list.addItem(new Task({ name: 'e1' }));
+      const e2 = list.addItem(new Task({ name: 'e2' }));
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
 
-      const focused = world.focusedForma('mock');
+      const focused = world.focusedForma('task');
       expect(focused?.id.base64).toBe(e2.id.base64);
     });
   });
 
   describe('World serialization', () => {
     it('should persist focus state on save/load cycle', () => {
-      const list = world.entityList(MockEntity);
-      const e1 = list.addItem({ name: 'e1' });
-      const e2 = list.addItem({ name: 'e2' });
+      const list = world.entityList(Task);
+      const e1 = list.addItem(new Task({ name: 'e1' }));
+      const e2 = list.addItem(new Task({ name: 'e2' }));
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
       world.save();
 
       const world2 = World.fromPath(worldPath);
-      world2.registerEntity(MockEntity);
+      world2.registerEntity(Task);
 
       const ids = world2.focusManager.ids().map(id => id.base64);
       expect(ids).toEqual([e2.id.base64, e1.id.base64]);
@@ -250,8 +217,8 @@ describe('FocusManager world', () => {
 
 
     it('should restore focus ids as UUID64 objects', () => {
-      const list = world.entityList(MockEntity);
-      const entity = list.addItem({ name: 'test' });
+      const list = world.entityList(Task);
+      const entity = list.addItem(new Task({ name: 'test' }));
 
       world.focusManager.focus(entity.id);
       world.save();
@@ -267,22 +234,22 @@ describe('FocusManager world', () => {
 
   describe('delete() removes from focusManager', () => {
     it('should remove focused entity from stack when deleted', () => {
-      const list = world.entityList(MockEntity);
-      const entity = list.addItem({ name: 'test' });
+      const list = world.entityList(Task);
+      const entity = list.addItem(new Task({ name: 'test' }));
 
       world.focusManager.focus(entity.id);
       expect(world.focusManager.size).toBe(1);
 
-      world.delete('mock', entity.id.base64);
+      world.delete('task', entity.id.base64);
 
       expect(world.focusManager.size).toBe(0);
     });
 
     it('should remove only matching entity from multi-item stack', () => {
-      const list = world.entityList(MockEntity);
-      const e1 = list.addItem({ name: 'e1' });
-      const e2 = list.addItem({ name: 'e2' });
-      const e3 = list.addItem({ name: 'e3' });
+      const list = world.entityList(Task);
+      const e1 = list.addItem(new Task({ name: 'e1' }));
+      const e2 = list.addItem(new Task({ name: 'e2' }));
+      const e3 = list.addItem(new Task({ name: 'e3' }));
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
@@ -290,7 +257,7 @@ describe('FocusManager world', () => {
 
       expect(world.focusManager.size).toBe(3);
 
-      world.delete('mock', e2.id.base64);
+      world.delete('task', e2.id.base64);
 
       expect(world.focusManager.size).toBe(2);
       const ids = world.focusManager.ids().map(id => id.base64);
@@ -300,22 +267,22 @@ describe('FocusManager world', () => {
     });
 
     it('should be no-op if entity not in focus stack', () => {
-      const list = world.entityList(MockEntity);
-      const e1 = list.addItem({ name: 'e1' });
-      const e2 = list.addItem({ name: 'e2' });
+      const list = world.entityList(Task);
+      const e1 = list.addItem(new Task({ name: 'e1' }));
+      const e2 = list.addItem(new Task({ name: 'e2' }));
 
       world.focusManager.focus(e1.id);
-      expect(() => world.delete('mock', e2.id.base64)).not.toThrow();
+      expect(() => world.delete('task', e2.id.base64)).not.toThrow();
       expect(world.focusManager.size).toBe(1);
     });
   });
 
   describe('sort integration', () => {
     it('should support sort pattern: focusOrder tiebreak with id lexicographic', () => {
-      const list = world.entityList(MockEntity);
-      const e1 = list.addItem({ name: 'e1' });
-      const e2 = list.addItem({ name: 'e2' });
-      const e3 = list.addItem({ name: 'e3' });
+      const list = world.entityList(Task);
+      const e1 = list.addItem(new Task({ name: 'e1' }));
+      const e2 = list.addItem(new Task({ name: 'e2' }));
+      const e3 = list.addItem(new Task({ name: 'e3' }));
 
       world.focusManager.focus(e2.id);
       world.focusManager.focus(e1.id);

@@ -611,7 +611,7 @@ export class Admin extends Role {
       groupIds = Object.keys(_groupMap);
     }
 
-    let result = [];
+    let result: { errorCode: number; groupId: any; protocolType: string; state: string }[] = [];
     for (const groupId of groupIds) {
       let group = kafka._groupOfId(groupId);
       result.push({

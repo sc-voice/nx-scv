@@ -3,10 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { WorldView } from '../src/world-view.js';
-import { World } from '../src/world.js';
-import { RenderDetail } from '../src/navigable-view.js';
-import { Forma } from '../src/forma.js';
-import UUID64 from '../src/uuid64.js';
+import { World, RenderDetail, Forma, UUID64 } from '@sc-voice/nameforma';
 
 describe('WorldView cursor state management', () => {
   let tempDir: string;

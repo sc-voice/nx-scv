@@ -1,0 +1,72 @@
+{
+  "forma": "Task",
+  "id": "0PxLyklZ00eOstUcLYcrtW",
+  "name": "Fix test:typecheck failures",
+  "summary": "Resolve all TypeScript typecheck errors in tsconfig.test.json",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PxLymmE00eOstUcLYcrtW",
+      "name": "Fix tsconfig.test.json exclude list",
+      "summary": "Remove src/index.ts and src/kafka*.ts from exclude; they're pulled in transitively and excluding them causes 'not listed in project' errors",
+      "status": "spec",
+      "statusNote": "Requirements clear: remove src/index.ts and src/kafka*.ts from exclude list",
+      "statusDate": "2026-06-17T16:05:11.024Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxLymrS00eOstUcLYcrtW",
+      "name": "Add testRunner to GlobalOpts in helpers",
+      "summary": "test/cli/helpers.ts creates GlobalOpts at lines 92, 109, 131, 147 without required testRunner: boolean field",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-17T14:18:56.220Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxLymwg00eOstUcLYcrtW",
+      "name": "Fix ColorConsole method calls in tests",
+      "summary": "206 occurrences of cc.tag1/cc.tag/cc.ok1 in test/forma-list.ts, test/task.ts, test/world.ts use methods not on ColorConsole type",
+      "status": "manage",
+      "statusNote": "removed stale src/tools.d.ts stub that shadowed @sc-voice/tools package types",
+      "statusDate": "2026-06-17T14:40:57.007Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxLym_u00eOstUcLYcrtW",
+      "name": "Fix MockEntity avroSchema and override",
+      "summary": "Mock classes in test/focus-manager.ts and test/world.ts provide plain objects instead of Schema (needs fullName/toAvro); also missing override modifiers",
+      "status": "manage",
+      "statusNote": "ready for review",
+      "statusDate": "2026-06-17T15:23:07.710Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxLyn5500eOstUcLYcrtW",
+      "name": "Fix kafka1.ts type mismatch",
+      "summary": "src/kafka1.ts:617 argument type is not assignable to parameter type 'never'",
+      "status": "manage",
+      "statusNote": "Implemented: added explicit type annotation to result array. Verified: typecheck passes.",
+      "statusDate": "2026-06-17T16:02:28.446Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxMMYGA00eOstUcLYcrtW",
+      "name": "Fix Forma type in forma-list.ts",
+      "summary": "test/forma-list.ts:448 'Forma' refers to a value, but is being used as a type. Use 'typeof Forma' instead.",
+      "status": "work",
+      "statusNote": "Implementing typeof Forma fix",
+      "statusDate": "2026-06-17T16:12:32.996Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxMMYM700eOstUcLYcrtW",
+      "name": "Fix ActionStatus in task.ts",
+      "summary": "test/task.ts:255 Type '\"todo\"' is not assignable to type 'ActionStatus'",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-17T16:11:32.615Z"
+    }
+  ],
+  "rawReferences": []
+}

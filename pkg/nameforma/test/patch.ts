@@ -1,11 +1,8 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import UUID64 from '../src/uuid64.js';
+import { UUID64, Patch, Rational, Forma, Schema, Identifiable } from '@sc-voice/nameforma';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
-import { NameForma } from '../src/index.js';
-import { DBG } from '../src/defines.js';
-
-const { Patch, Rational, Forma, Schema, Identifiable } = NameForma;
+import { DBG } from '@sc-voice/nameforma/internal';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;

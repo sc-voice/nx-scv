@@ -1,10 +1,9 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { Text } from '@sc-voice/tools';
-import { NameForma } from '../src/index.js';
-import { DBG } from '../src/defines.js';
+import { Clock } from '@sc-voice/nameforma';
+import { DBG } from '@sc-voice/nameforma/internal';
 
 const { CLOCK: C3K } = DBG;
-const { Clock } = NameForma;
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const dbg = C3K.TEST;

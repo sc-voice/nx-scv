@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { User } from '../src/user.js';
-import UUID64 from '../src/uuid64.js';
+import { User, UUID64 } from '@sc-voice/nameforma';
 import { MockGitCLI } from './git-cli.js';
 
 describe('User', () => {

@@ -1,10 +1,8 @@
 import util from 'node:util';
 import { describe, it, expect } from '@sc-voice/vitest';
 import { Text } from '@sc-voice/tools';
-import { NameForma } from '../src/index.js';
-import { DBG } from '../src/defines.js';
-
-const { _Runner, Kafka1, Producer, Consumer, Admin } = NameForma;
+import { Kafka1, Producer, Consumer, Admin } from '@sc-voice/nameforma';
+import { DBG, _Runner } from '@sc-voice/nameforma/internal';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
 const { cc } = ColorConsole;
 const { GREEN, BLUE, MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;

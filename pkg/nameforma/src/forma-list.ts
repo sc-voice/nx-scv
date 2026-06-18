@@ -119,40 +119,55 @@ export class FormaList<T extends Forma> {
   }
 
   /**
-   * Add new item to list, optionally enforcing parentId relation
-   * @param cfg - Item configuration (optional, merged with auto-generated id if parentId provided)
+   * Add new item to list
+   * @param item - Item instance
    * @returns New item
    */
-  addItem(cfg: any = {}): T {
+  addItem(item: T): T {
     const msg = 'FormaList.addItem:';
 
-    // Enforce parent-child ID relationships only for non-entities with entity parents
-    // (e.g., Action children of a Task entity, not Task children of World)
-    if (this.parent && !(this.#ItemClass.prototype instanceof Entity)) {
-      if (cfg.id == null) {
-        cfg.id = UUID64.createRelatedId(this.parent.id);
+    // Handle both instances and plain objects for backward compatibility
+    let actualItem = item;
+    let isConstructed = false;
+
+    if (!(item instanceof this.#ItemClass) && typeof item === 'object' && item != null) {
+      // Before constructing, ensure parent-child ID relationship for POJOs
+      if (this.parent && !(this.#ItemClass.prototype instanceof Entity)) {
+        if ((item as any).id == null) {
+          (item as any).id = UUID64.createRelatedId(this.parent.id);
+        }
+        if (!this.parent.id.isRelated((item as any).id)) {
+          throw new Error(`${msg} cannot add unrelated item:${(item as any).id}`);
+        }
       }
-      if (!this.parent.id.isRelated(cfg.id)) {
-        throw new Error(`${msg} cannot add unrelated item:${cfg.id}`);
+
+      actualItem = new (this.#ItemClass as any)(item) as T;
+      isConstructed = true;
+    }
+
+    // Enforce parent-child ID relationships for instances passed directly
+    if (!isConstructed && this.parent && !(this.#ItemClass.prototype instanceof Entity)) {
+      // Generate related ID if not present or if unrelated
+      if ((actualItem as any).id == null || !this.parent.id.isRelated((actualItem as any).id)) {
+        (actualItem as any).id = UUID64.createRelatedId(this.parent.id);
       }
     }
 
-    const item = new (this.#ItemClass as any)(cfg) as T;
-    this.items.push(item);
+    this.items.push(actualItem);
     this.#invalidateCache();
-    this.#namespace?.addForma(item);
+    this.#namespace?.addForma(actualItem);
 
     if (this.#emitter) {
-      const { entity } = this.#computeEntityInfo(item);
+      const { entity } = this.#computeEntityInfo(actualItem);
       this.#emitter.emit('change', {
         type: 'add',
-        item,
-        cfg,
+        item: actualItem,
+        cfg: item,
         entity,
       } as FormaListEvent<T>);
     }
 
-    return item;
+    return actualItem;
   }
 
   /**

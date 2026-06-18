@@ -10,12 +10,8 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { NameForma } from '../../src/index.js';
-import TaskCommand from '../../src/cli/cli-task.js';
-import { NfCLI } from '../../src/cli/nf-cli.js';
-import { nfTui } from '../../src/cli/nf-tui.js';
-import { CliRenderer } from '../../src/cli/nf-tui.js';
-import { World } from '../../src/world.js';
+import { Task, Action, Reference, Rational, World } from '@sc-voice/nameforma';
+import { TaskCommand, NfCLI, nfTui, CliRenderer } from '@sc-voice/nameforma/internal';
 import {
   createTempDir,
   createTempWorld,
@@ -23,8 +19,6 @@ import {
   listTaskFiles,
   countTasks,
 } from './helpers.js';
-
-const { Task, Rational } = NameForma;
 
 describe('CLI: task command', () => {
   let cli;
@@ -555,18 +549,18 @@ describe('CLI: task command', () => {
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
 
-    task!.references(world).addItem({
+    task!.references(world).addItem(new Reference({
       name: 'Reference 1',
       summary: 'First reference',
       relevance: 0.9,
       source: 'src/file.ts',
-    });
+    }));
 
-    task!.references(world).addItem({
+    task!.references(world).addItem(new Reference({
       name: 'Reference 2',
       summary: 'Second reference',
       relevance: 0.7,
-    });
+    }));
 
     world.save();
 
@@ -651,23 +645,23 @@ describe('CLI: task command', () => {
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
 
-    task!.references(world).addItem({
+    task!.references(world).addItem(new Reference({
       name: 'Low Relevance',
       summary: 'Least relevant',
       relevance: 0.3,
-    });
+    }));
 
-    task!.references(world).addItem({
+    task!.references(world).addItem(new Reference({
       name: 'High Relevance',
       summary: 'Most relevant',
       relevance: 0.9,
-    });
+    }));
 
-    task!.references(world).addItem({
+    task!.references(world).addItem(new Reference({
       name: 'Medium Relevance',
       summary: 'Mid relevance',
       relevance: 0.6,
-    });
+    }));
 
     world.save();
 
@@ -801,8 +795,8 @@ describe('CLI: task command', () => {
       // Add some actions
       task!
         .actions(world)
-        .addItem({ name: 'First action', summary: 'Do this first' });
-      task!.actions(world).addItem({ name: 'Second action' });
+        .addItem(new Action({ name: 'First action', summary: 'Do this first' }));
+      task!.actions(world).addItem(new Action({ name: 'Second action' }));
       world.save();
 
       output.length = 0;
@@ -850,10 +844,10 @@ describe('CLI: task command', () => {
       const task = world.loadFuzzy(Task, taskId!);
       task!
         .actions(world)
-        .addItem({ name: 'Done action', status: 'done' });
+        .addItem(new Action({ name: 'Done action', status: 'done' }));
       task!
         .actions(world)
-        .addItem({ name: 'Work action', status: 'work' });
+        .addItem(new Action({ name: 'Work action', status: 'work' }));
       world.save();
 
       output.length = 0;
@@ -890,7 +884,7 @@ describe('CLI: task command', () => {
       const world = World.fromPath(tempWorld.worldPath);
       const taskList = world.entityList(Task);
       const task = Array.from(taskList)[0] as any;
-      task.actions(world).addItem({ name: 'Action 1', status: 'spec' });
+      task.actions(world).addItem(new Action({ name: 'Action 1', status: 'spec' }));
       world.save();
 
       output.length = 0;
@@ -1257,7 +1251,7 @@ describe('CLI: task command', () => {
 
   it('task focus pushes task to top of stack', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const task = world.entityList(Task).addItem({ name: 'Focus Me' });
+    const task = world.entityList(Task).addItem(new Task({ name: 'Focus Me' }));
 
     await cli.parseArgv([
       'node',
@@ -1278,8 +1272,8 @@ describe('CLI: task command', () => {
 
   it('task focus moves existing entry to top without duplicating', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const taskA = world.entityList(Task).addItem({ name: 'Task A' });
-    const taskB = world.entityList(Task).addItem({ name: 'Task B' });
+    const taskA = world.entityList(Task).addItem(new Task({ name: 'Task A' }));
+    const taskB = world.entityList(Task).addItem(new Task({ name: 'Task B' }));
 
     await cli.parseArgv([
       'node',
@@ -1321,7 +1315,7 @@ describe('CLI: task command', () => {
 
   it('task unfocus removes task from focus stack by id', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const task = world.entityList(Task).addItem({ name: 'Unfocus Me' });
+    const task = world.entityList(Task).addItem(new Task({ name: 'Unfocus Me' }));
 
     await cli.parseArgv([
       'node',
@@ -1352,8 +1346,8 @@ describe('CLI: task command', () => {
 
   it('task unfocus with no id removes top of stack', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const taskA = world.entityList(Task).addItem({ name: 'Task A' });
-    const taskB = world.entityList(Task).addItem({ name: 'Task B' });
+    const taskA = world.entityList(Task).addItem(new Task({ name: 'Task A' }));
+    const taskB = world.entityList(Task).addItem(new Task({ name: 'Task B' }));
 
     await cli.parseArgv([
       'node',

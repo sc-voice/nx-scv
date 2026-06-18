@@ -9,48 +9,11 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { execSync } from 'child_process';
-import { World } from '../src/world.js';
-import { Forma } from '../src/forma.js';
-import { Entity } from '../src/entity.js';
-import { Task } from '../src/task.js';
-import { Action } from '../src/action.js';
-import UUID64 from '../src/uuid64.js';
-import { User } from '../src/user.js';
-import RGA64Node from '../src/rga64-node.js';
+import { World, Forma, Entity, Task, Action, UUID64, User, RGA64Node } from '@sc-voice/nameforma';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-// Mock entity class for testing - extends Entity
-class MockEntity extends Entity {
-  name: string = '';
-
-  constructor(cfg: any = {}) {
-    super({ id: cfg.id });
-    this.patch(cfg);
-  }
-
-  static entity = 'mock';
-  static override get avroSchema() {
-    return {
-      name: 'MockEntity',
-      namespace: 'test',
-      type: 'record',
-      fields: [
-        ...Forma.avroSchema.fields,
-        { name: 'name', type: 'string' },
-      ],
-    };
-  }
-
-  static fromJson(data: any): MockEntity {
-    return new MockEntity(data);
-  }
-
-  protected override populateNamespace(): void {
-    // No child items for mock entity
-  }
-}
 
 // THIS MUST BE THE FIRST TEST BECAUSE OF THROTTLING
 describe('World — watermark persistence', () => {
@@ -149,16 +112,15 @@ describe('World Registry - Constructor & Entity Registration', () => {
   describe('Entity Registration', () => {
     it('should register entity and derive name from EntityClass.entity', () => {
       const world = World.fromPath(worldPath);
-      world.registerEntity(MockEntity);
 
-      expect(world.getEntityNames()).toContain('mock');
+      expect(world.getEntityNames()).toContain('task');
     });
 
     it('should throw if entity missing entity static property', () => {
       const world = World.fromPath(worldPath);
       class BadEntity extends Forma {
-        patch() {}
-        static avroSchema = {};
+        override patch() {}
+        static override avroSchema: any = {};
       }
 
       expect(() => world.registerEntity(BadEntity as any)).toThrow(
@@ -169,9 +131,9 @@ describe('World Registry - Constructor & Entity Registration', () => {
     it('should throw if entity missing avroSchema static property', () => {
       const world = World.fromPath(worldPath);
       class BadEntity extends Forma {
-        patch() {}
+        override patch() {}
         static entity = 'bad';
-        static avroSchema = undefined;
+        static override avroSchema: any = undefined;
         static fromJson(data: any): BadEntity {
           return new BadEntity(data);
         }
@@ -185,9 +147,9 @@ describe('World Registry - Constructor & Entity Registration', () => {
     it('should throw if entity missing fromJson static method', () => {
       const world = World.fromPath(worldPath);
       class BadEntity extends Forma {
-        patch() {}
+        override patch() {}
         static entity = 'bad';
-        static avroSchema = {};
+        static override avroSchema: any = {};
       }
 
       expect(() => world.registerEntity(BadEntity as any)).toThrow(
@@ -199,31 +161,28 @@ describe('World Registry - Constructor & Entity Registration', () => {
       const world = World.fromPath(worldPath);
 
       class AnotherEntity extends Forma {
-        patch() {}
+        override patch() {}
         static entity = 'another';
-        static avroSchema = {};
+        static override avroSchema: any = {};
         static fromJson(data: any): AnotherEntity {
           return new AnotherEntity(data);
         }
       }
 
-      world.registerEntity(MockEntity);
-      world.registerEntity(AnotherEntity);
+      world.registerEntity(AnotherEntity as any);
 
       const names = world.getEntityNames();
       expect(names).toContain('task'); // Auto-registered
-      expect(names).toContain('mock');
       expect(names).toContain('another');
-      expect(names.length).toBe(3);
+      expect(names.length).toBe(2);
     });
 
     it('should retrieve registered entity constructor by name', () => {
       const world = World.fromPath(worldPath);
-      world.registerEntity(MockEntity);
 
-      const ctor = world.entityClassOfName('mock');
+      const ctor = world.entityClassOfName('task');
       expect(ctor).not.toBeNull();
-      expect(ctor?.entity).toBe('mock');
+      expect(ctor?.entity).toBe('task');
       expect(ctor?.avroSchema).toBeDefined();
       expect(ctor?.fromJson).toBeDefined();
     });
@@ -300,7 +259,6 @@ describe('World Storage - Save, Load, List, Delete', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
     world = World.fromPath(worldPath);
-    world.registerEntity(MockEntity);
   });
 
   afterEach(() => {
@@ -311,28 +269,28 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('entityList API', () => {
     it('should save entity to disk via entityList.addItem()', () => {
-      const f7t = world.entityList(MockEntity);
-      const entity = f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      const entity = f7t.addItem(new Task({ name: 'test-entity' }));
 
-      const filePath = path.join(worldPath, 'mock', `${entity.id}.json`);
+      const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
     });
 
     it('should create entity directory on demand', () => {
-      const mockDir = path.join(worldPath, 'mock');
+      const mockDir = path.join(worldPath, 'task');
       expect(fs.existsSync(mockDir)).toBe(false);
 
-      const f7t = world.entityList(MockEntity);
-      f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      f7t.addItem(new Task({ name: 'test-entity' }));
 
       expect(fs.existsSync(mockDir)).toBe(true);
     });
 
     it('should store valid JSON that can be parsed', () => {
-      const f7t = world.entityList(MockEntity);
-      const entity = f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      const entity = f7t.addItem(new Task({ name: 'test-entity' }));
 
-      const filePath = path.join(worldPath, 'mock', `${entity.id}.json`);
+      const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       const data = fs.readFileSync(filePath, 'utf8');
       const parsed = JSON.parse(data);
 
@@ -343,10 +301,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadEntity()', () => {
     it('should load entity by exact UUID64', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'test-entity' }));
 
-      const loaded = world.loadEntity(MockEntity, original.id);
+      const loaded = world.loadEntity(Task, original.id);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('test-entity');
@@ -354,11 +312,11 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should load entity by UUID64 string', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'test-entity' }));
 
       const idStr = original.id.toString();
-      const loaded = world.loadEntity(MockEntity, idStr);
+      const loaded = world.loadEntity(Task, idStr);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('test-entity');
@@ -366,21 +324,21 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should return null if entity not found', () => {
       const fakeId = '0PqgFX2700-zCl_5WUKC7W';
-      const loaded = world.loadEntity(MockEntity, fakeId);
+      const loaded = world.loadEntity(Task, fakeId);
 
       expect(loaded).toBeNull();
     });
 
     it('should return null on invalid UUID64 string', () => {
-      const loaded = world.loadEntity(MockEntity, 'invalid-id');
+      const loaded = world.loadEntity(Task, 'invalid-id');
       expect(loaded).toBeNull();
     });
 
     it('should reconstruct id as UUID64 POJO', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'test-entity' }));
 
-      const loaded = world.loadEntity(MockEntity, original.id);
+      const loaded = world.loadEntity(Task, original.id);
 
       expect(loaded?.id).toBeDefined();
       expect(typeof loaded?.id.base64).toBe('string');
@@ -389,33 +347,33 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadFuzzy() - Default Levenshtein Behavior', () => {
     it('should match exact full UUID64 (default levenshtein = searchId.length)', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'exact-match' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'exact-match' }));
 
       const idStr = original.id.toString();
-      const loaded = world.loadFuzzy(MockEntity, idStr);
+      const loaded = world.loadFuzzy(Task, idStr);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('exact-match');
     });
 
     it('should match partial UUID64 with default levenshtein', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'partial-match' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'partial-match' }));
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 8);
-      const loaded = world.loadFuzzy(MockEntity, partial);
+      const loaded = world.loadFuzzy(Task, partial);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('partial-match');
     });
 
     it('should return null if no match found', () => {
-      const f7t = world.entityList(MockEntity);
-      f7t.addItem({ name: 'test' });
+      const f7t = world.entityList(Task);
+      f7t.addItem(new Task({ name: 'test' }));
 
-      const loaded = world.loadFuzzy(MockEntity, 'nonexistent-id');
+      const loaded = world.loadFuzzy(Task, 'nonexistent-id');
 
       expect(loaded).toBeNull();
     });
@@ -423,46 +381,46 @@ describe('World Storage - Save, Load, List, Delete', () => {
     it('should throw on ambiguous match', () => {
       // Create two entities and use a short search string that could match both
       // UUID64 base64 uses specific characters; we search with a character that appears in both
-      const f7t = world.entityList(MockEntity);
-      f7t.addItem({ name: 'entity1' });
-      f7t.addItem({ name: 'entity2' });
+      const f7t = world.entityList(Task);
+      f7t.addItem(new Task({ name: 'entity1' }));
+      f7t.addItem(new Task({ name: 'entity2' }));
 
       // Use a single character that both UUIDs likely contain (fuzzy matching with levenshtein=1)
       // This should match both entities and throw ambiguous error
-      expect(() => world.loadFuzzy(MockEntity, '0')).toThrow(
+      expect(() => world.loadFuzzy(Task, '0')).toThrow(
         /ambiguous match/,
       );
     });
 
     it('should use searchId.length as default levenshtein', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'fuzzy-test' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'fuzzy-test' }));
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 10);
 
-      const loaded = world.loadFuzzy(MockEntity, partial);
+      const loaded = world.loadFuzzy(Task, partial);
       expect(loaded).not.toBeNull();
     });
   });
 
   describe('loadFuzzy() - Custom Levenshtein', () => {
     it('should accept explicit levenshtein parameter', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'custom-lev' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'custom-lev' }));
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 5);
 
-      const loaded = world.loadFuzzy(MockEntity, partial, 5);
+      const loaded = world.loadFuzzy(Task, partial, 5);
       expect(loaded).not.toBeNull();
     });
 
     it('should throw if levenshtein out of range', () => {
-      const f7t = world.entityList(MockEntity);
-      f7t.addItem({ name: 'test' });
+      const f7t = world.entityList(Task);
+      f7t.addItem(new Task({ name: 'test' }));
 
-      expect(() => world.loadFuzzy(MockEntity, 'search', 999)).toThrow(
+      expect(() => world.loadFuzzy(Task, 'search', 999)).toThrow(
         /levenshtein out of range/,
       );
     });
@@ -470,30 +428,30 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadFuzzy() - Case Insensitivity', () => {
     it('should match case-insensitively by default', () => {
-      const f7t = world.entityList(MockEntity);
-      const original = f7t.addItem({ name: 'case-test' });
+      const f7t = world.entityList(Task);
+      const original = f7t.addItem(new Task({ name: 'case-test' }));
 
       const idStr = original.id.toString();
       const uppercase = idStr.toUpperCase().substring(0, 8);
 
-      const loaded = world.loadFuzzy(MockEntity, uppercase);
+      const loaded = world.loadFuzzy(Task, uppercase);
       expect(loaded).not.toBeNull();
     });
   });
 
   describe('list()', () => {
     it('should return empty array if entity type not found', () => {
-      const entities = world.list('mock');
+      const entities = world.list('task');
       expect(entities).toEqual([]);
     });
 
     it('should list all entities of a type', () => {
-      const f7t = world.entityList(MockEntity);
-      f7t.addItem({ name: 'entity1' });
-      f7t.addItem({ name: 'entity2' });
-      f7t.addItem({ name: 'entity3' });
+      const f7t = world.entityList(Task);
+      f7t.addItem(new Task({ name: 'entity1' }));
+      f7t.addItem(new Task({ name: 'entity2' }));
+      f7t.addItem(new Task({ name: 'entity3' }));
 
-      const entities = world.list('mock');
+      const entities = world.list('task');
       expect(entities.length).toBe(3);
       expect(entities.map((e) => e.name).sort()).toEqual([
         'entity1',
@@ -503,10 +461,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should return parsed JSON objects', () => {
-      const f7t = world.entityList(MockEntity);
-      f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      f7t.addItem(new Task({ name: 'test-entity' }));
 
-      const entities = world.list('mock');
+      const entities = world.list('task');
       expect(entities[0].name).toBe('test-entity');
       expect(entities[0].id).toBeDefined();
     });
@@ -514,28 +472,28 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('delete()', () => {
     it('should delete entity file from disk', () => {
-      const f7t = world.entityList(MockEntity);
-      const entity = f7t.addItem({ name: 'delete-me' });
+      const f7t = world.entityList(Task);
+      const entity = f7t.addItem(new Task({ name: 'delete-me' }));
 
-      const filePath = path.join(worldPath, 'mock', `${entity.id}.json`);
+      const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
 
-      world.delete('mock', entity.id.toString());
+      world.delete('task', entity.id.toString());
       expect(fs.existsSync(filePath)).toBe(false);
     });
 
     it('should silently succeed if entity not found', () => {
-      expect(() => world.delete('mock', 'nonexistent-id')).not.toThrow();
+      expect(() => world.delete('task', 'nonexistent-id')).not.toThrow();
     });
 
     it('should not affect other entities', () => {
-      const f7t = world.entityList(MockEntity);
-      const e1 = f7t.addItem({ name: 'keep' });
-      const e2 = f7t.addItem({ name: 'delete' });
+      const f7t = world.entityList(Task);
+      const e1 = f7t.addItem(new Task({ name: 'keep' }));
+      const e2 = f7t.addItem(new Task({ name: 'delete' }));
 
-      world.delete('mock', e2.id.toString());
+      world.delete('task', e2.id.toString());
 
-      const entities = world.list('mock');
+      const entities = world.list('task');
       expect(entities.length).toBe(1);
       expect(entities[0].name).toBe('keep');
     });
@@ -543,15 +501,15 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('entityList()', () => {
     it('should return empty FormaList if entity type not found', () => {
-      const list = world.entityList(MockEntity);
+      const list = world.entityList(Task);
       expect(list.size).toBe(0);
     });
 
     it('should return FormaList with typed entities after saves', () => {
-      const list = world.entityList(MockEntity);
-      list.addItem({ name: 'entity1' });
-      list.addItem({ name: 'entity2' });
-      list.addItem({ name: 'entity3' });
+      const list = world.entityList(Task);
+      list.addItem(new Task({ name: 'entity1' }));
+      list.addItem(new Task({ name: 'entity2' }));
+      list.addItem(new Task({ name: 'entity3' }));
       expect(list.size).toBe(3);
 
       const names = Array.from(list)
@@ -561,8 +519,8 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should return entities with UUID64 POJO ids', () => {
-      const list = world.entityList(MockEntity);
-      list.addItem({ name: 'test-entity' });
+      const list = world.entityList(Task);
+      list.addItem(new Task({ name: 'test-entity' }));
       expect(list.size).toBe(1);
 
       const items = Array.from(list);
@@ -572,10 +530,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should return FormaList that is iterable', () => {
-      const list = world.entityList(MockEntity);
-      list.addItem({ name: 'first' });
-      list.addItem({ name: 'second' });
-      const collected: MockEntity[] = [];
+      const list = world.entityList(Task);
+      list.addItem(new Task({ name: 'first' }));
+      list.addItem(new Task({ name: 'second' }));
+      const collected: Task[] = [];
 
       for (const entity of list) {
         collected.push(entity);
@@ -599,7 +557,6 @@ describe('World Serialization - save()/load() methods', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
     world = World.fromPath(worldPath);
-    world.registerEntity(MockEntity);
   });
 
   afterEach(() => {
@@ -712,8 +669,8 @@ describe('World Serialization - save()/load() methods', () => {
     });
 
     it('should preserve focus stack and numeronym across save/load cycle', () => {
-      const f7t = world.entityList(MockEntity);
-      const entity = f7t.addItem({ name: 'test-entity' });
+      const f7t = world.entityList(Task);
+      const entity = f7t.addItem(new Task({ name: 'test-entity' }));
 
       // Set up state: focus an entity and add numeronym mapping
       world.focusManager.focus(entity.id);
@@ -723,10 +680,9 @@ describe('World Serialization - save()/load() methods', () => {
       world.save();
 
       const world2 = World.fromPath(worldPath);
-      world2.registerEntity(MockEntity);
 
       // Verify focus stack was preserved
-      const focusedEntry = world2.focusedForma(MockEntity.entity);
+      const focusedEntry = world2.focusedForma(Task.entity);
       expect(focusedEntry).not.toBeNull();
       expect(focusedEntry?.id.base64).toBe(entity.id.base64);
 
@@ -806,7 +762,7 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'test task' });
+      const task = list.addItem(new Task({ name: 'test task' }));
 
       // Verify file was created
       const filePath = path.join(
@@ -830,7 +786,7 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'test task' });
+      const task = list.addItem(new Task({ name: 'test task' }));
       const filePath = path.join(
         worldPath,
         'task',
@@ -853,7 +809,7 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'original' });
+      const task = list.addItem(new Task({ name: 'original' }));
       const filePath = path.join(
         worldPath,
         'task',
@@ -879,8 +835,8 @@ describe('World Serialization - save()/load() methods', () => {
 
       // Add and modify tasks
       const list1 = world.entityList(Task);
-      const task1 = list1.addItem({ name: 'task1' });
-      const task2 = list1.addItem({ name: 'task2' });
+      const task1 = list1.addItem(new Task({ name: 'task1' }));
+      const task2 = list1.addItem(new Task({ name: 'task2' }));
       list1.patchItem(task1.id.base64, { name: 'task1-updated' });
 
       // Create new world instance and load
@@ -934,8 +890,8 @@ describe('World — namespace', () => {
 
     it('should populate namespace with existing tasks at construct time', () => {
       const list = world.entityList(Task);
-      const task1 = list.addItem({ name: 'task1' });
-      const task2 = list.addItem({ name: 'task2' });
+      const task1 = list.addItem(new Task({ name: 'task1' }));
+      const task2 = list.addItem(new Task({ name: 'task2' }));
 
       // Create new world instance to test population at construct time
       const world2 = World.fromPath(worldPath);
@@ -954,7 +910,7 @@ describe('World — namespace', () => {
       expect(Array.from(ns).length).toBe(0);
 
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'new-task' });
+      const task = list.addItem(new Task({ name: 'new-task' }));
 
       const items = Array.from(ns);
       expect(items.length).toBe(1);
@@ -963,7 +919,7 @@ describe('World — namespace', () => {
 
     it('should keep namespace in sync when task is patched', () => {
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'original' });
+      const task = list.addItem(new Task({ name: 'original' }));
 
       const ns = world.namespace;
       let items = Array.from(ns);
@@ -979,8 +935,8 @@ describe('World — namespace', () => {
 
     it('should keep namespace in sync when task is deleted', () => {
       const list = world.entityList(Task);
-      const task1 = list.addItem({ name: 'task1' });
-      const task2 = list.addItem({ name: 'task2' });
+      const task1 = list.addItem(new Task({ name: 'task1' }));
+      const task2 = list.addItem(new Task({ name: 'task2' }));
 
       const ns = world.namespace;
       expect(Array.from(ns).length).toBe(2);
@@ -995,7 +951,7 @@ describe('World — namespace', () => {
 
     it('should resolve task by full UUID64 fuzzyId', () => {
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'test' });
+      const task = list.addItem(new Task({ name: 'test' }));
 
       const ns = world.namespace;
       const found = ns.getForma(task.id.base64);
@@ -1007,7 +963,7 @@ describe('World — namespace', () => {
 
     it('should resolve task by partial fuzzyId', () => {
       const list = world.entityList(Task);
-      const task = list.addItem({ name: 'test' });
+      const task = list.addItem(new Task({ name: 'test' }));
 
       const ns = world.namespace;
       const partial = task.id.base64.substring(0, 8);
@@ -1019,7 +975,7 @@ describe('World — namespace', () => {
 
     it('should return undefined for non-existent fuzzyId', () => {
       const list = world.entityList(Task);
-      list.addItem({ name: 'task' });
+      list.addItem(new Task({ name: 'task' }));
 
       const ns = world.namespace;
       const found = ns.getForma('nonexistent-id');
@@ -1029,8 +985,8 @@ describe('World — namespace', () => {
 
     it('should iterate namespace with masked fuzzyIds', () => {
       const list = world.entityList(Task);
-      const task1 = list.addItem({ name: 'task1' });
-      const task2 = list.addItem({ name: 'task2' });
+      const task1 = list.addItem(new Task({ name: 'task1' }));
+      const task2 = list.addItem(new Task({ name: 'task2' }));
 
       const ns = world.namespace;
       const items = Array.from(ns);
@@ -1049,8 +1005,8 @@ describe('World — namespace', () => {
   describe('entityList receives namespace for LEUI fuzzyIds', () => {
     it('should return FormaList with namespace so itemListId returns fuzzyId', () => {
       const list = world.entityList(Task);
-      const task1 = list.addItem({ name: 'task1' });
-      const task2 = list.addItem({ name: 'task2' });
+      const task1 = list.addItem(new Task({ name: 'task1' }));
+      const task2 = list.addItem(new Task({ name: 'task2' }));
 
       // Get the itemListId for each task
       const id1 = list.itemListId(task1);
@@ -1090,7 +1046,7 @@ describe('World — resolveFuzzyId()', () => {
   });
 
   it('returns { entity, forma } where entity === forma for world namespace', () => {
-    const task = world.entityList(Task).addItem({ name: 'top-level task' });
+    const task = world.entityList(Task).addItem(new Task({ name: 'top-level task' }));
 
     const result = world.resolveFuzzyId(task.id.base64);
 
@@ -1113,7 +1069,7 @@ describe('World — resolveFuzzyId()', () => {
     // be impossible given UUID64 uniqueness), world namespace would win because it is checked
     // first. Overlapping namespaces are not currently possible by construction, but the
     // priority order (world > focus) defines the tiebreak if that assumption ever breaks.
-    const task = world.entityList(Task).addItem({ name: 'focused task' });
+    const task = world.entityList(Task).addItem(new Task({ name: 'focused task' }));
     world.focusManager.focus(task.id);
 
     const result = world.resolveFuzzyId(task.id.base64);
@@ -1124,9 +1080,9 @@ describe('World — resolveFuzzyId()', () => {
   });
 
   it('returns { entity: task, forma: action } for action in focused task namespace', () => {
-    const task = world.entityList(Task).addItem({ name: 'parent task' });
+    const task = world.entityList(Task).addItem(new Task({ name: 'parent task' }));
     world.focusManager.focus(task.id);
-    const action = task.actions(world).addItem({ name: 'nested action' });
+    const action = task.actions(world).addItem(new Action({ name: 'nested action' }));
 
     const result = world.resolveFuzzyId(action.id.base64);
 
@@ -1137,9 +1093,9 @@ describe('World — resolveFuzzyId()', () => {
   });
 
   it('resolves action after world reload (round-trip serialization)', () => {
-    const task = world.entityList(Task).addItem({ name: 'parent task' });
+    const task = world.entityList(Task).addItem(new Task({ name: 'parent task' }));
     world.focusManager.focus(task.id);
-    const action = task.actions(world).addItem({ name: 'nested action' });
+    const action = task.actions(world).addItem(new Action({ name: 'nested action' }));
     world.save();
 
     const w2 = World.fromPath(worldPath);
@@ -1174,24 +1130,22 @@ describe('World — validate()', () => {
 
   it('returns true when all focused entities exist on disk', () => {
     const world = World.fromPath(worldPath);
-    world.registerEntity(MockEntity);
-    const e1 = world.entityList(MockEntity).addItem({ name: 'e1' });
+    const e1 = world.entityList(Task).addItem(new Task({ name: 'e1' }));
     world.focusManager.focus(e1.id);
     expect(world.validate()).toBe(true);
   });
 
   it('removes stale focus entry and returns false', () => {
     const world = World.fromPath(worldPath);
-    world.registerEntity(MockEntity);
-    const e1 = world.entityList(MockEntity).addItem({ name: 'e1' });
-    const e2 = world.entityList(MockEntity).addItem({ name: 'e2' });
-    const e3 = world.entityList(MockEntity).addItem({ name: 'e3' });
+    const e1 = world.entityList(Task).addItem(new Task({ name: 'e1' }));
+    const e2 = world.entityList(Task).addItem(new Task({ name: 'e2' }));
+    const e3 = world.entityList(Task).addItem(new Task({ name: 'e3' }));
     world.focusManager.focus(e1.id);
     world.focusManager.focus(e2.id);
     world.focusManager.focus(e3.id);
     expect(world.focusManager.size).toBe(3);
 
-    fs.unlinkSync(path.join(worldPath, 'mock', `${e2.id.base64}.json`));
+    fs.unlinkSync(path.join(worldPath, 'task', `${e2.id.base64}.json`));
 
     expect(world.validate()).toBe(false);
     expect(world.focusManager.size).toBe(2);
@@ -1199,10 +1153,9 @@ describe('World — validate()', () => {
 
   it('returns true on second validate after stale entry removed', () => {
     const world = World.fromPath(worldPath);
-    world.registerEntity(MockEntity);
-    const e1 = world.entityList(MockEntity).addItem({ name: 'e1' });
+    const e1 = world.entityList(Task).addItem(new Task({ name: 'e1' }));
     world.focusManager.focus(e1.id);
-    fs.unlinkSync(path.join(worldPath, 'mock', `${e1.id.base64}.json`));
+    fs.unlinkSync(path.join(worldPath, 'task', `${e1.id.base64}.json`));
     expect(world.validate()).toBe(false);
     expect(world.validate()).toBe(true);
   });

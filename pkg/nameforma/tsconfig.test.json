@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": true,
+    "noImplicitAny": false,
+    "paths": {
+      "@sc-voice/nameforma": ["./dist/index.d.ts"],
+      "@sc-voice/nameforma/internal": ["./dist/internal.d.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/cli/helpers.ts", "test/cli/tui-list.ts", "test/forma-list.ts", "test/focus-manager.ts", "test/task.ts", "test/world.ts", "test/cli/cli-task.ts"],
+  "exclude": ["src/pi/**"]
+}

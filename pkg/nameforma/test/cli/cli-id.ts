@@ -10,9 +10,8 @@ import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
 import { validate as validateUUID } from 'uuid';
-import UUID64 from '../../src/uuid64.js';
+import { UUID64, World } from '@sc-voice/nameforma';
 import IdCommand from '../../src/cli/cli-id.js';
-import { World } from '../../src/world.js';
 import { createTestProgram } from './helpers.js';
 
 describe('CLI: id command', () => {

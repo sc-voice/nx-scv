@@ -6,10 +6,8 @@ import {
   afterEach,
   vi,
 } from '@sc-voice/vitest';
-import { World } from '../../src/world.js';
-import { Task } from '../../src/task.js';
-import UUID64 from '../../src/uuid64.js';
-import { TuiList } from '../../src/cli/tui-list.js';
+import { World, Task, UUID64 } from '@sc-voice/nameforma';
+import { TuiList } from '@sc-voice/nameforma/internal';
 import { Unicode } from '@sc-voice/tools/text';
 import path from 'path';
 import fs from 'fs';
@@ -86,10 +84,14 @@ describe('TuiList', () => {
 
     it('should sort by focusOrder ascending, then itemListId descending (most recent first)', () => {
       const entityList = world.entityList(Task);
-      const task1 = entityList.addItem({ name: 'Task 1' });
-      const task2 = entityList.addItem({ name: 'Task 2' });
-      const task3 = entityList.addItem({ name: 'Task 3' });
-      const task4 = entityList.addItem({ name: 'Task 4' });
+      const task1 = new Task({ name: 'Task 1' });
+      const task2 = new Task({ name: 'Task 2' });
+      const task3 = new Task({ name: 'Task 3' });
+      const task4 = new Task({ name: 'Task 4' });
+      entityList.addItem(task1);
+      entityList.addItem(task2);
+      entityList.addItem(task3);
+      entityList.addItem(task4);
 
       world.focusManager.focus(task3.id); // focusOrder = 1
       world.focusManager.focus(task1.id); // focusOrder = 0 (most recent)
@@ -98,7 +100,7 @@ describe('TuiList', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // Verify all tasks appear
       expect(output).toContain('Task 1');
@@ -120,18 +122,20 @@ describe('TuiList', () => {
 
     it('should visually distinguish primary focus (focusOrder===0)', () => {
       const entityList = world.entityList(Task);
-      const focused = entityList.addItem({ name: 'Focused Task' });
-      const unfocused = entityList.addItem({ name: 'Unfocused Task' });
+      const focused = new Task({ name: 'Focused Task' });
+      entityList.addItem(focused);
+      const unfocused = new Task({ name: 'Unfocused Task' });
+      entityList.addItem(unfocused);
       world.focusManager.focus(focused.id);
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const focusedLine = consoleSpy.mock.calls.find((c) =>
-        c[0].includes('Focused Task'),
+      const focusedLine = consoleSpy.mock.calls.find((c: any[]) =>
+        (c[0] as string).includes('Focused Task'),
       )?.[0] as string;
-      const unfocusedLine = consoleSpy.mock.calls.find((c) =>
-        c[0].includes('Unfocused Task'),
+      const unfocusedLine = consoleSpy.mock.calls.find((c: any[]) =>
+        (c[0] as string).includes('Unfocused Task'),
       )?.[0] as string;
 
       // Focused and unfocused items should have different output (different color or shape)
@@ -144,27 +148,27 @@ describe('TuiList', () => {
 
     it('should visually distinguish related items (UUID64.isRelated)', () => {
       const entityList = world.entityList(Task);
-      const primary = entityList.addItem({ name: 'Primary' });
+      const primary = new Task({ name: 'Primary' });
+      entityList.addItem(primary);
       world.focusManager.focus(primary.id);
 
       const relatedId = UUID64.createRelatedId(primary.id);
-      const related = entityList.addItem({
-        id: relatedId,
-        name: 'Related',
-      });
-      const unrelated = entityList.addItem({ name: 'Unrelated' });
+      const related = new Task({ id: relatedId, name: 'Related' });
+      entityList.addItem(related);
+      const unrelated = new Task({ name: 'Unrelated' });
+      entityList.addItem(unrelated);
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const primaryLine = consoleSpy.mock.calls.find((c) =>
-        c[0].includes('Primary'),
+      const primaryLine = consoleSpy.mock.calls.find((c: any[]) =>
+        (c[0] as string).includes('Primary'),
       )?.[0] as string;
-      const relatedLine = consoleSpy.mock.calls.find((c) =>
-        c[0].includes('Related'),
+      const relatedLine = consoleSpy.mock.calls.find((c: any[]) =>
+        (c[0] as string).includes('Related'),
       )?.[0] as string;
-      const unrelatedLine = consoleSpy.mock.calls.find((c) =>
-        c[0].includes('Unrelated'),
+      const unrelatedLine = consoleSpy.mock.calls.find((c: any[]) =>
+        (c[0] as string).includes('Unrelated'),
       )?.[0] as string;
 
       // All three should be different from each other (primary, related, unrelated)
@@ -181,21 +185,21 @@ describe('TuiList', () => {
     it('should use default bullets that demarcate groups of five items', () => {
       const entityList = world.entityList(Task);
       for (let i = 0; i < 6; i++) {
-        entityList.addItem({ name: `Task ${i}` });
+        entityList.addItem(new Task({ name: `Task ${i}` }));
       }
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // All items should appear with bullets
       expect(output).toContain('Task 0');
       expect(output).toContain('Task 5');
 
       // Get the lines for items at index 4 (5th item) and neighbors for comparison
-      const lines = consoleSpy.mock.calls.filter((c) =>
-        /Task [0-5]/.test(c[0]),
+      const lines = consoleSpy.mock.calls.filter((c: any[]) =>
+        /Task [0-5]/.test(c[0] as string),
       );
       expect(lines.length).toBeGreaterThanOrEqual(6);
 
@@ -212,15 +216,15 @@ describe('TuiList', () => {
 
     it('should use custom fBullet when provided', () => {
       const entityList = world.entityList(Task);
-      entityList.addItem({ name: 'Item 1' });
-      entityList.addItem({ name: 'Item 2' });
+      entityList.addItem(new Task({ name: 'Item 1' }));
+      entityList.addItem(new Task({ name: 'Item 2' }));
 
       const customBullet = (index: number) => (index === 0 ? '→' : '◦');
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world, { fBullet: customBullet }).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // Custom bullets should appear in output
       expect(output).toContain('Item 1');
@@ -233,14 +237,17 @@ describe('TuiList', () => {
 
     it('should respect maxRows truncation', () => {
       const entityList = world.entityList(Task);
-      entityList.addItem({ name: 'Task 1' });
-      entityList.addItem({ name: 'Task 2' });
-      entityList.addItem({ name: 'Task 3' });
+      const task1 = new Task({ name: 'Task 1' });
+      const task2 = new Task({ name: 'Task 2' });
+      const task3 = new Task({ name: 'Task 3' });
+      entityList.addItem(task1);
+      entityList.addItem(task2);
+      entityList.addItem(task3);
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world, { maxRows: 2 }).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // Only 2 tasks should appear (most recent first), not all 3
       expect(output).toContain('Task 2');
@@ -252,7 +259,7 @@ describe('TuiList', () => {
 
     it('should truncate with ellipsis when maxLinesPerRow=1 and text exceeds maxWidth', () => {
       const entityList = world.entityList(Task);
-      entityList.addItem({ name: 'A'.repeat(100) });
+      entityList.addItem(new Task({ name: 'A'.repeat(100) }));
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world, {
@@ -260,15 +267,15 @@ describe('TuiList', () => {
         maxWidth: 20,
       }).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // Output should show truncation (ellipsis)
       expect(output).toContain('…');
 
       // Text should not exceed maxWidth when ANSI codes are removed
       const lines = output.split('\n');
-      const itemLines = lines.filter((l) => l.includes('A')); // Lines with the long task
-      itemLines.forEach((line) => {
+      const itemLines = lines.filter((l: string) => l.includes('A')); // Lines with the long task
+      itemLines.forEach((line: string) => {
         const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, '');
         expect(cleanLine.length).toBeLessThanOrEqual(21); // 20 + 1 for ellipsis
       });
@@ -278,7 +285,7 @@ describe('TuiList', () => {
 
     it('should hide overflow text when textOverflow=hidden and maxLinesPerRow=1', () => {
       const entityList = world.entityList(Task);
-      entityList.addItem({ name: 'A'.repeat(100) });
+      entityList.addItem(new Task({ name: 'A'.repeat(100) }));
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world, {
@@ -287,15 +294,15 @@ describe('TuiList', () => {
         textOverflow: 'hidden',
       }).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // Should not have ellipsis with hidden overflow
       expect(output).not.toContain('…');
 
       // Text should not exceed maxWidth when ANSI codes are removed
       const lines = output.split('\n');
-      const itemLines = lines.filter((l) => l.includes('A')); // Lines with the long task
-      itemLines.forEach((line) => {
+      const itemLines = lines.filter((l: string) => l.includes('A')); // Lines with the long task
+      itemLines.forEach((line: string) => {
         const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, '');
         expect(cleanLine.length).toBeLessThanOrEqual(20);
       });
@@ -305,13 +312,13 @@ describe('TuiList', () => {
 
     it('should render all items with progress color when no primary focus', () => {
       const entityList = world.entityList(Task);
-      entityList.addItem({ name: 'Task 1' });
-      entityList.addItem({ name: 'Task 2' });
+      entityList.addItem(new Task({ name: 'Task 1' }));
+      entityList.addItem(new Task({ name: 'Task 2' }));
 
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const output = consoleSpy.mock.calls.map((c) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
 
       // Both tasks should appear with progress (0% since no actions)
       expect(output).toContain('Task 1');
@@ -333,7 +340,7 @@ describe('TuiList', () => {
 
     it('should apply wrapIndent to continuation lines', () => {
       const entityList = world.entityList(Task);
-      entityList.addItem({ name: 'A'.repeat(100) });
+      entityList.addItem(new Task({ name: 'A'.repeat(100) }));
 
       const consoleSpy = vi.spyOn(console, 'log');
       // Render with maxLinesPerRow=2 and wrapIndent=4

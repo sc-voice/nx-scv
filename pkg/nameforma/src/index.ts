@@ -5,10 +5,10 @@ import {
   STATUS_ORDER,
 } from './action.js';
 import { Clock } from './clock.js';
+import { Entity } from './entity.js';
 import { Focus } from './focus.js';
 import { Forma, LevenshteinMatcher } from './forma.js';
 import { FormaField } from './forma-field.js';
-import { FormaList } from './forma-list.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import UUID64 from './uuid64.js';
@@ -30,8 +30,10 @@ import RGA64Stack from './rga64-stack.js';
 import { Schema } from './schema.js';
 import { Task } from './task.js';
 import { User } from './user.js';
+import { World } from './world.js';
 import type { IRegistry } from './registry.js';
-export const NameForma = {
+
+export {
   Action,
   ActionStatus,
   ActionTransitions,
@@ -39,10 +41,10 @@ export const NameForma = {
   Admin,
   Clock,
   Consumer,
+  Entity,
   Focus,
   Forma,
   FormaField,
-  FormaList,
   Identifiable,
   Kafka1,
   LevenshteinMatcher,
@@ -56,7 +58,7 @@ export const NameForma = {
   Task,
   User,
   UUID64,
-  _Runner,
   RenderDetail,
+  World,
   ZenoCoord,
 };

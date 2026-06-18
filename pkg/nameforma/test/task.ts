@@ -1,12 +1,9 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import avro from 'avro-js';
-import { NameForma } from '../src/index.js';
+import { Schema, Rational, Task, Forma, Action, Reference } from '@sc-voice/nameforma';
 import { ScvMath, Text } from '@sc-voice/tools';
 import { Unicode as TextUnicode } from '@sc-voice/tools/text';
-import { DBG } from '../src/defines.js';
-import { FormaList } from '../src/forma-list.js';
-
-const { Schema, Rational, Task, Forma, Action, Reference } = NameForma;
+import { DBG, FormaList } from '@sc-voice/nameforma/internal';
 const { TASK: T2K } = DBG;
 const { Units } = ScvMath;
 const { Unicode, ColorConsole } = Text;
@@ -76,10 +73,10 @@ describe('task', () => {
     const mockBus1 = { emit: () => {}, on: () => {} };
     thing1
       .actions(mockBus1)
-      .addItem({ name: 'action 1', summary: 'first action' });
+      .addItem(new Action({ name: 'action 1', summary: 'first action' }));
     thing1
       .actions(mockBus1)
-      .addItem({ name: 'action 2', summary: 'second action' });
+      .addItem(new Action({ name: 'action 2', summary: 'second action' }));
     expect(thing1.rawActions).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 actions');
 
@@ -113,10 +110,10 @@ describe('task', () => {
     const mockBus2 = { emit: () => {}, on: () => {} };
     thing1
       .actions(mockBus2)
-      .addItem({ name: 'action 1', summary: 'first action' });
+      .addItem(new Action({ name: 'action 1', summary: 'first action' }));
     thing1
       .actions(mockBus2)
-      .addItem({ name: 'action 2', summary: 'second action' });
+      .addItem(new Action({ name: 'action 2', summary: 'second action' }));
     expect(thing1.rawActions).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 actions');
 
@@ -154,7 +151,7 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'actions initially empty');
 
     // Verify can add actions and creates Action instance
-    const action1 = actions.addItem({ status: 'todo' });
+    const action1 = actions.addItem(new Action({ status: 'todo' }));
     expect(action1).toBeDefined();
     expect(action1 instanceof Action).toBe(true);
     expect(action1.status).toBe('todo');
@@ -162,7 +159,7 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'added first action as Action instance');
 
     // Verify can add multiple actions, all as Action instances
-    const action2 = actions.addItem({ status: 'done' });
+    const action2 = actions.addItem(new Action({ status: 'done' }));
     expect(action2 instanceof Action).toBe(true);
     expect(actions.items).toHaveLength(2);
     expect(actions.items[0].status).toBe('todo');
@@ -192,8 +189,8 @@ describe('task', () => {
     const actions = t2k.actions(mockBus);
 
     // Build up actions array via FormaList
-    const action1 = actions.addItem({ status: 'todo' });
-    const action2 = actions.addItem({ status: 'done' });
+    const action1 = actions.addItem(new Action({ status: 'todo' }));
+    const action2 = actions.addItem(new Action({ status: 'done' }));
     dbg > 1 && cc.tag(msg, 'added initial actions');
 
     // Verify actions.items and rawActions are same array reference
@@ -202,7 +199,7 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'wrapped same array reference');
 
     // Add another action via FormaList
-    const action3 = actions.addItem({ status: 'in-progress' });
+    const action3 = actions.addItem(new Action({ status: 'in-progress' }));
     expect(action3 instanceof Action).toBe(true);
     expect(t2k.rawActions).toHaveLength(3);
     expect(t2k.rawActions[2]).toBe(action3);
@@ -279,16 +276,16 @@ describe('task', () => {
   it('progress() returns 1/6 when single action is req', () => {
     const task = new Task({ name: 'task' });
     const mockBus = { emit: () => {}, on: () => {} };
-    task.actions(mockBus).addItem({ status: 'req' });
+    task.actions(mockBus).addItem(new Action({ status: 'req' }));
     expect(task.progress()).toBe(1 / 6);
   });
 
   it('progress() returns weighted mean of action statuses', () => {
     const task = new Task({ name: 'task' });
     const mockBus = { emit: () => {}, on: () => {} };
-    task.actions(mockBus).addItem({ status: 'req' }); // 1
-    task.actions(mockBus).addItem({ status: 'work' }); // 3
-    task.actions(mockBus).addItem({ status: 'done' }); // 6
+    task.actions(mockBus).addItem(new Action({ status: 'req' })); // 1
+    task.actions(mockBus).addItem(new Action({ status: 'work' })); // 3
+    task.actions(mockBus).addItem(new Action({ status: 'done' })); // 6
     // Sum = 10, total = 3, max = 18, progress = 10/18
     expect(task.progress()).toBeCloseTo(10 / 18);
   });
@@ -296,8 +293,8 @@ describe('task', () => {
   it('progress() returns 1 when all actions are done', () => {
     const task = new Task({ name: 'task' });
     const mockBus = { emit: () => {}, on: () => {} };
-    task.actions(mockBus).addItem({ status: 'done' });
-    task.actions(mockBus).addItem({ status: 'done' });
+    task.actions(mockBus).addItem(new Action({ status: 'done' }));
+    task.actions(mockBus).addItem(new Action({ status: 'done' }));
     expect(task.progress()).toBe(1);
   });
 
@@ -319,11 +316,11 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'references initially empty');
 
     // Verify can add references and creates Reference instance
-    const ref1 = references.addItem({
+    const ref1 = references.addItem(new Reference({
       name: 'Link to docs',
       relevance: 0.9,
       source: 'https://example.com/docs',
-    });
+    }));
     expect(ref1).toBeDefined();
     expect(ref1 instanceof Reference).toBe(true);
     expect(ref1.name).toBe('Link to docs');
@@ -332,10 +329,10 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'added first reference as Reference instance');
 
     // Verify can add multiple references, all as Reference instances
-    const ref2 = references.addItem({
+    const ref2 = references.addItem(new Reference({
       name: 'Related issue',
       relevance: 0.6,
-    });
+    }));
     expect(ref2 instanceof Reference).toBe(true);
     expect(references.items).toHaveLength(2);
     expect(references.items[0].name).toBe('Link to docs');
@@ -371,12 +368,12 @@ describe('task', () => {
     // Create task with references
     let thing1 = new Task({ name });
     const mockBus1 = { emit: () => {}, on: () => {} };
-    thing1.references(mockBus1).addItem({
+    thing1.references(mockBus1).addItem(new Reference({
       name: 'ref 1',
       relevance: 0.9,
       source: 'https://example.com',
-    });
-    thing1.references(mockBus1).addItem({ name: 'ref 2', relevance: 0.5 });
+    }));
+    thing1.references(mockBus1).addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
     expect(thing1.rawReferences).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 references');
 
@@ -408,12 +405,12 @@ describe('task', () => {
     // Create task with references
     let thing1 = new Task({ name });
     const mockBus2 = { emit: () => {}, on: () => {} };
-    thing1.references(mockBus2).addItem({
+    thing1.references(mockBus2).addItem(new Reference({
       name: 'ref 1',
       relevance: 0.9,
       source: 'https://example.com',
-    });
-    thing1.references(mockBus2).addItem({ name: 'ref 2', relevance: 0.5 });
+    }));
+    thing1.references(mockBus2).addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
     expect(thing1.rawReferences).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 references');
 
@@ -446,8 +443,8 @@ describe('task', () => {
     const references = t2k.references(mockBus);
 
     // Build up references array via FormaList
-    const ref1 = references.addItem({ name: 'ref 1', relevance: 0.9 });
-    const ref2 = references.addItem({ name: 'ref 2', relevance: 0.5 });
+    const ref1 = references.addItem(new Reference({ name: 'ref 1', relevance: 0.9 }));
+    const ref2 = references.addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
     dbg > 1 && cc.tag(msg, 'added initial references');
 
     // Verify references.items and rawReferences are same array reference
@@ -456,7 +453,7 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'wrapped same array reference');
 
     // Add another reference via FormaList
-    const ref3 = references.addItem({ name: 'ref 3', relevance: 0.3 });
+    const ref3 = references.addItem(new Reference({ name: 'ref 3', relevance: 0.3 }));
     expect(ref3 instanceof Reference).toBe(true);
     expect(t2k.rawReferences).toHaveLength(3);
     expect(t2k.rawReferences[2]).toBe(ref3);
@@ -490,16 +487,16 @@ describe('task', () => {
       emit: () => {},
       on: () => {},
     } as any);
-    const action1 = actionsList.addItem({ name: 'action1' });
-    const action2 = actionsList.addItem({ name: 'action2' });
+    const action1 = actionsList.addItem(new Action({ name: 'action1' }));
+    const action2 = actionsList.addItem(new Action({ name: 'action2' }));
 
     // Add references
     const refsList = t2k.references({
       emit: () => {},
       on: () => {},
     } as any);
-    const ref1 = refsList.addItem({ name: 'ref1' });
-    const ref2 = refsList.addItem({ name: 'ref2' });
+    const ref1 = refsList.addItem(new Reference({ name: 'ref1' }));
+    const ref2 = refsList.addItem(new Reference({ name: 'ref2' }));
 
     // Get fuzzy IDs and verify retrieval
     const ns = t2k.namespace;
@@ -532,8 +529,8 @@ describe('task', () => {
     const bus = { emit: () => {}, on: () => {} } as any;
 
     const actionsList = t2k.actions(bus);
-    const action1 = actionsList.addItem({ name: 'action1' });
-    const action2 = actionsList.addItem({ name: 'action2' });
+    const action1 = actionsList.addItem(new Action({ name: 'action1' }));
+    const action2 = actionsList.addItem(new Action({ name: 'action2' }));
 
     const ns = t2k.namespace;
 
@@ -549,11 +546,11 @@ describe('task', () => {
     const bus = { emit: () => {}, on: () => {} } as any;
 
     const actionsList = t2k.actions(bus);
-    const action1 = actionsList.addItem({ name: 'action1' });
-    const action2 = actionsList.addItem({ name: 'action2' });
+    const action1 = actionsList.addItem(new Action({ name: 'action1' }));
+    const action2 = actionsList.addItem(new Action({ name: 'action2' }));
 
     const refsList = t2k.references(bus);
-    const ref1 = refsList.addItem({ name: 'ref1' });
+    const ref1 = refsList.addItem(new Reference({ name: 'ref1' }));
 
     const ns = t2k.namespace;
     const fuzzyId1 = ns.fuzzyIdOf(action1);

@@ -1,12 +1,10 @@
 import avro from 'avro-js';
 import { describe, it, expect } from '@sc-voice/vitest';
 import { Text, ScvMath } from '@sc-voice/tools';
-import { NameForma } from '../src/index.js';
-import { DBG } from '../src/defines.js';
-const { Rational, Schema, Forma } = NameForma;
+import { Rational, Schema, Forma } from '@sc-voice/nameforma';
+import { DBG, NotImplementedError } from '@sc-voice/nameforma/internal';
 const { cc } = Text.ColorConsole;
 const { CHECKMARK: UOK } = Text.Unicode;
-import { NotImplementedError } from '../src/errors.js';
 
 const dbg = 0;
 

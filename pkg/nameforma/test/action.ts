@@ -1,12 +1,8 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import UUID64 from '../src/uuid64.js';
+import { UUID64, Schema, Action, ActionStatus, ActionTransitions, STATUS_ORDER } from '@sc-voice/nameforma';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
-import { NameForma } from '../src/index.js';
-import { DBG } from '../src/defines.js';
-
-const { Schema, Action, ActionStatus, ActionTransitions, FormaList } =
-  NameForma;
+import { DBG, FormaList } from '@sc-voice/nameforma/internal';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -190,12 +186,12 @@ describe('Action', () => {
   });
 
   it('STATUS_ORDER has 6 entries', () => {
-    const { STATUS_ORDER } = NameForma;
+
     expect(Object.keys(STATUS_ORDER)).toHaveLength(6);
   });
 
   it('STATUS_ORDER values are 1..6', () => {
-    const { STATUS_ORDER } = NameForma;
+
     expect(STATUS_ORDER[ActionStatus.req]).toBe(1);
     expect(STATUS_ORDER[ActionStatus.spec]).toBe(2);
     expect(STATUS_ORDER[ActionStatus.work]).toBe(3);
@@ -205,7 +201,7 @@ describe('Action', () => {
   });
 
   it('STATUS_ORDER maintains expected ordering', () => {
-    const { STATUS_ORDER } = NameForma;
+
     expect(STATUS_ORDER[ActionStatus.done]).toBeGreaterThan(
       STATUS_ORDER[ActionStatus.manage],
     );

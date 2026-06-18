@@ -1,14 +1,9 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import UUID64 from '../src/uuid64.js';
+import { UUID64, Schema, Forma, FormaField, RenderDetail, ZenoCoord } from '@sc-voice/nameforma';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
-import { NameForma } from '../src/index.js';
-import { DBG } from '../src/defines.js';
+import { DBG, FuzzyNamespace } from '@sc-voice/nameforma/internal';
 import type { IView } from '../src/navigable-view.js';
-import { ZenoCoord } from '../src/navigable-view.js';
-import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
-
-const { Schema, Forma, RenderDetail } = NameForma;
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
@@ -88,7 +83,6 @@ describe('Forma', () => {
   });
 
   it('asRenderData', () => {
-    const { FormaField } = NameForma;
     const f = new Forma({
       name: 'test-forma',
       summary: 'A test forma for verification',

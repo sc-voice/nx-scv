@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '@sc-voice/nameforma';
 import { v7 as uuidv7 } from 'uuid';
 import { execSync } from 'child_process';
 import { MockGitCLI } from './git-cli.js';
