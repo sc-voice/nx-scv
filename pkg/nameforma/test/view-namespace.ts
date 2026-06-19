@@ -68,10 +68,10 @@ describe('ViewNamespace', () => {
       expect(merged[0]).toBe(forma1);
     });
 
-    it('prefers anchor namespace in deduplication', () => {
+    it('merged namespaces deduplicate', () => {
       anchorNs.addForma(forma1);
       anchorNs.addForma(forma2);
-      pivotNs.addForma(forma2);
+      pivotNs.addForma(forma1);
       pivotNs.addForma(forma3);
 
       const merged = Array.from(viewNs).map(([_, f]) => f);
@@ -279,6 +279,27 @@ describe('ViewNamespace', () => {
       const found = viewNs.getForma(entity.id.base64);
 
       expect(found).toBeUndefined();
+    });
+
+    it('tracked getter returns snapshot copy', () => {
+      const entity = new TestEntity({ id: new UUID64(), name: 'test1' });
+      viewNs.track(entity);
+
+      const snapshot = viewNs.tracked;
+      expect(snapshot).toHaveLength(1);
+      expect(snapshot[0]).toBe(entity);
+      // mutating snapshot does not affect internal state
+      snapshot.pop();
+      expect(viewNs.tracked).toHaveLength(1);
+    });
+
+    it('constructor accepts initial tracked entities', () => {
+      const entity = new TestEntity({ id: new UUID64(), name: 'pre-tracked' });
+      const vn = new ViewNamespace(anchorNs, pivotNs, [entity]);
+
+      const merged = Array.from(vn).map(([_, f]) => f);
+      expect(merged).toContain(entity);
+      expect(vn.tracked).toHaveLength(1);
     });
 
     it('tracked entity disappears from iterator after untrack', () => {

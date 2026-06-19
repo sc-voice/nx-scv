@@ -11,7 +11,7 @@ import os from 'os';
 import path from 'path';
 import { REPL, resolveWorld } from '../../src/cli/nf-cli.js';
 import { World } from '@sc-voice/nameforma';
-import { NfCLI, nfTui } from '@sc-voice/nameforma/internal';
+import { NfCLI, nfTui } from '@sc-voice/nameforma/unstable';
 import { TestReplRenderer } from '../../src/cli/nf-tui.js';
 
 let tmpDir: string;

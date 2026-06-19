@@ -8,7 +8,7 @@ import {
 import { Command } from 'commander';
 import { execSync } from 'child_process';
 import { Task, World } from '@sc-voice/nameforma';
-import { TaskCommand } from '@sc-voice/nameforma/internal';
+import { TaskCommand } from '@sc-voice/nameforma/unstable';
 import ActionCommand from '../../src/cli/cli-action.js';
 import { createTempWorld, createTestCmd } from './helpers.js';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { UUID64, Forma, World, Entity } from '@sc-voice/nameforma';
-import { FormaList, FuzzyNamespace, DBG } from '@sc-voice/nameforma/internal';
+import { FormaList, FuzzyNamespace, DBG } from '@sc-voice/nameforma/unstable';
 import { Text } from '@sc-voice/tools';
 import { createTempWorld } from './cli/helpers.js';
 const { Unicode, ColorConsole } = Text;

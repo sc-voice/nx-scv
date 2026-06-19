@@ -101,10 +101,12 @@ export class NfWatch {
     world.sync();
     const worldName = world.name || 'name?';
     const worldId = world.id.timeId() || 'id?';
+    const w3d = ns.getForma(world.id.base64);
     const header = [
       theme.nfBoundary(`${timeStr} NfWatch`),
       theme.nfLabel(`anchor`),
-      ns.fuzzyIdOf(anchor),
+      theme.nfLink(ns.fuzzyIdOf(anchor)),
+      w3d == null ? 'null' : (w3d.id.base64 === world.id.base64),
       theme.nfLabel(`pivot`),
       (pivot && ns.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
       theme.nfLabel('lines'),

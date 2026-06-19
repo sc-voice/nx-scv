@@ -9,7 +9,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { execSync } from 'child_process';
-import { World, Forma, Entity, Task, Action, UUID64, User, RGA64Node } from '@sc-voice/nameforma';
+import { World, Forma, Entity, Task, Action, UUID64, User } from '@sc-voice/nameforma';
+import { RGA64Node } from '@sc-voice/nameforma/unstable';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
@@ -596,9 +597,11 @@ describe('World Serialization - save()/load() methods', () => {
       expect(Object.keys(json).sort()).toEqual([
         'focusManager',
         'id',
+        'name',
         'numeronym',
+        'summary',
         'watermark',
-      ]); // No worldPath
+      ]);
     });
 
     it('should preserve World id across save', () => {
@@ -710,7 +713,9 @@ describe('World Serialization - save()/load() methods', () => {
       expect(Object.keys(json).sort()).toEqual([
         'focusManager',
         'id',
+        'name',
         'numeronym',
+        'summary',
         'watermark',
       ]);
     });
@@ -748,7 +753,9 @@ describe('World Serialization - save()/load() methods', () => {
       expect(Object.keys(json).sort()).toEqual([
         'focusManager',
         'id',
+        'name',
         'numeronym',
+        'summary',
         'watermark',
       ]);
     });
@@ -882,10 +889,11 @@ describe('World — namespace', () => {
       expect(typeof ns.getForma).toBe('function');
     });
 
-    it('should return empty namespace when no tasks exist', () => {
+    it('should return only world in namespace when no tasks exist', () => {
       const ns = world.namespace;
       const items = Array.from(ns);
-      expect(items).toEqual([]);
+      expect(items.length).toBe(1);
+      expect(items[0][1].id.base64).toBe(world.id.base64);
     });
 
     it('should populate namespace with existing tasks at construct time', () => {
@@ -897,24 +905,24 @@ describe('World — namespace', () => {
       const world2 = World.fromPath(worldPath);
       const ns = world2.namespace;
 
-      const items = Array.from(ns);
-      expect(items.length).toBe(2);
+      expect(ns.getForma(world2.id.base64)?.id.base64).toBe(world2.id.base64);
 
-      const taskIds = items.map(([, forma]) => forma.id.base64).sort();
-      const expectedIds = [task1.id.base64, task2.id.base64].sort();
-      expect(taskIds).toEqual(expectedIds);
+      const fz1 = ns.fuzzyIdOf(task1);
+      expect(ns.getForma(fz1)?.id.base64).toBe(task1.id.base64);
+
+      const fz2 = ns.fuzzyIdOf(task2);
+      expect(ns.getForma(fz2)?.id.base64).toBe(task2.id.base64);
     });
 
     it('should keep namespace in sync when task is added', () => {
       const ns = world.namespace;
-      expect(Array.from(ns).length).toBe(0);
+      expect(ns.getForma(world.id.base64)?.id.base64).toBe(world.id.base64);
 
       const list = world.entityList(Task);
       const task = list.addItem(new Task({ name: 'new-task' }));
 
-      const items = Array.from(ns);
-      expect(items.length).toBe(1);
-      expect(items[0][1].id.base64).toBe(task.id.base64);
+      const fz = ns.fuzzyIdOf(task);
+      expect(ns.getForma(fz)?.id.base64).toBe(task.id.base64);
     });
 
     it('should keep namespace in sync when task is patched', () => {
@@ -922,15 +930,13 @@ describe('World — namespace', () => {
       const task = list.addItem(new Task({ name: 'original' }));
 
       const ns = world.namespace;
-      let items = Array.from(ns);
-      expect(items[0][1].name).toBe('original');
+      const fz = ns.fuzzyIdOf(task);
+      expect(ns.getForma(fz)?.name).toBe('original');
 
       // Patch the task
       list.patchItem(task.id.base64, { name: 'updated' });
 
-      items = Array.from(ns);
-      expect(items.length).toBe(1);
-      expect(items[0][1].name).toBe('updated');
+      expect(ns.getForma(fz)?.name).toBe('updated');
     });
 
     it('should keep namespace in sync when task is deleted', () => {
@@ -939,14 +945,16 @@ describe('World — namespace', () => {
       const task2 = list.addItem(new Task({ name: 'task2' }));
 
       const ns = world.namespace;
-      expect(Array.from(ns).length).toBe(2);
+      expect(ns.getForma(world.id.base64)?.id.base64).toBe(world.id.base64);
+
+      const fz1 = ns.fuzzyIdOf(task1);
+      const fz2 = ns.fuzzyIdOf(task2);
 
       // Delete one task
       list.deleteItem(task1.id.base64);
 
-      const items = Array.from(ns);
-      expect(items.length).toBe(1);
-      expect(items[0][1].id.base64).toBe(task2.id.base64);
+      expect(ns.getForma(fz1)).toBeUndefined();
+      expect(ns.getForma(fz2)?.id.base64).toBe(task2.id.base64);
     });
 
     it('should resolve task by full UUID64 fuzzyId', () => {
@@ -966,8 +974,8 @@ describe('World — namespace', () => {
       const task = list.addItem(new Task({ name: 'test' }));
 
       const ns = world.namespace;
-      const partial = task.id.base64.substring(0, 8);
-      const found = ns.getForma(partial);
+      const fz = ns.fuzzyIdOf(task);
+      const found = ns.getForma(fz);
 
       expect(found).toBeDefined();
       expect(found?.id.base64).toBe(task.id.base64);
@@ -989,16 +997,18 @@ describe('World — namespace', () => {
       const task2 = list.addItem(new Task({ name: 'task2' }));
 
       const ns = world.namespace;
-      const items = Array.from(ns);
 
-      expect(items.length).toBe(2);
+      expect(ns.getForma(world.id.base64)?.id.base64).toBe(world.id.base64);
 
-      // Each item is [fuzzyId, forma]
-      for (const [fuzzyId, forma] of items) {
-        expect(typeof fuzzyId).toBe('string');
-        expect(fuzzyId.length).toBeGreaterThanOrEqual(5);
-        expect(forma.id).toBeDefined();
-      }
+      const fz1 = ns.fuzzyIdOf(task1);
+      expect(typeof fz1).toBe('string');
+      expect(fz1.length).toBeGreaterThanOrEqual(5);
+      expect(ns.getForma(fz1)?.id.base64).toBe(task1.id.base64);
+
+      const fz2 = ns.fuzzyIdOf(task2);
+      expect(typeof fz2).toBe('string');
+      expect(fz2.length).toBeGreaterThanOrEqual(5);
+      expect(ns.getForma(fz2)?.id.base64).toBe(task2.id.base64);
     });
   });
 

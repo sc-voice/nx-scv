@@ -7,7 +7,7 @@ import {
   vi,
 } from '@sc-voice/vitest';
 import { World, Task, UUID64 } from '@sc-voice/nameforma';
-import { TuiList } from '@sc-voice/nameforma/internal';
+import { TuiList } from '@sc-voice/nameforma/unstable';
 import { Unicode } from '@sc-voice/tools/text';
 import path from 'path';
 import fs from 'fs';

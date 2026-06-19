@@ -1,7 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { Text } from '@sc-voice/tools';
-import { Clock } from '@sc-voice/nameforma';
-import { DBG } from '@sc-voice/nameforma/internal';
+import { Clock, DBG } from '@sc-voice/nameforma/unstable';
 
 const { CLOCK: C3K } = DBG;
 const { ColorConsole } = Text;

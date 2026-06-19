@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { Task, Action, Reference, Rational, World } from '@sc-voice/nameforma';
-import { TaskCommand, NfCLI, nfTui, CliRenderer } from '@sc-voice/nameforma/internal';
+import { TaskCommand, NfCLI, nfTui, CliRenderer } from '@sc-voice/nameforma/unstable';
 import {
   createTempDir,
   createTempWorld,

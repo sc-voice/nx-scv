@@ -2,7 +2,7 @@ import avro from 'avro-js';
 import { describe, it, expect } from '@sc-voice/vitest';
 import { Text, ScvMath } from '@sc-voice/tools';
 import { Rational, Forma, Schema, UUID64 } from '@sc-voice/nameforma';
-import { DBG } from '@sc-voice/nameforma/internal';
+import { DBG } from '@sc-voice/nameforma/unstable';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;

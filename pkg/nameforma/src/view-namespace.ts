@@ -19,11 +19,12 @@ import { FuzzyNamespace, type IMutableNamespace } from './fuzzy-namespace.js';
 export class ViewNamespace implements IMutableNamespace {
   private anchorNs: IMutableNamespace;
   private pivotNs: IMutableNamespace;
-  private _track: Entity[] = [];
+  private _tracked: Entity[] = [];
 
-  constructor(anchor: IMutableNamespace, pivot: IMutableNamespace) {
+  constructor(anchor: IMutableNamespace, pivot: IMutableNamespace, tracked: Entity[] = []) {
     this.anchorNs = anchor;
     this.pivotNs = pivot;
+    this._tracked = [...tracked];
   }
 
   track(entity: Entity): boolean {
@@ -31,14 +32,18 @@ export class ViewNamespace implements IMutableNamespace {
       return false;
     }
 
-    this._track.push(entity);
+    this._tracked.push(entity);
 
     return true;
   }
 
   untrack(entity: Entity): void {
     const { base64 } = entity.id;
-    this._track = this._track.filter(e => e.id.base64 != base64);
+    this._tracked = this._tracked.filter(e => e.id.base64 !== base64);
+  }
+
+  get tracked(): Entity[] {
+    return [...this._tracked];
   }
 
   /** Compute merged namespace from anchor + pivot */
@@ -46,9 +51,11 @@ export class ViewNamespace implements IMutableNamespace {
     const merged = new FuzzyNamespace();
     const seen = new Set<string>();
 
-    for (const entity of this._track) {
-      merged.addForma(entity);
-      seen.add(entity.id.base64);
+    for (const [, forma] of this.pivotNs) {
+      if (!seen.has(forma.id.base64)) {
+        merged.addForma(forma);
+        seen.add(forma.id.base64);
+      }
     }
 
     for (const [, forma] of this.anchorNs) {
@@ -58,10 +65,9 @@ export class ViewNamespace implements IMutableNamespace {
       }
     }
 
-    for (const [, forma] of this.pivotNs) {
-      if (!seen.has(forma.id.base64)) {
-        merged.addForma(forma);
-      }
+    for (const entity of this._tracked) {
+      merged.addForma(entity);
+      seen.add(entity.id.base64);
     }
 
     return merged;
@@ -72,21 +78,21 @@ export class ViewNamespace implements IMutableNamespace {
   }
 
   getForma(fuzzyId: string): Forma | undefined {
-    const formaA = this.anchorNs.getForma(fuzzyId);
-    if (formaA) {
-      return formaA;
-    }
     const formaP = this.pivotNs.getForma(fuzzyId);
     if (formaP) {
       return formaP;
+    }
+    const formaA = this.anchorNs.getForma(fuzzyId);
+    if (formaA) {
+      return formaA;
     }
 
     const id = fuzzyId;
     const matchCase = true;
     const matchExact = Identifiable.idFilter(id, id.length, matchCase);
     const matchNoCase = Identifiable.idFilter(id, id.length, !matchCase);
-    return this._track.filter(e => matchExact(e.id.base64))[0] ??
-      this._track.filter(e => matchNoCase(e.id.base64))[0];
+    return this._tracked.filter(e => matchExact(e.id.base64))[0] ??
+      this._tracked.filter(e => matchNoCase(e.id.base64))[0];
   }
 
   fuzzyIdOf(forma: Forma): string {

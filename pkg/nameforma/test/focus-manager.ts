@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { World, Task } from '@sc-voice/nameforma';
-import { FocusManager } from '@sc-voice/nameforma/internal';
+import { FocusManager } from '@sc-voice/nameforma/unstable';
 
 
 describe('FocusManager', () => {

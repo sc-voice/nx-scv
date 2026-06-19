@@ -84,10 +84,31 @@ export class World extends Entity implements IEventBus {
    */
   private constructor(worldPath: string, id?: UUID64 | string) {
     const worldRoot = path.dirname(worldPath);
-    const nfUrl = new NfUrl(worldRoot, '~');
-    const name = nfUrl.uri;
-    super({ id, name, summary: worldPath });
-    //super({id, name:worldPath.split("/").at(-1), summary:worldPath});
+
+    // Try to use package.json name/description as defaults
+    let name: string | undefined;
+    let summary: string | undefined;
+    try {
+      const packageJsonPath = path.join(worldRoot, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        name = pkg.name;
+        summary = pkg.description;
+      }
+    } catch (err) {
+      // Silently ignore package.json read errors
+    }
+
+    // Fallback to path-based defaults
+    if (!name) {
+      const nfUrl = new NfUrl(worldRoot, '~');
+      name = nfUrl.uri;
+    }
+    if (!summary) {
+      summary = worldPath;
+    }
+
+    super({ id, name, summary });
 
     const msg = 'world.ctor';
     const dbg = WORLD?.CTOR;
@@ -225,6 +246,8 @@ export class World extends Entity implements IEventBus {
 
       dbg && cc.ok1(msg, `loaded ${files.length} ${entityTypeName} entities`);
     }
+    // add self
+    this.addToNamespace(this);
 
     dbg && cc.ok1(msg, `total loaded ${totalLoaded} entities`);
   }
@@ -283,6 +306,13 @@ export class World extends Entity implements IEventBus {
         msg,
         `input forma.id.base64=${forma.id.base64}, fieldPath=${fieldPath}, value=${value}`,
       );
+
+    // Handle world itself
+    if (forma.id.base64 === this.id.base64) {
+      this.patch({ [fieldPath]: value });
+      this.save();
+      return this;
+    }
 
     // Find the serializing entity
     const inWorld = this.namespace.getForma(forma.id.base64);
@@ -541,6 +571,12 @@ export class World extends Entity implements IEventBus {
         }
       }
     }
+
+    // Ensure world is in namespace and won't be removed during sync
+    if (!this.namespace.getForma(this.id.base64)) {
+      this.addToNamespace(this);
+    }
+    filesystemEntities.set(this.id.base64, this);
 
     // Remove entities from namespace that no longer exist on filesystem
     for (const [fuzzyId, forma] of this.namespace) {
@@ -1064,8 +1100,10 @@ export class World extends Entity implements IEventBus {
   toJSON(): any {
     this.validate();
     return {
-      focusManager: this.#focusManager.toJSON(),
       id: this.id,
+      name: this.name,
+      summary: this.summary,
+      focusManager: this.#focusManager.toJSON(),
       numeronym: Object.fromEntries(this.#numeronym),
       watermark: this.#watermark.toJSON(),
     };
@@ -1101,6 +1139,14 @@ export class World extends Entity implements IEventBus {
 
     if (data.focusManager) {
       world.#focusManager = FocusManager.fromJSON(data.focusManager);
+    }
+
+    // Restore name and summary if present in saved data
+    if (data.name !== undefined) {
+      world.name = data.name;
+    }
+    if (data.summary !== undefined) {
+      world.summary = data.summary;
     }
 
     return world;
@@ -1157,7 +1203,8 @@ export class World extends Entity implements IEventBus {
             bullet = theme.nfAttend("◦");
             break;
           case Number.MAX_SAFE_INTEGER: // Not focused
-            bullet = theme.nfAway("-");
+            //bullet = theme.nfAway("-");
+            bullet = theme.nfAway("▬");
             break;
             
         }

@@ -532,7 +532,8 @@ export class NavigableView implements IView {
     const pivotNs = this._pivot && 'mutableNamespace' in this._pivot
       ? (this._pivot as any).mutableNamespace
       : new FuzzyNamespace();
-    this._namespace = new ViewNamespace(anchorNs, pivotNs);
+    const tracked = this._namespace?.tracked;
+    this._namespace = new ViewNamespace(anchorNs, pivotNs, tracked);
   }
 
 }

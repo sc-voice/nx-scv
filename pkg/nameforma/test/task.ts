@@ -3,7 +3,7 @@ import avro from 'avro-js';
 import { Schema, Rational, Task, Forma, Action, Reference } from '@sc-voice/nameforma';
 import { ScvMath, Text } from '@sc-voice/tools';
 import { Unicode as TextUnicode } from '@sc-voice/tools/text';
-import { DBG, FormaList } from '@sc-voice/nameforma/internal';
+import { DBG, FormaList } from '@sc-voice/nameforma/unstable';
 const { TASK: T2K } = DBG;
 const { Units } = ScvMath;
 const { Unicode, ColorConsole } = Text;

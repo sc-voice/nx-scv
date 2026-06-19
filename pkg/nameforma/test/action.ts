@@ -1,8 +1,8 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { UUID64, Schema, Action, ActionStatus, ActionTransitions, STATUS_ORDER } from '@sc-voice/nameforma';
+import { UUID64, Schema, Action } from '@sc-voice/nameforma';
+import { ActionStatus, ActionTransitions, STATUS_ORDER, DBG, FormaList } from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
-import { DBG, FormaList } from '@sc-voice/nameforma/internal';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;

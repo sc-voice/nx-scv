@@ -3,7 +3,7 @@ import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
 import { World } from '@sc-voice/nameforma';
-import type { GlobalOpts } from '@sc-voice/nameforma/internal';
+import type { GlobalOpts } from '@sc-voice/nameforma/unstable';
 
 /**
  * Create an isolated temporary directoryt

@@ -1,8 +1,8 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { UUID64, Schema, Forma, FormaField, RenderDetail, ZenoCoord } from '@sc-voice/nameforma';
+import { UUID64, Schema, Forma, RenderDetail, ZenoCoord } from '@sc-voice/nameforma';
+import { FormaField, DBG, FuzzyNamespace } from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
-import { DBG, FuzzyNamespace } from '@sc-voice/nameforma/internal';
 import type { IView } from '../src/navigable-view.js';
 const { Unicode, ColorConsole } = Text;
 const { cc } = ColorConsole;

@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { UUID64, Identifiable } from '@sc-voice/nameforma';
 import { Text } from '@sc-voice/tools';
-import { DBG } from '@sc-voice/nameforma/internal';
+import { DBG } from '@sc-voice/nameforma/unstable';
 const { ColorConsole, Unicode } = Text;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
