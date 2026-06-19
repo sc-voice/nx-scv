@@ -5,6 +5,7 @@
 
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import { NfProgram } from '../nf-program.js';
 import { NameFormaTheme } from '../nameforma-theme.js';
 import type { GlobalOpts } from './nf-cli.js';
 const theme = NameFormaTheme.shared;
@@ -17,6 +18,7 @@ export default class SetCommand {
       .option('-j, --json', 'Output result as JSON')
       .action(async (dotref: string, values: string[], options: any) => {
         const world = getGlobalOpts().world;
+        const program = new NfProgram(world);
         const value = values.join(' ').trim();
 
         try {
@@ -29,24 +31,21 @@ export default class SetCommand {
           const formaId = dotref.slice(0, dotIdx);
           const fieldPath = dotref.slice(dotIdx + 1);
 
-          // Resolve forma
+          // Get current value for display
           const resolved = world.resolveFuzzyId(formaId);
           if (!resolved) {
             throw new Error(`Not found: ${formaId}`);
           }
-          const { forma } = resolved;
-
-          // Get current value for display
-          const oldValue = (forma as any)[fieldPath];
+          const oldValue = (resolved.forma as any)[fieldPath];
 
           // Update and persist
-          const updated = world.patchForma(forma, fieldPath, value);
+          const updated = program.setFieldValue(formaId, fieldPath, value);
 
           // Output result
           if (options.json) {
             nfTui.log(JSON.stringify(updated, null, 2));
           } else {
-            let id = forma.id.base64.replace(formaId, theme.nfLink(formaId));
+            let id = updated.id.base64.replace(formaId, theme.nfLink(formaId));
             nfTui.log(`✓ ${theme.nfBoundary("Updated:")} ${id}.${fieldPath}`);
             nfTui.log(`  ${theme.nfAttend(oldValue)}`);
             nfTui.log(`→ ${theme.nfNominal(value)}`);

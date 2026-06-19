@@ -140,6 +140,7 @@ const WORLD = {
   ALL: 0,
   CTOR: 0,
   FIND_WORLD: 0,
+  FUZZY_ID: 0,
   REGISTER: 0,
   EVENT: 0,
   SAVE: 0,

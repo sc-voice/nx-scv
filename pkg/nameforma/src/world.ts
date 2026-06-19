@@ -259,8 +259,8 @@ export class World extends Entity implements IEventBus {
    * @returns {{ entity: Forma, forma: Forma } | undefined} - entity is the serializing entity; forma is the matched forma
    */
   resolveFuzzyId(fuzzyId: string): { entity: Forma; forma: Forma } | undefined {
-    const msg = 'world.resolveFuzzyIdRGA';
-    const dbg = WORLD?.ALL;
+    const msg = 'world.resolveFuzzyId';
+    const dbg = WORLD?.FUZZY_ID;
 
     // Get focused entity
     const focusId = this.#focusManager.peek();
@@ -286,72 +286,8 @@ export class World extends Entity implements IEventBus {
       return { entity: forma, forma };
     }
 
-    dbg && cc.ok1(msg, `not found: ${fuzzyId}`);
+    dbg && cc.bad1(msg, `not found: ${fuzzyId}`);
     return undefined;
-  }
-
-  /**
-   * Update a forma field and persist via its serializing entity.
-   * @param {Forma} forma - The forma to update (must exist in a namespace)
-   * @param {string} fieldPath - Field path to update (e.g., 'name', 'summary')
-   * @param {any} value - New value
-   * @returns {Forma} - The updated forma
-   */
-  patchForma(forma: Forma, fieldPath: string, value: any): Forma {
-    const msg = 'world.patchForma';
-    const dbg = WORLD?.ALL;
-
-    dbg &&
-      cc.ok1(
-        msg,
-        `input forma.id.base64=${forma.id.base64}, fieldPath=${fieldPath}, value=${value}`,
-      );
-
-    // Handle world itself
-    if (forma.id.base64 === this.id.base64) {
-      this.patch({ [fieldPath]: value });
-      this.save();
-      return this;
-    }
-
-    // Find the serializing entity
-    const inWorld = this.namespace.getForma(forma.id.base64);
-    if (inWorld) {
-      // Top-level forma in world namespace
-      const EntityClass = this.entityClassOfName(
-        (forma.constructor as any).entity,
-      );
-      if (!EntityClass) {
-        throw new Error(`Unknown entity type for ${forma.id.base64}`);
-      }
-      const list = this.entityList(EntityClass);
-      dbg && cc.ok1(msg, `list.items.length=${list.items.length}`);
-
-      const result = list.patchItem(forma.id.base64, { [fieldPath]: value });
-      dbg && cc.ok1(msg, `patched, result.id=${result.id.base64}`);
-      return result;
-    }
-
-    // Try focused entity's namespace
-    const focusId = this.#focusManager.peek();
-    const entity = focusId && this.namespace.getForma(focusId.base64);
-    const EntityClass = this.entityClassOfName((entity as any).formaType);
-    if (EntityClass == null) {
-      throw new Error(`Forma not found in any namespace: ${forma.id.base64}`);
-    }
-    const nested = (entity as any).namespace.getForma(forma.id.base64);
-    if (nested) {
-      nested.patch({ [fieldPath]: value });
-      this.emit('change', {
-        type: 'patch',
-        item: nested,
-        cfg: { [fieldPath]: value },
-        entity,
-      });
-      return nested;
-    }
-
-    throw new Error(`Forma not found in any namespace: ${forma.id.base64}`);
   }
 
   /**
@@ -769,6 +705,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * @deprecated
    * Load entities of a given type as a FormaList for CRUD operations
    * Reconstructs entity.id as UUID64 POJO and returns typed FormaList
    * @template T - Entity constructor type

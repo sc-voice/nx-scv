@@ -1,0 +1,24 @@
+{
+  "id": "0Pqx0UOp00jfar8gojBAdW",
+  "name": "Sample Task",
+  "summary": "Test fixture for simple task",
+  "focusManager": {
+    "rgaFocusStack": {
+      "id": "0Pvuk3Ux00Rt9XDAtOFG7W",
+      "name": "Focus Stack",
+      "summary": "",
+      "nodes": [
+        "0Pvuk3Ux01cKIZG76UNKNW.0PxVmryB00tGyAPrFKqetW.^.@"
+      ]
+    }
+  },
+  "numeronym": {
+    "F13n": "FormaCollection",
+    "N18r": "NotImplemenetedError",
+    "I10e": "Identifiable",
+    "T13a": "TranslationData"
+  },
+  "watermark": {
+    "20n1YZVkrlNW": "0PwXvnRe00IEm1WII59OtW"
+  }
+}

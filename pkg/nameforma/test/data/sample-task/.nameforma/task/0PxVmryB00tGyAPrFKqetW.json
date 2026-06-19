@@ -1,0 +1,44 @@
+{
+  "forma": "Task",
+  "id": "0PxVmryB00tGyAPrFKqetW",
+  "name": "Task1-Name",
+  "summary": "Task1-Summary",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PxVwGSx00tGyAPrFKqetW",
+      "name": "Action1-name",
+      "summary": "Action1-summary",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-19T12:44:11.451Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxVwGxD00tGyAPrFKqetW",
+      "name": "Action2-name",
+      "summary": "Action2-summary",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-19T12:44:13.389Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PxVvDfs00tGyAPrFKqetW",
+      "name": "Reference1-name",
+      "summary": "Reference1-name",
+      "relevance": 1,
+      "source": "src/example.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PxVvN8Q00tGyAPrFKqetW",
+      "name": "Reference2-name",
+      "summary": "Reference2-name",
+      "relevance": 0.5,
+      "source": "test/example.ts"
+    }
+  ]
+}

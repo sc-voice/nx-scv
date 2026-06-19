@@ -1,5 +1,7 @@
 {
   "id": "0Pqx0UOp00jfar8gojBAdW",
+  "name": "@sc-voice/nameforma",
+  "summary": "Personal Reality Manager (PRM) framework for Human/Agentic cooperation",
   "focusManager": {
     "rgaFocusStack": {
       "id": "0Pvuk3Ux00Rt9XDAtOFG7W",
@@ -24,7 +26,8 @@
         "0PwZKAXv0020n1YZVkrlNW.0PwY6tgi00TRbiPeVXnD7W.0PwY6whc0020n1YZVkrlNW.-",
         "0PwzBzq20020n1YZVkrlNW.0PwzBuoT00L5hsSVLzt-tW.0PwZJLP00020n1YZVkrlNW.-",
         "0PxLylSx0020n1YZVkrlNW.0PxLyklZ00eOstUcLYcrtW.0PwZJLP00020n1YZVkrlNW.-",
-        "0PxNBym30020n1YZVkrlNW.0PxNBtJi00DwByKaO4zSdW.0PxLylSx0020n1YZVkrlNW.-"
+        "0PxNBym30020n1YZVkrlNW.0PxNBtJi00DwByKaO4zSdW.0PxLylSx0020n1YZVkrlNW.-",
+        "0PxVmv-q0020n1YZVkrlNW.0PxVmryB00tGyAPrFKqetW.0PwZJLP00020n1YZVkrlNW.@"
       ]
     }
   },
