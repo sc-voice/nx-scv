@@ -10,7 +10,7 @@ import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
 import { validate as validateUUID } from 'uuid';
-import { UUID64, World } from '@sc-voice/nameforma';
+import { UUID64, World, NfProgram } from '@sc-voice/nameforma';
 import IdCommand from '../../src/cli/cli-id.js';
 import { createTestProgram } from './helpers.js';
 
@@ -47,30 +47,14 @@ describe('CLI: id command', () => {
 
     // Setup commander program
     program = new Command();
+    const nfProgram = new NfProgram(program as any);
+    const world = World.fromPath(worldPath);
+    nfProgram.initialize(world, { verbosity: 0 });
 
-    // Setup global options but without -v to avoid conflict with --validate in id command
-    let globalOpts: any = {
-      world: World.fromPath(worldPath),
-      verbosity: 0,
-    };
-    program
-      .option('-w, --world <path>', 'Path to .nameforma directory')
-      .hook('preAction', (thisCommand: any) => {
-        const opts = thisCommand.optsWithGlobals();
-        let resolvedPath = opts.world || worldPath;
-        if (!resolvedPath.endsWith('.nameforma')) {
-          resolvedPath = path.join(resolvedPath, '.nameforma');
-        }
-        globalOpts = {
-          world: World.fromPath(resolvedPath),
-          verbosity: 0,
-        };
-      });
-
-    const getGlobalOpts = () => globalOpts;
+    program.option('-w, --world <path>', 'Path to .nameforma directory');
 
     idCmd = program.command('id');
-    IdCommand.registerCommand(idCmd, getGlobalOpts);
+    IdCommand.registerCommand(idCmd, nfProgram);
   });
 
   afterEach(() => {
@@ -355,10 +339,10 @@ describe('CLI: id command', () => {
 
       try {
         // Use a new program with proper global options support
-        const { program: testProgram, getGlobalOpts } =
+        const { program: testProgram, nfProgram: testNfProgram } =
           createTestProgram(tempDir);
         const testIdCmd = testProgram.command('id');
-        IdCommand.registerCommand(testIdCmd, getGlobalOpts);
+        IdCommand.registerCommand(testIdCmd, testNfProgram);
 
         const testOutput: string[] = [];
         const originalLog = console.log;
@@ -429,10 +413,10 @@ describe('CLI: id command', () => {
 
     it('generates and saves numeronym with -s -n', async () => {
       // Create new program for this test to isolate world directory
-      const { program: testProgram, getGlobalOpts } =
+      const { program: testProgram, nfProgram: testNfProgram } =
         createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
-      IdCommand.registerCommand(testIdCmd, getGlobalOpts);
+      IdCommand.registerCommand(testIdCmd, testNfProgram);
 
       const testOutput: string[] = [];
       const originalLog = console.log;
@@ -470,10 +454,10 @@ describe('CLI: id command', () => {
     });
 
     it('uses -w option before command to specify world directory', async () => {
-      const { program: testProgram, getGlobalOpts } =
+      const { program: testProgram, nfProgram: testNfProgram } =
         createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
-      IdCommand.registerCommand(testIdCmd, getGlobalOpts);
+      IdCommand.registerCommand(testIdCmd, testNfProgram);
 
       const testOutput: string[] = [];
       const originalLog = console.log;
@@ -506,10 +490,10 @@ describe('CLI: id command', () => {
     });
 
     it('generates and saves numeronym with --save --numeronym', async () => {
-      const { program: testProgram, getGlobalOpts } =
+      const { program: testProgram, nfProgram: testNfProgram } =
         createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
-      IdCommand.registerCommand(testIdCmd, getGlobalOpts);
+      IdCommand.registerCommand(testIdCmd, testNfProgram);
 
       const testOutput: string[] = [];
       const originalLog = console.log;

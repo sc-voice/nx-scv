@@ -21,6 +21,7 @@ import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
 import InitCommand from './cli-init.js';
 import { World } from '../world.js';
+import { NfProgram } from '../nf-program.js';
 import { IS_CLAUDE } from './env.js';
 import type { IReplRenderer } from './nf-tui.js';
 
@@ -162,32 +163,18 @@ export class REPL {
 }
 
 export function resolveWorld(worldPath?: string): World {
-  let resolvedPath = worldPath;
-  if (!resolvedPath) {
-    resolvedPath = World.findWorld() || undefined;
-    if (!resolvedPath) {
-      throw new Error(
-        `No world found. Run 'nf init' in your project directory to create one.`,
-      );
-    }
-  } else if (!resolvedPath.endsWith('.nameforma')) {
-    resolvedPath = path.join(resolvedPath, '.nameforma');
-  }
-  return World.load(resolvedPath);
+  return NfProgram.resolveWorld(worldPath);
 }
 
 /** NameForma command-line interface for managing tasks, formas, and schemas */
-export class NfCLI {
-  private program: Command;
-
+export class NfCLI extends NfProgram {
   /** Initialize NfCLI with commander program */
   constructor() {
-    this.program = this.createProgram();
+    super(new Command());
+    this.createProgram();
   }
 
-  private createProgram(): Command {
-    const program = new Command();
-
+  private createProgram(): void {
     const helpText = [
       'Examples:',
       '  $ nameforma --help',
@@ -200,10 +187,9 @@ export class NfCLI {
       readFileSync(join(__dirname, '../../package.json'), 'utf-8'),
     );
     const version = pkgJson.version;
+    const nfCli = this;
 
-    let globalOpts: GlobalOpts | null = null;
-
-    program
+    this.cmdDelegate
       .name('nameforma')
       .description(
         `NameForma/${USER} CLI - Manage tasks, formas, and schemas`,
@@ -235,8 +221,6 @@ export class NfCLI {
       )
       .hook('preAction', (thisCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
-        // Check if this is an init command
-        // In Commander, the subcommand name is in _name or can be checked via args
         const cmdName = thisCommand._name || thisCommand.name?.();
         const isInitCommand =
           cmdName === 'init' ||
@@ -245,82 +229,78 @@ export class NfCLI {
         let world: World | undefined;
         if (!isInitCommand) {
           try {
-            world = resolveWorld(opts.world);
+            world = NfProgram.resolveWorld(opts.world);
           } catch (err) {
             nfTui.error(err instanceof Error ? err.message : String(err));
             process.exit(1);
           }
         }
 
-        globalOpts = {
-          world: world as any,
-          verbosity: parseInt(opts.verbose || '0', 10),
-          testRunner: opts.testRunner || false,
-        };
+        if (world) {
+          nfCli.initialize(world, {
+            verbosity: parseInt(opts.verbose || '0', 10),
+            testRunner: opts.testRunner || false,
+            debug: opts.debug || false,
+            isAgent: opts.agent || false,
+          });
+        }
         if (opts.debug) process.env.DEBUG = '1';
         if (opts.agent) settings.isAgent = true;
       });
 
-    const getGlobalOpts = (): GlobalOpts => {
-      if (!globalOpts) throw new Error('getGlobalOpts called before preAction');
-      return globalOpts;
-    };
-
     InitCommand.registerCommand(
-      program.command('init').description('Initialize a new world'),
-      getGlobalOpts,
+      this.cmdDelegate.command('init').description('Initialize a new world'),
+      this,
     );
     TaskCommand.registerCommand(
-      program.command('task').description('Manage tasks'),
-      getGlobalOpts,
+      this.cmdDelegate.command('task').description('Manage tasks'),
+      this,
     );
     IdCommand.registerCommand(
-      program
+      this.cmdDelegate
         .command('id')
         .description('Generate/validate numeronym, UUIDv7, UUID64'),
-      getGlobalOpts,
+      this,
     );
     GetCommand.registerCommand(
-      program
+      this.cmdDelegate
         .command('get')
         .description('Get a forma by fuzzy ID'),
-      getGlobalOpts,
+      this,
     );
     SetCommand.registerCommand(
-      program
+      this.cmdDelegate
         .command('set')
         .description('Set a forma field'),
-      getGlobalOpts,
+      this,
     );
     ActionCommand.registerCommand(
-      program
+      this.cmdDelegate
         .command('action')
         .description('List actions for the focused task'),
-      getGlobalOpts,
+      this,
     );
 
-    const refCmd = program
+    const refCmd = this.cmdDelegate
       .command('reference')
       .alias('ref')
       .description('List references for the focused task');
-    ReferenceCommand.registerCommand(refCmd, getGlobalOpts);
+    ReferenceCommand.registerCommand(refCmd, this);
 
     WatchCommand.registerCommand(
-      program
+      this.cmdDelegate
         .command('watch')
         .description(
           'Watch focused task file and rerun task get when it changes',
         ),
-      getGlobalOpts,
+      this,
     );
     DocCommand.registerCommand(
-      program
+      this.cmdDelegate
         .command('doc')
         .description('Display TUI-formatted documentation'),
-      getGlobalOpts,
+      this,
     );
-
-    return program;
   }
 
   private preprocessArgv(argv: string[]): string[] {
@@ -367,7 +347,7 @@ export class NfCLI {
    */
   parseArgv(argv: string[]): Promise<Command> {
     const processed = this.preprocessArgv(argv);
-    return this.program.parseAsync(processed);
+    return this.cmdDelegate.parseAsync(processed) as Promise<Command>;
   }
 
   /** Create new CLI instance and execute command with given arguments
@@ -389,7 +369,7 @@ export class NfCLI {
    * console.log(program.version());
    */
   getProgram(): Command {
-    return this.program;
+    return this.cmdDelegate as Command;
   }
 }
 
@@ -408,7 +388,7 @@ if (isMainModule) {
     }
 
     if (process.argv.length <= 2) {
-      const world = resolveWorld(process.env.WORLD);
+      const world = NfProgram.resolveWorld(process.env.WORLD);
       const repl = new REPL(world);
       repl.start().catch((err) => {
         nfTui.error(err);

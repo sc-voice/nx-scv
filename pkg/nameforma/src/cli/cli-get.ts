@@ -9,7 +9,8 @@ import { Entity } from '../entity.js';
 import { EntityView } from '../entity-view.js';
 import { LineRenderer } from '../line-renderer.js';
 import { zenoStep, ZenoCoord, ZENO_8_ROWS } from '../navigable-view.js';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 
 export default class GetCommand {
   /**
@@ -17,7 +18,7 @@ export default class GetCommand {
    * @param {Command} cmd - Commander command object
    * @param {Function} getGlobalOpts - Closure that returns global options
    */
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     cmd
       .argument('<fuzzyId>', 'Fuzzy ID to resolve')
       .option('-j, --json', 'Output as JSON')
@@ -25,7 +26,8 @@ export default class GetCommand {
       .option('--lines <int>', 'Viewport height in lines', '50')
       .option('--line-width <int>', 'Line width in characters', '75')
       .action(async (fuzzyId: string, options: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         try {
           const resolved = world.resolveFuzzyId(fuzzyId);
 

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
-import { World } from '@sc-voice/nameforma';
+import { World, NfProgram } from '@sc-voice/nameforma';
 import type { GlobalOpts } from '@sc-voice/nameforma/unstable';
 
 /**
@@ -89,37 +89,32 @@ export function countTasks(worldPath) {
  * @returns {object} - { testCmd(...args), getGlobalOpts() }
  */
 export function createTestCmd(program: Command, worldPath: string) {
-  let globalOpts: GlobalOpts = {
-    world: World.fromPath(worldPath),
-    verbosity: 0,
-    testRunner: true,
-  };
+  const nfProgram = new NfProgram(program as any);
+  const world = World.fromPath(worldPath);
+  nfProgram.initialize(world, { verbosity: 0, testRunner: true });
 
-  program
-    .option(
-      '-w, --world <path>',
-      'Path to .nameforma directory (or auto-discover)',
-    )
-    .option('-v, --verbose <level>', 'Verbosity level', '0')
-    .hook('preAction', (thisCommand: any) => {
-      const opts = thisCommand.optsWithGlobals();
-      let resolvedPath = opts.world || worldPath;
-      if (!resolvedPath.endsWith('.nameforma')) {
-        resolvedPath = path.join(resolvedPath, '.nameforma');
-      }
-      globalOpts = {
-        world: World.fromPath(resolvedPath),
-        verbosity: parseInt(opts.verbose || '0', 10),
-        testRunner: true,
-      };
-    });
+  program.option(
+    '-w, --world <path>',
+    'Path to .nameforma directory (or auto-discover)',
+  );
 
-  const getGlobalOpts = () => globalOpts;
+  program.hook('preAction', () => {
+    // Reload world from disk to pick up any persisted focus state
+    const reloadedWorld = World.fromPath(worldPath);
+    nfProgram.initialize(reloadedWorld, { verbosity: 0, testRunner: true });
+  });
+
+  const getGlobalOpts = () => ({
+    world: nfProgram.world!,
+    verbosity: nfProgram.verbosity,
+    testRunner: nfProgram.testRunner,
+  });
 
   return {
     testCmd: (...args: string[]) =>
       program.parseAsync(['node', 'test', '-w', worldPath, ...args]),
     getGlobalOpts,
+    nfProgram,
   };
 }
 
@@ -130,31 +125,26 @@ export function createTestCmd(program: Command, worldPath: string) {
  */
 export function createTestProgram(worldPath: string) {
   const program = new Command();
-  let globalOpts: GlobalOpts = {
-    world: World.fromPath(worldPath),
-    verbosity: 0,
-    testRunner: true,
-  };
+  const nfProgram = new NfProgram(program as any);
+  const world = World.fromPath(worldPath);
+  nfProgram.initialize(world, { verbosity: 0, testRunner: true });
 
-  program
-    .option(
-      '-w, --world <path>',
-      'Path to .nameforma directory (or auto-discover)',
-    )
-    .hook('preAction', (thisCommand: any) => {
-      const opts = thisCommand.optsWithGlobals();
-      let resolvedPath = opts.world || worldPath;
-      if (!resolvedPath.endsWith('.nameforma')) {
-        resolvedPath = path.join(resolvedPath, '.nameforma');
-      }
-      globalOpts = {
-        world: World.fromPath(resolvedPath),
-        verbosity: 0,
-        testRunner: true,
-      };
-    });
+  program.option(
+    '-w, --world <path>',
+    'Path to .nameforma directory (or auto-discover)',
+  );
 
-  const getGlobalOpts = () => globalOpts;
+  program.hook('preAction', () => {
+    // Reload world from disk to pick up any persisted focus state
+    const reloadedWorld = World.fromPath(worldPath);
+    nfProgram.initialize(reloadedWorld, { verbosity: 0, testRunner: true });
+  });
 
-  return { program, getGlobalOpts };
+  const getGlobalOpts = () => ({
+    world: nfProgram.world!,
+    verbosity: nfProgram.verbosity,
+    testRunner: nfProgram.testRunner,
+  });
+
+  return { program, getGlobalOpts, nfProgram };
 }

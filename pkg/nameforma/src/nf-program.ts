@@ -1,13 +1,157 @@
 import { World } from './world.js';
 import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
+import path from 'path';
+
+export interface OutputConfiguration {
+  writeOut?(str: string): void;
+  writeErr?(str: string): void;
+  outputError?(str: string, write: (str: string) => void): void;
+}
+
+/**
+ * ICommand: Formalized builder contract for CLI command definition
+ *
+ * Abstracts the chainable fluent API of commander.js Command, enabling
+ * declarative command configuration separate from commander internals.
+ * Both root and subcommands implement ICommand.
+ *
+ * All methods are chainable (return ICommand) except:
+ * - parseAsync(): terminal operation, returns Promise<ICommand>
+ */
+export interface ICommand {
+  /** Set the command name. */
+  name(str: string): ICommand;
+
+  /** Set the command description. */
+  description(str: string): ICommand;
+
+  /** Set the program version (auto-registers -V/--version flag). */
+  version(str: string): ICommand;
+
+  /**
+   * Add a subcommand with given name.
+   * Returns a new ICommand instance for the subcommand.
+   */
+  command(nameAndArgs: string): ICommand;
+
+  /**
+   * Add a positional argument to this command.
+   * @param spec argument spec: <required> or [optional] or [variadic...]
+   * @param description help text for the argument
+   * @param defaultValue optional default value
+   */
+  argument(spec: string, description?: string, defaultValue?: unknown): ICommand;
+
+  /**
+   * Add an option/flag to this command.
+   * @param spec option spec: '-f, --flag' or '--flag <value>'
+   * @param description help text for the option
+   * @param defaultValue optional default value
+   */
+  option(
+    spec: string,
+    description?: string,
+    defaultValue?: string | boolean | string[],
+  ): ICommand;
+
+  /**
+   * Set the action handler for this command.
+   * Called when the command is executed with parsed arguments and options.
+   */
+  action(fn: (...args: any[]) => void | Promise<void>): ICommand;
+
+  /**
+   * Register a lifecycle hook (preAction, postAction, etc).
+   * @param event hook event name
+   * @param listener callback executed at the hook point
+   */
+  hook(
+    event: string,
+    listener: (thisCommand: ICommand, actionCommand: ICommand) => void | Promise<void>,
+  ): ICommand;
+
+  /** Add an alias for this command. */
+  alias(alias: string): ICommand;
+
+  /**
+   * Add formatted help text at a specific position.
+   * @param position 'beforeAll' | 'before' | 'after' | 'afterAll'
+   * @param text help text to append
+   */
+  addHelpText(position: string, text: string): ICommand;
+
+  /**
+   * Customize output behavior (write stdout, stderr, format errors).
+   */
+  configureOutput(config: OutputConfiguration): ICommand;
+
+  /**
+   * Parse command-line arguments and execute the command.
+   * Terminal operation: does not return ICommand.
+   */
+  parseAsync(argv: string[]): Promise<ICommand>;
+}
 
 /**
  * NfProgram - Command orchestrator for nameforma operations
- * Encapsulates World and provides high-level methods for CLI commands
+ * Holds both domain logic (World) and CLI structure (ICommand).
+ * Separates construction (CLI building) from initialization (World resolution).
  */
 export class NfProgram {
-  constructor(private world: World) {}
+  private _world?: World;
+  verbosity: number = 0;
+  testRunner: boolean = false;
+  debug: boolean = false;
+  isAgent: boolean = false;
+
+  constructor(protected readonly cmdDelegate: ICommand) {}
+
+  get world(): World {
+    if (!this._world) {
+      throw new Error('NfProgram not initialized: World not set');
+    }
+    return this._world;
+  }
+
+  /**
+   * Initialize NfProgram with a World and configuration options.
+   * Called after World is resolved, typically in a preAction hook.
+   */
+  initialize(
+    world: World,
+    opts?: {
+      verbosity?: number;
+      testRunner?: boolean;
+      debug?: boolean;
+      isAgent?: boolean;
+    },
+  ): void {
+    this._world = world;
+    if (opts?.verbosity !== undefined) this.verbosity = opts.verbosity;
+    if (opts?.testRunner !== undefined) this.testRunner = opts.testRunner;
+    if (opts?.debug !== undefined) this.debug = opts.debug;
+    if (opts?.isAgent !== undefined) this.isAgent = opts.isAgent;
+  }
+
+  /**
+   * Resolve a World by path. Auto-discovers if no path given.
+   * Static method for use by different CLI implementations.
+   */
+  static resolveWorld(worldPath?: string): World {
+    let resolvedPath = worldPath;
+    if (!resolvedPath) {
+      resolvedPath = World.findWorld() || undefined;
+      if (!resolvedPath) {
+        throw new Error(
+          `No world found. Run 'nf init' in your project directory to create one.`,
+        );
+      }
+    } else if (!resolvedPath.endsWith('.nameforma')) {
+      resolvedPath = path.join(resolvedPath, '.nameforma');
+    }
+    return World.load(resolvedPath);
+  }
 
   /**
    * Set a field value on a forma by resolving it and persisting via its entity

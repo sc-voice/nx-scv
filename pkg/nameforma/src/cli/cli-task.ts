@@ -12,7 +12,8 @@ import UUID64 from '../uuid64.js';
 import { TuiList } from './tui-list.js';
 import { confirmDelete } from './confirm.js';
 import { Unicode } from '@sc-voice/tools/text';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 const { GREEN_CHECKBOX } = Unicode;
 const { BRIGHT_GREEN, NO_COLOR: UNC } = Unicode.LINUX_COLOR;
 const UOK = BRIGHT_GREEN + GREEN_CHECKBOX + ' ';
@@ -215,12 +216,7 @@ export default class TaskCommand {
     new TuiList(entityList, world, prefs).render();
   }
 
-  /**
-   * Register task subcommands
-   * @param {Command} cmd - Commander command object
-   * @param {Function} getGlobalOpts - Closure that returns global options
-   */
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     const helpText = [
       'Examples:',
       ...Object.values(TaskCommand.EXAMPLES)
@@ -231,7 +227,9 @@ export default class TaskCommand {
 
     // Default action: show focused task when no subcommand given
     cmd.action((options: any, cmd: any) => {
-      const { world, verbosity } = getGlobalOpts();
+      if (!nfProgram.world) throw new Error('World not initialized');
+      const world = nfProgram.world;
+      const verbosity = nfProgram.verbosity;
       const task = TaskCommand.resolveTask(world);
       TaskCommand.displayTask(world, task, verbosity);
     });
@@ -259,7 +257,8 @@ export default class TaskCommand {
           options: any,
           cmd: any,
         ) => {
-          const world = getGlobalOpts().world;
+          if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
           const f7t = world.entityList(Task);
 
           const taskConfig: any = {
@@ -301,7 +300,8 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action((options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         TaskCommand.listTasks(world);
       });
 
@@ -319,7 +319,9 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action((id: string | undefined, options: any, cmd: any) => {
-        const { world, verbosity } = getGlobalOpts();
+        if (!nfProgram.world) throw new Error('World not initialized');
+      const world = nfProgram.world;
+      const verbosity = nfProgram.verbosity;
         const task = TaskCommand.resolveTask(world, id);
 
         if (options.json) {
@@ -344,7 +346,8 @@ export default class TaskCommand {
       )
       .action(
         (dotref: string, values: string[], options: any, cmd: any) => {
-          const world = getGlobalOpts().world;
+          if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
           const f7t = world.entityList(Task);
 
           // Parse dotref: [<taskId>].field or just field
@@ -403,7 +406,8 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action(async (id: string | undefined, options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
 
         const task = TaskCommand.resolveTask(world, id);
 
@@ -437,7 +441,9 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action((id: string | undefined, options: any, cmd: any) => {
-        const { world, verbosity } = getGlobalOpts();
+        if (!nfProgram.world) throw new Error('World not initialized');
+      const world = nfProgram.world;
+      const verbosity = nfProgram.verbosity;
         const task = TaskCommand.resolveTask(world, id);
 
         try {
@@ -467,7 +473,8 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         const task = TaskCommand.resolveTask(world, id);
 
         world.focusManager.unfocus(task.id);

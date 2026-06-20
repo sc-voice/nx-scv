@@ -9,18 +9,63 @@
       "id": "0PxVwGSx00tGyAPrFKqetW",
       "name": "Define ICommand interface for Command",
       "summary": "Final test via CLI",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-06-19T12:44:11.451Z"
+      "status": "manage",
+      "statusNote": "ICommand interface defined in nf-program.ts; Command satisfies ICommand structurally; NfProgram uses protected readonly cmdDelegate: ICommand",
+      "statusDate": "2026-06-19T17:18:42.816Z"
     },
     {
       "forma": "Action",
       "id": "0PxVwGxD00tGyAPrFKqetW",
       "name": "Implement NfProgram builder",
-      "summary": "Create the NfProgram class that consumes ICommand to construct commander.js instances.",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-06-19T12:44:13.389Z"
+      "summary": "Create the NfProgram class that consumes ICommand to build and configure a commander.js instance, acting as the orchestrator for both domain logic (World) and command structure (ICommand).",
+      "status": "manage",
+      "statusNote": "NfProgram orchestrator: protected world, protected cmdDelegate: ICommand; constructor pattern established; SetCommand interim usage tested",
+      "statusDate": "2026-06-19T17:26:27.189Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxWx0Qb00tGyAPrFKqetW",
+      "name": "Have NfCli extend NfProgram",
+      "summary": "NfCli constructor passes new Command() to NfProgram; eliminates interim new NfProgram() calls in command handlers",
+      "status": "manage",
+      "statusNote": "NfCli extends NfProgram; config centralized; 692/727 tests passing; 35 failures in CLI tests due to process.exit in command execution context",
+      "statusDate": "2026-06-20T00:17:43.749Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxYNwYF00tGyAPrFKqetW",
+      "name": "NfProgram world accessor",
+      "summary": "should throw an  error if world has not been initialized. this allows commands to simply 'const { world } = nfProgram' instead of error checking themselves",
+      "status": "manage",
+      "statusNote": "World accessor implemented as getter; throws if uninitialized; test updated to verify throw behavior",
+      "statusDate": "2026-06-20T00:42:21.424Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxYQd-100tGyAPrFKqetW",
+      "name": "Fix cli-action.ts test failures",
+      "summary": "Resolve process.exit errors in test/cli/cli-action.ts after NfProgram refactor",
+      "status": "manage",
+      "statusNote": "All cli-action tests passing; preAction hook reloads world from disk to pick up persisted focus state",
+      "statusDate": "2026-06-20T00:34:05.813Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxYQe3g00tGyAPrFKqetW",
+      "name": "Fix cli-id.ts test failures",
+      "summary": "Resolve process.exit errors in test/cli/cli-id.ts after NfProgram refactor",
+      "status": "manage",
+      "statusNote": "All cli-id tests passing; added preAction hook to createTestProgram and fixed test calls to pass nfProgram instead of getGlobalOpts",
+      "statusDate": "2026-06-20T00:36:15.873Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PxYQe9A00tGyAPrFKqetW",
+      "name": "Fix cli-reference.ts test failures",
+      "summary": "Resolve process.exit errors in test/cli/cli-reference.ts after NfProgram refactor",
+      "status": "manage",
+      "statusNote": "cli-reference tests passing via inherited fix from YQd-1 (both use createTestCmd)",
+      "statusDate": "2026-06-20T00:37:14.790Z"
     }
   ],
   "rawReferences": [
@@ -37,8 +82,32 @@
       "id": "0PxVvN8Q00tGyAPrFKqetW",
       "name": "NfProgram Tests",
       "summary": "Unit tests for the NfProgram builder and ICommand configuration logic.",
-      "relevance": 1,
+      "relevance": 0.7,
       "source": "test/nf-program.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PxWh8n400tGyAPrFKqetW",
+      "name": "NfCli Entry Point",
+      "summary": "The entry point for NfCli, which currently uses the imperative command decoration pattern.",
+      "relevance": 1,
+      "source": "src/cli/nf-cli.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PxWhHQF00tGyAPrFKqetW",
+      "name": "CLI Set Command",
+      "summary": "Implementation of the \"set\" command within NfCli.",
+      "relevance": 0.5,
+      "source": "src/cli/cli-set.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PxYQr1500tGyAPrFKqetW",
+      "name": "CLI Test Helpers",
+      "summary": "Test helper utilities for CLI tests including createTestCmd, createTestProgram, and createTempWorld. Many test failures root in parseArgs/hook wiring here.",
+      "relevance": 0.9,
+      "source": "test/cli/helpers.ts"
     }
   ]
 }

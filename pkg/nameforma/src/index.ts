@@ -12,6 +12,7 @@ import { Schema } from './schema.js';
 import { Task } from './task.js';
 import { User } from './user.js';
 import { World } from './world.js';
+import { NfProgram } from './nf-program.js';
 import type { IRegistry } from './registry.js';
 
 export {
@@ -29,4 +30,5 @@ export {
   RenderDetail,
   World,
   ZenoCoord,
+  NfProgram,
 };

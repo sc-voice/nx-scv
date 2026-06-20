@@ -5,16 +5,12 @@
 
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import { NfProgram } from '../nf-program.js';
 import path from 'path';
-import type { GlobalOpts } from './nf-cli.js';
+import type { ICommand } from '../nf-program.js';
 
 export default class InitCommand {
-  /**
-   * Register init command
-   * @param {Command} cmd - Commander command object
-   * @param {Function} getGlobalOpts - Closure that returns global options (unused for init)
-   */
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     cmd
       .argument('[path]', 'Directory to initialize (defaults to current directory)')
       .action((pathArg: string | undefined, options: any) => {

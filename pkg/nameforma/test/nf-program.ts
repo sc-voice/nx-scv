@@ -1,12 +1,67 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import { Command } from 'commander';
 import { World } from '../src/world.js';
 import { Task } from '../src/task.js';
-import { NfProgram } from '../src/nf-program.js';
+import { NfProgram, type ICommand } from '../src/nf-program.js';
 import { createTempDir } from './cli/helpers.js';
 
-describe('NfProgram', () => {
+describe('ICommand', () => {
+  it('Command satisfies ICommand', () => {
+    const cmd: ICommand = new Command();
+    expect(cmd).toBeTruthy();
+  });
+});
+
+describe('NfProgram construction and initialization', () => {
+  let tempDirObj: any;
+  let tempWorldPath: string;
+  let world: World;
+
+  beforeEach(() => {
+    tempDirObj = createTempDir('nfprogram-init-test');
+    const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
+    tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
+    fs.cpSync(samplePath, tempWorldPath, { recursive: true });
+    world = World.fromPath(tempWorldPath);
+  });
+
+  afterEach(() => {
+    tempDirObj.cleanup();
+  });
+
+  it('constructs with cmdDelegate only, world not yet set', () => {
+    const cmd: ICommand = new Command();
+    const p = new NfProgram(cmd);
+    expect(p).toBeInstanceOf(NfProgram);
+    expect(() => p.world).toThrow(/NfProgram not initialized/);
+  });
+
+  it('initialize sets world and config', () => {
+    const cmd: ICommand = new Command();
+    const p = new NfProgram(cmd);
+    p.initialize(world, {
+      verbosity: 2,
+      testRunner: true,
+      debug: true,
+      isAgent: true,
+    });
+    expect(p.world).toBe(world);
+    expect(p.verbosity).toBe(2);
+    expect(p.testRunner).toBe(true);
+    expect(p.debug).toBe(true);
+    expect(p.isAgent).toBe(true);
+  });
+
+  it('resolveWorld finds world by path', () => {
+    const resolved = NfProgram.resolveWorld(tempWorldPath);
+    expect(resolved).toBeInstanceOf(World);
+  });
+});
+
+
+describe('NfProgram.setFieldValue', () => {
   let tempDirObj: any;
   let tempWorldPath: string;
   let world: World;
@@ -23,7 +78,8 @@ describe('NfProgram', () => {
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
 
     world = World.fromPath(tempWorldPath);
-    program = new NfProgram(world);
+    program = new NfProgram(new Command());
+    program.initialize(world);
   });
 
   afterEach(() => {

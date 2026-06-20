@@ -11,7 +11,8 @@ import { Task } from '../task.js';
 import TaskCommand from './cli-task.js';
 import { TuiList } from './tui-list.js';
 import { Unicode } from '@sc-voice/tools/text';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 
 export default class WatchCommand {
   static displayStatusLine(verbosity: number): void {
@@ -52,7 +53,7 @@ export default class WatchCommand {
    * @param {Command} cmd - Commander command object
    * @param {Function} getGlobalOpts - Closure that returns global options
    */
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     // watch [id]
     cmd
       .argument(
@@ -72,7 +73,9 @@ export default class WatchCommand {
         ].join('\n'),
       )
       .action((id: string | undefined, options: any, cmd: any) => {
-        let { world, verbosity } = getGlobalOpts();
+        if (!nfProgram.world) throw new Error('World not initialized');
+        let world = nfProgram.world;
+        let verbosity = nfProgram.verbosity;
         let task = TaskCommand.resolveTask(world, id);
         const worldPath =
           (world as any).worldPath ||

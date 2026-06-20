@@ -12,7 +12,8 @@ import { World } from '../world.js';
 import { User } from '../user.js';
 import UUID64 from '../uuid64.js';
 import { defaultGitCLI } from '../git-cli.js';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 
 export default class IdCommand {
   /**
@@ -54,7 +55,7 @@ export default class IdCommand {
    * @param {Command} cmd - Commander command object
    * @param {Function} getGlobalOpts - Closure that returns global options
    */
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     // id [words...]
     cmd
       .argument('[words...]', 'Words to convert to numeronym format')
@@ -70,7 +71,8 @@ export default class IdCommand {
       .option('--git-email', 'Generate UUID64 for current git user email')
       .option('--git-observed <commit>', 'Generate UUID64 for git commit observation')
       .action((words: string[], options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         try {
           // If --user flag is set, generate UUID64 for user
           if (options.user) {

@@ -5,7 +5,8 @@
 
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 import { Task } from '../task.js';
 import { Action, ActionStatus, ActionTransitions } from '../action.js';
 import { settings } from './settings.js';
@@ -55,7 +56,7 @@ export default class ActionCommand {
     }
   }
 
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     const helpText = [
       'Examples:',
       ...Object.values(ActionCommand.EXAMPLES)
@@ -81,7 +82,11 @@ export default class ActionCommand {
         ].join('\n'),
       )
       .action((options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -117,7 +122,11 @@ export default class ActionCommand {
         ].join('\n'),
       )
       .action((options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -157,7 +166,11 @@ export default class ActionCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = getGlobalOpts().world;
+        const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -190,7 +203,11 @@ export default class ActionCommand {
         ].join('\n'),
       )
       .action((name: string, summary: string, options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -223,7 +240,11 @@ export default class ActionCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = getGlobalOpts().world;
+        const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
         const task = ActionCommand.getFocusedTask(world);
 
         if (!task) {
@@ -267,7 +288,11 @@ export default class ActionCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = getGlobalOpts().world;
+        const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
         const task = ActionCommand.resolveTask(world, options.task);
         const actionList = task.actions(world);
 
@@ -314,7 +339,11 @@ export default class ActionCommand {
           options: any,
           cmd: any,
         ) => {
-          const world = getGlobalOpts().world;
+          const world = nfProgram.world;
+        if (!world) {
+          nfTui.error('World not initialized');
+          return;
+        }
           const task = ActionCommand.resolveTask(world, options.task);
           const parts = dotref.split('.');
           if (parts.length !== 2) {

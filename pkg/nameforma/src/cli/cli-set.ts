@@ -4,21 +4,21 @@
  */
 
 import { nfTui } from './nf-tui.js';
-import { World } from '../world.js';
 import { NfProgram } from '../nf-program.js';
 import { NameFormaTheme } from '../nameforma-theme.js';
-import type { GlobalOpts } from './nf-cli.js';
+import type { ICommand } from '../nf-program.js';
 const theme = NameFormaTheme.shared;
 
 export default class SetCommand {
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     cmd
       .argument('<dotref>', 'Dotref to set (e.g., FORMA_ID.field)')
       .argument('<value...>', 'Value(s) to set')
       .option('-j, --json', 'Output result as JSON')
       .action(async (dotref: string, values: string[], options: any) => {
-        const world = getGlobalOpts().world;
-        const program = new NfProgram(world);
+        if (!nfProgram.world) {
+          throw new Error('World not initialized');
+        }
         const value = values.join(' ').trim();
 
         try {
@@ -32,14 +32,14 @@ export default class SetCommand {
           const fieldPath = dotref.slice(dotIdx + 1);
 
           // Get current value for display
-          const resolved = world.resolveFuzzyId(formaId);
+          const resolved = nfProgram.world.resolveFuzzyId(formaId);
           if (!resolved) {
             throw new Error(`Not found: ${formaId}`);
           }
           const oldValue = (resolved.forma as any)[fieldPath];
 
           // Update and persist
-          const updated = program.setFieldValue(formaId, fieldPath, value);
+          const updated = nfProgram.setFieldValue(formaId, fieldPath, value);
 
           // Output result
           if (options.json) {

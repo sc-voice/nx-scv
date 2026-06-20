@@ -8,7 +8,8 @@ import fs from 'fs';
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 
 export default class ReferenceCommand {
   static readonly EXAMPLES: Record<string, string[]> = {
@@ -71,7 +72,7 @@ export default class ReferenceCommand {
     }
   }
 
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     const helpText = [
       'Examples:',
       ...Object.values(ReferenceCommand.EXAMPLES)
@@ -86,7 +87,8 @@ export default class ReferenceCommand {
         'Manage references linking tasks/actions to external resources',
       )
       .action((options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -123,7 +125,8 @@ export default class ReferenceCommand {
         ].join('\n'),
       )
       .action((options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -164,7 +167,8 @@ export default class ReferenceCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -197,7 +201,8 @@ export default class ReferenceCommand {
         ].join('\n'),
       )
       .action((id: string | undefined, options: any, cmd: any) => {
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
@@ -263,7 +268,8 @@ export default class ReferenceCommand {
             }
           }
 
-          const world = getGlobalOpts().world;
+          if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
           const task = ReferenceCommand.getFocusedTask(world);
 
           if (!task) {
@@ -321,7 +327,8 @@ export default class ReferenceCommand {
           options: any,
           cmd: any,
         ) => {
-          const world = getGlobalOpts().world;
+          if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
           const task = ReferenceCommand.getFocusedTask(world);
 
           if (!task) {
@@ -374,7 +381,8 @@ export default class ReferenceCommand {
           throw new Error('ID must be at least 3 characters');
         }
 
-        const world = getGlobalOpts().world;
+        if (!nfProgram.world) throw new Error('World not initialized');
+        const world = nfProgram.world;
         const task = ReferenceCommand.getFocusedTask(world);
 
         if (!task) {

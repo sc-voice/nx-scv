@@ -4,7 +4,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { TuiList } from './tui-list.js';
 import { Unicode } from '@sc-voice/tools/text';
-import type { GlobalOpts } from './nf-cli.js';
+import { NfProgram } from '../nf-program.js';
+import type { ICommand } from '../nf-program.js';
 
 export default class DocCommand {
   static processText(content: string): string {
@@ -36,7 +37,7 @@ export default class DocCommand {
     return result;
   }
 
-  static registerCommand(cmd: any, getGlobalOpts: () => GlobalOpts) {
+  static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     cmd
       .argument('[doc]', 'Doc name (default: nf-ref)', 'nf-ref')
       .addHelpText(
