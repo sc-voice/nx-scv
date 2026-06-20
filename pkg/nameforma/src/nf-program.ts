@@ -1,9 +1,10 @@
 import { World } from './world.js';
 import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 import path from 'path';
 
-export interface OutputConfiguration {
+export interface IOutputConfiguration {
   writeOut?(str: string): void;
   writeErr?(str: string): void;
   outputError?(str: string, write: (str: string) => void): void;
@@ -84,13 +85,20 @@ export interface ICommand {
   /**
    * Customize output behavior (write stdout, stderr, format errors).
    */
-  configureOutput(config: OutputConfiguration): ICommand;
+  configureOutput(config: IOutputConfiguration): ICommand;
+  configureOutput(): IOutputConfiguration;
 
   /**
    * Parse command-line arguments and execute the command.
    * Terminal operation: does not return ICommand.
    */
   parseAsync(argv: string[]): Promise<ICommand>;
+
+  /**
+   * Report an error and exit.
+   * With exitOverride(), throws CommanderError; without it calls process.exit().
+   */
+  error(message: string, errorOptions?: { exitCode?: number; code?: string }): never;
 }
 
 /**
@@ -175,5 +183,88 @@ export class NfProgram {
     });
 
     return forma;
+  }
+
+
+  /** Parse dotref: FORMA_ID.FIELD_NAME */
+  resolveDotRef(dotRef: string): { entity:Forma, forma:Forma, fieldName:string, value:any } {
+    const dotIdx = dotRef.indexOf('.');
+    if (dotIdx === -1) {
+      throw new Error('dotRef must be FORMA_ID.FIELD_NAME');
+    }
+
+    const formaId = dotRef.slice(0, dotIdx);
+    const fieldName = dotRef.slice(dotIdx + 1);
+
+    const resolved = this.world.resolveFuzzyId(formaId);
+    if (!resolved) {
+      throw new Error(`Not found: ${formaId}`);
+    }
+    const { forma, entity } = resolved;
+    const value = (forma as any)[fieldName];
+
+    return { entity, forma, fieldName, value }
+  }
+
+  /** @returns current output configuration */
+  get output(): IOutputConfiguration {
+    return this.cmdDelegate.configureOutput();
+  }
+
+  /** pass through to configuredOutput.writeOut() */
+  writeOut(...strs: string[]): void {
+    const { writeOut } = this.output;
+    const str = strs.join(' ');
+    if (typeof writeOut === 'function') {
+      writeOut(str);
+    } else {
+      console.log("NfProgram.writeOut?", str);
+    }
+  }
+
+  /** pass through to configuredOutput.writeErr() */
+  writeErr(str: string): void {
+    const { writeErr } = this.output;
+    if (typeof writeErr === 'function') {
+      writeErr(str);
+    } else {
+      console.error("NfProgram.writeErr?", str);
+    }
+  }
+
+  /** Register the set command on cmdDelegate */
+  registerSetCommand(): void {
+    const nfp = this;
+    const theme = NameFormaTheme.shared;
+    this.cmdDelegate
+      .command('set')
+      .description('Set a forma field')
+      .argument('<dotref>', 'Dotref to set (e.g., FUZZY_ID.field)')
+      .argument('<value...>', 'Value(s) to set')
+      .option('-j, --json', 'Output update forma as JSON')
+      .action(async (dotref: string, values: string[], options: any) => {
+        const value = values.join(' ').trim();
+
+        try {
+          const { forma, fieldName, value: oldValue } = nfp.resolveDotRef(dotref);
+          const formaId = forma.id.base64;
+
+          // Update and persist
+          const updated = nfp.setFieldValue(formaId, fieldName, value);
+
+          // Output result
+          if (options.json) {
+            nfp.writeOut(JSON.stringify(updated, null, 2));
+          } else {
+            let id = updated.id.base64.replace(formaId, theme.nfLink(formaId));
+            nfp.writeOut('✓', theme.nfBoundary('Updated:'), id+'.'+fieldName);
+            nfp.writeOut(`  ${theme.nfAttend(oldValue)}`);
+            nfp.writeOut(`→ ${theme.nfNominal(value)}`);
+          }
+        } catch (err: any) {
+          nfp.writeErr(`✗ Error: ${err.message}`);
+          throw err;
+        }
+      });
   }
 }

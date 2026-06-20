@@ -126,3 +126,48 @@ describe('NfProgram.setFieldValue', () => {
     }).toThrow(/Not found: nonexistent/);
   });
 });
+
+describe('NfProgram.resolveDotRef', () => {
+  let tempDirObj: any;
+  let tempWorldPath: string;
+  let world: World;
+  let program: NfProgram;
+
+  beforeEach(() => {
+    tempDirObj = createTempDir('nf-program-dotref-test');
+    const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
+    tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
+    fs.cpSync(samplePath, tempWorldPath, { recursive: true });
+    world = World.fromPath(tempWorldPath);
+    program = new NfProgram(new Command());
+    program.initialize(world);
+  });
+
+  afterEach(() => {
+    tempDirObj.cleanup();
+  });
+
+  it('resolves task dotref and returns field value', () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+    const { forma, fieldName, value } = program.resolveDotRef(`${taskId}.name`);
+    expect(fieldName).toBe('name');
+    expect(value).toBe(forma.name);
+  });
+
+  it('resolves action dotref with focused task', () => {
+    const task = world.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
+    world.focusManager.focus(task!.id);
+    const actionId = '0PxVwGSx00tGyAPrFKqetW';
+    const { forma, fieldName, value } = program.resolveDotRef(`${actionId}.status`);
+    expect(fieldName).toBe('status');
+    expect(value).toBe((forma as any).status);
+  });
+
+  it('throws on missing dot separator', () => {
+    expect(() => program.resolveDotRef('nodothere')).toThrow(/dotRef must be FORMA_ID.FIELD_NAME/);
+  });
+
+  it('throws on unknown forma ID', () => {
+    expect(() => program.resolveDotRef('nonexistent.name')).toThrow(/Not found: nonexistent/);
+  });
+});

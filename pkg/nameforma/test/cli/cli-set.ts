@@ -126,7 +126,7 @@ describe('CLI: set command', () => {
         'name',
         'Value',
       ]),
-    ).rejects.toThrow(/Dotref must be FORMA_ID.FIELD_NAME/);
+    ).rejects.toThrow(/dotRef must be FORMA_ID.FIELD_NAME/);
   });
 
   it('error on unknown forma ID', async () => {

@@ -3,6 +3,7 @@ import type { OverlayHandle } from '@earendil-works/pi-tui';
 import { World } from '../../world.js';
 import { WorldView } from '../../world-view.js';
 import { ZenoCoord } from '../../navigable-view.js';
+import type { NfWatch } from './nf-watch.js';
 
 /**
  * NfSession stores shared context for the nf-pi extension.
@@ -13,6 +14,7 @@ export class NfSession extends EventEmitter {
   private static _shared: NfSession;
 
   public view: WorldView;
+  public watchInstance: NfWatch | null = null;
 
   private constructor(world: World) {
     super();

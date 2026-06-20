@@ -14,7 +14,6 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import IdCommand from './cli-id.js';
 import GetCommand from './cli-get.js';
-import SetCommand from './cli-set.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
@@ -175,6 +174,7 @@ export class NfCLI extends NfProgram {
   }
 
   private createProgram(): void {
+    const program = this.cmdDelegate;
     const helpText = [
       'Examples:',
       '  $ nameforma --help',
@@ -189,7 +189,7 @@ export class NfCLI extends NfProgram {
     const version = pkgJson.version;
     const nfCli = this;
 
-    this.cmdDelegate
+    program
       .name('nameforma')
       .description(
         `NameForma/${USER} CLI - Manage tasks, formas, and schemas`,
@@ -249,46 +249,41 @@ export class NfCLI extends NfProgram {
       });
 
     InitCommand.registerCommand(
-      this.cmdDelegate.command('init').description('Initialize a new world'),
+      program.command('init').description('Initialize a new world'),
       this,
     );
     TaskCommand.registerCommand(
-      this.cmdDelegate.command('task').description('Manage tasks'),
+      program.command('task').description('Manage tasks'),
       this,
     );
     IdCommand.registerCommand(
-      this.cmdDelegate
+      program
         .command('id')
         .description('Generate/validate numeronym, UUIDv7, UUID64'),
       this,
     );
     GetCommand.registerCommand(
-      this.cmdDelegate
+      program
         .command('get')
         .description('Get a forma by fuzzy ID'),
       this,
     );
-    SetCommand.registerCommand(
-      this.cmdDelegate
-        .command('set')
-        .description('Set a forma field'),
-      this,
-    );
+    this.registerSetCommand();
     ActionCommand.registerCommand(
-      this.cmdDelegate
+      program
         .command('action')
         .description('List actions for the focused task'),
       this,
     );
 
-    const refCmd = this.cmdDelegate
+    const refCmd = program
       .command('reference')
       .alias('ref')
       .description('List references for the focused task');
     ReferenceCommand.registerCommand(refCmd, this);
 
     WatchCommand.registerCommand(
-      this.cmdDelegate
+      program
         .command('watch')
         .description(
           'Watch focused task file and rerun task get when it changes',
@@ -296,11 +291,17 @@ export class NfCLI extends NfProgram {
       this,
     );
     DocCommand.registerCommand(
-      this.cmdDelegate
+      program
         .command('doc')
         .description('Display TUI-formatted documentation'),
       this,
     );
+
+    program.configureOutput({
+      writeOut: (str: string) => nfTui.log(str),
+      writeErr: (str: string) => nfTui.error(str),
+      //outputError: (str: string, write: (str: string) => void): void;
+    })
   }
 
   private preprocessArgv(argv: string[]): string[] {
