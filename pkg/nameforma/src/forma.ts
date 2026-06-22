@@ -109,6 +109,7 @@ export class LevenshteinMatcher<T extends Forma> {
 export class Forma extends Identifiable implements IRenderable {
   static #instances: Record<string, number> = {};
   static patchableFields = ['name', 'summary'];
+
   #prefix: string = '';
   name: string;
   summary: string;
@@ -225,16 +226,46 @@ export class Forma extends Identifiable implements IRenderable {
     return true;
   }
 
+  /** Return valid number or undefined
+   * @param update -  Object with new field values
+   * @param key - field with new number value
+   * @param min - Minimum value
+   * @param max - Maximum value
+   */
+  patchableNumber(update:any, key:string, min:number, max:number): number | undefined {
+    const value = update[key];
+    if (value == null) {
+      return undefined;
+    }
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      throw new Error(`Expected a number for ${key}:${value}?`);
+    }
+    if (value < min || max < value) {
+      throw new Error(`Expected ${min}<=value<=${max} for ${key}:${value}`);
+    }
+    return value;
+  }
+
   /**
    * Patch (merge) properties on this instance.
    * Only updates mutable fields (name, summary); immutable id is preserved.
-   * @param cfg - Configuration object with properties to update
+   * @param update - Configuration object with properties to update
+   * @return {any} prior values changed
    */
-  patch(cfg: any = {}) {
-    let { name = this.name } = cfg;
-    let { summary = this.summary } = cfg;
-    this.name = name;
-    this.summary = summary;
+  patch(update: Partial<Forma> = {}): any {
+    const msg = 'Forma.patch';
+    const { name, summary } = update;
+    const changed:any = {};
+    if (typeof name === 'string' && this.name !== name) {
+      changed.name = this.name;
+      this.name = name;
+    }
+    if (typeof summary === 'string' && this.summary !== summary) {
+      changed.summary = this.summary;
+      this.summary = summary;
+    }
+
+    return changed;
   }
 
   /**

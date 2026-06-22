@@ -7,7 +7,7 @@ import type {
 } from '@earendil-works/pi-ai';
 import { NfSession } from './nf-session.js';
 import { nfTool } from './tools/nf-tool.js';
-import { nfDispatch } from './nf-dispatch.js';
+import { nfPiCli } from './nf-pi-cli.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
 
 const theme = NameFormaTheme.shared;
@@ -72,11 +72,11 @@ export default function (pi: ExtensionAPI) {
     });
   });
 
-  // The nf CLI within Pi provides minimalist NameForma UX
+  // NameForma CLI within Pi coding agent
   pi.registerCommand('nf', {
-    description: 'NameForma command with subcommands (help, watch)',
+    description: 'NameForma CLI for Pi: /nf help',
     handler: async (args: string, ctx: ExtensionCommandContext) => {
-      await nfDispatch(args, ctx);
+      await nfPiCli(args, ctx);
     },
   });
 

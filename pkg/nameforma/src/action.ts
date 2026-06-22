@@ -170,28 +170,33 @@ export class Action extends Forma {
    * @param cfg - Configuration object with properties to update
    * @throws {Error} If status transition is not permitted by ActionTransitions
    */
-  override patch(cfg: any = {}) {
+  override patch(cfg: any = {}): any {
     const msg = 'Action.patch';
     const dbg = (A6N as any)?.PATCH;
     super.patch(cfg);
-    let { status = this.status, statusNote } = cfg;
-    if (status !== this.status) {
+    const { status, statusNote } = cfg;
+    const changed:any = {}
+    if (statusNote != null && statusNote != this.statusNote) {
+      changed.statusNote = this.statusNote;
+      this.statusNote = statusNote;
+    }
+    if (status != null && status !== this.status) {
+      if (statusNote == null) {
+        throw new Error(`${msg} statusNote is required`);
+      }
       const allowed = ActionTransitions[this.status as ActionStatus] || [];
       if (!allowed.includes(status)) {
         throw new Error(
           `${msg} invalid transition: ${this.status} → ${status}`,
         );
       }
+      changed.status = this.status;
+      this.status = status as ActionStatus;
       this.statusDate = new Date();
     }
-    this.status = status as ActionStatus;
-    if (cfg.status && (statusNote == null || statusNote === '')) {
-      throw new Error(`${msg} statusNote is required`);
-    }
-    if (cfg.statusNote) {
-      this.statusNote = statusNote;
-    }
-    dbg && cc.ok1(msg, { status, statusNote });
+    dbg && cc.ok1(msg, cfg);
+
+    return changed;
   }
 
   static shortDate(date: Date): string {

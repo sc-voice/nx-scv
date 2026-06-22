@@ -5,7 +5,6 @@ import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import UUID64 from './uuid64.js';
 export type { FuzzyId, IRegistry };
-import { Patch } from './patch.js';
 import { Rational } from './rational.js';
 import { Reference } from './reference.js';
 import { Schema } from './schema.js';
@@ -20,7 +19,6 @@ export {
   Entity,
   Forma,
   Identifiable,
-  Patch,
   Rational,
   Reference,
   Schema,

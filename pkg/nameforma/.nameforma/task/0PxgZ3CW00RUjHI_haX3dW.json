@@ -1,0 +1,8 @@
+{
+  "forma": "Task",
+  "id": "0PxgZ3CW00RUjHI_haX3dW",
+  "name": "Implement Reversible patch() in Forma",
+  "summary": "Modify the patch() method in src/forma.ts to return an object containing the previous values of the mutated fields, enabling reversible transactions (undo capability) without breaking existing void-to-payload callers.",
+  "rawActions": [],
+  "rawReferences": []
+}

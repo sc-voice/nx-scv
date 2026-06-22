@@ -25,7 +25,7 @@ export class NfExtensionCommand extends NfProgram {
 
     program
       .name('nf')
-      .exitOverride()
+      .exitOverride((err:any) => this.exitCallback(err))
       .description('NameForma pi commands')
       .configureOutput({
         writeOut: (str: string) => this.ctx.ui.notify(str.trim(), 'info'),
@@ -36,9 +36,22 @@ export class NfExtensionCommand extends NfProgram {
       });
 
     this.registerPiWatchCommand();
-    this.registerPiSetCommand();
+    this.registerInitCommand();
+    this.registerSetCommand();
     this.registerPiTestCommand();
   }
+
+  private exitCallback(err:any) {
+    const msg = 'nf-pi-cli.exitCallback';
+    const nfp = this;
+    if (err.exitCode !== 0) {
+      this.writeErr(`${msg} Error: ${JSON.stringify(err)}`);
+    } else {
+      this.writeOut(`${msg} ${JSON.stringify(err)} n/a`);
+      // Async callback from spawn events, not useful to throw.
+    }
+  }
+
 
   private registerPiWatchCommand(): void {
     const nfExt = this;
@@ -87,41 +100,6 @@ export class NfExtensionCommand extends NfProgram {
       });
   }
 
-  private registerPiSetCommand(): void {
-    const nfExt = this;
-    const session = NfSession.shared;
-    const { view } = session;
-
-    this.cmdDelegate
-      .command('set <key> <value>')
-      .description('Set NameForma properties (detail for zooming[0..1])')
-      .action(async (key: string, value: string) => {
-        if (key === 'detail') {
-          const MAX = ZenoCoord.MAX_ZENO_STEP;
-          let newCoord: ZenoCoord;
-          if (value.includes('/')) {
-            const [a, p] = value.split('/').map(Number);
-            if (!Number.isInteger(a) || !Number.isInteger(p) || a < 0 || a > MAX || p < 0 || p > MAX) {
-              nfExt.cmdDelegate.error(`Invalid ZenoCoord: ${value} (must be a/b where 0 ≤ a,b ≤ ${MAX})`);
-              return;
-            }
-            newCoord = new ZenoCoord(zenoStep(a), zenoStep(p));
-          } else {
-            const detail = parseFloat(value);
-            if (isNaN(detail) || detail < 0 || detail > 1) {
-              nfExt.cmdDelegate.error(`Invalid RenderDetail: ${value} (must be in [0..1])`);
-              return;
-            }
-            newCoord = ZenoCoord.fromRenderDetail(detail);
-          }
-          session.view.zoomTo(newCoord);
-          nfExt.ctx.ui.notify(`Zoom set to ${value}`, 'info');
-        } else {
-          nfExt.cmdDelegate.error(`Unknown property: ${key}`);
-        }
-      });
-  }
-
   private registerPiTestCommand(): void {
     const nfExt = this;
 
@@ -158,7 +136,7 @@ export class NfExtensionCommand extends NfProgram {
   }
 }
 
-export async function nfDispatch(
+export async function nfPiCli(
   args: string,
   ctx: ExtensionCommandContext,
 ): Promise<void> {

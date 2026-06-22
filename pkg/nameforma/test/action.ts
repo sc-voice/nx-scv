@@ -30,17 +30,25 @@ describe('Action', () => {
 
     const { id } = a4n;
     // Walk valid transitions: req→spec→work→test→manage→done
-    a4n.patch({ status: ActionStatus.spec, statusNote: 'starting spec' });
+    const p1 = a4n.patch({ status: ActionStatus.spec, statusNote: 'note1' });
     expect(a4n.id).toBe(id);
     expect(a4n.status).toBe(ActionStatus.spec);
-    expect(a4n.statusNote).toBe('starting spec');
+    expect(a4n.statusNote).toBe('note1');
+    expect(p1).toEqual({status: ActionStatus.req, statusNote: ''});
 
-    a4n.patch({ status: ActionStatus.work, statusNote: 'working' });
-    a4n.patch({ status: ActionStatus.test, statusNote: 'testing' });
-    a4n.patch({ status: ActionStatus.manage, statusNote: 'managing' });
-    a4n.patch({ status: ActionStatus.done, statusNote: 'complete' });
+    const p2 = a4n.patch({ status: ActionStatus.work, statusNote: 'note2' });
+    expect(p2).toEqual({status: ActionStatus.spec, statusNote: 'note1'});
+
+    const p3 = a4n.patch({ status: ActionStatus.test, statusNote: 'note3' });
+    expect(p3).toEqual({status: ActionStatus.work, statusNote: 'note2'});
+
+    const p4 = a4n.patch({ status: ActionStatus.manage, statusNote: 'note4' });
+    expect(p4).toEqual({status: ActionStatus.test, statusNote: 'note3'});
+
+    const p5 = a4n.patch({ status: ActionStatus.done, statusNote: 'note5' });
     expect(a4n.status).toBe(ActionStatus.done);
-    expect(a4n.statusNote).toBe('complete');
+    expect(a4n.statusNote).toBe('note5');
+    expect(p5).toEqual({status: ActionStatus.manage, statusNote: 'note4'});
 
     dbg && cc.tag1(msg + UOK, 'status is mutable');
   });
@@ -60,7 +68,7 @@ describe('Action', () => {
   it('ActionTransitions enforces invalid transition', () => {
     const a4n = new Action({ status: ActionStatus.test }); // status: test
     // test → req is not a valid transition
-    expect(() => a4n.patch({ status: ActionStatus.req })).toThrow(
+    expect(() => a4n.patch({ status: ActionStatus.req, statusNote:'note2' })).toThrow(
       /invalid transition/,
     );
   });

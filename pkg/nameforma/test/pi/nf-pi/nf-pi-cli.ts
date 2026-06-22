@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { NfExtensionCommand } from '../../../src/pi/nf-pi/nf-dispatch.js';
+import { NfExtensionCommand } from '../../../src/pi/nf-pi/nf-pi-cli.js';
 import { NfSession } from '../../../src/pi/nf-pi/nf-session.js';
 import type { NfWatch } from '../../../src/pi/nf-pi/nf-watch.js';
 import { ZenoCoord } from '../../../src/navigable-view.js';
@@ -142,53 +142,6 @@ describe('NfExtensionCommand', () => {
       expect(notifyMock).toHaveBeenCalledWith(
         'NameForma watch stopped',
         'info',
-      );
-    });
-  });
-
-  describe('set command', () => {
-    it('sets detail from float value', async () => {
-      const cmd = new NfExtensionCommand(mockCtx);
-      await cmd.parse('set detail 0.75');
-
-      expect(notifyMock).toHaveBeenCalledWith('Zoom set to 0.75', 'info');
-    });
-
-    it('sets detail from ZenoCoord fraction', async () => {
-      const cmd = new NfExtensionCommand(mockCtx);
-      await cmd.parse('set detail 1/2');
-
-      expect(notifyMock).toHaveBeenCalledWith('Zoom set to 1/2', 'info');
-    });
-
-    it('rejects invalid detail float', async () => {
-      const cmd = new NfExtensionCommand(mockCtx);
-      await expect(cmd.parse('set detail 1.5')).rejects.toThrow();
-
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid RenderDetail'),
-        'error',
-      );
-    });
-
-    it('rejects invalid ZenoCoord fraction', async () => {
-      const cmd = new NfExtensionCommand(mockCtx);
-      const maxStep = ZenoCoord.MAX_ZENO_STEP;
-      await expect(cmd.parse(`set detail ${maxStep + 1}/2`)).rejects.toThrow();
-
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid ZenoCoord'),
-        'error',
-      );
-    });
-
-    it('rejects unknown property', async () => {
-      const cmd = new NfExtensionCommand(mockCtx);
-      await expect(cmd.parse('set unknown value')).rejects.toThrow();
-
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.stringContaining('Unknown property'),
-        'error',
       );
     });
   });

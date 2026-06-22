@@ -32,24 +32,37 @@ describe('Forma', () => {
   it('patch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
-    let f3a = new Forma();
+    const oldName = 'oldName';
+    let f3a = new Forma({name:oldName});
     expect(f3a.validate({ defaultNameId: true })).toBe(true);
 
+    // patch does not change immutable fields
     const { id } = f3a;
-    f3a.patch({ id: 'newId' });
+    const p1 = f3a.patch({ id: 'newId' });
     expect(f3a.id).toBe(id);
+    expect(p1).toEqual({});
     dbg > 1 && cc.tag(msg, 'id is immutable');
 
-    f3a.patch({ name: 'newName' });
+    // patch changes mutable fields and returns changed old values 
+    const p2 = f3a.patch({ name: 'name2' });
     expect(f3a.id).toBe(id);
-    expect(f3a.name).toBe('newName');
+    expect(p2).toEqual({name: oldName}); // previous name
+    expect(f3a.name).toBe('name2');
     dbg > 1 && cc.tag(msg, 'name is mutable');
 
-    f3a.patch({ summary: 'New summary' });
+    // patch changes mutable fields and returns changed old values
+    const p3 = f3a.patch({ name: 'name2', summary: 'summary3' });
     expect(f3a.id).toBe(id);
-    expect(f3a.name).toBe('newName');
-    expect(f3a.summary).toBe('New summary');
+    expect(f3a.name).toBe('name2');
+    expect(f3a.summary).toBe('summary3');
+    expect(p3).toEqual({summary:''}); // only summary changed from default
     dbg && cc.tag1(msg + UOK, 'summary is mutable');
+
+    // patch ignores irrelevant properties
+    const p4 = f3a.patch({ summary: 'summary4', color:'red' });
+    expect(p4).toEqual({summary:'summary3'});
+    expect(f3a.name).toBe('name2');
+    expect(f3a.summary).toBe('summary4');
   });
   it('avro Forma defaultRegistry', () => {
     const msg = 'tf3a.avro';

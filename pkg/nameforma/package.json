@@ -1,6 +1,6 @@
 {
   "name": "@sc-voice/nameforma",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Personal Reality Manager (PRM) framework for Human/Agentic cooperation",
   "type": "module",
   "main": "dist/index.js",

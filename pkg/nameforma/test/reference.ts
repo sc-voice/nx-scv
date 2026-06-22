@@ -41,17 +41,31 @@ describe('Reference', () => {
   });
 
   it('patch updates fields', () => {
-    const ref = new Reference({ name: 'Original' });
-    ref.patch({
-      name: 'Updated',
-      summary: 'New summary',
-      relevance: 0.5,
-      source: 'src/file.ts',
+    const name1 = 'name1';
+    const summary1 = 'summary1';
+    const relevance1 = 0.5;
+    const source1 = 'src/file1.ts';
+    const ref = new Reference({ 
+      name: name1,
+      summary: summary1,
+      relevance: relevance1,
+      source: source1,
     });
-    expect(ref.name).toBe('Updated');
-    expect(ref.summary).toBe('New summary');
-    expect(ref.relevance).toBe(0.5);
-    expect(ref.source).toBe('src/file.ts');
+    const name2 = 'name2';
+    const summary2 = 'summary2';
+    const relevance2 = 0.7;
+    const source2 = 'src/file2.ts';
+    const p2 = ref.patch({
+      name: name2,
+      summary: summary2,
+      relevance: relevance2,
+      source: source2,
+    });
+    expect(ref.name).toBe(name2);
+    expect(ref.summary).toBe(summary2);
+    expect(ref.relevance).toBe(relevance2);
+    expect(ref.source).toBe(source2);
+    expect(p2).toEqual({name:name1, summary:summary1, relevance:relevance1, source:source1});
   });
 
   it('patch with partial updates', () => {

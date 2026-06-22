@@ -3,6 +3,12 @@ import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import path from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { readFileSync, realpathSync } from 'fs';
+
+const USER = process.env.CLAUDECODE ? 'Claude' : 'Standard';
+const IS_CLAUDE = USER === 'Claude';
 
 export interface IOutputConfiguration {
   writeOut?(str: string): void;
@@ -113,7 +119,22 @@ export class NfProgram {
   debug: boolean = false;
   isAgent: boolean = false;
 
-  constructor(protected readonly cmdDelegate: ICommand) {}
+  constructor(protected readonly cmdDelegate: ICommand) {
+    let program = this.cmdDelegate;
+
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const pkgJson = JSON.parse(
+      readFileSync(join(__dirname, '../package.json'), 'utf-8'),
+    );
+    const version = pkgJson.version;
+
+    program
+      .name('nf')
+      .version(version)
+      .description(
+        `NameForma/${USER} CLI - Personal reality manager for human/agent cooperation`,
+      )
+  }
 
   get world(): World {
     if (!this._world) {
@@ -187,23 +208,25 @@ export class NfProgram {
 
 
   /** Parse dotref: FORMA_ID.FIELD_NAME */
-  resolveDotRef(dotRef: string): { entity:Forma, forma:Forma, fieldName:string, value:any } {
+  resolveDotRef(dotRef: string): { 
+    entity:Forma, forma:Forma, fieldName:string, fuzzyId:string, value:any 
+  } {
     const dotIdx = dotRef.indexOf('.');
     if (dotIdx === -1) {
       throw new Error('dotRef must be FORMA_ID.FIELD_NAME');
     }
 
-    const formaId = dotRef.slice(0, dotIdx);
+    const fuzzyId = dotRef.slice(0, dotIdx);
     const fieldName = dotRef.slice(dotIdx + 1);
 
-    const resolved = this.world.resolveFuzzyId(formaId);
+    const resolved = this.world.resolveFuzzyId(fuzzyId);
     if (!resolved) {
-      throw new Error(`Not found: ${formaId}`);
+      throw new Error(`Not found: ${fuzzyId}`);
     }
     const { forma, entity } = resolved;
     const value = (forma as any)[fieldName];
 
-    return { entity, forma, fieldName, value }
+    return { entity, forma, fieldName, fuzzyId, value }
   }
 
   /** @returns current output configuration */
@@ -239,14 +262,16 @@ export class NfProgram {
     this.cmdDelegate
       .command('set')
       .description('Set a forma field')
-      .argument('<dotref>', 'Dotref to set (e.g., FUZZY_ID.field)')
+      .argument('<dotRef>', 'Forma FUZZY_ID.field')
       .argument('<value...>', 'Value(s) to set')
       .option('-j, --json', 'Output update forma as JSON')
-      .action(async (dotref: string, values: string[], options: any) => {
+      .action(async (dotRef: string, values: string[], options: any) => {
         const value = values.join(' ').trim();
 
         try {
-          const { forma, fieldName, value: oldValue } = nfp.resolveDotRef(dotref);
+          const { 
+            forma, fieldName, fuzzyId, value: oldValue 
+          } = nfp.resolveDotRef(dotRef);
           const formaId = forma.id.base64;
 
           // Update and persist
@@ -256,14 +281,41 @@ export class NfProgram {
           if (options.json) {
             nfp.writeOut(JSON.stringify(updated, null, 2));
           } else {
-            let id = updated.id.base64.replace(formaId, theme.nfLink(formaId));
-            nfp.writeOut('✓', theme.nfBoundary('Updated:'), id+'.'+fieldName);
-            nfp.writeOut(`  ${theme.nfAttend(oldValue)}`);
-            nfp.writeOut(`→ ${theme.nfNominal(value)}`);
+            let id = formaId.replace(fuzzyId, theme.nfLink(fuzzyId));
+            nfp.writeOut();
+            nfp.writeOut(dotRef+' '+id+'.'+fieldName);
+            nfp.writeOut(`- ${theme.nfAttend(oldValue)}`);
+            nfp.writeOut(`+ ${theme.nfNominal(value)}`);
           }
         } catch (err: any) {
           nfp.writeErr(`✗ Error: ${err.message}`);
           throw err;
+        }
+      });
+  }
+
+  registerInitCommand(): void {
+    const nfp = this;
+    const theme = NameFormaTheme.shared;
+    this.cmdDelegate
+      .command('init')
+      .description('Initialize NameForma environment')
+      .argument('[path]', 'Directory to initialize (defaults to current directory)')
+      .action(async (pathArg: string | undefined, options: any) => {
+        try {
+          const targetPath = pathArg || process.cwd();
+          const worldPath = targetPath.endsWith('.nameforma')
+            ? targetPath
+            : path.join(targetPath, '.nameforma');
+
+          const world = World.create(worldPath);
+          nfp.writeOut(theme.nfNominal(`✓ Initialized world at ${worldPath}`));
+          nfp.writeOut(theme.nfLabel('id:')+world.id.base64);
+        } catch (err) {
+          nfp.writeErr(theme.nfAttend(
+            `Failed to initialize world: ${err instanceof Error ? err.message : String(err)}`,
+          ));
+          process.exit(1);
         }
       });
   }

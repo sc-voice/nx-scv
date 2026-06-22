@@ -97,13 +97,25 @@ export class Reference extends Forma {
   /**
    * Patch (merge) properties on this instance.
    * Updates mutable fields (name, summary, relevance, source); immutable id is preserved.
-   * @param cfg - Configuration object with properties to update
+   * @param update - Configuration object with properties to update
+   * @return {any} prior values changed
    */
-  override patch(cfg: any = {}) {
-    super.patch(cfg);
-    let { relevance = this.relevance, source = this.source } = cfg;
-    this.relevance = relevance;
-    this.source = source;
+  override patch(update: any = {}): any {
+    const changed:any = super.patch(update);
+    let { source } = update;
+
+    const relevance = this.patchableNumber(update, 'relevance', 0, 1);
+    
+    if (relevance != null && relevance !== this.relevance) {
+      changed.relevance = this.relevance;
+      this.relevance = relevance;
+    }
+    if (typeof source === 'string' && source !== this.source) {
+      changed.source = this.source;
+      this.source = source;
+    }
+
+    return changed;
   }
 
   /**

@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+/**
+ * NameForma shell CLI
+ */
+
 import { Command } from 'commander';
 import path from 'path';
 import { nfTui, ReplRenderer } from './nf-tui.js';
@@ -190,11 +194,6 @@ export class NfCLI extends NfProgram {
     const nfCli = this;
 
     program
-      .name('nameforma')
-      .description(
-        `NameForma/${USER} CLI - Manage tasks, formas, and schemas`,
-      )
-      .version(version)
       .addHelpText('after', '\n' + helpText)
       .configureOutput({
         writeOut: (str) => nfTui.log(str.trim()),
@@ -249,7 +248,7 @@ export class NfCLI extends NfProgram {
       });
 
     InitCommand.registerCommand(
-      program.command('init').description('Initialize a new world'),
+      program.command('init2').description('Initialize a new world'),
       this,
     );
     TaskCommand.registerCommand(
@@ -268,7 +267,6 @@ export class NfCLI extends NfProgram {
         .description('Get a forma by fuzzy ID'),
       this,
     );
-    this.registerSetCommand();
     ActionCommand.registerCommand(
       program
         .command('action')
@@ -297,6 +295,9 @@ export class NfCLI extends NfProgram {
       this,
     );
 
+    // predefined commands
+    this.registerInitCommand();
+    this.registerSetCommand();
     program.configureOutput({
       writeOut: (str: string) => nfTui.log(str),
       writeErr: (str: string) => nfTui.error(str),
