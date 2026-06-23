@@ -44,6 +44,10 @@ const ID_VALUE = {
   TEST: 0,
 };
 
+const PLAN = {
+  ANY: 0,
+}
+
 const KAFKA = {
   CONNECT: 0,
   CREATE_TOPICS: 0,
@@ -168,6 +172,7 @@ export const DBG = {
   PATCH,
   PATCH_DEPRECATED,
   PATCHABLE,
+  PLAN,
   RATIONAL,
   REFERENCE,
   RGA64,

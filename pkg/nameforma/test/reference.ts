@@ -17,6 +17,8 @@ describe('Reference', () => {
     expect(ref.summary).toBe('');
     expect(ref.relevance).toBe(0);
     expect(ref.source).toBe('');
+    expect(ref.typeName).toBe('Reference');
+    expect(ref.avroSchema.namespace).toBe('scvoice.nameforma');
   });
 
   it('ctor with values', () => {

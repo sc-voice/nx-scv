@@ -36,6 +36,8 @@ describe('task', () => {
     expect(t2k.name).toBeDefined();
     expect(id.base64.includes(name)).toBe(true); // name is contained within id
     expect(t2k.toString()).toBe(name);
+    expect(t2k.typeName).toBe('Task');
+    expect(t2k.avroSchema.namespace).toBe('scvoice.nameforma');
 
     dbg && cc.tag1(msg + UOK, ...cc.props(t2k));
   });

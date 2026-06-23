@@ -138,7 +138,7 @@ export class Action extends Forma {
     const formaSchema = Forma.avroSchema;
     return new Schema({
       name: 'Action',
-      namespace: 'scvoice.nameforma',
+      namespace: this.AVRO_NAMESPACE,
       type: 'record',
       fields: [
         ...(formaSchema.fields || []),

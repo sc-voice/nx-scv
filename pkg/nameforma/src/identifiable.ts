@@ -69,6 +69,8 @@ export type FuzzyId = string;
  *    - Deserialized id has all UUID64 methods available
  */
 export class Identifiable {
+  static readonly AVRO_NAMESPACE = 'scvoice.nameforma';
+
   readonly forma: string;
   readonly id: UUID64;
 
@@ -181,10 +183,14 @@ export class Identifiable {
   static get avroSchema(): Schema {
     return new Schema({
       name: 'Identifiable',
-      namespace: 'scvoice.nameforma',
+      namespace: Identifiable.AVRO_NAMESPACE,
       type: 'record',
       fields: [{ name: 'id', type: UUID64.avroSchema.fullName }],
     });
+  }
+
+  get avroSchema(): Schema {
+    return (this.constructor as typeof Identifiable).avroSchema;
   }
 
   /**
@@ -263,4 +269,15 @@ export class Identifiable {
       return distance <= maxDistance;
     };
   }
+
+  /** @returns class type name */
+  static get typeName(): string {
+    return (this as typeof Identifiable).avroSchema.name ?? 'typeName?';
+  }
+
+  /** @returns Instance type name */
+  get typeName(): string {
+    return (this.constructor as typeof Identifiable).typeName;
+  }
+
 }

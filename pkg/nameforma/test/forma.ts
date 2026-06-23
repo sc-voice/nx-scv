@@ -24,6 +24,7 @@ describe('Forma', () => {
     expect(f3a.id.validate()).toBe(true);
     expect(f3a.id.base64.includes(f3a.name)).toBe(true); // name is contained within id
     expect(f3a.summary).toBe(''); // default summary
+    expect(f3a.typeName).toBe('Forma'); 
 
     let t7g = new TestThing();
     expect(t7g.id.base64.includes(t7g.name)).toBe(true); // name is contained within id

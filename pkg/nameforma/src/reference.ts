@@ -76,7 +76,7 @@ export class Reference extends Forma {
     const formaSchema = Forma.avroSchema;
     return new Schema({
       name: 'Reference',
-      namespace: 'scvoice.nameforma',
+      namespace: this.AVRO_NAMESPACE,
       type: 'record',
       fields: [
         ...(formaSchema.fields || []),

@@ -1,4 +1,5 @@
 import { DBG } from './defines.js';
+import { Identifiable } from './identifiable.js';
 import { Entity } from './entity.js';
 import { Forma, type ListItemStringCfg } from './forma.js';
 import { FormaField } from './forma-field.js';
@@ -22,56 +23,30 @@ import {
 } from './navigable-view.js';
 import { RenderBuffer } from './render-buffer.js';
 import { ColorConsole, Unicode } from '@sc-voice/tools/text';
-const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const FORMA = Forma.avroSchema;
 
-/**
- * Task extends Entity with action and reference management.
- *
- * @see doc/task-action.md
- *
- * ## Fields
- * - `actions`: FormaList<Action> for managing task actions
- * - `references`: FormaList<Reference> for managing task references
- *
- * ## Usage
- * ```typescript
- * const task = new Task({ name: 'Implement feature' });
- *
- * // Access actions via FormaList API
- * task.actions.addItem({ status: 'todo' });
- * task.actions.deleteItem(id);
- * task.actions.patchItem(id, { status: 'done' });
- *
- * // Access references via FormaList API
- * task.references.addItem({ name: 'Related issue', relevance: 0.8 });
- * task.references.deleteItem(id);
- * ```
- *
- * ## Serialization
- * Tasks serialize to Avro format with all fields including nested actions and references arrays.
- * Empty arrays serialize as `[]`.
+/** Plan is an Entity with Actions and References
  */
-export class Task extends Entity {
-  rawActions: Array<Action> = [];
-  rawReferences: Array<Reference> = [];
+export class Plan extends Entity {
+  actions: Array<Action> = [];
+  references: Array<Reference> = [];
 
   /**
-   * Create a new Task instance.
+   * Create a new Plan instance.
    *
    * @param cfg Configuration object with optional:
    *   - `id`: UUID64 for deserialized tasks (auto-generated if omitted)
-   *   - `name`: Task name (inherited from Entity)
+   *   - `name`: Plan name (inherited from Entity)
    *   - `actions`: Array of action configs (auto-constructed via FormaList)
    *
    * Calls put() to initialize all fields from cfg.
    */
   constructor(cfg: any = {}) {
-    const msg = 't2k.ctor';
-    const dbg = T2K.CTOR;
+    const msg = 'p2n.ctor';
+    const dbg = DBG.PLAN.ANY;
     super({ id: cfg.id });
     this.put(cfg);
 
@@ -82,48 +57,8 @@ export class Task extends Entity {
    * Populate namespace with actions and references
    */
   protected override populateNamespace(): void {
-    this.rawActions.forEach((action) => this.addToNamespace(action));
-    this.rawReferences.forEach((ref) => this.addToNamespace(ref));
-  }
-
-  /**
-   * Get task actions as a FormaList with event bus integration.
-   * Use FormaList API for mutations:
-   * - addItem(cfg): Create new action
-   * - deleteItem(id): Remove action
-   * - patchItem(id, cfg): Update action fields
-   * - getItem(id): Retrieve action
-   * - items(filter): List all actions
-   */
-  /**
-   * @param bus - Event bus for change notifications and persistence
-   */
-  actions(bus: IEventBus): FormaList<Action> {
-    return new FormaList(this.rawActions, Action, {
-      parent: this,
-      emitter: bus,
-      namespace: this.mutableNamespace,
-    });
-  }
-
-  /**
-   * Get task references as a FormaList with event bus integration.
-   * Use FormaList API for mutations:
-   * - addItem(cfg): Create new reference
-   * - deleteItem(id): Remove reference
-   * - patchItem(id, cfg): Update reference fields
-   * - getItem(id): Retrieve reference
-   * - items(filter): List all references
-   */
-  /**
-   * @param bus - Event bus for change notifications and persistence
-   */
-  references(bus: IEventBus): FormaList<Reference> {
-    return new FormaList(this.rawReferences, Reference, {
-      parent: this,
-      emitter: bus,
-      namespace: this.mutableNamespace,
-    });
+    this.actions.forEach((action) => this.addToNamespace(action));
+    this.references.forEach((ref) => this.addToNamespace(ref));
   }
 
   /**
@@ -131,9 +66,9 @@ export class Task extends Entity {
    * @returns Progress metric from 0 (no actions) to 1 (all actions done), normalized to [0..1]
    */
   progress(): number {
-    const total = this.rawActions.length;
+    const total = this.actions.length;
     if (total === 0) return 0;
-    const sum = this.rawActions.reduce(
+    const sum = this.actions.reduce(
       (acc, a) => acc + STATUS_ORDER[a.status],
       0,
     );
@@ -147,7 +82,7 @@ export class Task extends Entity {
   progressColor(): string {
     const { BRIGHT_GREEN, BRIGHT_CYAN, BRIGHT_RED, BRIGHT_MAGENTA } =
       Unicode.LINUX_COLOR;
-    const statuses = this.rawActions.map((a) => a.status);
+    const statuses = this.actions.map((a) => a.status);
     if (statuses.length === 0) return BRIGHT_RED;
     if (statuses.includes(ActionStatus.manage)) return BRIGHT_RED;
     if (statuses.every((s) => s === ActionStatus.done))
@@ -165,8 +100,30 @@ export class Task extends Entity {
     return this.name;
   }
 
+  static entity = (this as typeof Identifiable).avroSchema.name;
+
+  /** Avro serialization Schema */
+  static override get avroSchema(): Schema {
+    return new Schema({
+      name: 'Plan',
+      namespace: this.AVRO_NAMESPACE,
+      type: 'record',
+      fields: [
+        ...(FORMA as any).fields,
+        {
+          name: 'actions',
+          type: { type: 'array', items: Action.avroSchema.fullName },
+        },
+        {
+          name: 'references',
+          type: { type: 'array', items: Reference.avroSchema.fullName },
+        },
+      ],
+    });
+  }
+
   /**
-   * Register Task schema into the avro registry and return AvroType.
+   * Register schema into the avro registry and return AvroType.
    *
    * TWO-REGISTRY SYSTEM:
    * - Schema.#registry: Prevents duplicate schema registrations
@@ -179,7 +136,7 @@ export class Task extends Entity {
    * @returns Registered AvroType from avro.parse()
    */
   static override registerAvro(opts: any = {}): AvroType {
-    const msg = 't2k.registerAvro';
+    const msg = 'p2n.registerAvro';
     const dbg = DBG.SCHEMA.ALL;
 
     dbg > 1 && cc.ok(msg, 'dependencies');
@@ -188,71 +145,32 @@ export class Task extends Entity {
     Reference.registerAvro(opts);
 
     dbg && cc.ok(msg, 'task');
-    let avroType = Schema.registerType(Task, opts);
-    dbg && cc.ok1(msg, Task.avroSchema.fullName);
+    let avroType = Schema.registerType(this, opts);
+    dbg && cc.ok1(msg, this.avroSchema.fullName);
     return avroType;
   }
 
-  static entity = 'task';
-
-  /**
-   * Avro schema for Task serialization.
-   *
-   * Fields:
-   * - id, name, summary: Inherited from Forma
-   * - rawActions: Array of Action items
-   * - rawReferences: Array of Reference items
-   */
-  static override get avroSchema(): Schema {
-    return new Schema({
-      name: 'Task',
-      namespace: this.AVRO_NAMESPACE,
-      type: 'record',
-      fields: [
-        ...(FORMA as any).fields,
-        {
-          name: 'rawActions',
-          type: { type: 'array', items: Action.avroSchema.fullName },
-        },
-        {
-          name: 'rawReferences',
-          type: { type: 'array', items: Reference.avroSchema.fullName },
-        },
-      ],
-    });
-  }
-
-  static fromJson(data: any): Task {
-    return new Task(data);
+  static fromJson(data: any): Plan {
+    return new Plan(data);
   }
 
   /**
    * Replace all task fields including actions and references.
    *
    * @param value Configuration object with properties to set:
-   *   - `rawActions`: Array of Action
-   *   - `rawReferences`: Array of Reference
+   *   - `actions`: Array of Action
+   *   - `references`: Array of Reference
    *
    * Called by constructor to initialize instance. Also used for deserialization.
    */
-  put(value: any) {
-    const msg = 't2k.put';
-    const dbg = T2K.PUT;
+  put(value: Partial<Plan>) {
+    const msg = 'p2n.put';
+    const dbg = DBG.PLAN.ANY;
     super.patch(value);
-    let { rawActions = [], rawReferences = [] } = value;
+    let { actions = [], references = [] } = value;
     Object.assign(this, {
-      rawActions: rawActions.map((data: any) => {
-        const action = new Action(data);
-        try {
-          action.put(data);
-        } catch (err: any) {
-          throw new Error(
-            `Task ${this.id.timeId()} action ${data.id || '?'} '${data.name || '?'}': ${err.message}`,
-          );
-        }
-        return action;
-      }),
-      rawReferences: rawReferences.map((data: any) => new Reference(data)),
+      actions: actions.map((data: any) => new Action(data)),
+      references: references.map((data: any) => new Reference(data)),
     });
 
     dbg && cc.ok1(msg, ...cc.props(this));
@@ -262,7 +180,7 @@ export class Task extends Entity {
    * Return array of strings to be presented as a TUI row
    */
   override tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
-    const msg = 't2k.tuiRowStrings';
+    const msg = 'p2n.tuiRowStrings';
     let { id, name, summary } = this;
     let progressValue = this.progress();
     const { 
@@ -284,9 +202,7 @@ export class Task extends Entity {
    */
   override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
     const { anchorStep, pivotStep } = zeno;
-    const { 
-      id, name, summary, rawActions:actions, rawReferences:refs 
-    } = this;
+    const { id, name, summary, actions, references:refs } = this;
     const headerData:RenderData = super.renderDataAtZeno(view, zeno);
     const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
 

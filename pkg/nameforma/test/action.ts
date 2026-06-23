@@ -15,6 +15,7 @@ describe('Action', () => {
     expect(a4n.id.validate()).toBe(true);
     expect(a4n.status).toBe('req'); // default status
     expect(a4n.summary).toBe(''); // inherits from Forma
+    expect(a4n.typeName).toBe('Action'); // inherits from Forma
   });
 
   it('ctor with status', () => {
