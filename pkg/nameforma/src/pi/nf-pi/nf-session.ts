@@ -15,11 +15,13 @@ export class NfSession extends EventEmitter {
 
   public view: WorldView;
   public watchInstance: NfWatch | null = null;
+  public watchCount: number;
 
   private constructor(world: World) {
     super();
     this.view = new WorldView(world, 'nf-pi');
     this.view.setAnchor(world);
+    this.watchCount = 0;
   }
 
   get anchor() {

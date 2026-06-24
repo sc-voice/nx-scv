@@ -49,6 +49,7 @@ const { WORLD } = DBG;
 const THROTTLE = { watermark: 0 }
 const theme = NameFormaTheme.shared;
 
+
 /**
  * Standard entities registered by default in World
  */
@@ -72,6 +73,7 @@ export class World extends Entity implements IEventBus {
   #watermark: RGA64Watermark;
   #bus: EventEmitter;
   #lastSyncTime: number;
+  #logFile: string;
 
   // Export Focus class for use elsewhere
   static Focus = Focus;
@@ -119,6 +121,7 @@ export class World extends Entity implements IEventBus {
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
     this.#lastSyncTime = 0;
+    this.#logFile = path.join(worldPath, 'nf.log');
 
     // Register standard entities
     this.registerEntity(Task);
@@ -192,6 +195,7 @@ export class World extends Entity implements IEventBus {
     });
 
     dbg && cc.ok1(msg, `initialized ${worldPath}`);
+    this.log('initialized', new Date().toISOString());
   }
 
   /**
@@ -250,6 +254,19 @@ export class World extends Entity implements IEventBus {
     this.addToNamespace(this);
 
     dbg && cc.ok1(msg, `total loaded ${totalLoaded} entities`);
+  }
+
+  /** Append Forma message to debug.log */
+  logForma(forma:Forma, ...strs: string[]) {
+    const msg = strs.join(' ');
+    const id = UUID64.createRelatedId(forma.id);
+    fs.appendFileSync(this.#logFile, `${id}: ${msg}\n`);
+  }
+
+  /** Append World message to debug.log */
+  log(...strs: string[]) {
+    const msg = strs.join(' ');
+    this.logForma(this, msg);
   }
 
   /**

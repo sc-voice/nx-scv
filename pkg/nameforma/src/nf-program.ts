@@ -6,9 +6,11 @@ import path from 'path';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { readFileSync, realpathSync } from 'fs';
+import { DBG } from './defines.js';
 
 const USER = process.env.CLAUDECODE ? 'Claude' : 'Standard';
 const IS_CLAUDE = USER === 'Claude';
+const theme = NameFormaTheme.shared;
 
 export interface IOutputConfiguration {
   writeOut?(str: string): void;
@@ -29,6 +31,7 @@ export interface IOutputConfiguration {
 export interface ICommand {
   /** Set the command name. */
   name(str: string): ICommand;
+  name(): string;
 
   /** Set the command description. */
   description(str: string): ICommand;
@@ -119,6 +122,25 @@ export class NfProgram {
   debug: boolean = false;
   isAgent: boolean = false;
 
+  /**
+   * Resolve a World by path. Auto-discovers if no path given.
+   * Static method for use by different CLI implementations.
+   */
+  static resolveWorld(worldPath?: string): World {
+    let resolvedPath = worldPath;
+    if (!resolvedPath) {
+      resolvedPath = World.findWorld() || undefined;
+      if (!resolvedPath) {
+        throw new Error(
+          `No world found. Run 'nf init' in your project directory to create one.`,
+        );
+      }
+    } else if (!resolvedPath.endsWith('.nameforma')) {
+      resolvedPath = path.join(resolvedPath, '.nameforma');
+    }
+    return World.load(resolvedPath);
+  }
+
   constructor(protected readonly cmdDelegate: ICommand) {
     let program = this.cmdDelegate;
 
@@ -163,23 +185,14 @@ export class NfProgram {
     if (opts?.isAgent !== undefined) this.isAgent = opts.isAgent;
   }
 
-  /**
-   * Resolve a World by path. Auto-discovers if no path given.
-   * Static method for use by different CLI implementations.
-   */
-  static resolveWorld(worldPath?: string): World {
-    let resolvedPath = worldPath;
-    if (!resolvedPath) {
-      resolvedPath = World.findWorld() || undefined;
-      if (!resolvedPath) {
-        throw new Error(
-          `No world found. Run 'nf init' in your project directory to create one.`,
-        );
-      }
-    } else if (!resolvedPath.endsWith('.nameforma')) {
-      resolvedPath = path.join(resolvedPath, '.nameforma');
+  async parseAsync(args: string[]): Promise<ICommand> {
+    const msg = 'n7m.parseAsync';
+    try {
+      return this.cmdDelegate.parseAsync(args);
+    } catch (err) {
+      this.world.log(msg, (err as any)?.message);
+      throw err;
     }
-    return World.load(resolvedPath);
   }
 
   /**
@@ -205,7 +218,6 @@ export class NfProgram {
 
     return forma;
   }
-
 
   /** Parse dotref: FORMA_ID.FIELD_NAME */
   resolveDotRef(dotRef: string): { 
@@ -234,20 +246,25 @@ export class NfProgram {
     return this.cmdDelegate.configureOutput();
   }
 
-  /** pass through to configuredOutput.writeOut() */
+  /** Pass through to configuredOutput.writeOut() 
+   * nf-cli: console.log()
+   * nf-cli: notify() // overwrite successive calls
+   */
   writeOut(...strs: string[]): void {
     const { writeOut } = this.output;
     const str = strs.join(' ');
     if (typeof writeOut === 'function') {
-      writeOut(str);
+      //console.log(str);
+      writeOut(str+'\n');
     } else {
       console.log("NfProgram.writeOut?", str);
     }
   }
 
   /** pass through to configuredOutput.writeErr() */
-  writeErr(str: string): void {
+  writeErr(...strs: string[]): void {
     const { writeErr } = this.output;
+    const str = strs.join(' ');
     if (typeof writeErr === 'function') {
       writeErr(str);
     } else {
@@ -255,10 +272,46 @@ export class NfProgram {
     }
   }
 
-  /** Register the set command on cmdDelegate */
+  /** Action handler for @see registerAddCommand */
+  nfAdd(
+    typeName: string, 
+    name: string, 
+    summary: string | undefined, 
+    options: any
+  ): void {
+    const msg = 'nfAdd';
+    const dbg = DBG.NF_PROGRAM.ANY;
+
+    dbg && this.world.log(JSON.stringify({typeName,name,summary}));
+  }
+
+  registerAddCommand(): void {
+    const msg = 'n7m.registerAddCommand';
+    const nfp = this;
+    this.cmdDelegate
+      .command('add')
+      .description('Add a new unfocused `typeName` Entity')
+      .argument('<typeName>', 'Entity type: Plan, ... (required)')
+      .argument('<name>', 'Name or title (required)')
+      .argument('[summary...]', 'Optional descriptive summary')
+      .option('-j, --json', 'Output update forma as JSON')
+      .addHelpText(
+        'after',
+        [
+          '',
+          'Examples:',
+          ' nf add plan "Buttermilk_Pancakes" "Fluffy breakfast buttermilk pancakes"',  
+          ' nf add plan Buttermilk_Pancakes Fluffy breakfast buttermilk pancakes',  
+        ].join('\n'),
+      )
+      .action(( 
+        typeName: string, name: string, summary: string | undefined, options: any
+        ) => nfp.nfAdd(typeName, name, summary, options)
+      );
+  }
+
   registerSetCommand(): void {
     const nfp = this;
-    const theme = NameFormaTheme.shared;
     this.cmdDelegate
       .command('set')
       .description('Set a forma field')
@@ -294,29 +347,35 @@ export class NfProgram {
       });
   }
 
+  /** Action handler for @see registerInitCommand */
+  nfInit(pathArg: string | undefined, options: any): void {
+    const msg = theme.nfAttend('nfInit');
+    const dbg = DBG.NF_PROGRAM.ANY;
+    try {
+      const targetPath = pathArg || process.cwd();
+      const worldPath = targetPath.endsWith('.nameforma')
+        ? targetPath
+        : path.join(targetPath, '.nameforma');
+
+      const world = World.create(worldPath);
+      const lines = [
+        theme.nfNominal(`✓ Initialized world at ${worldPath}`),
+        theme.nfLabel('id:')+world.id.base64,
+      ];
+      this.writeOut(lines.join('\n'));
+    } catch (err) {
+      this.writeErr(theme.nfAttend(
+        `Failed to initialize world: ${err instanceof Error ? err.message : String(err)}`,
+      ));
+    }
+  }
+
   registerInitCommand(): void {
-    const nfp = this;
-    const theme = NameFormaTheme.shared;
     this.cmdDelegate
       .command('init')
       .description('Initialize NameForma environment')
       .argument('[path]', 'Directory to initialize (defaults to current directory)')
-      .action(async (pathArg: string | undefined, options: any) => {
-        try {
-          const targetPath = pathArg || process.cwd();
-          const worldPath = targetPath.endsWith('.nameforma')
-            ? targetPath
-            : path.join(targetPath, '.nameforma');
-
-          const world = World.create(worldPath);
-          nfp.writeOut(theme.nfNominal(`✓ Initialized world at ${worldPath}`));
-          nfp.writeOut(theme.nfLabel('id:')+world.id.base64);
-        } catch (err) {
-          nfp.writeErr(theme.nfAttend(
-            `Failed to initialize world: ${err instanceof Error ? err.message : String(err)}`,
-          ));
-          process.exit(1);
-        }
-      });
+      .action(this.nfInit);
   }
+
 }

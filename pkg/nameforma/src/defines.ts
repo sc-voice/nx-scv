@@ -153,11 +153,19 @@ const WORLD = {
   DELETE: 0,
   VALIDATE: 0,
   WATERMARK: 0,
-};
+}
 
 const FORMA_LIST = {
   TEST: 0,
-};
+}
+
+const NF_CLI = 1;
+const NF_PI_CLI = 1;
+const NF_PROGRAM = {
+  ANY: Math.max(NF_CLI, NF_PI_CLI),
+  NF_CLI,
+  NF_PI_CLI,
+}
 
 export const DBG = {
   ACTION,
@@ -169,6 +177,7 @@ export const DBG = {
   IDENTIFIABLE,
   ID_VALUE,
   KAFKA,
+  NF_PROGRAM,
   PATCH,
   PATCH_DEPRECATED,
   PATCHABLE,

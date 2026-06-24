@@ -298,6 +298,7 @@ export class NfCLI extends NfProgram {
     // predefined commands
     this.registerInitCommand();
     this.registerSetCommand();
+    this.registerAddCommand();
     program.configureOutput({
       writeOut: (str: string) => nfTui.log(str),
       writeErr: (str: string) => nfTui.error(str),
@@ -349,7 +350,7 @@ export class NfCLI extends NfProgram {
    */
   parseArgv(argv: string[]): Promise<Command> {
     const processed = this.preprocessArgv(argv);
-    return this.cmdDelegate.parseAsync(processed) as Promise<Command>;
+    return this.parseAsync(processed) as Promise<Command>;
   }
 
   /** Create new CLI instance and execute command with given arguments

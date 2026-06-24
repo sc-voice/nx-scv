@@ -6,7 +6,10 @@ import {
 import { NfSession } from './nf-session.js';
 import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
-import { NfProgram } from '../../nf-program.js';
+import { NfProgram, ICommand } from '../../nf-program.js';
+import { DBG } from '../../defines.js';
+
+const theme = NameFormaTheme.shared;
 
 /** NfExtensionCommand: NameForma CLI for pi extension environment */
 export class NfExtensionCommand extends NfProgram {
@@ -22,21 +25,23 @@ export class NfExtensionCommand extends NfProgram {
       this.ctx.ui.notify('nameforma extension requires interactive mode', 'error');
       return;
     }
+    const ctxui = this.ctx.ui;
 
     program
       .name('nf')
       .exitOverride((err:any) => this.exitCallback(err))
       .description('NameForma pi commands')
       .configureOutput({
-        writeOut: (str: string) => this.ctx.ui.notify(str.trim(), 'info'),
-        writeErr: (str: string) => this.ctx.ui.notify(str.trim(), 'error'),
+        writeOut: (str: string) => ctxui.notify(str.trim(), 'info'),
+        writeErr: (str: string) => ctxui.notify(str.trim(), 'error'),
         outputError: (str: string, write: (s: string) => void) => {
-          this.ctx.ui.notify(str.trim(), 'error');
+          ctxui.notify(str.trim(), 'error');
         },
       });
 
     this.registerPiWatchCommand();
     this.registerInitCommand();
+    this.registerAddCommand();
     this.registerSetCommand();
     this.registerPiTestCommand();
   }
@@ -52,7 +57,6 @@ export class NfExtensionCommand extends NfProgram {
     }
   }
 
-
   private registerPiWatchCommand(): void {
     const nfExt = this;
     const session = NfSession.shared;
@@ -64,6 +68,7 @@ export class NfExtensionCommand extends NfProgram {
       .option('-q, --quit', 'Close NfWatch')
       .description('Watch .nameforma files and display status updates')
       .action(async (options: any) => {
+        session.watchCount++;
         if (options.lines) {
           const [sLines, sDetail] = options.lines?.split('@');
           const lines = parseInt(sLines);
@@ -129,17 +134,31 @@ export class NfExtensionCommand extends NfProgram {
       });
   }
 
-  async parse(args: string): Promise<void> {
-    await this.cmdDelegate.parseAsync(
-      ['node', 'nf', ...args.trim().split(/\s+/).filter(Boolean)],
-    );
+  async parse(str: string): Promise<ICommand> {
+    const msg = 'NfExtensionCommand.parse';
+    const args = ['node', 'nf', ...str.trim().split(/\s+/).filter(Boolean)];
+    return await this.parseAsync(args);
   }
-}
+} // NfExtensionCommand
 
+/** NfExtensionCommand adapter */
 export async function nfPiCli(
   args: string,
   ctx: ExtensionCommandContext,
 ): Promise<void> {
+  const msg = 'nfPiCli';
   const cmd = new NfExtensionCommand(ctx);
+  const session = NfSession.shared;
+  const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
+  const { watchCount:oldCount, world } = session;
+  cmd.initialize(world, { isAgent: true });
   await cmd.parse(args);
+  const { watchCount:newCount, watchInstance } = session;
+  if (oldCount === newCount && watchInstance) { 
+    // stop watching if we processed a different nf command
+
+    dbg && world.log(msg, 'watchInstance.stop');
+    await watchInstance.stop();
+    session.watchInstance = null;
+  }
 }

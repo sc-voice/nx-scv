@@ -19,15 +19,9 @@ const theme = NameFormaTheme.shared;
 const MOUSE_CLICKS=false
 const mouse = { row:'', col: '' }
 
-export default function (pi: ExtensionAPI) {
-  NfSession.init();
-
-  // The single heartbeat for the entire extension
-  setInterval(() => {
-    NfSession.shared.emit('tick');
-  }, 1000);
-
-  MOUSE_CLICKS && pi.on("session_start", (event, ctx) => {
+/** EXPERIMENTAL: Tracking mouse clicks does not work well */
+function trackMouseClicks(pi:ExtensionAPI) {
+  pi.on("session_start", (event, ctx) => {
     const msg = theme.nfAttend("session_start_mouse");
     const dbg = 0;
     dbg && console.log(msg);
@@ -71,6 +65,17 @@ export default function (pi: ExtensionAPI) {
       return undefined; // pass-through
     });
   });
+} // trackMouseClicks
+
+export default function (pi: ExtensionAPI) {
+  NfSession.init();
+
+  // The single heartbeat for the entire extension
+  setInterval(() => {
+    NfSession.shared.emit('tick');
+  }, 1000);
+
+  //trackMouseClicks(pi);
 
   // NameForma CLI within Pi coding agent
   pi.registerCommand('nf', {
