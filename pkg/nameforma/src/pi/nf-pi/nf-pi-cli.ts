@@ -4,6 +4,7 @@ import {
   NavigableView, ZenoCoord, zenoStep
 } from '../../navigable-view.js';
 import { NfSession } from './nf-session.js';
+import { World } from '../../world.js';
 import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
 import { NfProgram, ICommand } from '../../nf-program.js';
@@ -20,6 +21,7 @@ export class NfExtensionCommand extends NfProgram {
 
   private createProgram(): void {
     const program = this.cmdDelegate as any;
+    const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
 
     if (!this.ctx.hasUI) {
       this.ctx.ui.notify('nameforma extension requires interactive mode', 'error');
@@ -29,7 +31,7 @@ export class NfExtensionCommand extends NfProgram {
 
     program
       .name('nf')
-      .exitOverride((err:any) => this.exitCallback(err))
+      //.exitOverride((err:any) => this.exitCallback(err))
       .description('NameForma pi commands')
       .configureOutput({
         writeOut: (str: string) => ctxui.notify(str.trim(), 'info'),
@@ -38,6 +40,15 @@ export class NfExtensionCommand extends NfProgram {
           ctxui.notify(str.trim(), 'error');
         },
       });
+
+    const nfp = this;
+    // HACK: Commander Command.exitOverride does not do what we want
+    // so we have to hack the Command prototype itself
+    // to avoid terminating Pi
+    (Command.prototype as any)._exit = 
+      function (exitCode:number, code:number, message:string) {
+        nfp.exitCallback({exitCode, code, message});
+      }
 
     this.registerPiWatchCommand();
     this.registerInitCommand();
@@ -49,12 +60,11 @@ export class NfExtensionCommand extends NfProgram {
   private exitCallback(err:any) {
     const msg = 'nf-pi-cli.exitCallback';
     const nfp = this;
-    if (err.exitCode !== 0) {
-      this.writeErr(`${msg} Error: ${JSON.stringify(err)}`);
-    } else {
-      this.writeOut(`${msg} ${JSON.stringify(err)} n/a`);
-      // Async callback from spawn events, not useful to throw.
-    }
+    const str = JSON.stringify(err);
+    const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
+
+    dbg && World.log(msg, str);
+  //  throw new Error(`${msg} throw`);
   }
 
   private registerPiWatchCommand(): void {
@@ -114,7 +124,7 @@ export class NfExtensionCommand extends NfProgram {
       .action(async (value?: string) => {
         const testValue = value ?? 'value?';
         const theme = NameFormaTheme.load();
-        const msg = [
+        const lines = [
           theme.nfBoundary('TEST BEGIN'),
           new Date(),
           theme.nfText(JSON.stringify({ value: testValue }, null, 2)),
@@ -122,22 +132,33 @@ export class NfExtensionCommand extends NfProgram {
         ];
         switch (testValue) {
           case 'more':
-            msg.push('one');
-            msg.push('two');
-            msg.push('three');
+            lines.push('one');
+            lines.push('two');
+            lines.push('three');
             break;
           default:
             break;
         }
-        msg.push(theme.nfBoundary('TEST END'));
-        nfExt.ctx.ui.notify(msg.join('\n'));
+        lines.push(theme.nfBoundary('TEST END'));
+        nfExt.writeOut(lines.join('\n'));
       });
   }
 
+  /** Commander.js terminates the process and produces excessive error
+   * messages. NfProgram.parseAsync() prints out the right error message.
+   * This method prevents Commander.js from killing Pi coding agent.
+   */
   async parse(str: string): Promise<ICommand> {
     const msg = 'NfExtensionCommand.parse';
     const args = ['node', 'nf', ...str.trim().split(/\s+/).filter(Boolean)];
-    return await this.parseAsync(args);
+    let result;
+    try {
+      result = await this.parseAsync(args);
+    } catch (err:any) {
+      console.log(msg, 'caught', err?.message);
+    } finally {
+      return result ?? this.cmdDelegate;
+    }
   }
 } // NfExtensionCommand
 
@@ -147,16 +168,15 @@ export async function nfPiCli(
   ctx: ExtensionCommandContext,
 ): Promise<void> {
   const msg = 'nfPiCli';
-  const cmd = new NfExtensionCommand(ctx);
+  const nfExt = new NfExtensionCommand(ctx);
   const session = NfSession.shared;
   const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
   const { watchCount:oldCount, world } = session;
-  cmd.initialize(world, { isAgent: true });
-  await cmd.parse(args);
+  nfExt.initialize(world, { isAgent: true });
+  await nfExt.parse(args);
   const { watchCount:newCount, watchInstance } = session;
   if (oldCount === newCount && watchInstance) { 
     // stop watching if we processed a different nf command
-
     dbg && world.log(msg, 'watchInstance.stop');
     await watchInstance.stop();
     session.watchInstance = null;

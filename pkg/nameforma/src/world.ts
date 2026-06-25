@@ -49,7 +49,6 @@ const { WORLD } = DBG;
 const THROTTLE = { watermark: 0 }
 const theme = NameFormaTheme.shared;
 
-
 /**
  * Standard entities registered by default in World
  */
@@ -65,6 +64,8 @@ const theme = NameFormaTheme.shared;
  * automatically persist changes to disk.
  */
 export class World extends Entity implements IEventBus {
+  static #lastWorld: World | undefined;
+
   #worldPath: string;
   #gitCLI: GitCLI;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
@@ -74,6 +75,9 @@ export class World extends Entity implements IEventBus {
   #bus: EventEmitter;
   #lastSyncTime: number;
   #logFile: string;
+
+  // UUID64 signature of the non-specific world (@see log)
+  static readonly NO_WORLD = '_NO_WORLD_NW';
 
   // Export Focus class for use elsewhere
   static Focus = Focus;
@@ -196,6 +200,7 @@ export class World extends Entity implements IEventBus {
 
     dbg && cc.ok1(msg, `initialized ${worldPath}`);
     this.log('initialized', new Date().toISOString());
+    World.#lastWorld = this;
   }
 
   /**
@@ -256,17 +261,45 @@ export class World extends Entity implements IEventBus {
     dbg && cc.ok1(msg, `total loaded ${totalLoaded} entities`);
   }
 
-  /** Append Forma message to debug.log */
+  /** Append Forma message to nf.log */
   logForma(forma:Forma, ...strs: string[]) {
     const msg = strs.join(' ');
     const id = UUID64.createRelatedId(forma.id);
     fs.appendFileSync(this.#logFile, `${id}: ${msg}\n`);
   }
 
-  /** Append World message to debug.log */
+  /** Append World message to nf.log */
   log(...strs: string[]) {
     const msg = strs.join(' ');
-    this.logForma(this, msg);
+    if (fs.existsSync(this.#worldPath)) {
+      this.logForma(this, msg);
+    } else {
+      // Ignore messages for orphaned worlds.
+      // Tests create orphaned worlds
+    }
+  }
+
+  /** Log messages independent of any world.
+   * Use this sparingly to track pre-world creation events
+   * The nf.log file will be created within the cwd hierarchy
+   * or within the cwd itself if cws has no valid worldPath.
+   */
+  static log(...strs: string[]) {
+    if (World.#lastWorld != null) {
+      // World is normally a singleton except in testing, which needs
+      // creates multiple worlds. Using #lastWorld provides diagnostic
+      // logs for testing.
+      World.#lastWorld.log(...strs);
+      return;
+    }
+
+    // Usecase1: logging before world creation (Production)
+    // Usecase2: logging before first test world creation (Test)
+    const msg = strs.join(' ');
+    const id = UUID64.forSignature(World.NO_WORLD);
+    const worldPath = World.findWorld();
+    const logFile = path.join(worldPath ?? process.cwd(), 'nf.log');
+    fs.appendFileSync(logFile, `${id}: ${msg}\n`);
   }
 
   /**

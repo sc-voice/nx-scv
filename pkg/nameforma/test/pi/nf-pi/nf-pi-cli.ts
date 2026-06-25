@@ -100,18 +100,20 @@ describe('NfExtensionCommand', () => {
 
     it('rejects invalid --lines with error notification', async () => {
       const cmd = new NfExtensionCommand(mockCtx);
-      await expect(cmd.parse('watch --lines invalid')).rejects.toThrow();
+      const result = await cmd.parse('watch --lines invalid');
+      expect(result).toBeDefined();
       expect(notifyMock).toHaveBeenCalledWith(
-        expect.any(String),
+        expect.stringContaining('--lines:invalid'),
         'error',
       );
     });
 
     it('rejects detail outside [0, 1] with error notification', async () => {
       const cmd = new NfExtensionCommand(mockCtx);
-      await expect(cmd.parse('watch --lines 5@1.5')).rejects.toThrow();
+      const result = await cmd.parse('watch --lines 5@1.5');
+      expect(result).toBeDefined();
       expect(notifyMock).toHaveBeenCalledWith(
-        expect.any(String),
+        expect.stringContaining('line detail must be between 0 and 1'),
         'error',
       );
     });
@@ -153,12 +155,15 @@ describe('NfExtensionCommand', () => {
 
       expect(notifyMock).toHaveBeenCalledWith(
         expect.stringContaining('[BOUNDARY] TEST BEGIN'),
+        'info',
       );
       expect(notifyMock).toHaveBeenCalledWith(
         expect.stringContaining('[BOUNDARY] TEST END'),
+        'info',
       );
       expect(notifyMock).toHaveBeenCalledWith(
         expect.stringContaining('default'),
+        'info',
       );
     });
 
@@ -179,8 +184,12 @@ describe('NfExtensionCommand', () => {
   describe('command error handling', () => {
     it('throws on unknown command', async () => {
       const cmd = new NfExtensionCommand(mockCtx);
-      // Unknown command throws CommanderError with exitOverride()
-      await expect(cmd.parse('unknown')).rejects.toThrow();
+      const result = await cmd.parse('unknown');
+      expect(result).toBeDefined();
+      expect(notifyMock).toHaveBeenCalledWith(
+        expect.any(String),
+        'error',
+      );
     });
   });
 });

@@ -116,7 +116,7 @@ export interface ICommand {
  * Separates construction (CLI building) from initialization (World resolution).
  */
 export class NfProgram {
-  private _world?: World;
+  protected _world?: World;
   verbosity: number = 0;
   testRunner: boolean = false;
   debug: boolean = false;
@@ -187,10 +187,12 @@ export class NfProgram {
 
   async parseAsync(args: string[]): Promise<ICommand> {
     const msg = 'n7m.parseAsync';
+    const dbg = DBG.NF_PROGRAM.ANY;
     try {
+      dbg && World.log(msg, args.join(' '));
       return this.cmdDelegate.parseAsync(args);
     } catch (err) {
-      this.world.log(msg, (err as any)?.message);
+      dbg && World.log(msg, (err as any)?.message);
       throw err;
     }
   }
