@@ -58,6 +58,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@sc-voice/vitest": "^4.0.0",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9.17.0"
   },
   "dependencies": {
@@ -68,7 +69,8 @@
     "avro-js": "^1.12.0",
     "bubbly": "^1.1.2",
     "commander": "^12.1.0",
-    "kafkajs": "^2.2.4"
+    "kafkajs": "^2.2.4",
+    "uuid": "^14.0.0"
   },
   "bin": {
     "nameforma": "dist/cli/nf-cli.js",
