@@ -61,7 +61,7 @@
     "eslint": "^9.17.0"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "^0.74.0",
+    "@earendil-works/pi-coding-agent": "^0.80.2",
     "@earendil-works/pi-tui": "^0.74.0",
     "@earendil-works/pi-ai": "^0.74.0",
     "@sc-voice/tools": "*",
