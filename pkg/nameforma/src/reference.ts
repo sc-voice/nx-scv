@@ -1,4 +1,5 @@
 import { Forma, type ListItemStringCfg } from './forma.js';
+import { FormaList, type IEventBus } from './forma-list.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import { NameFormaTheme } from './nameforma-theme.js';

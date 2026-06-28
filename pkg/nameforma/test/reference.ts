@@ -60,7 +60,7 @@ describe('Reference', () => {
     const p2 = ref.patch({
       name: name2,
       summary: summary2,
-      relevance: relevance2,
+      relevance: relevance2+'', // '0.7'
       source: source2,
     });
     expect(ref.name).toBe(name2);

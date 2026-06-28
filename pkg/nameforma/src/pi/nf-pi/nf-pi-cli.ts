@@ -32,12 +32,12 @@ export class NfExtensionCommand extends NfProgram {
     program
       .name('nf')
       //.exitOverride((err:any) => this.exitCallback(err))
-      .description('NameForma pi commands')
+      .description('NameForma CLI for pi-coding-agent')
       .configureOutput({
         writeOut: (str: string) => ctxui.notify(str.trim(), 'info'),
-        writeErr: (str: string) => ctxui.notify(str.trim(), 'error'),
+        writeErr: (str: string) => ctxui.notify("w5r:"+str.trim(), 'error'),
         outputError: (str: string, write: (s: string) => void) => {
-          ctxui.notify(str.trim(), 'error');
+          ctxui.notify("o9r:"+str.trim(), 'error');
         },
       });
 

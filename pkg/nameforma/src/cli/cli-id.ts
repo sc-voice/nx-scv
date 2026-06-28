@@ -1,6 +1,6 @@
 /**
  * ID command handler for nameforma CLI
- * Converts words to numeronym format (e.g., FormaList -> F7t)
+ * Converts words to numeronym format (e.g., NameForma -> n7a)
  * Generates UUID64 identifiers
  * Validates ID types
  */

@@ -3,6 +3,8 @@ import { Forma } from './forma.js';
 import { Entity } from './entity.js';
 import { FuzzyNamespace, type IMutableNamespace } from './fuzzy-namespace.js';
 
+type Constructor<T> = new (...args: any[]) => T;
+
 /**
  * NavigableView provides session context for a view.
  * Since a Navigable may comprise multiple namespaces, it must
@@ -143,6 +145,13 @@ export class ViewNamespace implements IMutableNamespace {
     }
 
     throw new Error(`${msg} unknown failure`);
+  }
+
+  *findByClass<T extends Forma, C extends Constructor<T>>(
+    targetClass: C,
+    filter: (element: T) => boolean = (() => true)
+  ): Generator<InstanceType<C>> {
+    return this.getMerged().findByClass(targetClass, filter);
   }
 
   /** addForma is ambiguous in a ViewNamespace.  Client should mutate

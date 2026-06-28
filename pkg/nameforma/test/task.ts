@@ -187,13 +187,18 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '===================');
 
     const t2k = new Task({ name: 'test task' });
+    const ns = t2k.namespace;
     const mockBus = { emit: () => {}, on: () => {} };
     const actions = t2k.actions(mockBus);
 
     // Build up actions array via FormaList
-    const action1 = actions.addItem(new Action({ status: 'todo' }));
-    const action2 = actions.addItem(new Action({ status: 'done' }));
+    const a1 = actions.addItem(new Action({ status: 'todo' }));
+    const a2 = actions.addItem(new Action({ status: 'done' }));
     dbg > 1 && cc.tag(msg, 'added initial actions');
+    const actions2 = [...ns.findByClass(Action)];
+    expect(actions2.length).toBe(2);
+    expect(actions2[0]).toBe(a1);
+    expect(actions2[1]).toBe(a2);
 
     // Verify actions.items and rawActions are same array reference
     expect(actions.items).toBe(t2k.rawActions);
@@ -201,10 +206,10 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'wrapped same array reference');
 
     // Add another action via FormaList
-    const action3 = actions.addItem(new Action({ status: 'in-progress' }));
-    expect(action3 instanceof Action).toBe(true);
+    const a3 = actions.addItem(new Action({ status: 'in-progress' }));
+    expect(a3 instanceof Action).toBe(true);
     expect(t2k.rawActions).toHaveLength(3);
-    expect(t2k.rawActions[2]).toBe(action3);
+    expect(t2k.rawActions[2]).toBe(a3);
     expect(t2k.rawActions[2] instanceof Action).toBe(true);
     dbg > 1 &&
       cc.tag(
@@ -213,12 +218,16 @@ describe('task', () => {
       );
 
     // Delete action via FormaList ID
-    actions.deleteItem(action2.id.base64);
+    actions.deleteItem(a2.id.base64);
     expect(t2k.rawActions).toHaveLength(2);
-    expect(t2k.rawActions[0]).toBe(action1);
-    expect(t2k.rawActions[1]).toBe(action3);
+    expect(t2k.rawActions[0]).toBe(a1);
+    expect(t2k.rawActions[1]).toBe(a3);
     expect(t2k.rawActions[0] instanceof Action).toBe(true);
     expect(t2k.rawActions[1] instanceof Action).toBe(true);
+    const actions4 = [...ns.findByClass(Action)];
+    expect(actions4.length).toBe(2);
+    expect(actions4[0]).toBe(a1);
+    expect(actions4[1]).toBe(a3);
     dbg &&
       cc.tag1(
         msg + UOK,
@@ -349,6 +358,10 @@ describe('task', () => {
     expect(t2k.rawReferences[1]).toBe(ref2);
     expect(t2k.rawReferences[0] instanceof Reference).toBe(true);
     expect(t2k.rawReferences[1] instanceof Reference).toBe(true);
+    const references2 = [...t2k.namespace.findByClass(Reference)];
+    expect(references2.length).toBe(2);
+    expect(references2[0]).toBe(ref1);
+    expect(references2[1]).toBe(ref2);
     dbg &&
       cc.tag1(
         msg + UOK,
@@ -576,5 +589,32 @@ describe('task', () => {
 
     dbg &&
       cc.tag1(msg + UOK, 'namespace fuzzy IDs update correctly on delete');
+  });
+
+  it('Task.findByClass yields actions then references sorted by relevance', () => {
+    const msg = 't2k.findByClass';
+    const t1 = new Task({ name: 'test task' });
+    const bus = { emit: () => {}, on: () => {} } as any;
+
+    const actionsList = t1.actions(bus);
+    const action1 = actionsList.addItem(new Action({ name: 'action1', status: 'req' }));
+    const action2 = actionsList.addItem(new Action({ name: 'action2', status: 'spec' }));
+
+    const refsList = t1.references(bus);
+    const ref1 = refsList.addItem(new Reference({ name: 'ref1', relevance: 0.5 }));
+    const ref2 = refsList.addItem(new Reference({ name: 'ref2', relevance: 0.9 }));
+    const ref3 = refsList.addItem(new Reference({ name: 'ref3', relevance: 0.1 }));
+
+    const formas = [...t1.findByClass(Forma)];
+
+    // Should yield actions first (action1, action2), then references sorted by relevance descending
+    expect(formas).toHaveLength(5);
+    expect(formas[0]).toBe(action1);
+    expect(formas[1]).toBe(action2);
+    expect(formas[2]).toBe(ref2); // relevance 0.9 (highest)
+    expect(formas[3]).toBe(ref1); // relevance 0.5
+    expect(formas[4]).toBe(ref3); // relevance 0.1 (lowest)
+
+    dbg && cc.tag1(msg + UOK, 'actions then references by relevance');
   });
 });

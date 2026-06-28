@@ -194,6 +194,8 @@ export class NfCLI extends NfProgram {
     const nfCli = this;
 
     program
+      .name('nf')
+      .description('Nameforma CLI for shell')
       .addHelpText('after', '\n' + helpText)
       .configureOutput({
         writeOut: (str) => nfTui.log(str.trim()),

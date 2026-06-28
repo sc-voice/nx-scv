@@ -12,7 +12,7 @@ import {
 import { Task } from './task.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Identifiable } from './identifiable.js';
-import { Forma } from './forma.js';
+import { Forma, type Constructor } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { User } from './user.js';
 import { GitCLI } from './git-cli.js';
@@ -726,35 +726,6 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * List all entities of a given type
-   * @param {string} entityType - Entity type (e.g., 'task')
-   * @returns {object[]} - Array of parsed entities
-   * @deprecated (see entityList)
-   */
-  list(entityType: string): any[] {
-    const msg = 'world.list';
-    const dbg = WORLD?.LIST;
-
-    const entityDir = path.join(this.#worldPath, entityType);
-    if (!fs.existsSync(entityDir)) {
-      dbg && cc.ok1(msg, `no entities for ${entityType}`);
-      return [];
-    }
-
-    const files = fs
-      .readdirSync(entityDir)
-      .filter((f) => f.endsWith('.json'));
-    const entities = files.map((file) => {
-      const filePath = path.join(entityDir, file);
-      const data = fs.readFileSync(filePath, 'utf8');
-      return JSON.parse(data);
-    });
-
-    dbg && cc.ok1(msg, `listed ${entities.length} ${entityType}(s)`);
-    return entities;
-  }
-
-  /**
    * @deprecated
    * Load entities of a given type as a FormaList for CRUD operations
    * Reconstructs entity.id as UUID64 POJO and returns typed FormaList
@@ -1139,8 +1110,8 @@ export class World extends Entity implements IEventBus {
     return world;
   }
 
-  get entityComparator(): (a:Entity,b:Entity)=>number {
-    return (a:Entity, b:Entity): number => {
+  get entityComparator(): (a:Forma,b:Forma)=>number {
+    return (a:Forma, b:Forma): number => {
       const fm = this.#focusManager;
       const cmp = fm.focusOrder(a.id) - fm.focusOrder(b.id);
       return cmp || b.id.compare(a.id);
@@ -1204,5 +1175,20 @@ export class World extends Entity implements IEventBus {
 
     return buf.getRenderData();
   } // renderDataAtZeno
+
+ /** Find all Entities matching the query in this Task's namespace.
+   * @param targetClass Task or other Entity
+   * @param filter optional boolean filter callback
+   * @returns Iterable<Forma> of matching items in this Task's namespace
+   */
+  override *findByClass<T extends Forma, C extends Constructor<T>>(
+    targetClass: C,
+    filter?: (element:T) => boolean,
+  ): Generator<InstanceType<C>> {
+    const resolvedFilter = filter ?? (() => true);
+    const items = [...this.namespace.findByClass(targetClass, resolvedFilter)]
+      .sort(this.entityComparator);
+    yield* items;
+  }
 
 } // World

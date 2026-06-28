@@ -1,4 +1,4 @@
-import { Forma } from './forma.js';
+import { Forma, type Constructor } from './forma.js';
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 
@@ -25,6 +25,11 @@ export interface IReadOnlyNamespace {
    * @returns The computed FuzzyId
    */
   fuzzyIdOf(forma: Forma): FuzzyId;
+
+  findByClass<T extends Forma, C extends Constructor<T>>(
+    targetClass: C,
+    filter?: (element: T) => boolean
+  ): Generator<InstanceType<C>>;
 }
 
 /**
@@ -243,5 +248,17 @@ export class FuzzyNamespace implements IMutableNamespace {
         return { done: true, value: undefined };
       },
     };
+  }
+
+  *findByClass<T extends Forma, C extends Constructor<T>>(
+    targetClass: C,
+    filter?: (element:T) => boolean,
+  ): Generator<InstanceType<C>> {
+    const resolvedFilter = filter ?? (() => true);
+    for (const item of this.#formas) {
+      if (item instanceof (targetClass as Function) && resolvedFilter(item as T)) {
+        yield item as InstanceType<C>;
+      }
+    }
   }
 }

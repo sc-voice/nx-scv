@@ -3,6 +3,16 @@
   "id": "0PwZJIYH00AupXghcHXgtW",
   "name": "chocolate cake",
   "summary": "a sweet dessert normally served with hot beverages to guests",
-  "rawActions": [],
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0Py3bzT000AupXghcHXgtW",
+      "name": "Research FormaList usage and implementation",
+      "summary": "Analyze current codebase to understand how FormaList is implemented and where it is utilized in the project.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-06-26T11:01:50.528Z"
+    }
+  ],
   "rawReferences": []
 }

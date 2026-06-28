@@ -1,0 +1,8 @@
+{
+  "forma": "Task",
+  "id": "0Py3byfp00FdaqBMwS0g7W",
+  "name": "Evaluate FormaList vs. Forma Generator",
+  "summary": "Examine the utility of the existing `FormaList` class to determine if a \"Forma generator\" abstraction would be more effective for managing and creating Formas within the system.",
+  "rawActions": [],
+  "rawReferences": []
+}

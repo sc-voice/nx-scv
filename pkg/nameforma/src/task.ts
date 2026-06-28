@@ -1,6 +1,6 @@
 import { DBG } from './defines.js';
 import { Entity } from './entity.js';
-import { Forma, type ListItemStringCfg } from './forma.js';
+import { Forma, type ListItemStringCfg, type Constructor } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Schema, type AvroType } from './schema.js';
@@ -310,5 +310,30 @@ export class Task extends Entity {
     }
     return buf.getRenderData();
   } // renderDataAtZeno
+
+  /**
+   * Find all Formas matching the query in this Task's namespace.
+   * Yields actions first, then references sorted by relevance (descending).
+   * @param targetClass Forma, Action or Reference
+   * @param filter optional boolean filter callback
+   * @returns Iterable<Forma> of matching items in this Task's namespace
+   */
+  override *findByClass<T extends Forma, C extends Constructor<T>>(
+    targetClass: C,
+    filter?: (element:T) => boolean,
+  ): Generator<InstanceType<C>> {
+    const resolvedFilter = filter ?? (() => true);
+    if (this.rawActions[0] instanceof targetClass) {
+      for (const action of this.rawActions) {
+        yield action as unknown as InstanceType<C>;
+      }
+    }
+    if (this.rawReferences[0] instanceof targetClass) {
+      const sortedReferences = [...this.rawReferences].sort((a, b) => b.relevance - a.relevance);
+      for (const ref of sortedReferences) {
+        yield ref as unknown as InstanceType<C>;
+      }
+    }
+  }
 
 } // Task

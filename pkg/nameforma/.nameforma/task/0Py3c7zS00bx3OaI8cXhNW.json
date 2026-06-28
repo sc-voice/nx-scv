@@ -1,0 +1,49 @@
+{
+  "forma": "Task",
+  "id": "0Py3c7zS00bx3OaI8cXhNW",
+  "name": "Research: FormaList utility evaluation",
+  "summary": "A dedicated task to track the research efforts for evaluating whether a Forma generator is a better abstraction than the current FormaList class.",
+  "rawActions": [],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0Py3cX4h00bx3OaI8cXhNW",
+      "name": "src/forma-list.ts implementation",
+      "summary": "The core implementation of the FormaList class.",
+      "relevance": 1,
+      "source": "src/forma-list.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Py3cZaY00bx3OaI8cXhNW",
+      "name": "src/cli/tui-list.ts usage of FormaList",
+      "summary": "Usage of FormaList in the TUI list component.",
+      "relevance": 0.5,
+      "source": "src/cli/tui-list.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Py3caCd00bx3OaI8cXhNW",
+      "name": "src/unstable.ts usage of FormaList",
+      "summary": "Re-exporting FormaList from unstable.ts.",
+      "relevance": 0.5,
+      "source": "src/unstable.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Py3cbS200bx3OaI8cXhNW",
+      "name": "src/world.ts usage of FormaList",
+      "summary": "Usage of FormaList in the World class for managing entities.",
+      "relevance": 1,
+      "source": "src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Py3cc4S00bx3OaI8cXhNW",
+      "name": "src/task.ts usage of FormaList",
+      "summary": "Usage of FormaList in the Task class for managing actions and references.",
+      "relevance": 0.5,
+      "source": "src/task.ts"
+    }
+  ]
+}

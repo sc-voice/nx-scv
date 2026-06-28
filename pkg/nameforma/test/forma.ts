@@ -190,4 +190,5 @@ describe('Forma', () => {
     expect(ClassB.register()).toBe('CLASSB' + ClassB.avroSchema);
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
+
 });

@@ -440,37 +440,6 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
   });
 
-  describe('list()', () => {
-    it('should return empty array if entity type not found', () => {
-      const entities = world.list('task');
-      expect(entities).toEqual([]);
-    });
-
-    it('should list all entities of a type', () => {
-      const f7t = world.entityList(Task);
-      f7t.addItem(new Task({ name: 'entity1' }));
-      f7t.addItem(new Task({ name: 'entity2' }));
-      f7t.addItem(new Task({ name: 'entity3' }));
-
-      const entities = world.list('task');
-      expect(entities.length).toBe(3);
-      expect(entities.map((e) => e.name).sort()).toEqual([
-        'entity1',
-        'entity2',
-        'entity3',
-      ]);
-    });
-
-    it('should return parsed JSON objects', () => {
-      const f7t = world.entityList(Task);
-      f7t.addItem(new Task({ name: 'test-entity' }));
-
-      const entities = world.list('task');
-      expect(entities[0].name).toBe('test-entity');
-      expect(entities[0].id).toBeDefined();
-    });
-  });
-
   describe('delete()', () => {
     it('should delete entity file from disk', () => {
       const f7t = world.entityList(Task);
@@ -489,62 +458,12 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
     it('should not affect other entities', () => {
       const f7t = world.entityList(Task);
-      const e1 = f7t.addItem(new Task({ name: 'keep' }));
-      const e2 = f7t.addItem(new Task({ name: 'delete' }));
+      const t1 = f7t.addItem(new Task({ name: 'keep' }));
+      const t2 = f7t.addItem(new Task({ name: 'delete' }));
 
-      world.delete('task', e2.id.toString());
+      world.delete('task', t2.id.toString());
 
-      const entities = world.list('task');
-      expect(entities.length).toBe(1);
-      expect(entities[0].name).toBe('keep');
-    });
-  });
-
-  describe('entityList()', () => {
-    it('should return empty FormaList if entity type not found', () => {
-      const list = world.entityList(Task);
-      expect(list.size).toBe(0);
-    });
-
-    it('should return FormaList with typed entities after saves', () => {
-      const list = world.entityList(Task);
-      list.addItem(new Task({ name: 'entity1' }));
-      list.addItem(new Task({ name: 'entity2' }));
-      list.addItem(new Task({ name: 'entity3' }));
-      expect(list.size).toBe(3);
-
-      const names = Array.from(list)
-        .map((e) => e.name)
-        .sort();
-      expect(names).toEqual(['entity1', 'entity2', 'entity3']);
-    });
-
-    it('should return entities with UUID64 POJO ids', () => {
-      const list = world.entityList(Task);
-      list.addItem(new Task({ name: 'test-entity' }));
-      expect(list.size).toBe(1);
-
-      const items = Array.from(list);
-      expect(items[0].name).toBe('test-entity');
-      expect(items[0].id).toBeDefined();
-      expect(items[0].id.base64).toBeDefined();
-    });
-
-    it('should return FormaList that is iterable', () => {
-      const list = world.entityList(Task);
-      list.addItem(new Task({ name: 'first' }));
-      list.addItem(new Task({ name: 'second' }));
-      const collected: Task[] = [];
-
-      for (const entity of list) {
-        collected.push(entity);
-      }
-
-      expect(collected.length).toBe(2);
-      expect(collected.map((e) => e.name).sort()).toEqual([
-        'first',
-        'second',
-      ]);
+      expect([...world.findByClass(Task)]).toEqual([t1]);
     });
   });
 });
@@ -1140,22 +1059,22 @@ describe('World — validate()', () => {
 
   it('returns true when all focused entities exist on disk', () => {
     const world = World.fromPath(worldPath);
-    const e1 = world.entityList(Task).addItem(new Task({ name: 'e1' }));
-    world.focusManager.focus(e1.id);
+    const t1 = world.entityList(Task).addItem(new Task({ name: 't1' }));
+    world.focusManager.focus(t1.id);
     expect(world.validate()).toBe(true);
   });
 
   it('removes stale focus entry and returns false', () => {
     const world = World.fromPath(worldPath);
-    const e1 = world.entityList(Task).addItem(new Task({ name: 'e1' }));
-    const e2 = world.entityList(Task).addItem(new Task({ name: 'e2' }));
-    const e3 = world.entityList(Task).addItem(new Task({ name: 'e3' }));
-    world.focusManager.focus(e1.id);
-    world.focusManager.focus(e2.id);
-    world.focusManager.focus(e3.id);
+    const t1 = world.entityList(Task).addItem(new Task({ name: 't1' }));
+    const t2 = world.entityList(Task).addItem(new Task({ name: 't2' }));
+    const t3 = world.entityList(Task).addItem(new Task({ name: 't3' }));
+    world.focusManager.focus(t1.id);
+    world.focusManager.focus(t2.id);
+    world.focusManager.focus(t3.id);
     expect(world.focusManager.size).toBe(3);
 
-    fs.unlinkSync(path.join(worldPath, 'task', `${e2.id.base64}.json`));
+    fs.unlinkSync(path.join(worldPath, 'task', `${t2.id.base64}.json`));
 
     expect(world.validate()).toBe(false);
     expect(world.focusManager.size).toBe(2);
@@ -1163,11 +1082,48 @@ describe('World — validate()', () => {
 
   it('returns true on second validate after stale entry removed', () => {
     const world = World.fromPath(worldPath);
-    const e1 = world.entityList(Task).addItem(new Task({ name: 'e1' }));
-    world.focusManager.focus(e1.id);
-    fs.unlinkSync(path.join(worldPath, 'task', `${e1.id.base64}.json`));
+    const t1 = world.entityList(Task).addItem(new Task({ name: 't1' }));
+    world.focusManager.focus(t1.id);
+    fs.unlinkSync(path.join(worldPath, 'task', `${t1.id.base64}.json`));
     expect(world.validate()).toBe(false);
     expect(world.validate()).toBe(true);
+  });
+});
+
+describe('findByClass()', () => {
+  let tempDir: string;
+  let worldPath: string;
+
+  beforeEach(() => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-findByClass-'));
+    worldPath = path.join(tempDir, '.nameforma');
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('respects focus order in entityComparator', () => {
+    const world = World.fromPath(worldPath);
+
+    // no tasks
+    expect([...world.findByClass(Task)]).toEqual([]);
+
+    // unfocused tasks are sorted by recency of creation
+    const t1 = world.entityList(Task).addItem(new Task({ name: 'task1' }));
+    expect([...world.findByClass(Task)]).toEqual([t1]);
+    const t2 = world.entityList(Task).addItem(new Task({ name: 'task2' }));
+    expect([...world.findByClass(Task)]).toEqual([t2,t1]);
+    const t3 = world.entityList(Task).addItem(new Task({ name: 'task3' }));
+    expect([...world.findByClass(Task)]).toEqual([t3,t2,t1]);
+    const t4 = world.entityList(Task).addItem(new Task({ name: 'task4' }));
+    expect([...world.findByClass(Task)]).toEqual([t4,t3,t2,t1]);
+
+    // focused tasks come first sorted by recency of focus
+    world.focusManager.focus(t2.id);
+    expect([...world.findByClass(Task)]).toEqual([t2,t4,t3,t1]);
+    world.focusManager.focus(t3.id);
+    expect([...world.findByClass(Task)]).toEqual([t3,t2,t4,t1]);
   });
 
 });

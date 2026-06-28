@@ -1,6 +1,6 @@
 import { Action } from './action.js';
 import { Entity } from './entity.js';
-import { Forma } from './forma.js';
+import { Forma, type Constructor } from './forma.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import UUID64 from './uuid64.js';
@@ -19,14 +19,15 @@ export {
   Entity,
   Forma,
   Identifiable,
+  NfProgram,
   Rational,
   Reference,
+  RenderDetail,
   Schema,
   Task,
   User,
   UUID64,
-  RenderDetail,
   World,
   ZenoCoord,
-  NfProgram,
 };
+export type { Constructor };

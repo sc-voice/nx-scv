@@ -30,9 +30,11 @@ describe('FuzzyNamespace', () => {
       ns.addForma(forma1);
       ns.addForma(forma2);
       ns.addForma(forma3);
-      expect(ns.getForma(forma1.id.base64)).toBe(forma1);
-      expect(ns.getForma(forma2.id.base64)).toBe(forma2);
-      expect(ns.getForma(forma3.id.base64)).toBe(forma3);
+      const formas = [...ns.findByClass(Forma)];
+      expect(formas[0]).toBe(forma1);
+      expect(formas[1]).toBe(forma2);
+      expect(formas[2]).toBe(forma3);
+      expect(formas.length).toBe(3);
     });
   });
 

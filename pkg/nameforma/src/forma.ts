@@ -18,6 +18,9 @@ import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import type { AvroType } from './schema.js';
 
+export type Constructor<T> = new (...args: any[]) => T;
+
+
 const { cc } = ColorConsole;
 const UOK = Unicode.CHECKMARK;
 const UNA = Unicode.EMPTY_SET;
@@ -77,7 +80,6 @@ export class LevenshteinMatcher<T extends Forma> {
     );
     return 1 - normalizedDistance;
   }
-
   /**
    * Compare two items by similarity (descending: b - a)
    * @param a - First item
@@ -224,16 +226,19 @@ export class Forma extends Identifiable implements IRenderable {
     return true;
   }
 
-  /** Return valid number or undefined
+  /** Return valid number or undefined. Handles string or number values.
    * @param update -  Object with new field values
    * @param key - field with new number value
    * @param min - Minimum value
    * @param max - Maximum value
    */
   patchableNumber(update:any, key:string, min:number, max:number): number | undefined {
-    const value = update[key];
+    let value = update[key];
     if (value == null) {
       return undefined;
+    }
+    if (typeof value === 'string') {
+      value = Number.parseFloat(value);
     }
     if (typeof value !== 'number' || Number.isNaN(value)) {
       throw new Error(`Expected a number for ${key}:${value}?`);

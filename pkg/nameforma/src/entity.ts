@@ -1,4 +1,4 @@
-import { Forma } from './forma.js';
+import { Forma, type Constructor } from './forma.js';
 import {
   FuzzyNamespace,
   type IReadOnlyNamespace,
@@ -37,7 +37,7 @@ export abstract class Entity extends Forma implements IRegistry {
   protected abstract populateNamespace(): void;
 
   /**
-   * Get the mutable namespace for subclass use (e.g., FormaList operations)
+   * Get the mutable namespace for subclass use.
    * Lazy initialization: creates namespace and populates on first access
    */
   get mutableNamespace(): IMutableNamespace {
@@ -46,6 +46,25 @@ export abstract class Entity extends Forma implements IRegistry {
       this.populateNamespace();
     }
     return this.#namespace;
+  }
+
+  /**
+   * Find all Formas matching the query in this Entity's namespace.
+   * Yields actions first, then references sorted by relevance (descending).
+   * Concrete classes usually override this method:
+   * - if they comprise multiple Forma classes
+   * - if the default ordering differs from recency of creation
+   * 
+   * @param targetClass Forma, Action or Reference
+   * @param filter optional boolean filter callback
+   * @returns Iterable<Forma> of matching items in this Task's namespace
+   */
+  *findByClass<T extends Forma, C extends Constructor<T>>(
+    targetClass: C,
+    filter?: (element:T) => boolean,
+  ): Generator<InstanceType<C>> {
+    const resolvedFilter = filter ?? (() => true);
+    return this.namespace.findByClass(targetClass, resolvedFilter);
   }
 
   /**

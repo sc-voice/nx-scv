@@ -7,7 +7,6 @@ import { NameFormaTheme } from './nameforma-theme.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
-import { FormaList, type IEventBus } from './forma-list.js';
 import {
   RenderData,
   RenderRow,
@@ -37,14 +36,11 @@ export class Plan extends Entity {
   /**
    * Create a new Plan instance.
    *
-   * @param cfg Configuration object with optional:
-   *   - `id`: UUID64 for deserialized tasks (auto-generated if omitted)
-   *   - `name`: Plan name (inherited from Entity)
-   *   - `actions`: Array of action configs (auto-constructed via FormaList)
+   * @param cfg Configuration object with optional overrides for defaults:
    *
    * Calls put() to initialize all fields from cfg.
    */
-  constructor(cfg: any = {}) {
+  constructor(cfg: Partial<Plan> = {}) {
     const msg = 'p2n.ctor';
     const dbg = DBG.PLAN.ANY;
     super({ id: cfg.id });
