@@ -120,54 +120,30 @@ export class FormaList<T extends Forma> {
 
   /**
    * Add new item to list
-   * @param item - Item instance
+   * @param item - Item instance or POJO config
    * @returns New item
    */
-  addItem(item: T): T {
-    const msg = 'FormaList.addItem:';
+  addItem(item: any): T {
+    const $parentId = Entity.parentIdFor(this.parent, this.#ItemClass);
+    const typedItem: T = item instanceof this.#ItemClass
+      ? item
+      : new (this.#ItemClass as any)({ ...item, $parentId});
 
-    // Handle both instances and plain objects for backward compatibility
-    let actualItem = item;
-    let isConstructed = false;
-
-    if (!(item instanceof this.#ItemClass) && typeof item === 'object' && item != null) {
-      // Before constructing, ensure parent-child ID relationship for POJOs
-      if (this.parent && !(this.#ItemClass.prototype instanceof Entity)) {
-        if ((item as any).id == null) {
-          (item as any).id = UUID64.createRelatedId(this.parent.id);
-        }
-        if (!this.parent.id.isRelated((item as any).id)) {
-          throw new Error(`${msg} cannot add unrelated item:${(item as any).id}`);
-        }
-      }
-
-      actualItem = new (this.#ItemClass as any)(item) as T;
-      isConstructed = true;
-    }
-
-    // Enforce parent-child ID relationships for instances passed directly
-    if (!isConstructed && this.parent && !(this.#ItemClass.prototype instanceof Entity)) {
-      // Generate related ID if not present or if unrelated
-      if ((actualItem as any).id == null || !this.parent.id.isRelated((actualItem as any).id)) {
-        (actualItem as any).id = UUID64.createRelatedId(this.parent.id);
-      }
-    }
-
-    this.items.push(actualItem);
+    this.items.push(typedItem);
     this.#invalidateCache();
-    this.#namespace?.addForma(actualItem);
+    this.#namespace?.addForma(typedItem);
 
     if (this.#emitter) {
-      const { entity } = this.#computeEntityInfo(actualItem);
+      const { entity } = this.#computeEntityInfo(typedItem);
       this.#emitter.emit('change', {
         type: 'add',
-        item: actualItem,
+        item: typedItem,
         cfg: item,
         entity,
       } as FormaListEvent<T>);
     }
 
-    return actualItem;
+    return typedItem;
   }
 
   /**

@@ -117,9 +117,8 @@ export class Forma extends Identifiable implements IRenderable {
   constructor(cfg: any = {}) {
     const msg = 'f3a.ctor';
     const dbg = (F3A as any).CTOR;
-    const { id } = cfg;
-    // Identifiable constructor handles string-to-UUID64 conversion
-    super(id);
+    // Identifiable constructor handles id, $parentId, and id generation
+    super(cfg);
 
     const prefix = this.#defaultPrefix();
     let instances = Forma.#instances[prefix] || 0;

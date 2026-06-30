@@ -1,3 +1,4 @@
+import UUID64 from './uuid64.js';
 import { Forma, type Constructor } from './forma.js';
 import {
   FuzzyNamespace,
@@ -12,6 +13,27 @@ import { IRegistry } from './registry.js';
  */
 export abstract class Entity extends Forma implements IRegistry {
   #namespace?: FuzzyNamespace;
+
+  /**
+   * Entity ids are mutually independent and unrelated to one another.
+   * In contrast, when an Entity itself contains non-Entity Formas, 
+   * the non-Entity Forma ids are always related to the id
+   * of their parent Entity by the UUID64 signature.
+   * Linking parent/child id signatures provides a pragmatic way 
+   * to locate the parent of a non-Entity Forma in any namespace that 
+   * includes that parent. Parent collisions are highly unlikely and are
+   * resolvable by examining the colliding entities.
+   * 
+   * @param parent - Parent entity or null
+   * @param ItemClass - Child item class to check
+   * @returns Parent ID if child should be related to parent, undefined otherwise
+   */
+  static parentIdFor(parent: Entity | null, ItemClass: typeof Forma): UUID64 | undefined {
+    if (parent && !(ItemClass.prototype instanceof Entity)) {
+      return parent.id;
+    }
+    return undefined;
+  }
 
   constructor(cfg: any = {}) {
     const msg = 'entity.ctor';

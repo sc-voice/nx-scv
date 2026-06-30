@@ -191,4 +191,71 @@ describe('Forma', () => {
     dbg && cc.ok1(msg + UOK, 'ClassB:', ClassB.register());
   });
 
+  it('$parentId generates child with parent signature', () => {
+    const msg = 'tf3a.$parentId';
+
+    // Parent forma
+    const parent = new Forma({ name: 'parent' });
+    const parentSig = parent.id.getSignature();
+
+    // Child forma with $parentId
+    const child = new Forma({ $parentId: parent.id, name: 'child' });
+    const childSig = child.id.getSignature();
+
+    expect(childSig).toBe(parentSig);
+    expect(parent.id.isRelated(child.id)).toBe(true);
+    dbg && cc.ok1(msg + UOK, 'child signature matches parent');
+  });
+
+  it('$parentId with explicit id validates signature', () => {
+    const msg = 'tf3a.$parentId.explicit';
+
+    const parent = new Forma({ name: 'parent' });
+    const relatedId = UUID64.createRelatedId(parent.id);
+
+    // Create child with explicit related id and $parentId
+    const child = new Forma({
+      id: relatedId,
+      $parentId: parent.id,
+      name: 'child'
+    });
+
+    expect(child.id.getSignature()).toBe(parent.id.getSignature());
+    dbg && cc.ok1(msg + UOK, 'explicit related id validated');
+  });
+
+  it('$parentId throws on signature mismatch', () => {
+    const msg = 'tf3a.$parentId.mismatch';
+
+    const parent1 = new Forma({ name: 'parent1' });
+    const parent2 = new Forma({ name: 'parent2' });
+    const unrelatedId = new UUID64();
+
+    expect(() => {
+      new Forma({
+        id: unrelatedId,
+        $parentId: parent1.id,
+        name: 'child'
+      });
+    }).toThrow(/signature mismatch/);
+
+    dbg && cc.ok1(msg + UOK, 'signature mismatch detected');
+  });
+
+  it('$parentId with string parent id', () => {
+    const msg = 'tf3a.$parentId.string';
+
+    const parent = new Forma({ name: 'parent' });
+    const parentIdStr = parent.id.base64;
+
+    // Use string parent id
+    const child = new Forma({
+      $parentId: parentIdStr,
+      name: 'child'
+    });
+
+    expect(child.id.getSignature()).toBe(parent.id.getSignature());
+    dbg && cc.ok1(msg + UOK, 'string parent id works');
+  });
+
 });

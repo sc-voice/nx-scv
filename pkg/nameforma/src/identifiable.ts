@@ -27,11 +27,21 @@ const { cc } = ColorConsole;
 export type FuzzyId = string;
 
 /**
+ * IdentifiableConfig - Configuration for Identifiable constructor
+ */
+export interface IdentifiableConfig {
+  id?: UUID64 | string;
+  $parentId?: UUID64 | string;
+  uuidv7?: Buffer;
+}
+
+/**
  * Identifiable - Base class for entities with UUID64 ids
  *
  * ## Overview
  * - Provides UUID64 generation and validation
  * - Immutable readonly `id` property
+ * - Supports parent-child id relationships via $parentId
  * - Static methods: `uuid()`, `uuidToTime()`, `fromString()`, `validate()`
  *
  * ## Class Hierarchy
@@ -56,6 +66,8 @@ export type FuzzyId = string;
  *    - fromString(id): Validates untrusted strings (from JSON/files)
  *      Uses UUID64.fromString(id) to reconstruct validated UUID64
  *      Throws Error if validation fails
+ *    - $parentId: Creates child id with parent's signature via UUID64.createRelatedId()
+ *      Enables parent-child relationships encoded in id structure
  *
  * 3. TYPE SAFETY:
  *    - Constructor requires UUID64 instance (branded at runtime)
@@ -74,33 +86,56 @@ export class Identifiable {
   readonly id: UUID64;
 
   /**
-   * Constructor accepts UUID64 instance, string, Avro deserialized buffer, or default new UUID64.
-   * @param cfg - UUID64 instance, OPB64/UUID string, Avro record with uuidv7 Buffer, or undefined (generates new)
-   * @throws Error if cfg is invalid type
-   *
-   * Handles three input modes:
-   * 1. String (OPB64 or UUID): Validated via UUID64.fromString()
-   * 2. UUID64 instance: Used directly (trusted)
-   * 3. Avro deserialized record: Reconstructed from uuidv7 Buffer
+   * Constructor accepts config with id and optional $parentId.
+   * @param cfg - Configuration object with optional id, $parentId, uuidv7
+   *   - id: UUID64 instance or OPB64/UUID string (uses existing id)
+   *   - $parentId: UUID64 instance or string (creates child id with parent signature)
+   *   - uuidv7: Buffer from Avro deserialization
+   *   - If none provided: generates new UUID64
+   * @throws Error if $parentId signature doesn't match resulting id
    */
-  constructor(cfg: UUID64 | string | any = new UUID64()) {
+  constructor(cfg: IdentifiableConfig = {}) {
+    const { id, $parentId, uuidv7 } = cfg;
     let uuid64Id: UUID64;
 
-    if (typeof cfg === 'string') {
-      // String input: validate and reconstruct from OPB64 or UUID format
-      uuid64Id = UUID64.fromString(cfg);
-    } else if (cfg instanceof UUID64) {
-      // UUID64 instance: use directly
-      uuid64Id = cfg;
-    } else if (
-      cfg &&
-      typeof cfg === 'object' &&
-      (cfg as any).uuidv7 instanceof Buffer
-    ) {
-      // Avro deserialized UUID64 record: has uuidv7 Buffer but isn't our UUID64 class
-      uuid64Id = UUID64.fromBuffer((cfg as any).uuidv7);
+    if (uuidv7 instanceof Buffer) {
+      // Avro deserialized UUID64 record
+      uuid64Id = UUID64.fromBuffer(uuidv7);
+    } else if (id) {
+      // Use provided id (UUID64 instance, string, or Buffer)
+      if (typeof id === 'string') {
+        uuid64Id = UUID64.fromString(id);
+      } else if (id instanceof UUID64) {
+        uuid64Id = id;
+      } else if ((id as any) instanceof Buffer) {
+        uuid64Id = UUID64.fromBuffer(id as Buffer);
+      } else if ((id as any).uuidv7 instanceof Buffer) {
+        // Avro deserialized UUID64: { uuidv7: Buffer }
+        uuid64Id = UUID64.fromBuffer((id as any).uuidv7);
+      } else {
+        throw new Error(`Identifiable: invalid id type`);
+      }
+    } else if ($parentId) {
+      // Create child id with parent's signature
+      const parent = typeof $parentId === 'string'
+        ? UUID64.fromString($parentId)
+        : $parentId;
+      uuid64Id = UUID64.createRelatedId(parent);
     } else {
-      throw new Error(`Identifiable constructor: invalid cfg type`);
+      // Generate new independent id
+      uuid64Id = new UUID64();
+    }
+
+    // Validate parent relationship if provided
+    if ($parentId) {
+      const parent = typeof $parentId === 'string'
+        ? UUID64.fromString($parentId)
+        : $parentId;
+      if (uuid64Id.getSignature() !== parent.getSignature()) {
+        throw new Error(
+          `Identifiable: $parentId signature mismatch (${uuid64Id.getSignature()} vs ${parent.getSignature()})`
+        );
+      }
     }
 
     this.forma = this.constructor.name;
