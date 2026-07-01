@@ -1,0 +1,52 @@
+{
+  "forma": "Task",
+  "id": "0PyQ47gA00Hc3Haqqb9XdW",
+  "name": "Add task CRUD to World",
+  "summary": "Align World to mongodb CRUD methods so that we can depreacate FormaList",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PyTaVDe00Hc3Haqqb9XdW",
+      "name": "Implement insertOne() method",
+      "summary": "`insertOne<T extends Forma, C extends Constructor<T>>(targetClass: C, cfg: any): InstanceType<C>` in `src/world.ts where cfg are ctor args to Task. This may require updating Task ctor to handle Actions and References without ids`.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-01T12:05:32.136Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyTh7NB00Hc3Haqqb9XdW",
+      "name": "Implement updateOne with $set support",
+      "summary": "Implement the updateOne method in World, specifically focusing on the $set operator to allow partial updates. \n\nSignature:\nasync updateOne<T extends Forma>(\n  targetClass: Constructor<T>, \n  filter: object, \n  update: { $set?: Partial<T> }\n): Promise<void>;",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-01T12:34:29.451Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PyQ4LxL00Hc3Haqqb9XdW",
+      "name": "Reference: src/world.ts",
+      "summary": "Primary implementation site for the new insert method.",
+      "relevance": 1,
+      "source": "src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyQ4Mcw00Hc3Haqqb9XdW",
+      "name": "Reference: src/forma-list.ts",
+      "summary": "The insert method will likely rely on FormaList\"s addItem or similar mutation logic to handle hierarchical links.",
+      "relevance": 0.8,
+      "source": "src/forma-list.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyQ4NI200Hc3Haqqb9XdW",
+      "name": "Reference: src/task.ts",
+      "summary": "Example of usage; Task uses FormaList and needs to benefit from the new typed insertion pattern.",
+      "relevance": 0.6,
+      "source": "src/task.ts"
+    }
+  ]
+}

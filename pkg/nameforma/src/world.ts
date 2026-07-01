@@ -783,6 +783,25 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * Create and persist a new entity
+   * @param EntityClass - Entity constructor (e.g., Task)
+   * @param cfg - Configuration object passed to constructor
+   * @returns Created entity instance
+   */
+  insertOne<T extends EntityConstructor>(
+    EntityClass: T,
+    cfg: any = {},
+  ): ReturnType<T['fromJson']> {
+    const instance = new (EntityClass as any)(cfg) as ReturnType<T['fromJson']>;
+    this.addToNamespace(instance);
+
+    const entityType = (EntityClass as any).entity;
+    this.#saveEntity(entityType, instance);
+
+    return instance;
+  }
+
+  /**
    * Delete entity from world storage and remove from focus stack
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {string} id - Entity id

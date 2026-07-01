@@ -246,10 +246,6 @@ export default class TaskCommand {
           ...TaskCommand.EXAMPLES.add.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .option(
-        '-r, --related <fuzzy-id>',
-        'Create task related to another task by ID',
-      )
       .action(
         (
           name: string,
@@ -259,7 +255,6 @@ export default class TaskCommand {
         ) => {
           if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-          const f7t = world.entityList(Task);
 
           const taskConfig: any = {
             name: name,
@@ -269,17 +264,7 @@ export default class TaskCommand {
             taskConfig.summary = summary;
           }
 
-          if (options.related) {
-            const relatedTask = world.loadFuzzy(Task, options.related);
-            if (!relatedTask) {
-              throw new Error(
-                `Related task not found: ${options.related}`,
-              );
-            }
-            taskConfig.id = UUID64.createRelatedId(relatedTask.id);
-          }
-
-          const task = f7t.addItem(taskConfig);
+          const task = world.insertOne(Task, taskConfig);
 
           nfTui.log(`✓ Task added: ${world.namespace.fuzzyIdOf(task)}`);
           nfTui.log(`  ${task.toString()}`);

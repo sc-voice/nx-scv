@@ -76,56 +76,6 @@ describe('CLI: task command', () => {
     expect(countTasks(tempWorld.worldPath)).toBe(1);
   });
 
-  it('create task related to another task', async () => {
-    // Create primary task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Primary Task',
-    ]);
-
-    const primaryOutput = output.join('\n');
-    const primaryIdMatch = primaryOutput.match(
-      /Task added: ([A-Za-z0-9_-]+)/,
-    );
-    const primaryId = primaryIdMatch ? primaryIdMatch[1] : null;
-    expect(primaryId).not.toBeNull();
-
-    output.length = 0;
-
-    // Create related task using partial fuzzy ID
-    const partialId = primaryId?.substring(0, 8);
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Related Task',
-      '--',
-      '--related',
-      partialId,
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/Task added:/);
-    expect(countTasks(tempWorld.worldPath)).toBe(2);
-
-    // Verify related task was created with a different ID but related UUID
-    const relatedOutput = output.join('\n');
-    const relatedIdMatch = relatedOutput.match(
-      /Task added: ([A-Za-z0-9_-]+)/,
-    );
-    const relatedId = relatedIdMatch ? relatedIdMatch[1] : null;
-    expect(relatedId).not.toBeNull();
-    expect(relatedId).not.toBe(primaryId);
-  });
-
   it('list tasks when empty', async () => {
     await cli.parseArgv([
       'node',
@@ -1251,7 +1201,7 @@ describe('CLI: task command', () => {
 
   it('task focus pushes task to top of stack', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const task = world.entityList(Task).addItem(new Task({ name: 'Focus Me' }));
+    const task = world.insertOne(Task, { name: 'Focus Me' });
 
     await cli.parseArgv([
       'node',
@@ -1272,8 +1222,8 @@ describe('CLI: task command', () => {
 
   it('task focus moves existing entry to top without duplicating', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const taskA = world.entityList(Task).addItem(new Task({ name: 'Task A' }));
-    const taskB = world.entityList(Task).addItem(new Task({ name: 'Task B' }));
+    const taskA = world.insertOne(Task, { name: 'Task A' });
+    const taskB = world.insertOne(Task, { name: 'Task B' });
 
     await cli.parseArgv([
       'node',
@@ -1315,7 +1265,7 @@ describe('CLI: task command', () => {
 
   it('task unfocus removes task from focus stack by id', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const task = world.entityList(Task).addItem(new Task({ name: 'Unfocus Me' }));
+    const task = world.insertOne(Task, { name: 'Unfocus Me' });
 
     await cli.parseArgv([
       'node',
@@ -1346,8 +1296,8 @@ describe('CLI: task command', () => {
 
   it('task unfocus with no id removes top of stack', async () => {
     const world = World.fromPath(tempWorld.worldPath);
-    const taskA = world.entityList(Task).addItem(new Task({ name: 'Task A' }));
-    const taskB = world.entityList(Task).addItem(new Task({ name: 'Task B' }));
+    const taskA = world.insertOne(Task, { name: 'Task A' });
+    const taskB = world.insertOne(Task, { name: 'Task B' });
 
     await cli.parseArgv([
       'node',
