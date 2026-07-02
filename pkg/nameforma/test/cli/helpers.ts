@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
-import { World, NfProgram } from '@sc-voice/nameforma';
+import { FileRepository, World, NfProgram } from '@sc-voice/nameforma';
 import type { GlobalOpts } from '@sc-voice/nameforma/unstable';
 
 /**
@@ -32,7 +32,7 @@ export function createTempWorld(prefix = 'nf-test') {
   fs.mkdirSync(worldPath, { recursive: true });
 
   // Force world creation in tests so world.json exists
-  const world = World.create(worldPath);
+  const world = FileRepository.create(worldPath);
   const msg = 'createTempWorld';
   const jsonPath = path.join(worldPath, "world.json");
   if (!fs.existsSync(jsonPath)) {
@@ -90,7 +90,7 @@ export function countTasks(worldPath) {
  */
 export function createTestCmd(program: Command, worldPath: string) {
   const nfProgram = new NfProgram(program as any);
-  const world = World.fromPath(worldPath);
+  const world = FileRepository.worldFromPath(worldPath);
   nfProgram.initialize(world, { verbosity: 0, testRunner: true });
 
   program.option(
@@ -100,7 +100,7 @@ export function createTestCmd(program: Command, worldPath: string) {
 
   program.hook('preAction', () => {
     // Reload world from disk to pick up any persisted focus state
-    const reloadedWorld = World.fromPath(worldPath);
+    const reloadedWorld = FileRepository.worldFromPath(worldPath);
     nfProgram.initialize(reloadedWorld, { verbosity: 0, testRunner: true });
   });
 
@@ -126,7 +126,7 @@ export function createTestCmd(program: Command, worldPath: string) {
 export function createTestProgram(worldPath: string) {
   const program = new Command();
   const nfProgram = new NfProgram(program as any);
-  const world = World.fromPath(worldPath);
+  const world = FileRepository.worldFromPath(worldPath);
   nfProgram.initialize(world, { verbosity: 0, testRunner: true });
 
   program.option(
@@ -136,7 +136,7 @@ export function createTestProgram(worldPath: string) {
 
   program.hook('preAction', () => {
     // Reload world from disk to pick up any persisted focus state
-    const reloadedWorld = World.fromPath(worldPath);
+    const reloadedWorld = FileRepository.worldFromPath(worldPath);
     nfProgram.initialize(reloadedWorld, { verbosity: 0, testRunner: true });
   });
 

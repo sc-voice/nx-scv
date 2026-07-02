@@ -6,7 +6,7 @@ import {
   afterEach,
   vi,
 } from '@sc-voice/vitest';
-import { World, Task, UUID64 } from '@sc-voice/nameforma';
+import { FileRepository, World, Task, UUID64 } from '@sc-voice/nameforma';
 import { TuiList } from '@sc-voice/nameforma/unstable';
 import { Unicode } from '@sc-voice/tools/text';
 import path from 'path';
@@ -22,7 +22,7 @@ describe('TuiList', () => {
 
   beforeEach(() => {
     worldPath = path.join(os.tmpdir(), `tui-list-test-${Date.now()}`);
-    world = World.fromPath(path.join(worldPath, '.nameforma'));
+    world = FileRepository.worldFromPath(path.join(worldPath, '.nameforma'));
   });
 
   afterEach(() => {

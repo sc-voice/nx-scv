@@ -7,7 +7,7 @@ import {
 } from '@sc-voice/vitest';
 import { Command } from 'commander';
 import { execSync } from 'child_process';
-import { Task, World } from '@sc-voice/nameforma';
+import { FileRepository, Task, World } from '@sc-voice/nameforma';
 import { TaskCommand } from '@sc-voice/nameforma/unstable';
 import ActionCommand from '../../src/cli/cli-action.js';
 import { createTempWorld, createTestCmd } from './helpers.js';
@@ -94,7 +94,7 @@ describe('CLI: action command', () => {
     // Focus the task
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -108,7 +108,7 @@ describe('CLI: action command', () => {
     expect(output[1]).toMatch(/Test Action/);
 
     // Verify action was saved
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.actions(world).items).toHaveLength(1);
@@ -124,7 +124,7 @@ describe('CLI: action command', () => {
 
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -142,7 +142,7 @@ describe('CLI: action command', () => {
     expect(output[0]).toMatch(/✓ Action added/);
 
     // Verify summary was saved
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.actions(world).items).toHaveLength(1);
@@ -160,7 +160,7 @@ describe('CLI: action command', () => {
 
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -194,7 +194,7 @@ describe('CLI: action command', () => {
 
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -225,7 +225,7 @@ describe('CLI: action command', () => {
 
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -261,7 +261,7 @@ describe('CLI: action command', () => {
     expect(output[0]).toMatch(/✓ summary updated/);
 
     // Verify the updates
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     const action = task!.actions(world).items[0];
     expect(action.name).toBe('Updated Name');
@@ -277,7 +277,7 @@ describe('CLI: action command', () => {
 
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -302,7 +302,7 @@ describe('CLI: action command', () => {
     expect(output[0]).toMatch(/✓ name updated/);
 
     // Verify the update (only name changed)
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     const action = task!.actions(world).items[0];
     expect(action.name).toBe('New Name');
@@ -310,7 +310,7 @@ describe('CLI: action command', () => {
   });
 
   it('action delete by index', async () => {
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
 
     // Create and focus a task
     await testCmd('task', 'add', 'Test Task');
@@ -320,7 +320,7 @@ describe('CLI: action command', () => {
 
     output = [];
     {
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       w.save();
@@ -367,7 +367,7 @@ describe('CLI: action command', () => {
       // Focus task
       output = [];
       {
-        const w = World.fromPath(tempWorld.worldPath);
+        const w = FileRepository.worldFromPath(tempWorld.worldPath);
         const t = w.loadFuzzy(Task, taskId);
         w.focusManager.focus(t.id);
         w.save();
@@ -378,7 +378,7 @@ describe('CLI: action command', () => {
       await testCmd('action', 'add', 'Test Action', 'test summary');
 
       // Get action ID from world
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = w.loadFuzzy(Task, taskId)!;
       const action = task.actions(w).items[0];
       return { taskId, actionId: action.id.base64 };
@@ -440,7 +440,7 @@ describe('CLI: action command', () => {
         'my note',
       );
 
-      const w = World.fromPath(tempWorld.worldPath);
+      const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = w.loadFuzzy(Task, taskId)!;
       const action = task.actions(w).items[0];
       expect(action.status).toBe('spec');

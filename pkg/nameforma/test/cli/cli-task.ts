@@ -10,7 +10,9 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { Task, Action, Reference, Rational, World } from '@sc-voice/nameforma';
+import { 
+  FileRepository, Task, Action, Reference, Rational, World 
+} from '@sc-voice/nameforma';
 import { TaskCommand, NfCLI, nfTui, CliRenderer } from '@sc-voice/nameforma/unstable';
 import {
   createTempDir,
@@ -495,7 +497,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Add references directly to the task
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
 
@@ -591,7 +593,7 @@ describe('CLI: task command', () => {
     output.length = 0;
 
     // Add references with different relevance in non-sorted order
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
 
@@ -683,7 +685,7 @@ describe('CLI: task command', () => {
       expect(taskId).not.toBeNull();
 
       // Focus the task by loading world and calling focus
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       expect(task).not.toBeNull();
       world.focusManager.focus(task!.id);
@@ -738,7 +740,7 @@ describe('CLI: task command', () => {
       expect(taskId).not.toBeNull();
 
       // Add actions to the task
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       expect(task).not.toBeNull();
 
@@ -790,7 +792,7 @@ describe('CLI: task command', () => {
       expect(taskId).not.toBeNull();
 
       // Add mixed status actions
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       task!
         .actions(world)
@@ -831,7 +833,7 @@ describe('CLI: task command', () => {
         'List Progress Task',
       ]);
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const taskList = world.entityList(Task);
       const task = Array.from(taskList)[0] as any;
       task.actions(world).addItem(new Action({ name: 'Action 1', status: 'spec' }));
@@ -871,7 +873,7 @@ describe('CLI: task command', () => {
       expect(taskId).not.toBeNull();
 
       // Focus the task
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -912,7 +914,7 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -951,7 +953,7 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -1024,7 +1026,7 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -1062,7 +1064,7 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -1100,7 +1102,7 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -1122,7 +1124,7 @@ describe('CLI: task command', () => {
       expect(output[0]).toMatch(/Task updated:/);
 
       // Verify line breaks were stripped
-      const world2 = World.fromPath(tempWorld.worldPath);
+      const world2 = FileRepository.worldFromPath(tempWorld.worldPath);
       const updated = world2.loadFuzzy(Task, taskId!);
       expect(updated?.summary).not.toContain('\n');
       expect(updated?.summary).toMatch(/Line 1.*Line 2.*Line 3/);
@@ -1144,7 +1146,7 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = World.fromPath(tempWorld.worldPath);
+      const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       world.save();
@@ -1200,7 +1202,7 @@ describe('CLI: task command', () => {
   });
 
   it('task focus pushes task to top of stack', async () => {
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.insertOne(Task, { name: 'Focus Me' });
 
     await cli.parseArgv([
@@ -1215,13 +1217,13 @@ describe('CLI: task command', () => {
     ]);
 
     expect(output[0]).toMatch(/Task focused:/);
-    const world2 = World.fromPath(tempWorld.worldPath);
+    const world2 = FileRepository.worldFromPath(tempWorld.worldPath);
     expect(world2.focusManager.size).toBe(1);
     expect(world2.focusManager.focusOrder(task.id)).toBe(0);
   });
 
   it('task focus moves existing entry to top without duplicating', async () => {
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const taskA = world.insertOne(Task, { name: 'Task A' });
     const taskB = world.insertOne(Task, { name: 'Task B' });
 
@@ -1258,13 +1260,13 @@ describe('CLI: task command', () => {
       taskA.id.base64,
     ]);
 
-    const world2 = World.fromPath(tempWorld.worldPath);
+    const world2 = FileRepository.worldFromPath(tempWorld.worldPath);
     expect(world2.focusManager.size).toBe(2);
     expect(world2.focusManager.focusOrder(taskA.id)).toBe(0);
   });
 
   it('task unfocus removes task from focus stack by id', async () => {
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.insertOne(Task, { name: 'Unfocus Me' });
 
     await cli.parseArgv([
@@ -1290,12 +1292,12 @@ describe('CLI: task command', () => {
     ]);
 
     expect(output[0]).toMatch(/Task unfocused:/);
-    const world2 = World.fromPath(tempWorld.worldPath);
+    const world2 = FileRepository.worldFromPath(tempWorld.worldPath);
     expect(world2.focusManager.size).toBe(0);
   });
 
   it('task unfocus with no id removes top of stack', async () => {
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const taskA = world.insertOne(Task, { name: 'Task A' });
     const taskB = world.insertOne(Task, { name: 'Task B' });
 
@@ -1331,7 +1333,7 @@ describe('CLI: task command', () => {
     ]);
 
     expect(output[0]).toMatch(/Task unfocused:/);
-    const world2 = World.fromPath(tempWorld.worldPath);
+    const world2 = FileRepository.worldFromPath(tempWorld.worldPath);
     expect(world2.focusManager.size).toBe(1);
     expect(world2.focusManager.focusOrder(taskA.id)).toBe(0);
   });

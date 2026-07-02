@@ -7,6 +7,7 @@ import path from 'path';
 import fs from 'fs';
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import { FileRepository } from '../file-repository.js';
 import { Task } from '../task.js';
 import TaskCommand from './cli-task.js';
 import { TuiList } from './tui-list.js';
@@ -115,7 +116,7 @@ export default class WatchCommand {
                 mtimes.world = currentWorldMtime;
 
                 // Reload world to detect focus changes
-                world = World.fromPath(worldPath);
+                world = FileRepository.worldFromPath(worldPath);
                 const newTask = world.focusedForma('task') as Task | null;
 
                 // Check if focused task changed

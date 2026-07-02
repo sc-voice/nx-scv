@@ -10,7 +10,7 @@ import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
 import { validate as validateUUID } from 'uuid';
-import { UUID64, World, NfProgram } from '@sc-voice/nameforma';
+import { UUID64, FileRepository, World, NfProgram } from '@sc-voice/nameforma';
 import IdCommand from '../../src/cli/cli-id.js';
 import { createTestProgram } from './helpers.js';
 
@@ -48,7 +48,7 @@ describe('CLI: id command', () => {
     // Setup commander program
     program = new Command();
     const nfProgram = new NfProgram(program as any);
-    const world = World.fromPath(worldPath);
+    const world = FileRepository.worldFromPath(worldPath);
     nfProgram.initialize(world, { verbosity: 0 });
 
     program.option('-w, --world <path>', 'Path to .nameforma directory');

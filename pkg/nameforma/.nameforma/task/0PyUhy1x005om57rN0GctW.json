@@ -1,0 +1,136 @@
+{
+  "forma": "Task",
+  "id": "0PyUhy1x005om57rN0GctW",
+  "name": "IEntityRepository",
+  "summary": "Multi-device storage abstraction: define IEntityRepository, extract FileSystemRepository from World, make storage methods async for mobile/browser compatibility",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PyUoLX9005om57rN0GctW",
+      "name": "IEntityRepository interface",
+      "summary": "Define IEntityRepository in src/entity.ts: insertOne, findOne (primitive), findMany (AsyncGenerator over keys, realizes via findOne), delete, saveWorld, loadWorld, sync",
+      "status": "manage",
+      "statusNote": "Ready for review: IEntityRepository defined in src/world.ts with insertOne, findOne, findMany, delete, saveWorld, loadWorld methods",
+      "statusDate": "2026-07-01T21:05:34.255Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyUoLd5005om57rN0GctW",
+      "name": "FileRepository",
+      "summary": "Extract fs logic from World into FileRepository implementing IEntityRepository",
+      "status": "manage",
+      "statusNote": "FileRepository complete with async API matching MongoDB",
+      "statusDate": "2026-07-01T21:23:29.884Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyUoLj1005om57rN0GctW",
+      "name": "World async",
+      "summary": "Refactor World storage methods to async, delegating to IEntityRepository",
+      "status": "spec",
+      "statusNote": "Make World methods async, delegate to IEntityRepository, improve event handler error logging",
+      "statusDate": "2026-07-01T21:52:54.938Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyUoLos005om57rN0GctW",
+      "name": "Update tests",
+      "summary": "Update test/world.ts callers to await async storage methods",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-01T17:45:40.790Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyVC1-K005om57rN0GctW",
+      "name": "LazyNamespace",
+      "summary": "FuzzyNamespace stores (id, EntityClass) stubs; realizes full entity via repository.findOne() on first access; populateNamespace streams keys via findMany AsyncGenerator",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-01T19:37:55.348Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyVS8wg005om57rN0GctW",
+      "name": "Entity updatedAt",
+      "summary": "Add updatedAt timestamp to Entity so findMany can filter by modification time (enables delta-sync across all IEntityRepository implementations)",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-01T20:48:18.090Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PyUiJqw005om57rN0GctW",
+      "name": "world.ts",
+      "summary": "File to refactor",
+      "relevance": 0.5,
+      "source": "nf:./src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyUiJxA005om57rN0GctW",
+      "name": "IEntityRepository",
+      "summary": "Repository declaration",
+      "relevance": 0.5,
+      "source": "nf:./src/entity.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyUiK1K005om57rN0GctW",
+      "name": "FileRepository",
+      "summary": "implementation and test files in src, test",
+      "relevance": 0.5,
+      "source": "file-repository.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyUiK73005om57rN0GctW",
+      "name": "world.ts",
+      "summary": "",
+      "relevance": 0.5,
+      "source": "nf:./test/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyVEutv005om57rN0GctW",
+      "name": "saveWorld/loadWorld naming",
+      "summary": "World is root entity; saveWorld/loadWorld on IEntityRepository persist/load the root. Resolved: these are correct names for the interface methods, not aliases for save()",
+      "relevance": 0.5,
+      "source": ""
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyVEuzk005om57rN0GctW",
+      "name": "sync on interface",
+      "summary": "sync() removed from IEntityRepository: it decomposes into loadWorld() + findMany(). Event-driven change notification is a separate concern (event bus), not a repo method. Resolved: drop sync from interface.",
+      "relevance": 0.5,
+      "source": ""
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyVEv3Y005om57rN0GctW",
+      "name": "findMany return type",
+      "summary": "findMany<T extends EntityConstructor>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>>. Same MongoDB-style filter as findOne. FileRepository iterates matching files; MongoDB uses native query cursor. Resolved.",
+      "relevance": 0.5,
+      "source": ""
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyVEv9N005om57rN0GctW",
+      "name": "findOne primitive",
+      "summary": "findOne<T extends EntityConstructor>(EntityClass: T, filter: object): ReturnType<T['fromJson']>|null. MongoDB-style filter e.g. {id:'abc123'}. FileRepository scans files and matches fields; MongoDB uses native query. Resolved.",
+      "relevance": 0.5,
+      "source": ""
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyVEvFD005om57rN0GctW",
+      "name": "insertOne generic constraint",
+      "summary": "insertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): ReturnType<T['fromJson']>. World.insertOne already has this signature — preserve it on IEntityRepository unchanged. Resolved.",
+      "relevance": 0.5,
+      "source": ""
+    }
+  ]
+}

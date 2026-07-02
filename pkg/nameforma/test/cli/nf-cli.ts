@@ -10,7 +10,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { REPL, resolveWorld } from '../../src/cli/nf-cli.js';
-import { World } from '@sc-voice/nameforma';
+import { FileRepository, World } from '@sc-voice/nameforma';
 import { NfCLI, nfTui } from '@sc-voice/nameforma/unstable';
 import { TestReplRenderer } from '../../src/cli/nf-tui.js';
 
@@ -22,7 +22,7 @@ let worldPath: string;
 beforeAll(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nameforma-test-'));
   worldPath = path.join(tmpDir, '.nameforma');
-  world = World.fromPath(worldPath);
+  world = FileRepository.worldFromPath(worldPath);
 });
 
 afterAll(() => {

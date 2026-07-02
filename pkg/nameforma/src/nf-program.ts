@@ -1,3 +1,4 @@
+import { FileRepository } from './file-repository.js';
 import { World } from './world.js';
 import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
@@ -138,7 +139,7 @@ export class NfProgram {
     } else if (!resolvedPath.endsWith('.nameforma')) {
       resolvedPath = path.join(resolvedPath, '.nameforma');
     }
-    return World.load(resolvedPath);
+    return FileRepository.load(resolvedPath);
   }
 
   constructor(protected readonly cmdDelegate: ICommand) {
@@ -359,7 +360,7 @@ export class NfProgram {
         ? targetPath
         : path.join(targetPath, '.nameforma');
 
-      const world = World.create(worldPath);
+      const world = FileRepository.create(worldPath);
       const lines = [
         theme.nfNominal(`✓ Initialized world at ${worldPath}`),
         theme.nfLabel('id:')+world.id.base64,

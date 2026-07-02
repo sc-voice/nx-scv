@@ -1,0 +1,62 @@
+{
+  "forma": "Task",
+  "id": "0PyWhXQi00Hd9KrKiGH17W",
+  "name": "Encapsulate World constructor",
+  "summary": "Constructor mixes factory concerns (reads package.json, mkdirSync) with hydration; name/summary from world.json are silently discarded on load",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PyWhZOo00Hd9KrKiGH17W",
+      "name": "Extend constructor signature",
+      "summary": "Add name? and summary? params; remove package.json reading and mkdirSync from ctor body",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T02:35:15.890Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyWhZUg00Hd9KrKiGH17W",
+      "name": "Add #defaultsFromPath helper",
+      "summary": "Extract package.json/path-fallback logic into private static helper returning {name, summary}",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T02:35:16.266Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyWhZaY00Hd9KrKiGH17W",
+      "name": "Update World.create()",
+      "summary": "Call #defaultsFromPath and pass name/summary to ctor; move mkdirSync here",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T02:35:16.642Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyWhZgP00Hd9KrKiGH17W",
+      "name": "Update World.fromJson()",
+      "summary": "Pass data.name and data.summary to constructor so loaded world preserves stored name/summary",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T02:35:17.017Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PyWhauz00Hd9KrKiGH17W",
+      "name": "world.ts",
+      "summary": "Primary file — constructor, create(), fromJson(), fromPath()",
+      "relevance": 0.5,
+      "source": "nf:./src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyWha-q00Hd9KrKiGH17W",
+      "name": "world.ts",
+      "summary": "Existing tests covering create/load/fromPath paths",
+      "relevance": 0.5,
+      "source": "nf:./test/world.ts"
+    }
+  ]
+}

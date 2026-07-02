@@ -54,11 +54,8 @@ const theme = NameFormaTheme.shared;
  */
 
 /**
- * World class manages persistent entity storage in .nameforma/ directory
- * World is a singleton that maintains local preferences and is
- * client-serializable using fromPath() to deserialize.
- *
- * Storage structure: .nameforma/{entity}/{id}.json
+ * World is a singleton that manages persistent entity storage 
+ * using IEntityRepository
  *
  * Implements IEventBus to receive FormaList mutation events and
  * automatically persist changes to disk.
@@ -66,6 +63,7 @@ const theme = NameFormaTheme.shared;
 export class World extends Entity implements IEventBus {
   static #lastWorld: World | undefined;
 
+  #repository?: IEntityRepository;
   #worldPath: string;
   #gitCLI: GitCLI;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
@@ -73,7 +71,7 @@ export class World extends Entity implements IEventBus {
   #focusManager: FocusManager;
   #watermark: RGA64Watermark;
   #bus: EventEmitter;
-  #lastSyncTime: number;
+  lastSyncTime: number;
   #logFile: string;
 
   // UUID64 signature of the non-specific world (@see log)
@@ -84,11 +82,13 @@ export class World extends Entity implements IEventBus {
 
   /**
    * Create a World at the given path with optional id (internal use only)
-   * Use World.fromPath() to get or create a World instance.
+   * Use FileRepository.worldFromPath() to get or create a World instance.
    * @param {string} worldPath - Path to .nameforma/ directory
    * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
-  private constructor(worldPath: string, id?: UUID64 | string) {
+  constructor(
+    worldPath: string, id?: UUID64 | string, repository?:IEntityRepository) 
+  {
     const worldRoot = path.dirname(worldPath);
 
     // Try to use package.json name/description as defaults
@@ -124,7 +124,7 @@ export class World extends Entity implements IEventBus {
     this.#watermark = new RGA64Watermark();
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
-    this.#lastSyncTime = 0;
+    this.lastSyncTime = 0;
     this.#logFile = path.join(worldPath, 'nf.log');
 
     // Register standard entities
@@ -490,7 +490,7 @@ export class World extends Entity implements IEventBus {
     }
 
     // Reconcile filesystem entities with namespace
-    const syncStart = this.#lastSyncTime;
+    const syncStart = this.lastSyncTime;
 
     // Collect all filesystem entities and track which ones we've seen
     const filesystemEntities = new Map<string, any>();
@@ -574,7 +574,7 @@ export class World extends Entity implements IEventBus {
     }
 
     // Update sync cursor
-    this.#lastSyncTime = Date.now();
+    this.lastSyncTime = Date.now();
     dbg && cc.ok1(msg, `synchronized namespace with filesystem`);
   }
 
@@ -919,8 +919,8 @@ export class World extends Entity implements IEventBus {
    * Records that the current user has observed the latest commit.
    * Returns true if watermark was advanced
    */
-  #syncWatermark(): boolean {
-    const msg = 'w3d.#syncWatermark';
+  syncWatermark(): boolean {
+    const msg = 'w3d.syncWatermark';
     const dbg = DBG.WORLD.WATERMARK;
 
     THROTTLE.watermark++;
@@ -957,100 +957,6 @@ export class World extends Entity implements IEventBus {
       dbg && cc.ok1(msg, `skipped (${elapsedMs.toFixed(2)}ms): ${err instanceof Error ? err.message : String(err)}`);
       return false;
     }
-  }
-
-  /** @deprecated
-   * Load or create World from path
-   * Reads .nameforma/world.json if exists, otherwise creates new World only if create option is true
-   * @param {string} worldPath - Path to .nameforma/ directory
-   * @returns {World} - World instance with persistent or new id
-   * @throws {Error} - If world not found and create is not true
-   */
-  static fromPath(worldPath: string): World {
-    const msg = 'world.fromPath';
-    const dbg = WORLD?.CTOR;
-
-    const worldFile = path.join(worldPath, 'world.json');
-
-    let world: World | undefined;
-
-    if (fs.existsSync(worldFile)) {
-      world = World.load(worldPath);
-    } else {
-      world = World.create(worldPath);
-    }
-
-    // Initialize sync cursor to now
-    world.#lastSyncTime = Date.now();
-
-    return world;
-  }
-
-  /**
-   * Load World from path and throws if it does not exist
-   * Reads .nameforma/world.json 
-   * @param {string} worldPath - Path to .nameforma/ directory
-   * @returns {World} - World instance with persistent or new id
-   * @throws {Error} - If world not found and create is not true
-   */
-  static load(worldPath: string): World {
-    const msg = 'world.load';
-    const dbg = WORLD?.CTOR;
-
-    const worldFile = path.join(worldPath, 'world.json');
-    if (!fs.existsSync(worldFile)) {
-      throw new Error(`World not found at ${worldPath}. Run 'nf init ${worldPath}' to create one.`);
-    }
-
-    let world: World | undefined;
-    const data = fs.readFileSync(worldFile, 'utf8');
-    const json = JSON.parse(data);
-    dbg && cc.ok1(msg, `loaded ${worldFile}`);
-    world = World.fromJson(json, worldPath);
-    // Synchronize watermark with current git HEAD and persist if advanced
-    const watermarkAdvanced = world.#syncWatermark();
-    const isValid = world.validate();
-    if (!isValid || watermarkAdvanced) {
-      world.save();
-      dbg && cc.ok1(msg, `saved`);
-    }
-
-    // Initialize sync cursor to now
-    world.#lastSyncTime = Date.now();
-
-    return world;
-  }
-
-  /**
-   * Create new World at path. Throws Error if world exists.
-   * Creates .nameforma/world.json
-   * @param {string} worldPath - Path to .nameforma/ directory
-   * @returns {World} - World instance with persistent or new id
-   * @throws {Error} - If world not found and create is not true
-   */
-  static create(worldPath: string): World {
-    const msg = 'world.create';
-    const dbg = WORLD?.CTOR;
-
-    const worldFile = path.join(worldPath, 'world.json');
-
-    let world: World | undefined;
-
-    if (fs.existsSync(worldFile)) {
-      throw new Error(`World exists at ${worldPath}`);
-    }
-    // Create new World only if create flag is true
-    world = new World(worldPath);
-
-    // Save world.json with generated id
-    const worldData = JSON.stringify(world.toJSON(), null, 2);
-    fs.writeFileSync(worldFile, worldData, 'utf8');
-    dbg && cc.ok1(msg, `created ${worldFile}`);
-
-    // Initialize sync cursor to now
-    world.#lastSyncTime = Date.now();
-
-    return world;
   }
 
   /**
@@ -1092,7 +998,7 @@ export class World extends Entity implements IEventBus {
    * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
    * @returns {World} - World instance with worldPath set to baseDir
    */
-  private static fromJson(data: any, baseDir?: string): World {
+  static fromJson(data: any, baseDir?: string): World {
     const msg = "W3D.fromJson";
     const dbg = WORLD.LOAD;
     if (!data.id) {
@@ -1211,3 +1117,12 @@ export class World extends Entity implements IEventBus {
   }
 
 } // World
+
+export interface IEntityRepository {
+  insertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): Promise<ReturnType<T['fromJson']>>;
+  findOne<T extends EntityConstructor>(EntityClass: T, filter: object): Promise<ReturnType<T['fromJson']> | null>;
+  findMany<T extends EntityConstructor>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>>;
+  delete(entityType: string, id: string): Promise<void>;
+  saveWorld(): Promise<void>;
+  loadWorld(): Promise<World>;
+}

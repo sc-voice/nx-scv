@@ -13,7 +13,7 @@ const { cc } = ColorConsole;
 /**
  * Branded type for UUID64 string values (OPB64 format).
  * Enforces type-safe id handling at compile-time with zero runtime cost.
- * Validation happens at boundaries (Identifiable.fromString, World.load).
+ * Validation happens at boundaries (Identifiable.fromString, etc).
  */
 export type UUID64String = string & { readonly __brand: 'UUID64String' };
 

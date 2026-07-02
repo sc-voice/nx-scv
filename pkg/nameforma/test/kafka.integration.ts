@@ -6,6 +6,7 @@ import os from 'os';
 import { World } from '../src/world.js';
 import { FormaList } from '../src/forma-list.js';
 import { Forma } from '../src/forma.js';
+import { FileRepository } from '../src/file-repository.js';
 import UUID64 from '../src/uuid64.js';
 
 /**
@@ -39,7 +40,7 @@ describe('Kafka Integration Tests', () => {
     const worldPath = path.join(tmpDir, '.nameforma');
 
     // Create World with unique ID
-    world = World.fromPath(worldPath);
+    world = FileRepository.worldFromPath(worldPath);
     topicName = `world-${world.id.base64}`;
 
     // Initialize Kafka client
@@ -224,18 +225,18 @@ describe('Kafka Integration Tests', () => {
     expect(replicatedList.size).toBe(0); // Empty until items added
   });
 
-  it('World.fromPath should create persistent world with stable ID', () => {
+  it('FileRepository.worldFromPath should create persistent world with stable ID', () => {
     const testDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'world-persist-'),
     );
     const worldPath = path.join(testDir, '.nameforma');
 
     // Create world via fromPath
-    const world1 = World.fromPath(worldPath);
+    const world1 = FileRepository.worldFromPath(worldPath);
     const id1 = world1.id.base64;
 
     // Load same world again
-    const world2 = World.fromPath(worldPath);
+    const world2 = FileRepository.worldFromPath(worldPath);
     const id2 = world2.id.base64;
 
     // IDs should match (persistent)

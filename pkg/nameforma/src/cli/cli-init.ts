@@ -5,6 +5,7 @@
 
 import { nfTui } from './nf-tui.js';
 import { World } from '../world.js';
+import { FileRepository } from '../file-repository.js';
 import { NfProgram } from '../nf-program.js';
 import path from 'path';
 import type { ICommand } from '../nf-program.js';
@@ -20,7 +21,7 @@ export default class InitCommand {
             ? targetPath
             : path.join(targetPath, '.nameforma');
 
-          const world = World.create(worldPath);
+          const world = FileRepository.create(worldPath);
           nfTui.log(`✓ Initialized world at ${worldPath}`);
           nfTui.log(`World ID: ${world.id.base64}`);
         } catch (err) {

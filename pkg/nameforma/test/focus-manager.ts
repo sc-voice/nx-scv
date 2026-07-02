@@ -8,7 +8,7 @@ import {
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { World, Task } from '@sc-voice/nameforma';
+import { FileRepository, World, Task } from '@sc-voice/nameforma';
 import { FocusManager } from '@sc-voice/nameforma/unstable';
 
 
@@ -156,7 +156,7 @@ describe('FocusManager world', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = World.fromPath(worldPath);
+    world = FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {
@@ -205,7 +205,7 @@ describe('FocusManager world', () => {
       world.focusManager.focus(e2.id);
       world.save();
 
-      const world2 = World.fromPath(worldPath);
+      const world2 = FileRepository.worldFromPath(worldPath);
       world2.registerEntity(Task);
 
       const ids = world2.focusManager.ids().map(id => id.base64);
@@ -219,7 +219,7 @@ describe('FocusManager world', () => {
       world.focusManager.focus(entity.id);
       world.save();
 
-      const world2 = World.fromPath(worldPath);
+      const world2 = FileRepository.worldFromPath(worldPath);
       const ids = world2.focusManager.ids();
 
       expect(ids.length).toBe(1);

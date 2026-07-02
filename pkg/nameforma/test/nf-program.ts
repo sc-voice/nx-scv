@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { Command } from 'commander';
+import { FileRepository } from '../src/file-repository.js';
 import { World } from '../src/world.js';
 import { Task } from '../src/task.js';
 import { NfProgram, type ICommand } from '../src/nf-program.js';
@@ -24,7 +25,7 @@ describe('NfProgram construction and initialization', () => {
     const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
     tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
-    world = World.fromPath(tempWorldPath);
+    world = FileRepository.worldFromPath(tempWorldPath);
   });
 
   afterEach(() => {
@@ -77,7 +78,7 @@ describe('NfProgram.setFieldValue', () => {
     // Recursively copy sample data
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
 
-    world = World.fromPath(tempWorldPath);
+    world = FileRepository.worldFromPath(tempWorldPath);
     program = new NfProgram(new Command());
     program.initialize(world);
   });
@@ -96,7 +97,7 @@ describe('NfProgram.setFieldValue', () => {
     expect(updated.summary).toBe('Updated summary');
 
     // Verify persistence
-    const reloaded = World.fromPath(tempWorldPath);
+    const reloaded = FileRepository.worldFromPath(tempWorldPath);
     const task2 = reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     expect(task2?.summary).toBe('Updated summary');
   });
@@ -114,7 +115,7 @@ describe('NfProgram.setFieldValue', () => {
 
     // Persist and verify
     world.save();
-    const reloaded = World.fromPath(tempWorldPath);
+    const reloaded = FileRepository.worldFromPath(tempWorldPath);
     const task2 = reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     const action = task2?.rawActions[0];
     expect(action?.summary).toBe('Updated action summary');
@@ -138,7 +139,7 @@ describe('NfProgram.resolveDotRef', () => {
     const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
     tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
-    world = World.fromPath(tempWorldPath);
+    world = FileRepository.worldFromPath(tempWorldPath);
     program = new NfProgram(new Command());
     program.initialize(world);
   });

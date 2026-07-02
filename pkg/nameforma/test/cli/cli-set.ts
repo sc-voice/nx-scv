@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NfCLI } from '../../src/cli/nf-cli.js';
 import { nfTui, CliRenderer } from '../../src/cli/nf-tui.js';
 import { World } from '../../src/world.js';
+import { FileRepository } from '../../src/file-repository.js';
 import { Task } from '../../src/task.js';
 import { createTempWorld } from './helpers.js';
 
@@ -73,7 +74,7 @@ describe('CLI: set command', () => {
     ]);
 
     // Verify persistence (semantic: field was updated to new value)
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task?.name).toBe('New Name');
   });
@@ -110,7 +111,7 @@ describe('CLI: set command', () => {
     ]);
 
     // Verify persistence (semantic: field was updated to new value)
-    const world = World.fromPath(tempWorld.worldPath);
+    const world = FileRepository.worldFromPath(tempWorld.worldPath);
     const task = world.loadFuzzy(Task, taskId);
     expect(task?.summary).toBe('New Summary');
   });

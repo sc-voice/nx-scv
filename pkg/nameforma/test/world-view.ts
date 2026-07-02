@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { WorldView } from '../src/world-view.js';
-import { World, RenderDetail, Forma, UUID64 } from '@sc-voice/nameforma';
+import { FileRepository, World, RenderDetail, Forma, UUID64 } from '@sc-voice/nameforma';
 
 describe('WorldView cursor state management', () => {
   let tempDir: string;
@@ -13,7 +13,7 @@ describe('WorldView cursor state management', () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-view-test-'));
     const worldPath = path.join(tempDir, '.nameforma');
-    world = World.fromPath(worldPath);
+    world = FileRepository.worldFromPath(worldPath);
     view = new WorldView(world, 'test');
   });
 

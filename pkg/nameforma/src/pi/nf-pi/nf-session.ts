@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import type { OverlayHandle } from '@earendil-works/pi-tui';
 import { World } from '../../world.js';
+import { FileRepository } from '../../file-repository.js';
 import { WorldView } from '../../world-view.js';
 import { ZenoCoord } from '../../navigable-view.js';
 import type { NfWatch } from './nf-watch.js';
@@ -57,7 +58,7 @@ export class NfSession extends EventEmitter {
     try {
       const worldPath = World.findWorld();
       if (worldPath) {
-        world = World.fromPath(worldPath);
+        world = FileRepository.worldFromPath(worldPath);
       }
     } catch (error) {
       // World not found, context will work without anchor
