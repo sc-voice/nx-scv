@@ -1,0 +1,8 @@
+{
+  "forma": "Task",
+  "id": "0PyePoLS00gUXz1BJbN6NW",
+  "name": "FuzzyNamespace CRDT semantics",
+  "summary": "Adopt CRDT semantics (LWW-Register or stronger) for FuzzyNamespace using a new Forma.updated: UUID64 property and UUID64.after() as a Lamport/HLC clock, to structurally eliminate duplicate namespace entries for the same id. Follows from ZudaO investigation: World.insertOne's new persist-before-register ordering can double-register an id in FuzzyNamespace since addForma has no per-id invariant.",
+  "rawActions": [],
+  "rawReferences": []
+}

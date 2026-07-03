@@ -24,24 +24,6 @@
     },
     {
       "forma": "Action",
-      "id": "0PyUoLj1005om57rN0GctW",
-      "name": "World async",
-      "summary": "Refactor World storage methods to async, delegating to IEntityRepository",
-      "status": "spec",
-      "statusNote": "Make World methods async, delegate to IEntityRepository, improve event handler error logging",
-      "statusDate": "2026-07-01T21:52:54.938Z"
-    },
-    {
-      "forma": "Action",
-      "id": "0PyUoLos005om57rN0GctW",
-      "name": "Update tests",
-      "summary": "Update test/world.ts callers to await async storage methods",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-01T17:45:40.790Z"
-    },
-    {
-      "forma": "Action",
       "id": "0PyVC1-K005om57rN0GctW",
       "name": "LazyNamespace",
       "summary": "FuzzyNamespace stores (id, EntityClass) stubs; realizes full entity via repository.findOne() on first access; populateNamespace streams keys via findMany AsyncGenerator",
@@ -57,6 +39,69 @@
       "status": "req",
       "statusNote": "",
       "statusDate": "2026-07-01T20:48:18.090Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZudaO005om57rN0GctW",
+      "name": "World.insertOne() async",
+      "summary": "Change World.insertOne(EntityClass, cfg) from sync to async: create instance, addToNamespace, then await repository.insertOne(EntityClass, instance) to persist. Return the instance. Update signature to return Promise<T>.",
+      "status": "spec",
+      "statusNote": "Make insertOne async, delegate persistence to repository.insertOne(), tests verify Promise return and namespace membership",
+      "statusDate": "2026-07-02T17:46:17.895Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZudgF005om57rN0GctW",
+      "name": "World.findOne() async",
+      "summary": "Change World.loadEntity(EntityClass, id) from sync to async. Keep same logic but await repository.findOne(EntityClass, {id}). Return Promise<T|null>.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T17:31:12.911Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZudm5005om57rN0GctW",
+      "name": "World.findMany() async",
+      "summary": "Replace World entity iteration (currently uses entityList directory scan) to use repository.findMany(EntityClass, {}). Must become async generator compatible in tests.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T17:31:13.286Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZuds0005om57rN0GctW",
+      "name": "World.delete() async",
+      "summary": "Change World.delete(entityType, id) from sync to async. Call await repository.delete(entityType, id). Update #saveEntity handler to propagate async.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T17:31:13.664Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZudxv005om57rN0GctW",
+      "name": "World.saveWorld() async",
+      "summary": "Change World.save() from sync to async. Delegate to await repository.saveWorld(). Return Promise<void>.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T17:31:14.041Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZue1j005om57rN0GctW",
+      "name": "World.loadWorld() async",
+      "summary": "Change World constructor to be async-compatible. Load world data via await repository.loadWorld() during init. May need factory method instead of direct constructor.",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T17:31:14.413Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyZue7c005om57rN0GctW",
+      "name": "Update test callers",
+      "summary": "Update test/world.ts to await async World storage methods",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-02T17:31:14.790Z"
     }
   ],
   "rawReferences": [

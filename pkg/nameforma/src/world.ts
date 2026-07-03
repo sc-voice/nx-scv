@@ -63,7 +63,7 @@ const theme = NameFormaTheme.shared;
 export class World extends Entity implements IEventBus {
   static #lastWorld: World | undefined;
 
-  #repository?: IEntityRepository;
+  readonly repository: IEntityRepository;
   #worldPath: string;
   #gitCLI: GitCLI;
   #entityRegistry: Map<string, EntityConstructor> = new Map();
@@ -87,7 +87,7 @@ export class World extends Entity implements IEventBus {
    * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
   constructor(
-    worldPath: string, id?: UUID64 | string, repository?:IEntityRepository) 
+    worldPath: string, repository: IEntityRepository, id: UUID64 | string = new UUID64()) 
   {
     const worldRoot = path.dirname(worldPath);
 
@@ -119,6 +119,7 @@ export class World extends Entity implements IEventBus {
     const msg = 'world.ctor';
     const dbg = WORLD?.CTOR;
 
+    this.repository = repository;
     this.#worldPath = worldPath;
     this.#gitCLI = new GitCLI(path.dirname(worldPath));
     this.#watermark = new RGA64Watermark();
@@ -721,6 +722,10 @@ export class World extends Entity implements IEventBus {
     // Reconstruct as typed instance
     const typedEntity = EntityClass.fromJson(entity);
 
+    // Namespace is the canonical source of Forma instances: registering the
+    // freshly-loaded instance keeps it in sync (addForma replaces any stale entry for this id).
+    this.addToNamespace(typedEntity);
+
     dbg && cc.ok1(msg, `loaded ${entityType}/${entity.id}`);
     return typedEntity as ReturnType<T['fromJson']>;
   }
@@ -788,16 +793,12 @@ export class World extends Entity implements IEventBus {
    * @param cfg - Configuration object passed to constructor
    * @returns Created entity instance
    */
-  insertOne<T extends EntityConstructor>(
+  async insertOne<T extends EntityConstructor>(
     EntityClass: T,
     cfg: any = {},
-  ): ReturnType<T['fromJson']> {
-    const instance = new (EntityClass as any)(cfg) as ReturnType<T['fromJson']>;
+  ): Promise<ReturnType<T['fromJson']>> {
+    const instance = await this.repository.insertOne(EntityClass, cfg);
     this.addToNamespace(instance);
-
-    const entityType = (EntityClass as any).entity;
-    this.#saveEntity(entityType, instance);
-
     return instance;
   }
 
@@ -998,7 +999,7 @@ export class World extends Entity implements IEventBus {
    * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
    * @returns {World} - World instance with worldPath set to baseDir
    */
-  static fromJson(data: any, baseDir?: string): World {
+  static fromJson(data: any, repository: IEntityRepository, baseDir?: string): World {
     const msg = "W3D.fromJson";
     const dbg = WORLD.LOAD;
     if (!data.id) {
@@ -1008,7 +1009,7 @@ export class World extends Entity implements IEventBus {
     // worldPath is the directory containing world.json
     const worldPath = baseDir || '.';
 
-    const world = new World(worldPath, data.id);
+    const world = new World(worldPath, repository, data.id);
 
     // Restore numeronym map if present
     if (data.numeronym && typeof data.numeronym === 'object') {

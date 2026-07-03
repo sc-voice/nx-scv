@@ -72,10 +72,17 @@ export class FuzzyNamespace implements IMutableNamespace {
 
   /**
    * Add a Forma instance to this namespace.
+   * Replaces any existing entry with the same exact id (last write wins) —
+   * a namespace must never hold two entries for one id.
    * Invalidates cached FuzzyIds.
    * @param forma - The Forma instance to add.
    */
   addForma(forma: Forma): void {
+    const idStr = forma.id.base64;
+    const existingIndex = this.#formas.findIndex((f) => f.id.base64 === idStr);
+    if (existingIndex !== -1) {
+      this.#formas.splice(existingIndex, 1);
+    }
     this.#formas.push(forma);
     this.#invalidateCache();
   }

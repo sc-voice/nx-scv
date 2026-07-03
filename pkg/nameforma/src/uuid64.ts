@@ -159,8 +159,8 @@ class UUID64 {
    * @param relation UUID64 instance to create a relation with
    * @returns UUID64 instance with new timestamp/sequence and relation's random bits
    */
-  static createRelatedId(relation: UUID64): UUID64 {
-    const uuidv7 = UUID64.createBufferUUIDV7(Date.now(), relation.uuidv7);
+  static createRelatedId(relation: UUID64, millis:number = Date.now()): UUID64 {
+    const uuidv7 = UUID64.createBufferUUIDV7(millis, relation.uuidv7);
     const base64 = UUID64.toOrderPreservingBase64(
       UUID64.toUUID64Buffer(uuidv7),
     );
@@ -693,6 +693,26 @@ class UUID64 {
       }
     }
     return true;
+  }
+
+
+  /** Generate a new, related UUID64 that is guaranteed to be 
+   * strictly greater than:
+   * - the current system time
+   * - the time associated with the source UUID64
+   *
+   * Useful for ensuring that the new UUID64 will always sort after the source id
+   * in a distributed system. This allows UIUD64 to be used for
+   * causal updates to a Hybrid Logical Clock(HLC) or a Lamport clock
+   *
+   * @param msSys - optional system time
+   * @returns A new UUID64 instance with a guaranteed higher timestamp/sequence.
+   */
+  after(msSys: number = Date.now()): UUID64 {
+    const msThis = this.getTimestamp();
+    const msMerged = Math.max(msSys, msThis);
+
+    return UUID64.createRelatedId(this, msMerged);
   }
 
   // ========================================================================

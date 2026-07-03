@@ -669,3 +669,104 @@ describe('UUID64 forGitObserved', () => {
     expect(result.commit).toBe('abc123xyz890123456789012345678');
   });
 });
+
+// ============================================================================
+// after() Tests
+// ============================================================================
+
+describe('UUID64 after', () => {
+  // Test: after() returns a valid related UUID64
+  it('after() returns a valid related UUID64', () => {
+    const u1 = new UUID64();
+    const u2 = u1.after();
+
+    expect(u2.validate()).toBe(true);
+    expect(u1.isRelated(u2)).toBe(true);
+    expect(u2.isRelated(u1)).toBe(true);
+  });
+
+  // Test: after() result is strictly greater than source
+  it('after() result is strictly greater than source', () => {
+    const u1 = new UUID64();
+    const u2 = u1.after();
+
+    expect(u2.isGreaterThan(u1)).toBe(true);
+    expect(u1.isLessThan(u2)).toBe(true);
+  });
+
+  // Test: after() with no args uses current time
+  it('after() with no args uses current time', () => {
+    const before = Date.now();
+    const u1 = new UUID64();
+    const u2 = u1.after();
+    const after = Date.now();
+
+    const u2Timestamp = u2.getTimestamp();
+    const u1Timestamp = u1.getTimestamp();
+
+    // Result timestamp should be >= source timestamp
+    expect(u2Timestamp >= u1Timestamp).toBe(true);
+    // Result timestamp should be within [before, after] range (allowing for execution time)
+    expect(u2Timestamp >= before).toBe(true);
+  });
+
+  // Test: after(msSys) uses provided time when greater than source
+  it('after(msSys) uses provided time when greater than source timestamp', () => {
+    const u1 = new UUID64();
+    const futureMs = Date.now() + 5000; // 5 seconds in the future
+    const u2 = u1.after(futureMs);
+
+    expect(u2.getTimestamp() >= futureMs).toBe(true);
+  });
+
+  // Test: after(msSys) uses source timestamp when it's greater
+  it('after(msSys) uses source timestamp when it is greater than msSys', () => {
+    const u1 = new UUID64();
+    const u1Timestamp = u1.getTimestamp();
+    const pastMs = Date.now() - 5000; // 5 seconds in the past
+
+    const u2 = u1.after(pastMs);
+
+    // Result timestamp should be at least as large as source timestamp
+    expect(u2.getTimestamp() >= u1Timestamp).toBe(true);
+    // And still greater than source
+    expect(u2.isGreaterThan(u1)).toBe(true);
+  });
+
+  // Test: successive after() calls maintain monotonic order and relation
+  it('successive after() calls maintain monotonic order and relation', () => {
+    const u1 = new UUID64();
+    const u2 = u1.after();
+    const u3 = u2.after();
+    const u4 = u3.after();
+
+    // All should be strictly increasing
+    expect(u1.isLessThan(u2)).toBe(true);
+    expect(u2.isLessThan(u3)).toBe(true);
+    expect(u3.isLessThan(u4)).toBe(true);
+
+    // All should be related to the original
+    expect(u1.isRelated(u2)).toBe(true);
+    expect(u1.isRelated(u3)).toBe(true);
+    expect(u1.isRelated(u4)).toBe(true);
+  });
+
+  // Test: after() preserves random bytes (same signature)
+  it('after() preserves random bytes (same signature)', () => {
+    const u1 = new UUID64();
+    const u2 = u1.after();
+
+    expect(u1.getSignature()).toBe(u2.getSignature());
+  });
+
+  // Test: max() logic with edge case timestamps
+  it('after() correctly handles edge case where msSys equals source timestamp', () => {
+    const u1 = new UUID64();
+    const u1Timestamp = u1.getTimestamp();
+    const u2 = u1.after(u1Timestamp);
+
+    // Result should still be strictly greater (same timestamp but higher sequence)
+    expect(u2.isGreaterThan(u1)).toBe(true);
+    expect(u2.getTimestamp() >= u1Timestamp).toBe(true);
+  });
+});

@@ -247,7 +247,7 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action(
-        (
+        async (
           name: string,
           summary: string | undefined,
           options: any,
@@ -264,7 +264,7 @@ export default class TaskCommand {
             taskConfig.summary = summary;
           }
 
-          const task = world.insertOne(Task, taskConfig);
+          const task = await world.insertOne(Task, taskConfig);
 
           nfTui.log(`✓ Task added: ${world.namespace.fuzzyIdOf(task)}`);
           nfTui.log(`  ${task.toString()}`);
