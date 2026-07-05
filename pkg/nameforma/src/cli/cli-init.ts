@@ -13,7 +13,10 @@ import type { ICommand } from '../nf-program.js';
 export default class InitCommand {
   static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
     cmd
-      .argument('[path]', 'Directory to initialize (defaults to current directory)')
+      .argument(
+        '[path]',
+        'Directory to initialize (defaults to current directory)',
+      )
       .action((pathArg: string | undefined, options: any) => {
         try {
           const targetPath = pathArg || process.cwd();

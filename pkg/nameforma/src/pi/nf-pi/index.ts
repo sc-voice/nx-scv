@@ -2,9 +2,7 @@ import type {
   ExtensionAPI,
   ExtensionCommandContext,
 } from '@earendil-works/pi-coding-agent';
-import type {
-  TextContent,
-} from '@earendil-works/pi-ai';
+import type { TextContent } from '@earendil-works/pi-ai';
 import { NfSession } from './nf-session.js';
 import { nfTool } from './tools/nf-tool.js';
 import { nfPiCli } from './nf-pi-cli.js';
@@ -16,35 +14,40 @@ const theme = NameFormaTheme.shared;
  * onTerminalInput swallows SGR mouse events
  * intercepting OS stdin events is really hacky and fragile
  */
-const MOUSE_CLICKS=false
-const mouse = { row:'', col: '' }
+const MOUSE_CLICKS = false;
+const mouse = { row: '', col: '' };
 
 /** EXPERIMENTAL: Tracking mouse clicks does not work well */
-function trackMouseClicks(pi:ExtensionAPI) {
-  pi.on("session_start", (event, ctx) => {
-    const msg = theme.nfAttend("session_start_mouse");
+function trackMouseClicks(pi: ExtensionAPI) {
+  pi.on('session_start', (event, ctx) => {
+    const msg = theme.nfAttend('session_start_mouse');
     const dbg = 0;
     dbg && console.log(msg);
 
     // enable mouse click tracking
-    process.stdout.write("\x1b[?1000h\x1b[?1006h");
+    process.stdout.write('\x1b[?1000h\x1b[?1006h');
 
-    ctx.ui.onTerminalInput((data: string) => { //
+    ctx.ui.onTerminalInput((data: string) => {
+      //
       const sgrMatch = data.match(/\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
-      
+
       if (sgrMatch) {
         const [_, button, col, row, action] = sgrMatch;
-        if (action === 'M') { // Button down
+        if (action === 'M') {
+          // Button down
           mouse.row = row;
           mouse.col = col;
-        } else if (action === 'm') { // Button up
+        } else if (action === 'm') {
+          // Button up
           if (row === mouse.row && col === mouse.col) {
-            dbg && console.log(msg, "click", {button, col, row});
+            dbg && console.log(msg, 'click', { button, col, row });
           } else {
-            dbg && console.log(msg, "drag", {button, 
-              from:`${mouse.col}/${mouse.row}`,
-              to:`${mouse.col}/${mouse.row}`,
-            });
+            dbg &&
+              console.log(msg, 'drag', {
+                button,
+                from: `${mouse.col}/${mouse.row}`,
+                to: `${mouse.col}/${mouse.row}`,
+              });
           }
         }
         //return { consume: true }; // swallow click
@@ -52,8 +55,8 @@ function trackMouseClicks(pi:ExtensionAPI) {
       return undefined; // pass-through
     }); // onTerminalInput
 
-    pi.registerMessageRenderer("text", (message, options, theme) => {
-      const mc:any = message.content;
+    pi.registerMessageRenderer('text', (message, options, theme) => {
+      const mc: any = message.content;
       let lines = [];
 
       if (typeof mc === 'string') {

@@ -1,5 +1,8 @@
 import { Forma } from './forma.js';
-import { type IReadOnlyNamespace, type IMutableNamespace } from './fuzzy-namespace.js';
+import {
+  type IReadOnlyNamespace,
+  type IMutableNamespace,
+} from './fuzzy-namespace.js';
 
 /**
  * IRegistry - Unified contract for entities that manage resources
@@ -18,5 +21,4 @@ export interface IRegistry extends Forma {
    * Returns the read-only namespace managed by this registry.
    */
   readonly namespace: IReadOnlyNamespace;
-
 }

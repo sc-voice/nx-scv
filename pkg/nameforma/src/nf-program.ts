@@ -52,7 +52,11 @@ export interface ICommand {
    * @param description help text for the argument
    * @param defaultValue optional default value
    */
-  argument(spec: string, description?: string, defaultValue?: unknown): ICommand;
+  argument(
+    spec: string,
+    description?: string,
+    defaultValue?: unknown,
+  ): ICommand;
 
   /**
    * Add an option/flag to this command.
@@ -79,7 +83,10 @@ export interface ICommand {
    */
   hook(
     event: string,
-    listener: (thisCommand: ICommand, actionCommand: ICommand) => void | Promise<void>,
+    listener: (
+      thisCommand: ICommand,
+      actionCommand: ICommand,
+    ) => void | Promise<void>,
   ): ICommand;
 
   /** Add an alias for this command. */
@@ -108,7 +115,10 @@ export interface ICommand {
    * Report an error and exit.
    * With exitOverride(), throws CommanderError; without it calls process.exit().
    */
-  error(message: string, errorOptions?: { exitCode?: number; code?: string }): never;
+  error(
+    message: string,
+    errorOptions?: { exitCode?: number; code?: string },
+  ): never;
 }
 
 /**
@@ -156,7 +166,7 @@ export class NfProgram {
       .version(version)
       .description(
         `NameForma/${USER} CLI - Personal reality manager for human/agent cooperation`,
-      )
+      );
   }
 
   get world(): World {
@@ -223,8 +233,12 @@ export class NfProgram {
   }
 
   /** Parse dotref: FORMA_ID.FIELD_NAME */
-  resolveDotRef(dotRef: string): { 
-    entity:Forma, forma:Forma, fieldName:string, fuzzyId:string, value:any 
+  resolveDotRef(dotRef: string): {
+    entity: Forma;
+    forma: Forma;
+    fieldName: string;
+    fuzzyId: string;
+    value: any;
   } {
     const dotIdx = dotRef.indexOf('.');
     if (dotIdx === -1) {
@@ -241,7 +255,7 @@ export class NfProgram {
     const { forma, entity } = resolved;
     const value = (forma as any)[fieldName];
 
-    return { entity, forma, fieldName, fuzzyId, value }
+    return { entity, forma, fieldName, fuzzyId, value };
   }
 
   /** @returns current output configuration */
@@ -249,7 +263,7 @@ export class NfProgram {
     return this.cmdDelegate.configureOutput();
   }
 
-  /** Pass through to configuredOutput.writeOut() 
+  /** Pass through to configuredOutput.writeOut()
    * nf-cli: console.log()
    * nf-cli: notify() // overwrite successive calls
    */
@@ -258,9 +272,9 @@ export class NfProgram {
     const str = strs.join(' ');
     if (typeof writeOut === 'function') {
       //console.log(str);
-      writeOut(str+'\n');
+      writeOut(str + '\n');
     } else {
-      console.log("NfProgram.writeOut?", str);
+      console.log('NfProgram.writeOut?', str);
     }
   }
 
@@ -271,21 +285,21 @@ export class NfProgram {
     if (typeof writeErr === 'function') {
       writeErr(str);
     } else {
-      console.error("NfProgram.writeErr?", str);
+      console.error('NfProgram.writeErr?', str);
     }
   }
 
   /** Action handler for @see registerAddCommand */
   nfAdd(
-    typeName: string, 
-    name: string, 
-    summary: string | undefined, 
-    options: any
+    typeName: string,
+    name: string,
+    summary: string | undefined,
+    options: any,
   ): void {
     const msg = 'nfAdd';
     const dbg = DBG.NF_PROGRAM.ANY;
 
-    dbg && this.world.log(JSON.stringify({typeName,name,summary}));
+    dbg && this.world.log(JSON.stringify({ typeName, name, summary }));
   }
 
   registerAddCommand(): void {
@@ -303,13 +317,17 @@ export class NfProgram {
         [
           '',
           'Examples:',
-          ' nf add plan "Buttermilk_Pancakes" "Fluffy breakfast buttermilk pancakes"',  
-          ' nf add plan Buttermilk_Pancakes Fluffy breakfast buttermilk pancakes',  
+          ' nf add plan "Buttermilk_Pancakes" "Fluffy breakfast buttermilk pancakes"',
+          ' nf add plan Buttermilk_Pancakes Fluffy breakfast buttermilk pancakes',
         ].join('\n'),
       )
-      .action(( 
-        typeName: string, name: string, summary: string | undefined, options: any
-        ) => nfp.nfAdd(typeName, name, summary, options)
+      .action(
+        (
+          typeName: string,
+          name: string,
+          summary: string | undefined,
+          options: any,
+        ) => nfp.nfAdd(typeName, name, summary, options),
       );
   }
 
@@ -325,8 +343,11 @@ export class NfProgram {
         const value = values.join(' ').trim();
 
         try {
-          const { 
-            forma, fieldName, fuzzyId, value: oldValue 
+          const {
+            forma,
+            fieldName,
+            fuzzyId,
+            value: oldValue,
           } = nfp.resolveDotRef(dotRef);
           const formaId = forma.id.base64;
 
@@ -339,7 +360,7 @@ export class NfProgram {
           } else {
             let id = formaId.replace(fuzzyId, theme.nfLink(fuzzyId));
             nfp.writeOut();
-            nfp.writeOut(dotRef+' '+id+'.'+fieldName);
+            nfp.writeOut(dotRef + ' ' + id + '.' + fieldName);
             nfp.writeOut(`- ${theme.nfAttend(oldValue)}`);
             nfp.writeOut(`+ ${theme.nfNominal(value)}`);
           }
@@ -363,13 +384,15 @@ export class NfProgram {
       const world = FileRepository.create(worldPath);
       const lines = [
         theme.nfNominal(`✓ Initialized world at ${worldPath}`),
-        theme.nfLabel('id:')+world.id.base64,
+        theme.nfLabel('id:') + world.id.base64,
       ];
       this.writeOut(lines.join('\n'));
     } catch (err) {
-      this.writeErr(theme.nfAttend(
-        `Failed to initialize world: ${err instanceof Error ? err.message : String(err)}`,
-      ));
+      this.writeErr(
+        theme.nfAttend(
+          `Failed to initialize world: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
     }
   }
 
@@ -377,8 +400,10 @@ export class NfProgram {
     this.cmdDelegate
       .command('init')
       .description('Initialize NameForma environment')
-      .argument('[path]', 'Directory to initialize (defaults to current directory)')
+      .argument(
+        '[path]',
+        'Directory to initialize (defaults to current directory)',
+      )
       .action(this.nfInit);
   }
-
 }

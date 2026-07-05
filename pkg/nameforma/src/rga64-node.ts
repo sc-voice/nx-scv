@@ -20,7 +20,7 @@ export class RGA64Node {
     id: UUID64,
     value: UUID64,
     parent: UUID64 | null = null,
-    deleted: boolean = false
+    deleted: boolean = false,
   ) {
     this.id = id;
     this.value = value;
@@ -41,7 +41,7 @@ export class RGA64Node {
     const parts = str.split('.');
     if (parts.length !== 4) {
       throw new Error(
-        `Invalid RGA64Node format: expected 4 parts separated by '.', got ${parts.length}`
+        `Invalid RGA64Node format: expected 4 parts separated by '.', got ${parts.length}`,
       );
     }
 
@@ -50,13 +50,14 @@ export class RGA64Node {
     try {
       const id = UUID64.fromString(idStr);
       const value = UUID64.fromString(valueStr);
-      const parent = parentStr === '^' ? null : UUID64.fromString(parentStr);
+      const parent =
+        parentStr === '^' ? null : UUID64.fromString(parentStr);
       const deleted = deletedStr === '-';
 
       return new RGA64Node(id, value, parent, deleted);
     } catch (e) {
       throw new Error(
-        `Failed to parse RGA64Node: ${String(e)}. Input: "${str}"`
+        `Failed to parse RGA64Node: ${String(e)}. Input: "${str}"`,
       );
     }
   }
@@ -94,7 +95,7 @@ export class RGA64Node {
       overrides?.id ?? this.id,
       overrides?.value ?? this.value,
       overrides?.parent !== undefined ? overrides.parent : this.parent,
-      overrides?.deleted !== undefined ? overrides.deleted : this._deleted
+      overrides?.deleted !== undefined ? overrides.deleted : this._deleted,
     );
   }
 

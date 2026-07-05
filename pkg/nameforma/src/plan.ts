@@ -179,8 +179,10 @@ export class Plan extends Entity {
     const msg = 'p2n.tuiRowStrings';
     let { id, name, summary } = this;
     let progressValue = this.progress();
-    const { 
-      theme=NameFormaTheme.shared, itemId = id.timeId(), bullet 
+    const {
+      theme = NameFormaTheme.shared,
+      itemId = id.timeId(),
+      bullet,
     } = cfg;
 
     const { NO_COLOR } = Unicode.LINUX_COLOR;
@@ -198,8 +200,8 @@ export class Plan extends Entity {
    */
   override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
     const { anchorStep, pivotStep } = zeno;
-    const { id, name, summary, actions, references:refs } = this;
-    const headerData:RenderData = super.renderDataAtZeno(view, zeno);
+    const { id, name, summary, actions, references: refs } = this;
+    const headerData: RenderData = super.renderDataAtZeno(view, zeno);
     const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
 
     if (anchorStep <= ZENO_3_ROWS) {
@@ -211,16 +213,35 @@ export class Plan extends Entity {
 
     if (buf.remainingRows === 1) {
       buf.pushRow([
-        new FormaField('actions', false, 'Actions', ''+actions.length),
-        new FormaField('references', false, 'References', ''+refs.length),
+        new FormaField('actions', false, 'Actions', '' + actions.length),
+        new FormaField(
+          'references',
+          false,
+          'References',
+          '' + refs.length,
+        ),
       ]);
     } else {
-      buf.pushRow([ new FormaField('actions', false, 'Actions', ''+actions.length) ]);
-      buf.pushCollection(actions.map(a => a.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
-      buf.pushRow([ new FormaField('references', false, 'References', ''+refs.length) ]);
-      buf.pushCollection(refs.map(r => r.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
+      buf.pushRow([
+        new FormaField('actions', false, 'Actions', '' + actions.length),
+      ]);
+      buf.pushCollection(
+        actions.map(
+          (a) => a.renderDataAtZeno(view, ZENO_TERSE) as RenderRow,
+        ),
+      );
+      buf.pushRow([
+        new FormaField(
+          'references',
+          false,
+          'References',
+          '' + refs.length,
+        ),
+      ]);
+      buf.pushCollection(
+        refs.map((r) => r.renderDataAtZeno(view, ZENO_TERSE) as RenderRow),
+      );
     }
     return buf.getRenderData();
   } // renderDataAtZeno
-
 } // Task

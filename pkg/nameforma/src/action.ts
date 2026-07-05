@@ -175,7 +175,7 @@ export class Action extends Forma {
     const dbg = (A6N as any)?.PATCH;
     super.patch(cfg);
     const { status, statusNote } = cfg;
-    const changed:any = {}
+    const changed: any = {};
     if (statusNote != null && statusNote != this.statusNote) {
       changed.statusNote = this.statusNote;
       this.statusNote = statusNote;

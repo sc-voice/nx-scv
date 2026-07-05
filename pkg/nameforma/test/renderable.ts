@@ -178,8 +178,8 @@ describe('renderable', () => {
   describe('zenoStepToLines', () => {
     it('follows Fibonacci(n+1) sequence', () => {
       const fib = [
-        1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
-        2584,
+        1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
+        1597, 2584,
       ];
       for (let n = 0; n <= MAX; n++) {
         expect(zenoStepToLines(zenoStep(n))).toBe(fib[n]);

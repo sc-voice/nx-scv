@@ -269,7 +269,7 @@ export default class ReferenceCommand {
           }
 
           if (!nfProgram.world) throw new Error('World not initialized');
-        const world = nfProgram.world;
+          const world = nfProgram.world;
           const task = ReferenceCommand.getFocusedTask(world);
 
           if (!task) {
@@ -328,7 +328,7 @@ export default class ReferenceCommand {
           cmd: any,
         ) => {
           if (!nfProgram.world) throw new Error('World not initialized');
-        const world = nfProgram.world;
+          const world = nfProgram.world;
           const task = ReferenceCommand.getFocusedTask(world);
 
           if (!task) {

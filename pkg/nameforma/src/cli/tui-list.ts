@@ -155,7 +155,9 @@ export class TuiList<T extends Forma> {
           }
 
           // Check if we're at the start of an ANSI code
-          const ansiMatch = remaining.slice(rawPos).match(/^\x1b\[[0-9;]*m/);
+          const ansiMatch = remaining
+            .slice(rawPos)
+            .match(/^\x1b\[[0-9;]*m/);
           if (ansiMatch) {
             rawPos += ansiMatch[0].length;
           } else {
@@ -213,7 +215,10 @@ export class TuiList<T extends Forma> {
       const availWidth = kLast === 0 ? maxWidth : maxWidth;
 
       // Helper to slice at a visible character position (accounting for ANSI codes)
-      const sliceAtVisiblePos = (str: string, visiblePos: number): string => {
+      const sliceAtVisiblePos = (
+        str: string,
+        visiblePos: number,
+      ): string => {
         let rawPos = 0;
         let visPos = 0;
         while (rawPos < str.length && visPos < visiblePos) {
@@ -251,7 +256,9 @@ export class TuiList<T extends Forma> {
 
     // Sort: focusOrder asc, then itemListId descending (most recent first)
     const sorted = items.sort((a, b) => {
-      const cmp = this.world.focusManager.focusOrder(a.id) - this.world.focusManager.focusOrder(b.id);
+      const cmp =
+        this.world.focusManager.focusOrder(a.id) -
+        this.world.focusManager.focusOrder(b.id);
       return (
         cmp ||
         this.list.itemListId(b).localeCompare(this.list.itemListId(a))

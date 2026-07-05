@@ -46,7 +46,7 @@ const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 const { WORLD } = DBG;
 
-const THROTTLE = { watermark: 0 }
+const THROTTLE = { watermark: 0 };
 const theme = NameFormaTheme.shared;
 
 /**
@@ -54,7 +54,7 @@ const theme = NameFormaTheme.shared;
  */
 
 /**
- * World is a singleton that manages persistent entity storage 
+ * World is a singleton that manages persistent entity storage
  * using IEntityRepository
  *
  * Implements IEventBus to receive FormaList mutation events and
@@ -87,8 +87,10 @@ export class World extends Entity implements IEventBus {
    * @param {UUID64 | string} id - Optional world id (generates new if not provided)
    */
   constructor(
-    worldPath: string, repository: IEntityRepository, id: UUID64 | string = new UUID64()) 
-  {
+    worldPath: string,
+    repository: IEntityRepository,
+    id: UUID64 | string = new UUID64(),
+  ) {
     const worldRoot = path.dirname(worldPath);
 
     // Try to use package.json name/description as defaults
@@ -241,7 +243,8 @@ export class World extends Entity implements IEventBus {
             try {
               entity.id = UUID64.fromString(entity.id);
             } catch (err) {
-              dbg && cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
+              dbg &&
+                cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
               continue;
             }
           }
@@ -254,7 +257,8 @@ export class World extends Entity implements IEventBus {
         }
       }
 
-      dbg && cc.ok1(msg, `loaded ${files.length} ${entityTypeName} entities`);
+      dbg &&
+        cc.ok1(msg, `loaded ${files.length} ${entityTypeName} entities`);
     }
     // add self
     this.addToNamespace(this);
@@ -263,7 +267,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /** Append Forma message to nf.log */
-  logForma(forma:Forma, ...strs: string[]) {
+  logForma(forma: Forma, ...strs: string[]) {
     const msg = strs.join(' ');
     const id = UUID64.createRelatedId(forma.id);
     fs.appendFileSync(this.#logFile, `${id}: ${msg}\n`);
@@ -309,7 +313,9 @@ export class World extends Entity implements IEventBus {
    * @param {string} fuzzyId - Fuzzy ID to resolve
    * @returns {{ entity: Forma, forma: Forma } | undefined} - entity is the serializing entity; forma is the matched forma
    */
-  resolveFuzzyId(fuzzyId: string): { entity: Forma; forma: Forma } | undefined {
+  resolveFuzzyId(
+    fuzzyId: string,
+  ): { entity: Forma; forma: Forma } | undefined {
     const msg = 'world.resolveFuzzyId';
     const dbg = WORLD?.FUZZY_ID;
 
@@ -324,7 +330,8 @@ export class World extends Entity implements IEventBus {
       const nsPrimary = (focusedEntity as any)?.namespace;
       const forma = nsPrimary.getForma(fuzzyId);
       if (forma) {
-        dbg && cc.ok1(msg, `found in focused entity namespace: ${fuzzyId}`);
+        dbg &&
+          cc.ok1(msg, `found in focused entity namespace: ${fuzzyId}`);
         return { entity: focusedEntity, forma };
       }
     }
@@ -514,8 +521,7 @@ export class World extends Entity implements IEventBus {
 
         // Check if file was modified since last sync OR is not in namespace
         const inNamespace = this.namespace.getForma(idStr);
-        const needsReload =
-          stats.mtimeMs > syncStart || !inNamespace;
+        const needsReload = stats.mtimeMs > syncStart || !inNamespace;
 
         if (needsReload) {
           try {
@@ -528,10 +534,7 @@ export class World extends Entity implements IEventBus {
                 entity.id = UUID64.fromString(entity.id);
               } catch (err) {
                 dbg &&
-                  cc.bad1(
-                    `${msg} invalid id in ${filePath}`,
-                    entity.id,
-                  );
+                  cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
                 continue;
               }
             }
@@ -892,7 +895,7 @@ export class World extends Entity implements IEventBus {
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
   override validate(opts: any = {}): boolean {
-    const msg = "w3d.validate";
+    const msg = 'w3d.validate';
     const result = super.validate(opts);
     const fm = this.#focusManager;
     const dbg = WORLD.VALIDATE;
@@ -900,9 +903,14 @@ export class World extends Entity implements IEventBus {
     const beforeSize = fm.size;
     for (const id of fm.ids()) {
       const idStr = id.toString();
-      const exists = fs.readdirSync(this.#worldPath, { withFileTypes: true })
-        .filter(d => d.isDirectory())
-        .some(d => fs.existsSync(path.join(this.#worldPath, d.name, `${idStr}.json`)));
+      const exists = fs
+        .readdirSync(this.#worldPath, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .some((d) =>
+          fs.existsSync(
+            path.join(this.#worldPath, d.name, `${idStr}.json`),
+          ),
+        );
       if (!exists) fm.unfocus(id);
     }
 
@@ -913,7 +921,6 @@ export class World extends Entity implements IEventBus {
 
     return result && isValid;
   }
-
 
   /**
    * Synchronize watermark with current git HEAD observation.
@@ -926,9 +933,9 @@ export class World extends Entity implements IEventBus {
 
     THROTTLE.watermark++;
     if (1 == THROTTLE.watermark) {
-      dbg && cc.ok1(msg, THROTTLE.watermark, "validating...");
+      dbg && cc.ok1(msg, THROTTLE.watermark, 'validating...');
     } else {
-      dbg && cc.ok1(msg, THROTTLE.watermark, "(ignored)");
+      dbg && cc.ok1(msg, THROTTLE.watermark, '(ignored)');
       return false;
     }
     const startTime = performance.now();
@@ -939,7 +946,10 @@ export class World extends Entity implements IEventBus {
       const userSignature = user.signature();
 
       // Get current HEAD as UUID64
-      const { uuid64: headUuid } = UUID64.forGitObserved('HEAD', this.#gitCLI);
+      const { uuid64: headUuid } = UUID64.forGitObserved(
+        'HEAD',
+        this.#gitCLI,
+      );
 
       // Update watermark with this observation
       const advanced = this.#watermark.update(userSignature, headUuid);
@@ -950,12 +960,20 @@ export class World extends Entity implements IEventBus {
       }
 
       const elapsedMs = performance.now() - startTime;
-      dbg && cc.ok1(msg, `${advanced ? 'advanced' : 'unchanged'} for ${userSignature} (${elapsedMs.toFixed(2)}ms)`);
+      dbg &&
+        cc.ok1(
+          msg,
+          `${advanced ? 'advanced' : 'unchanged'} for ${userSignature} (${elapsedMs.toFixed(2)}ms)`,
+        );
       return advanced;
     } catch (err) {
       // Not in a git repo or git not available - that's ok
       const elapsedMs = performance.now() - startTime;
-      dbg && cc.ok1(msg, `skipped (${elapsedMs.toFixed(2)}ms): ${err instanceof Error ? err.message : String(err)}`);
+      dbg &&
+        cc.ok1(
+          msg,
+          `skipped (${elapsedMs.toFixed(2)}ms): ${err instanceof Error ? err.message : String(err)}`,
+        );
       return false;
     }
   }
@@ -999,8 +1017,12 @@ export class World extends Entity implements IEventBus {
    * @param {string} baseDir - Base directory containing world.json (the .nameforma directory)
    * @returns {World} - World instance with worldPath set to baseDir
    */
-  static fromJson(data: any, repository: IEntityRepository, baseDir?: string): World {
-    const msg = "W3D.fromJson";
+  static fromJson(
+    data: any,
+    repository: IEntityRepository,
+    baseDir?: string,
+  ): World {
+    const msg = 'W3D.fromJson';
     const dbg = WORLD.LOAD;
     if (!data.id) {
       throw new Error('World.fromJson: missing id');
@@ -1036,12 +1058,12 @@ export class World extends Entity implements IEventBus {
     return world;
   }
 
-  get entityComparator(): (a:Forma,b:Forma)=>number {
-    return (a:Forma, b:Forma): number => {
+  get entityComparator(): (a: Forma, b: Forma) => number {
+    return (a: Forma, b: Forma): number => {
       const fm = this.#focusManager;
       const cmp = fm.focusOrder(a.id) - fm.focusOrder(b.id);
       return cmp || b.id.compare(a.id);
-    }
+    };
   }
 
   /**
@@ -1050,7 +1072,7 @@ export class World extends Entity implements IEventBus {
   override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
     const msg = 'w3d.renderDataAtZeno';
     const { anchorStep, pivotStep } = zeno;
-    const headerData:RenderData = super.renderDataAtZeno(view, zeno);
+    const headerData: RenderData = super.renderDataAtZeno(view, zeno);
     const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
     const dbg = 1;
 
@@ -1071,26 +1093,27 @@ export class World extends Entity implements IEventBus {
       }
       const c8r = this.entityComparator;
       let formas = this.entityList(ec).sort(c8r);
-      buf.pushRow([ new FormaField(eName, false, ec.entity, ''+formas.size) ]);
+      buf.pushRow([
+        new FormaField(eName, false, ec.entity, '' + formas.size),
+      ]);
       for (const f of formas) {
         const row = f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow;
-        let bullet = "-";
+        let bullet = '-';
         switch (this.#focusManager.focusOrder(f.id)) {
           case 0: // Top focus
             //bullet = theme.nfNominal("▶");
-            bullet = theme.nfNominal("●");
+            bullet = theme.nfNominal('●');
             break;
           case 1: // Top focus
-            bullet = theme.nfWarn("⦿");
+            bullet = theme.nfWarn('⦿');
             break;
           default: // Other focus
-            bullet = theme.nfAttend("◦");
+            bullet = theme.nfAttend('◦');
             break;
           case Number.MAX_SAFE_INTEGER: // Not focused
             //bullet = theme.nfAway("-");
-            bullet = theme.nfAway("▬");
+            bullet = theme.nfAway('▬');
             break;
-            
         }
         row.unshift(bullet);
         if (!buf.pushRow(row)) {
@@ -1102,27 +1125,36 @@ export class World extends Entity implements IEventBus {
     return buf.getRenderData();
   } // renderDataAtZeno
 
- /** Find all Entities matching the query in this Task's namespace.
+  /** Find all Entities matching the query in this Task's namespace.
    * @param targetClass Task or other Entity
    * @param filter optional boolean filter callback
    * @returns Iterable<Forma> of matching items in this Task's namespace
    */
   override *findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
-    filter?: (element:T) => boolean,
+    filter?: (element: T) => boolean,
   ): Generator<InstanceType<C>> {
     const resolvedFilter = filter ?? (() => true);
-    const items = [...this.namespace.findByClass(targetClass, resolvedFilter)]
-      .sort(this.entityComparator);
+    const items = [
+      ...this.namespace.findByClass(targetClass, resolvedFilter),
+    ].sort(this.entityComparator);
     yield* items;
   }
-
 } // World
 
 export interface IEntityRepository {
-  insertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): Promise<ReturnType<T['fromJson']>>;
-  findOne<T extends EntityConstructor>(EntityClass: T, filter: object): Promise<ReturnType<T['fromJson']> | null>;
-  findMany<T extends EntityConstructor>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>>;
+  insertOne<T extends EntityConstructor>(
+    EntityClass: T,
+    cfg: object,
+  ): Promise<ReturnType<T['fromJson']>>;
+  findOne<T extends EntityConstructor>(
+    EntityClass: T,
+    filter: object,
+  ): Promise<ReturnType<T['fromJson']> | null>;
+  findMany<T extends EntityConstructor>(
+    EntityClass: T,
+    filter: object,
+  ): AsyncGenerator<ReturnType<T['fromJson']>>;
   delete(entityType: string, id: string): Promise<void>;
   saveWorld(): Promise<void>;
   loadWorld(): Promise<World>;

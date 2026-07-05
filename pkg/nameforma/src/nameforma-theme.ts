@@ -39,14 +39,16 @@ export class NameFormaTheme implements INameFormaTheme {
    * @returns INameFormaTheme instance with nameforma colors
    */
   static load(themeName: string = 'nameforma'): INameFormaTheme {
-    const msg = "NameFormaTheme.load";
+    const msg = 'NameFormaTheme.load';
     const dbg = 0;
 
     if (themeName === 'nameforma') {
       const targetDir = join(homedir(), '.pi', 'agent', 'themes');
       const targetPath = join(targetDir, `${themeName}.json`);
       if (!existsSync(targetPath)) {
-        const srcPath = fileURLToPath(new URL('../.pi/themes/nameforma.json', import.meta.url));
+        const srcPath = fileURLToPath(
+          new URL('../.pi/themes/nameforma.json', import.meta.url),
+        );
         mkdirSync(targetDir, { recursive: true });
         copyFileSync(srcPath, targetPath);
       }
@@ -65,7 +67,7 @@ export class NameFormaTheme implements INameFormaTheme {
 
   /**
    * Standard attention
-   * Apply 'customMessageText' color to text 
+   * Apply 'customMessageText' color to text
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
@@ -82,7 +84,7 @@ export class NameFormaTheme implements INameFormaTheme {
 
   /**
    * A boundary marks a static transition in attention
-   * Apply 'border' color to text 
+   * Apply 'border' color to text
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
@@ -92,7 +94,7 @@ export class NameFormaTheme implements INameFormaTheme {
 
   /**
    * A link points to a destination anchor
-   * Apply 'borderAccent' color to text 
+   * Apply 'borderAccent' color to text
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
@@ -102,7 +104,7 @@ export class NameFormaTheme implements INameFormaTheme {
 
   /**
    * A transient value that matches expectations
-   * Apply 'success' color to text 
+   * Apply 'success' color to text
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
@@ -112,7 +114,7 @@ export class NameFormaTheme implements INameFormaTheme {
 
   /**
    * A transient value that may require attention
-   * Apply 'warning' color to text 
+   * Apply 'warning' color to text
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */
@@ -122,7 +124,7 @@ export class NameFormaTheme implements INameFormaTheme {
 
   /**
    * A transient value the requires immediate attention
-   * Apply 'error' color to text 
+   * Apply 'error' color to text
    * @param text - Text to colorize
    * @returns Colorized text suitable for TUI display
    */

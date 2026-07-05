@@ -15,32 +15,56 @@ export class FileRepository implements IEntityRepository {
     this.#worldPath = worldPath;
   }
 
-  async insertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): Promise<ReturnType<T['fromJson']>> {
-    const instance = new (EntityClass as any)(cfg) as ReturnType<T['fromJson']>;
+  async insertOne<T extends EntityConstructor>(
+    EntityClass: T,
+    cfg: object,
+  ): Promise<ReturnType<T['fromJson']>> {
+    const instance = new (EntityClass as any)(cfg) as ReturnType<
+      T['fromJson']
+    >;
     this.#save((EntityClass as any).entity, instance);
     return instance;
   }
 
-  async findOne<T extends EntityConstructor>(EntityClass: T, filter: object): Promise<ReturnType<T['fromJson']> | null> {
+  async findOne<T extends EntityConstructor>(
+    EntityClass: T,
+    filter: object,
+  ): Promise<ReturnType<T['fromJson']> | null> {
     const keys = Object.keys(filter);
     if (keys.length !== 1 || keys[0] !== 'id') {
-      throw new Error(`FileRepository.findOne: only {id} filter supported, got ${JSON.stringify(filter)}`);
+      throw new Error(
+        `FileRepository.findOne: only {id} filter supported, got ${JSON.stringify(filter)}`,
+      );
     }
     const id = (filter as any).id;
-    const filePath = path.join(this.#worldPath, (EntityClass as any).entity, `${id}.json`);
+    const filePath = path.join(
+      this.#worldPath,
+      (EntityClass as any).entity,
+      `${id}.json`,
+    );
     if (!fs.existsSync(filePath)) return null;
     return this.#load(EntityClass, filePath);
   }
 
-  async *findMany<T extends EntityConstructor>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>> {
+  async *findMany<T extends EntityConstructor>(
+    EntityClass: T,
+    filter: object,
+  ): AsyncGenerator<ReturnType<T['fromJson']>> {
     const keys = Object.keys(filter);
     if (keys.length !== 0 && !(keys.length === 1 && keys[0] === 'id')) {
-      throw new Error(`FileRepository.findMany: only {} or {id} filter supported, got ${JSON.stringify(filter)}`);
+      throw new Error(
+        `FileRepository.findMany: only {} or {id} filter supported, got ${JSON.stringify(filter)}`,
+      );
     }
-    const entityDir = path.join(this.#worldPath, (EntityClass as any).entity);
+    const entityDir = path.join(
+      this.#worldPath,
+      (EntityClass as any).entity,
+    );
     if (!fs.existsSync(entityDir)) return;
     const id = (filter as any).id;
-    const files = fs.readdirSync(entityDir).filter(f => f.endsWith('.json'));
+    const files = fs
+      .readdirSync(entityDir)
+      .filter((f) => f.endsWith('.json'));
     for (const file of files) {
       if (id && file.slice(0, -5) !== id) continue;
       yield this.#load(EntityClass, path.join(entityDir, file));
@@ -53,7 +77,9 @@ export class FileRepository implements IEntityRepository {
   }
 
   async saveWorld(): Promise<void> {
-    throw new Error('FileRepository.saveWorld: call World.save() directly');
+    throw new Error(
+      'FileRepository.saveWorld: call World.save() directly',
+    );
   }
 
   async loadWorld(): Promise<World> {
@@ -62,11 +88,19 @@ export class FileRepository implements IEntityRepository {
 
   #save(entityType: string, entity: any): void {
     const entityDir = path.join(this.#worldPath, entityType);
-    if (!fs.existsSync(entityDir)) fs.mkdirSync(entityDir, { recursive: true });
-    fs.writeFileSync(path.join(entityDir, `${entity.id}.json`), JSON.stringify(entity, null, 2), 'utf8');
+    if (!fs.existsSync(entityDir))
+      fs.mkdirSync(entityDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(entityDir, `${entity.id}.json`),
+      JSON.stringify(entity, null, 2),
+      'utf8',
+    );
   }
 
-  #load<T extends EntityConstructor>(EntityClass: T, filePath: string): ReturnType<T['fromJson']> {
+  #load<T extends EntityConstructor>(
+    EntityClass: T,
+    filePath: string,
+  ): ReturnType<T['fromJson']> {
     const entity = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     if (entity.id) entity.id = UUID64.fromString(entity.id);
     return EntityClass.fromJson(entity) as ReturnType<T['fromJson']>;
@@ -134,7 +168,7 @@ export class FileRepository implements IEntityRepository {
 
   /**
    * Load World from path and throws if it does not exist
-   * Reads .nameforma/world.json 
+   * Reads .nameforma/world.json
    * @param {string} worldPath - Path to .nameforma/ directory
    * @returns {World} - World instance with persistent or new id
    * @throws {Error} - If world not found and create is not true
@@ -145,7 +179,9 @@ export class FileRepository implements IEntityRepository {
 
     const worldFile = path.join(worldPath, 'world.json');
     if (!fs.existsSync(worldFile)) {
-      throw new Error(`World not found at ${worldPath}. Run 'nf init ${worldPath}' to create one.`);
+      throw new Error(
+        `World not found at ${worldPath}. Run 'nf init ${worldPath}' to create one.`,
+      );
     }
 
     let world: World | undefined;
@@ -167,5 +203,4 @@ export class FileRepository implements IEntityRepository {
 
     return world;
   }
-
 }

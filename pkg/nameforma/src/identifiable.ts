@@ -49,7 +49,6 @@ export interface IdentifiableConfig {
  * - Forma (adds mutable name, patching, validation)
  * - Task extends Forma (adds title, progress, duration)
  * - Clock extends Forma (adds timing/scheduling)
- * - Patch (adds patch application logic)
  *
  * ## Design Rationale
  *
@@ -117,9 +116,10 @@ export class Identifiable {
       }
     } else if ($parentId) {
       // Create child id with parent's signature
-      const parent = typeof $parentId === 'string'
-        ? UUID64.fromString($parentId)
-        : $parentId;
+      const parent =
+        typeof $parentId === 'string'
+          ? UUID64.fromString($parentId)
+          : $parentId;
       uuid64Id = UUID64.createRelatedId(parent);
     } else {
       // Generate new independent id
@@ -128,12 +128,13 @@ export class Identifiable {
 
     // Validate parent relationship if provided
     if ($parentId) {
-      const parent = typeof $parentId === 'string'
-        ? UUID64.fromString($parentId)
-        : $parentId;
+      const parent =
+        typeof $parentId === 'string'
+          ? UUID64.fromString($parentId)
+          : $parentId;
       if (uuid64Id.getSignature() !== parent.getSignature()) {
         throw new Error(
-          `Identifiable: $parentId signature mismatch (${uuid64Id.getSignature()} vs ${parent.getSignature()})`
+          `Identifiable: $parentId signature mismatch (${uuid64Id.getSignature()} vs ${parent.getSignature()})`,
         );
       }
     }
@@ -313,5 +314,4 @@ export class Identifiable {
   get typeName(): string {
     return (this.constructor as typeof Identifiable).typeName;
   }
-
 }

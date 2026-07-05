@@ -1,5 +1,9 @@
-import type { 
-  RenderData, RenderCell, RenderRow, ZenoStep, INameFormaTheme 
+import type {
+  RenderData,
+  RenderCell,
+  RenderRow,
+  ZenoStep,
+  INameFormaTheme,
 } from './navigable-view.js';
 import { ZENO_1_ROW_TERSE } from './navigable-view.js';
 import { NameFormaTheme } from './nameforma-theme.js';
@@ -55,12 +59,15 @@ export class LineRenderer {
   public render(data: RenderData, currentIndent: string = ''): string[] {
     const { theme } = this;
     // Convert to RenderRow[]
-    const rows: RenderRow[] = Array.isArray(data) && data.length > 0 && Array.isArray(data[0])
-      ? (data as RenderRow[])
-      : [data as RenderRow];
+    const rows: RenderRow[] =
+      Array.isArray(data) && data.length > 0 && Array.isArray(data[0])
+        ? (data as RenderRow[])
+        : [data as RenderRow];
 
     // Wrap each row into display lines
-    const wrappedRows: string[][] = rows.map(row => this.wrapRow(row, currentIndent));
+    const wrappedRows: string[][] = rows.map((row) =>
+      this.wrapRow(row, currentIndent),
+    );
 
     // Distribute line budget via round-robin
     const allocatedLines = this.distributeLineBudget(wrappedRows);
@@ -115,7 +122,10 @@ export class LineRenderer {
       const testLine = currentLine + separator + cell;
 
       // Try to fit cell on current line
-      if (this.lineWidth <= 0 || this.visualLength(testLine) <= effectiveLineWidth) {
+      if (
+        this.lineWidth <= 0 ||
+        this.visualLength(testLine) <= effectiveLineWidth
+      ) {
         currentLine = testLine;
       } else {
         // Cell doesn't fit on current line
@@ -140,7 +150,10 @@ export class LineRenderer {
 
     // Apply baseIndent to first line, bodyIndent to subsequent lines
     return lines.length > 0
-      ? [baseIndent + lines[0], ...lines.slice(1).map(line => bodyIndent + line)]
+      ? [
+          baseIndent + lines[0],
+          ...lines.slice(1).map((line) => bodyIndent + line),
+        ]
       : [baseIndent];
   }
 
@@ -153,7 +166,10 @@ export class LineRenderer {
       const sep = currentLine === indent ? '' : ' ';
       const testLine = currentLine + sep + word;
 
-      if (this.lineWidth <= 0 || this.visualLength(testLine) <= this.lineWidth) {
+      if (
+        this.lineWidth <= 0 ||
+        this.visualLength(testLine) <= this.lineWidth
+      ) {
         currentLine = testLine;
       } else {
         if (currentLine !== indent) {
@@ -217,7 +233,7 @@ export class LineRenderer {
 
   public rowStrings(data: RenderRow): string[] {
     const cellStrings = data.map((item) => this.cellString(item));
-    return this.wrapCells ? cellStrings : [ cellStrings.join(' ') ];
+    return this.wrapCells ? cellStrings : [cellStrings.join(' ')];
   }
 
   private isObject(val: any): val is Record<string, any> {

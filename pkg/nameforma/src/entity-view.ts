@@ -16,5 +16,4 @@ export class EntityView extends NavigableView {
   override setPivot(value: Forma): void {
     throw new Error('setPivot not yet supported in EntityView');
   }
-
 }

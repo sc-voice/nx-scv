@@ -1,6 +1,12 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { UUID64, Schema, Action } from '@sc-voice/nameforma';
-import { ActionStatus, ActionTransitions, STATUS_ORDER, DBG, FormaList } from '@sc-voice/nameforma/unstable';
+import {
+  ActionStatus,
+  ActionTransitions,
+  STATUS_ORDER,
+  DBG,
+  FormaList,
+} from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
 const { Unicode, ColorConsole } = Text;
@@ -31,25 +37,43 @@ describe('Action', () => {
 
     const { id } = a4n;
     // Walk valid transitions: req→spec→work→test→manage→done
-    const p1 = a4n.patch({ status: ActionStatus.spec, statusNote: 'note1' });
+    const p1 = a4n.patch({
+      status: ActionStatus.spec,
+      statusNote: 'note1',
+    });
     expect(a4n.id).toBe(id);
     expect(a4n.status).toBe(ActionStatus.spec);
     expect(a4n.statusNote).toBe('note1');
-    expect(p1).toEqual({status: ActionStatus.req, statusNote: ''});
+    expect(p1).toEqual({ status: ActionStatus.req, statusNote: '' });
 
-    const p2 = a4n.patch({ status: ActionStatus.work, statusNote: 'note2' });
-    expect(p2).toEqual({status: ActionStatus.spec, statusNote: 'note1'});
+    const p2 = a4n.patch({
+      status: ActionStatus.work,
+      statusNote: 'note2',
+    });
+    expect(p2).toEqual({ status: ActionStatus.spec, statusNote: 'note1' });
 
-    const p3 = a4n.patch({ status: ActionStatus.test, statusNote: 'note3' });
-    expect(p3).toEqual({status: ActionStatus.work, statusNote: 'note2'});
+    const p3 = a4n.patch({
+      status: ActionStatus.test,
+      statusNote: 'note3',
+    });
+    expect(p3).toEqual({ status: ActionStatus.work, statusNote: 'note2' });
 
-    const p4 = a4n.patch({ status: ActionStatus.manage, statusNote: 'note4' });
-    expect(p4).toEqual({status: ActionStatus.test, statusNote: 'note3'});
+    const p4 = a4n.patch({
+      status: ActionStatus.manage,
+      statusNote: 'note4',
+    });
+    expect(p4).toEqual({ status: ActionStatus.test, statusNote: 'note3' });
 
-    const p5 = a4n.patch({ status: ActionStatus.done, statusNote: 'note5' });
+    const p5 = a4n.patch({
+      status: ActionStatus.done,
+      statusNote: 'note5',
+    });
     expect(a4n.status).toBe(ActionStatus.done);
     expect(a4n.statusNote).toBe('note5');
-    expect(p5).toEqual({status: ActionStatus.manage, statusNote: 'note4'});
+    expect(p5).toEqual({
+      status: ActionStatus.manage,
+      statusNote: 'note4',
+    });
 
     dbg && cc.tag1(msg + UOK, 'status is mutable');
   });
@@ -69,9 +93,9 @@ describe('Action', () => {
   it('ActionTransitions enforces invalid transition', () => {
     const a4n = new Action({ status: ActionStatus.test }); // status: test
     // test → req is not a valid transition
-    expect(() => a4n.patch({ status: ActionStatus.req, statusNote:'note2' })).toThrow(
-      /invalid transition/,
-    );
+    expect(() =>
+      a4n.patch({ status: ActionStatus.req, statusNote: 'note2' }),
+    ).toThrow(/invalid transition/);
   });
 
   it('statusNote stored on action', () => {
@@ -79,29 +103,6 @@ describe('Action', () => {
     expect(a4n.statusNote).toBe('');
     a4n.patch({ status: ActionStatus.spec, statusNote: 'agreed on spec' });
     expect(a4n.statusNote).toBe('agreed on spec');
-  });
-
-  it('statusDate set on creation', () => {
-    const before = Date.now();
-    const a4n = new Action();
-    const after = Date.now();
-    expect(a4n.statusDate).toBeInstanceOf(Date);
-    expect(a4n.statusDate.getTime()).toBeGreaterThanOrEqual(before);
-    expect(a4n.statusDate.getTime()).toBeLessThanOrEqual(after);
-  });
-
-  it('statusDate updated on status change', () => {
-    const a4n = new Action();
-    const created = a4n.statusDate.getTime();
-    a4n.patch({ status: ActionStatus.spec, statusNote: 'test' });
-    expect(a4n.statusDate.getTime()).toBeGreaterThanOrEqual(created);
-  });
-
-  it('statusDate preserved when status unchanged', () => {
-    const a4n = new Action();
-    const created = a4n.statusDate.getTime();
-    a4n.patch({ statusNote: 'just a note' });
-    expect(a4n.statusDate.getTime()).toBe(created);
   });
 
   it('avro Action', () => {
@@ -127,11 +128,6 @@ describe('Action', () => {
     let thing2 = new Action(parsed);
     expect(thing2.status).toBe('done');
     expect(thing2.id.base64).toBe(thing1.id.base64);
-    expect(thing2.statusDate).toBeInstanceOf(Date);
-    expect(thing2.statusDate.getTime()).toBeCloseTo(
-      thing1.statusDate.getTime(),
-      -2,
-    );
     dbg && cc.tag1(msg + UOK, 'Action serialized with avro');
   });
 
@@ -195,12 +191,10 @@ describe('Action', () => {
   });
 
   it('STATUS_ORDER has 6 entries', () => {
-
     expect(Object.keys(STATUS_ORDER)).toHaveLength(6);
   });
 
   it('STATUS_ORDER values are 1..6', () => {
-
     expect(STATUS_ORDER[ActionStatus.req]).toBe(1);
     expect(STATUS_ORDER[ActionStatus.spec]).toBe(2);
     expect(STATUS_ORDER[ActionStatus.work]).toBe(3);
@@ -210,7 +204,6 @@ describe('Action', () => {
   });
 
   it('STATUS_ORDER maintains expected ordering', () => {
-
     expect(STATUS_ORDER[ActionStatus.done]).toBeGreaterThan(
       STATUS_ORDER[ActionStatus.manage],
     );

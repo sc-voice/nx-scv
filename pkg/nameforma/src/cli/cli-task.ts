@@ -209,7 +209,9 @@ export default class TaskCommand {
       fBullet: (index: number, item: Forma) => {
         const focusOrder = world.focusManager.focusOrder(item.id);
         return focusOrder < Number.MAX_SAFE_INTEGER
-          ? (index === 0 ? Unicode.CIRCLED_BULLET : Unicode.WHITE_BULLET)
+          ? index === 0
+            ? Unicode.CIRCLED_BULLET
+            : Unicode.WHITE_BULLET
           : Unicode.BUL_HYPHEN;
       },
     };
@@ -254,7 +256,7 @@ export default class TaskCommand {
           cmd: any,
         ) => {
           if (!nfProgram.world) throw new Error('World not initialized');
-        const world = nfProgram.world;
+          const world = nfProgram.world;
 
           const taskConfig: any = {
             name: name,
@@ -305,8 +307,8 @@ export default class TaskCommand {
       )
       .action((id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
-      const world = nfProgram.world;
-      const verbosity = nfProgram.verbosity;
+        const world = nfProgram.world;
+        const verbosity = nfProgram.verbosity;
         const task = TaskCommand.resolveTask(world, id);
 
         if (options.json) {
@@ -332,7 +334,7 @@ export default class TaskCommand {
       .action(
         (dotref: string, values: string[], options: any, cmd: any) => {
           if (!nfProgram.world) throw new Error('World not initialized');
-        const world = nfProgram.world;
+          const world = nfProgram.world;
           const f7t = world.entityList(Task);
 
           // Parse dotref: [<taskId>].field or just field
@@ -371,7 +373,9 @@ export default class TaskCommand {
           f7t.patchItem(task.id.base64, updates);
           const updated = f7t.getItem(task.id.base64);
 
-          nfTui.log(`✓ Task updated: ${world.namespace.fuzzyIdOf(updated)}`);
+          nfTui.log(
+            `✓ Task updated: ${world.namespace.fuzzyIdOf(updated)}`,
+          );
           nfTui.log(`  ${updated.toString()}`);
         },
       );
@@ -427,8 +431,8 @@ export default class TaskCommand {
       )
       .action((id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
-      const world = nfProgram.world;
-      const verbosity = nfProgram.verbosity;
+        const world = nfProgram.world;
+        const verbosity = nfProgram.verbosity;
         const task = TaskCommand.resolveTask(world, id);
 
         try {

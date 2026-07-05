@@ -2,14 +2,21 @@ import { describe, it, expect } from 'vitest';
 import { EntityView } from '../src/entity-view.js';
 import { LineRenderer } from '../src/line-renderer.js';
 import { FormaField } from '../src/forma-field.js';
-import { zenoStep, ZenoCoord, ZENO_1_ROW_TERSE, ZENO_1_ROW_VERBOSE } from '../src/navigable-view.js';
+import {
+  zenoStep,
+  ZenoCoord,
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
+} from '../src/navigable-view.js';
 
 class MockEntity {
   id = { timeId: () => 'test-id' };
   asRenderData(view: EntityView) {
     const zeno = view.zenoCoord;
     if (zeno.anchorStep === ZENO_1_ROW_TERSE) {
-      return [new FormaField('id', false, 'Entity.id', 'test-id: test entity')];
+      return [
+        new FormaField('id', false, 'Entity.id', 'test-id: test entity'),
+      ];
     }
     return [
       new FormaField('id', false, 'Entity.id', 'test-id'),
@@ -73,7 +80,10 @@ describe('cli-get: EntityView + LineRenderer', () => {
     view.zoomTo(zenoCoord);
 
     const renderData = entity.asRenderData(view);
-    const renderer = new LineRenderer({ zenoStep: ZENO_1_ROW_VERBOSE, lines: 1 });
+    const renderer = new LineRenderer({
+      zenoStep: ZENO_1_ROW_VERBOSE,
+      lines: 1,
+    });
     const lines = renderer.render(renderData);
 
     expect(lines.length).toBeLessThanOrEqual(1);
@@ -86,11 +96,16 @@ describe('cli-get: EntityView + LineRenderer', () => {
     view.zoomTo(zenoCoord);
 
     const renderData = entity.asRenderData(view);
-    const renderer = new LineRenderer({ zenoStep: ZENO_1_ROW_VERBOSE, lineWidth: 20 });
+    const renderer = new LineRenderer({
+      zenoStep: ZENO_1_ROW_VERBOSE,
+      lineWidth: 20,
+    });
     const lines = renderer.render(renderData);
 
-    lines.forEach(line => {
-      expect(line.replace(/\x1b\[[0-9;]*m/g, '').length).toBeLessThanOrEqual(20);
+    lines.forEach((line) => {
+      expect(
+        line.replace(/\x1b\[[0-9;]*m/g, '').length,
+      ).toBeLessThanOrEqual(20);
     });
   });
 

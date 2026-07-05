@@ -1,8 +1,16 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { 
-  FileRepository, UUID64, Forma, World, Entity 
+import {
+  FileRepository,
+  UUID64,
+  Forma,
+  World,
+  Entity,
 } from '@sc-voice/nameforma';
-import { FormaList, FuzzyNamespace, DBG } from '@sc-voice/nameforma/unstable';
+import {
+  FormaList,
+  FuzzyNamespace,
+  DBG,
+} from '@sc-voice/nameforma/unstable';
 import { Text } from '@sc-voice/tools';
 import { createTempWorld } from './cli/helpers.js';
 const { Unicode, ColorConsole } = Text;
@@ -64,10 +72,7 @@ describe('FormaList', () => {
     expect(list.parent?.id).toBeUndefined();
     expect(list.size).toBe(0);
     dbg &&
-      cc.tag1(
-        msg + UOK,
-        'constructor without parent creates empty list',
-      );
+      cc.tag1(msg + UOK, 'constructor without parent creates empty list');
   });
 
   it('FormaList.addItem with parent', () => {
@@ -452,7 +457,9 @@ describe('FormaList', () => {
       name: 'name1',
       summary: 'summary1',
     });
-    list.addItem(new TestItem({ id: id1, name: 'name1', summary: 'summary1' }));
+    list.addItem(
+      new TestItem({ id: id1, name: 'name1', summary: 'summary1' }),
+    );
     expect(list.itemListId(forma1)).toBe('ekDWc');
 
     // Add second item - now multiple items, common prefix/suffix
@@ -464,7 +471,9 @@ describe('FormaList', () => {
       name: 'name2',
       summary: 'summary2',
     });
-    list.addItem(new TestItem({ id: id2, name: 'name2', summary: 'summary2' }));
+    list.addItem(
+      new TestItem({ id: id2, name: 'name2', summary: 'summary2' }),
+    );
     expect(list.itemListId(forma1)).toBe('kDWc0');
     expect(list.itemListId(forma2)).toBe('jD4s0');
 
@@ -480,7 +489,9 @@ describe('FormaList', () => {
     const items: TestItem[] = [];
     const list = new FormaList<TestItem>(items, TestItem, {});
 
-    const item = list.addItem(new TestItem({ name: 'original', color: 'blue' }));
+    const item = list.addItem(
+      new TestItem({ name: 'original', color: 'blue' }),
+    );
     const originalId = item.id.base64;
 
     // Patch subclass field (color)

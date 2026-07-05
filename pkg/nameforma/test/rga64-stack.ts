@@ -5,8 +5,8 @@ import RGA64Stack from '../src/rga64-stack.js';
 import RGA64Node from '../src/rga64-node.js';
 
 describe('RGA64Stack', () => {
-  const alice = new User(undefined, "Alice");
-  const bob = new User(undefined, "Bob");
+  const alice = new User(undefined, 'Alice');
+  const bob = new User(undefined, 'Bob');
   it('creates a stack with id, name, summary', () => {
     const stack = new RGA64Stack({
       id: new UUID64(),
@@ -154,7 +154,7 @@ describe('RGA64Stack', () => {
     stack.push(value1);
     stack.push(value2);
     stack.push(value3);
-    const oldValues = stack.values().map(v => v.base64);
+    const oldValues = stack.values().map((v) => v.base64);
     const oldNodes = stack.nodes(false);
     expect(oldValues).toEqual([
       value3.base64, // Top of stack
@@ -164,10 +164,12 @@ describe('RGA64Stack', () => {
     //console.log("oldNodes", oldNodes.map(n=>n.toJSON()));
 
     stack.push(value2); // Push value2 again
-    const newValues = stack.values().map(v => v.timeId());
+    const newValues = stack.values().map((v) => v.timeId());
     const newNodes = stack.nodes(false);
     //console.log("newNodes", newNodes.map(n=>n.toJSON()));
-    expect(newNodes.map(n=>n.id.timeId())).toEqual(oldNodes.map(n=>n.id.timeId()));
+    expect(newNodes.map((n) => n.id.timeId())).toEqual(
+      oldNodes.map((n) => n.id.timeId()),
+    );
     expect(newValues).toEqual([
       value2.timeId(), // New top of stack
       value3.timeId(),
@@ -267,7 +269,7 @@ describe('RGA64Stack', () => {
     expect(stack2.name).toBe('Original Stack');
     expect(stack2.summary).toBe('Test');
     expect(stack2.nodes(false)).toHaveLength(1);
-    expect(stack2.nodes((false))[0].value.toString()).toBe(value.toString());
+    expect(stack2.nodes(false)[0].value.toString()).toBe(value.toString());
     expect(stack2.size).toBe(1);
   });
 
@@ -346,7 +348,9 @@ describe('RGA64Stack', () => {
     stack.compact(pastTime);
     expect(stack.nodes(false)).toHaveLength(3);
     expect(
-      stack.nodes(false).find((n) => n.id.toString() === node2.id.toString())?.deleted
+      stack
+        .nodes(false)
+        .find((n) => n.id.toString() === node2.id.toString())?.deleted,
     ).toBe(true);
   });
 

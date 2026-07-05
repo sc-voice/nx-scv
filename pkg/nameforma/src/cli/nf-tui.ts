@@ -20,7 +20,7 @@ function stringify(arg: unknown): string {
 }
 
 /*
- * Generic multi-channel renderer that can be mapped to stdout/stderr 
+ * Generic multi-channel renderer that can be mapped to stdout/stderr
  * as well as named channels
  */
 export interface IRenderer {

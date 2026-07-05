@@ -1,6 +1,13 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import avro from 'avro-js';
-import { Schema, Rational, Task, Forma, Action, Reference } from '@sc-voice/nameforma';
+import {
+  Schema,
+  Rational,
+  Task,
+  Forma,
+  Action,
+  Reference,
+} from '@sc-voice/nameforma';
 import { ScvMath, Text } from '@sc-voice/tools';
 import { Unicode as TextUnicode } from '@sc-voice/tools/text';
 import { DBG, FormaList } from '@sc-voice/nameforma/unstable';
@@ -327,11 +334,13 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'references initially empty');
 
     // Verify can add references and creates Reference instance
-    const ref1 = references.addItem(new Reference({
-      name: 'Link to docs',
-      relevance: 0.9,
-      source: 'https://example.com/docs',
-    }));
+    const ref1 = references.addItem(
+      new Reference({
+        name: 'Link to docs',
+        relevance: 0.9,
+        source: 'https://example.com/docs',
+      }),
+    );
     expect(ref1).toBeDefined();
     expect(ref1 instanceof Reference).toBe(true);
     expect(ref1.name).toBe('Link to docs');
@@ -340,10 +349,12 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'added first reference as Reference instance');
 
     // Verify can add multiple references, all as Reference instances
-    const ref2 = references.addItem(new Reference({
-      name: 'Related issue',
-      relevance: 0.6,
-    }));
+    const ref2 = references.addItem(
+      new Reference({
+        name: 'Related issue',
+        relevance: 0.6,
+      }),
+    );
     expect(ref2 instanceof Reference).toBe(true);
     expect(references.items).toHaveLength(2);
     expect(references.items[0].name).toBe('Link to docs');
@@ -383,12 +394,16 @@ describe('task', () => {
     // Create task with references
     let thing1 = new Task({ name });
     const mockBus1 = { emit: () => {}, on: () => {} };
-    thing1.references(mockBus1).addItem(new Reference({
-      name: 'ref 1',
-      relevance: 0.9,
-      source: 'https://example.com',
-    }));
-    thing1.references(mockBus1).addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
+    thing1.references(mockBus1).addItem(
+      new Reference({
+        name: 'ref 1',
+        relevance: 0.9,
+        source: 'https://example.com',
+      }),
+    );
+    thing1
+      .references(mockBus1)
+      .addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
     expect(thing1.rawReferences).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 references');
 
@@ -420,12 +435,16 @@ describe('task', () => {
     // Create task with references
     let thing1 = new Task({ name });
     const mockBus2 = { emit: () => {}, on: () => {} };
-    thing1.references(mockBus2).addItem(new Reference({
-      name: 'ref 1',
-      relevance: 0.9,
-      source: 'https://example.com',
-    }));
-    thing1.references(mockBus2).addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
+    thing1.references(mockBus2).addItem(
+      new Reference({
+        name: 'ref 1',
+        relevance: 0.9,
+        source: 'https://example.com',
+      }),
+    );
+    thing1
+      .references(mockBus2)
+      .addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
     expect(thing1.rawReferences).toHaveLength(2);
     dbg > 1 && cc.tag(msg, 'created task with 2 references');
 
@@ -458,8 +477,12 @@ describe('task', () => {
     const references = t2k.references(mockBus);
 
     // Build up references array via FormaList
-    const ref1 = references.addItem(new Reference({ name: 'ref 1', relevance: 0.9 }));
-    const ref2 = references.addItem(new Reference({ name: 'ref 2', relevance: 0.5 }));
+    const ref1 = references.addItem(
+      new Reference({ name: 'ref 1', relevance: 0.9 }),
+    );
+    const ref2 = references.addItem(
+      new Reference({ name: 'ref 2', relevance: 0.5 }),
+    );
     dbg > 1 && cc.tag(msg, 'added initial references');
 
     // Verify references.items and rawReferences are same array reference
@@ -468,7 +491,9 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, 'wrapped same array reference');
 
     // Add another reference via FormaList
-    const ref3 = references.addItem(new Reference({ name: 'ref 3', relevance: 0.3 }));
+    const ref3 = references.addItem(
+      new Reference({ name: 'ref 3', relevance: 0.3 }),
+    );
     expect(ref3 instanceof Reference).toBe(true);
     expect(t2k.rawReferences).toHaveLength(3);
     expect(t2k.rawReferences[2]).toBe(ref3);
@@ -597,13 +622,23 @@ describe('task', () => {
     const bus = { emit: () => {}, on: () => {} } as any;
 
     const actionsList = t1.actions(bus);
-    const action1 = actionsList.addItem(new Action({ name: 'action1', status: 'req' }));
-    const action2 = actionsList.addItem(new Action({ name: 'action2', status: 'spec' }));
+    const action1 = actionsList.addItem(
+      new Action({ name: 'action1', status: 'req' }),
+    );
+    const action2 = actionsList.addItem(
+      new Action({ name: 'action2', status: 'spec' }),
+    );
 
     const refsList = t1.references(bus);
-    const ref1 = refsList.addItem(new Reference({ name: 'ref1', relevance: 0.5 }));
-    const ref2 = refsList.addItem(new Reference({ name: 'ref2', relevance: 0.9 }));
-    const ref3 = refsList.addItem(new Reference({ name: 'ref3', relevance: 0.1 }));
+    const ref1 = refsList.addItem(
+      new Reference({ name: 'ref1', relevance: 0.5 }),
+    );
+    const ref2 = refsList.addItem(
+      new Reference({ name: 'ref2', relevance: 0.9 }),
+    );
+    const ref3 = refsList.addItem(
+      new Reference({ name: 'ref3', relevance: 0.1 }),
+    );
 
     const formas = [...t1.findByClass(Forma)];
 

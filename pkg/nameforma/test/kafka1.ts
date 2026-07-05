@@ -1,7 +1,14 @@
 import util from 'node:util';
 import { describe, it, expect } from '@sc-voice/vitest';
 import { Text } from '@sc-voice/tools';
-import { Kafka1, Producer, Consumer, Admin, DBG, _Runner } from '@sc-voice/nameforma/unstable';
+import {
+  Kafka1,
+  Producer,
+  Consumer,
+  Admin,
+  DBG,
+  _Runner,
+} from '@sc-voice/nameforma/unstable';
 const { Unicode, ColorConsole, List, ListFactory } = Text;
 const { cc } = ColorConsole;
 const { GREEN, BLUE, MAGENTA, NO_COLOR } = Unicode.LINUX_COLOR;

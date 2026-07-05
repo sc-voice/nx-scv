@@ -34,7 +34,7 @@ const FORMA = {
 const RGA64 = {
   ANY: 0,
   COMPACT: 0,
-}
+};
 
 const IDENTIFIABLE = {
   TEST: 0,
@@ -46,7 +46,7 @@ const ID_VALUE = {
 
 const PLAN = {
   ANY: 0,
-}
+};
 
 const KAFKA = {
   CONNECT: 0,
@@ -153,11 +153,11 @@ const WORLD = {
   DELETE: 0,
   VALIDATE: 0,
   WATERMARK: 0,
-}
+};
 
 const FORMA_LIST = {
   TEST: 0,
-}
+};
 
 const NF_CLI = 1;
 const NF_PI_CLI = 1;
@@ -165,7 +165,7 @@ const NF_PROGRAM = {
   ANY: Math.max(NF_CLI, NF_PI_CLI),
   NF_CLI,
   NF_PI_CLI,
-}
+};
 
 export const DBG = {
   ACTION,

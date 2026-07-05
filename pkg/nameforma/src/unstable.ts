@@ -1,4 +1,8 @@
-export { ActionStatus, ActionTransitions, STATUS_ORDER } from './action.js';
+export {
+  ActionStatus,
+  ActionTransitions,
+  STATUS_ORDER,
+} from './action.js';
 export { Clock } from './clock.js';
 export { Focus } from './focus.js';
 export { LevenshteinMatcher } from './forma.js';

@@ -11,14 +11,14 @@ import type { GlobalOpts } from '@sc-voice/nameforma/unstable';
  */
 export function createTempDir(prefix = 'nf-test') {
   const tempDir: string = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
-  return { 
+  return {
     tempDir,
     cleanup() {
       if (fs.existsSync(tempDir)) {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
-    }
-  }
+    },
+  };
 }
 
 /**
@@ -34,7 +34,7 @@ export function createTempWorld(prefix = 'nf-test') {
   // Force world creation in tests so world.json exists
   const world = FileRepository.create(worldPath);
   const msg = 'createTempWorld';
-  const jsonPath = path.join(worldPath, "world.json");
+  const jsonPath = path.join(worldPath, 'world.json');
   if (!fs.existsSync(jsonPath)) {
     throw new Error(`${msg} ${jsonPath}?`);
   }
@@ -101,7 +101,10 @@ export function createTestCmd(program: Command, worldPath: string) {
   program.hook('preAction', () => {
     // Reload world from disk to pick up any persisted focus state
     const reloadedWorld = FileRepository.worldFromPath(worldPath);
-    nfProgram.initialize(reloadedWorld, { verbosity: 0, testRunner: true });
+    nfProgram.initialize(reloadedWorld, {
+      verbosity: 0,
+      testRunner: true,
+    });
   });
 
   const getGlobalOpts = () => ({
@@ -137,7 +140,10 @@ export function createTestProgram(worldPath: string) {
   program.hook('preAction', () => {
     // Reload world from disk to pick up any persisted focus state
     const reloadedWorld = FileRepository.worldFromPath(worldPath);
-    nfProgram.initialize(reloadedWorld, { verbosity: 0, testRunner: true });
+    nfProgram.initialize(reloadedWorld, {
+      verbosity: 0,
+      testRunner: true,
+    });
   });
 
   const getGlobalOpts = () => ({

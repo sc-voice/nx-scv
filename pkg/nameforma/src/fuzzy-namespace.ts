@@ -28,7 +28,7 @@ export interface IReadOnlyNamespace {
 
   findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
-    filter?: (element: T) => boolean
+    filter?: (element: T) => boolean,
   ): Generator<InstanceType<C>>;
 }
 
@@ -79,7 +79,9 @@ export class FuzzyNamespace implements IMutableNamespace {
    */
   addForma(forma: Forma): void {
     const idStr = forma.id.base64;
-    const existingIndex = this.#formas.findIndex((f) => f.id.base64 === idStr);
+    const existingIndex = this.#formas.findIndex(
+      (f) => f.id.base64 === idStr,
+    );
     if (existingIndex !== -1) {
       this.#formas.splice(existingIndex, 1);
     }
@@ -111,7 +113,9 @@ export class FuzzyNamespace implements IMutableNamespace {
   getForma(fuzzyId: FuzzyId): Forma | undefined {
     const formas = this.#formas;
     // TimeId filter exact match of fuzzyIdOf
-    const timeIdMatches = formas.filter(f => f.id.timeId().includes(fuzzyId));
+    const timeIdMatches = formas.filter((f) =>
+      f.id.timeId().includes(fuzzyId),
+    );
     if (timeIdMatches.length === 1) {
       return timeIdMatches[0];
     }
@@ -259,11 +263,14 @@ export class FuzzyNamespace implements IMutableNamespace {
 
   *findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
-    filter?: (element:T) => boolean,
+    filter?: (element: T) => boolean,
   ): Generator<InstanceType<C>> {
     const resolvedFilter = filter ?? (() => true);
     for (const item of this.#formas) {
-      if (item instanceof (targetClass as Function) && resolvedFilter(item as T)) {
+      if (
+        item instanceof (targetClass as Function) &&
+        resolvedFilter(item as T)
+      ) {
         yield item as InstanceType<C>;
       }
     }

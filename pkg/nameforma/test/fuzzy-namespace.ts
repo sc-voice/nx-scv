@@ -11,7 +11,7 @@ describe('FuzzyNamespace', () => {
   beforeEach(() => {
     ns = new FuzzyNamespace();
     // two ids from an actual collision
-    const id1 = '0PvuTUTT00GlrCCFYF0btW'; 
+    const id1 = '0PvuTUTT00GlrCCFYF0btW';
     const id2 = '0PvuTZTy00GlrCCFYF0btW';
 
     // two ids from an actual collision

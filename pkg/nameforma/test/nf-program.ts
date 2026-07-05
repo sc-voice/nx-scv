@@ -61,7 +61,6 @@ describe('NfProgram construction and initialization', () => {
   });
 });
 
-
 describe('NfProgram.setFieldValue', () => {
   let tempDirObj: any;
   let tempWorldPath: string;
@@ -93,7 +92,11 @@ describe('NfProgram.setFieldValue', () => {
     expect(task).toBeTruthy();
 
     // Set field value
-    const updated = program.setFieldValue(task!.id.base64, 'summary', 'Updated summary');
+    const updated = program.setFieldValue(
+      task!.id.base64,
+      'summary',
+      'Updated summary',
+    );
     expect(updated.summary).toBe('Updated summary');
 
     // Verify persistence
@@ -110,7 +113,11 @@ describe('NfProgram.setFieldValue', () => {
 
     // Set action field value
     const actionId = '0PxVwGSx00tGyAPrFKqetW';
-    const updated = program.setFieldValue(actionId, 'summary', 'Updated action summary');
+    const updated = program.setFieldValue(
+      actionId,
+      'summary',
+      'Updated action summary',
+    );
     expect(updated.summary).toBe('Updated action summary');
 
     // Persist and verify
@@ -150,7 +157,9 @@ describe('NfProgram.resolveDotRef', () => {
 
   it('resolves task dotref and returns field value', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
-    const { forma, fieldName, value } = program.resolveDotRef(`${taskId}.name`);
+    const { forma, fieldName, value } = program.resolveDotRef(
+      `${taskId}.name`,
+    );
     expect(fieldName).toBe('name');
     expect(value).toBe(forma.name);
   });
@@ -159,16 +168,22 @@ describe('NfProgram.resolveDotRef', () => {
     const task = world.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     world.focusManager.focus(task!.id);
     const actionId = '0PxVwGSx00tGyAPrFKqetW';
-    const { forma, fieldName, value } = program.resolveDotRef(`${actionId}.status`);
+    const { forma, fieldName, value } = program.resolveDotRef(
+      `${actionId}.status`,
+    );
     expect(fieldName).toBe('status');
     expect(value).toBe((forma as any).status);
   });
 
   it('throws on missing dot separator', () => {
-    expect(() => program.resolveDotRef('nodothere')).toThrow(/dotRef must be FORMA_ID.FIELD_NAME/);
+    expect(() => program.resolveDotRef('nodothere')).toThrow(
+      /dotRef must be FORMA_ID.FIELD_NAME/,
+    );
   });
 
   it('throws on unknown forma ID', () => {
-    expect(() => program.resolveDotRef('nonexistent.name')).toThrow(/Not found: nonexistent/);
+    expect(() => program.resolveDotRef('nonexistent.name')).toThrow(
+      /Not found: nonexistent/,
+    );
   });
 });

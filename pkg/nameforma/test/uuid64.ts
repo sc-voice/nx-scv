@@ -620,13 +620,19 @@ describe('UUID64 forGitObserved', () => {
   // Test: timestamp exactly matches git commit timestamp
   it('getTimestamp() exactly matches git commit timestamp', () => {
     // forGitObserved returns the shared commit with origin (via merge-base)
-    const sharedCommit = execSync('git merge-base HEAD origin/HEAD 2>/dev/null || git rev-parse HEAD', {
-      encoding: 'utf-8',
-      shell: '/bin/bash',
-    }).trim();
-    const gitTimestampStr = execSync(`git log -1 ${sharedCommit} --format=%at`, {
-      encoding: 'utf-8',
-    }).trim();
+    const sharedCommit = execSync(
+      'git merge-base HEAD origin/HEAD 2>/dev/null || git rev-parse HEAD',
+      {
+        encoding: 'utf-8',
+        shell: '/bin/bash',
+      },
+    ).trim();
+    const gitTimestampStr = execSync(
+      `git log -1 ${sharedCommit} --format=%at`,
+      {
+        encoding: 'utf-8',
+      },
+    ).trim();
     const expectedTimestampMs = parseInt(gitTimestampStr, 10) * 1000;
 
     const { uuid64: u } = UUID64.forGitObserved('HEAD');
@@ -635,7 +641,9 @@ describe('UUID64 forGitObserved', () => {
 
   // Test: forGitObserved with specific commit is idempotent
   it('forGitObserved(hash) is idempotent with specific commit', () => {
-    const hash = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+    const hash = execSync('git rev-parse HEAD', {
+      encoding: 'utf-8',
+    }).trim();
     const { uuid64: u1 } = UUID64.forGitObserved(hash);
     const { uuid64: u2 } = UUID64.forGitObserved(hash);
     expect(u1.base64).toBe(u2.base64);
@@ -651,7 +659,10 @@ describe('UUID64 forGitObserved', () => {
     const mockGit = new MockGitCLI();
     mockGit.setMergeBaseFails(true);
     // When merge-base fails, should use commit as-is
-    mockGit.setLog('-1 HEAD --format=%at%n%H', '1700000000\nabcd1234567890123456789012345678');
+    mockGit.setLog(
+      '-1 HEAD --format=%at%n%H',
+      '1700000000\nabcd1234567890123456789012345678',
+    );
 
     const result = UUID64.forGitObserved('HEAD', mockGit);
     expect(result.uuid64.validate()).toBe(true);
@@ -662,7 +673,10 @@ describe('UUID64 forGitObserved', () => {
   it('forGitObserved uses merge-base result', () => {
     const mockGit = new MockGitCLI();
     mockGit.setMergeBase('HEAD', 'origin/HEAD', 'abc123xyz');
-    mockGit.setLog('-1 abc123xyz --format=%at%n%H', '1700000000\nabc123xyz890123456789012345678');
+    mockGit.setLog(
+      '-1 abc123xyz --format=%at%n%H',
+      '1700000000\nabc123xyz890123456789012345678',
+    );
 
     const result = UUID64.forGitObserved('HEAD', mockGit);
     expect(result.uuid64.validate()).toBe(true);
@@ -768,5 +782,53 @@ describe('UUID64 after', () => {
     // Result should still be strictly greater (same timestamp but higher sequence)
     expect(u2.isGreaterThan(u1)).toBe(true);
     expect(u2.getTimestamp() >= u1Timestamp).toBe(true);
+  });
+
+  // Test: fromAny() with null/undefined
+  it('fromAny() creates new UUID64 when passed null/undefined', () => {
+    const u1 = UUID64.fromAny(null);
+    const u2 = UUID64.fromAny(undefined);
+    expect(u1).toBeInstanceOf(UUID64);
+    expect(u2).toBeInstanceOf(UUID64);
+    expect(u1.uuidv7).toBeInstanceOf(Buffer);
+    expect(u2.uuidv7).toBeInstanceOf(Buffer);
+  });
+
+  // Test: fromAny() with string (base64)
+  it('fromAny() handles base64 string', () => {
+    const original = new UUID64();
+    const fromBase64 = UUID64.fromAny(original.base64);
+    expect(fromBase64.base64).toBe(original.base64);
+    expect(fromBase64.uuidv7.equals(original.uuidv7)).toBe(true);
+  });
+
+  // Test: fromAny() with UUID64 instance (identity)
+  it('fromAny() returns same UUID64 instance', () => {
+    const u1 = new UUID64();
+    const u2 = UUID64.fromAny(u1);
+    expect(u2).toBe(u1); // should be same reference
+  });
+
+  // Test: fromAny() with Buffer (uuidv7)
+  it('fromAny() handles uuidv7 Buffer', () => {
+    const original = new UUID64();
+    const reconstructed = UUID64.fromAny(original.uuidv7);
+    expect(reconstructed.uuidv7.equals(original.uuidv7)).toBe(true);
+  });
+
+  // Test: fromAny() with avro-deserialized object {uuidv7: Buffer}
+  it('fromAny() handles avro-deserialized object {uuidv7: Buffer}', () => {
+    const original = new UUID64();
+    const avroDeser = { uuidv7: original.uuidv7 };
+    const reconstructed = UUID64.fromAny(avroDeser);
+    expect(reconstructed.uuidv7.equals(original.uuidv7)).toBe(true);
+    expect(reconstructed.base64).toBe(original.base64);
+  });
+
+  // Test: fromAny() with invalid input throws
+  it('fromAny() throws on invalid input', () => {
+    expect(() => UUID64.fromAny({})).toThrow();
+    expect(() => UUID64.fromAny('invalid-base64')).toThrow();
+    expect(() => UUID64.fromAny(123)).toThrow();
   });
 });

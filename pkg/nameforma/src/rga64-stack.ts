@@ -27,7 +27,7 @@ export class RGA64Stack extends Forma {
     const { nodes = [] } = cfg;
     if (Array.isArray(nodes)) {
       this.#nodes = nodes.map((n) =>
-        typeof n === 'string' ? RGA64Node.parse(n) : n
+        typeof n === 'string' ? RGA64Node.parse(n) : n,
       );
     }
   }
@@ -59,7 +59,7 @@ export class RGA64Stack extends Forma {
     const parentIds = new Set(
       active
         .filter((n) => n.parent !== null)
-        .map((n) => n.parent!.toString())
+        .map((n) => n.parent!.toString()),
     );
 
     const leaves = active.filter((n) => !parentIds.has(n.id.toString()));
@@ -93,7 +93,9 @@ export class RGA64Stack extends Forma {
    */
   remove(value: UUID64): RGA64Node | undefined {
     const valueStr = value.toString();
-    const node = this.#nodes.find((n) => !n.deleted && n.value.toString() === valueStr);
+    const node = this.#nodes.find(
+      (n) => !n.deleted && n.value.toString() === valueStr,
+    );
     if (!node) return undefined;
 
     node.delete();
@@ -126,9 +128,11 @@ export class RGA64Stack extends Forma {
     const allParentIds = new Set(
       this.#nodes
         .filter((n) => n.parent !== null)
-        .map((n) => n.parent!.toString())
+        .map((n) => n.parent!.toString()),
     );
-    const leaves = this.#nodes.filter((n) => !allParentIds.has(n.id.toString()));
+    const leaves = this.#nodes.filter(
+      (n) => !allParentIds.has(n.id.toString()),
+    );
 
     if (leaves.length === 0) return [];
 
@@ -153,7 +157,7 @@ export class RGA64Stack extends Forma {
 
         // Find parent in full node set (including tombstones) to maintain chain integrity
         current = this.#nodes.find(
-          (n) => n.id.toString() === current!.parent!.toString()
+          (n) => n.id.toString() === current!.parent!.toString(),
         );
       }
     }
@@ -182,7 +186,9 @@ export class RGA64Stack extends Forma {
    */
   add(node: RGA64Node): void {
     const nodeIdStr = node.id.toString();
-    const existing = this.#nodes.find((n) => n.id.toString() === nodeIdStr);
+    const existing = this.#nodes.find(
+      (n) => n.id.toString() === nodeIdStr,
+    );
     if (existing) {
       // Update existing node (e.g., deleted flag from tombstone)
       const idx = this.#nodes.indexOf(existing);
@@ -211,7 +217,7 @@ export class RGA64Stack extends Forma {
     const activeParentIds = new Set(
       this.#nodes
         .filter((n) => !n.deleted && n.parent !== null)
-        .map((n) => n.parent!.toString())
+        .map((n) => n.parent!.toString()),
     );
 
     // Remove tombstones that are both structurally unreferenced and old enough
@@ -220,7 +226,7 @@ export class RGA64Stack extends Forma {
       (n) =>
         !n.deleted || // Keep all active nodes
         activeParentIds.has(n.id.toString()) || // Keep tombstones that are load-bearing
-        n.id.getTimestamp() >= minObservedTime // Keep tombstones that are too recent
+        n.id.getTimestamp() >= minObservedTime, // Keep tombstones that are too recent
     );
     const nodesAfter = this.#nodes.length;
 
@@ -240,7 +246,7 @@ export class RGA64Stack extends Forma {
     super.patch(cfg);
     if (cfg.#nodes) {
       this.#nodes = cfg.nodes.map((n: string | RGA64Node) =>
-        typeof n === 'string' ? RGA64Node.parse(n) : n
+        typeof n === 'string' ? RGA64Node.parse(n) : n,
       );
     }
   }

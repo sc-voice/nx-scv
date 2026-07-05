@@ -56,11 +56,7 @@ describe('LineRenderer: multiple rows', () => {
       [1, 'is', true],
       ['Employee(', field, ')'],
     ];
-    const expected = [
-      '123.46',
-      'hello',
-      '1.00 is true',
-    ];
+    const expected = ['123.46', 'hello', '1.00 is true'];
     const result = renderer.render(data);
     expect(result[0]).toBe('123.46');
     expect(result[1]).toBe('hello');
@@ -91,7 +87,9 @@ describe('LineRenderer: nfLabel styling', () => {
 });
 
 describe('LineRenderer: ZENO_1_ROW_VERBOSE', () => {
-  const verboseRenderer = new LineRenderer({ zenoStep: ZENO_1_ROW_VERBOSE });
+  const verboseRenderer = new LineRenderer({
+    zenoStep: ZENO_1_ROW_VERBOSE,
+  });
 
   it('renders Field with label and value', () => {
     const name = 'fname';
@@ -164,7 +162,10 @@ describe('LineRenderer: wrapping and line budget', () => {
   });
 
   it('respects wrapIndent for continuation lines', () => {
-    const indentRenderer = new LineRenderer({ lineWidth: 15, wrapIndent: 4 });
+    const indentRenderer = new LineRenderer({
+      lineWidth: 15,
+      wrapIndent: 4,
+    });
     const data = [['this', 'is', 'a', 'long', 'line']];
     const result = indentRenderer.render(data);
     // Continuation lines should have extra indentation
@@ -174,7 +175,10 @@ describe('LineRenderer: wrapping and line budget', () => {
   });
 
   it('handles baseIndent with wrapping', () => {
-    const indentRenderer = new LineRenderer({ lineWidth: 20, wrapIndent: 2 });
+    const indentRenderer = new LineRenderer({
+      lineWidth: 20,
+      wrapIndent: 2,
+    });
     const baseIndent = '  ';
     const data = [['hello', 'world', 'foo', 'bar', 'baz']];
     const result = indentRenderer.render(data, baseIndent);

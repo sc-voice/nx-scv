@@ -88,7 +88,9 @@ describe('MockGitCLI', () => {
 
   it('throws on unexpected config', () => {
     const mock = new MockGitCLI();
-    expect(() => mock.configGet('unknown')).toThrow('Unexpected config key');
+    expect(() => mock.configGet('unknown')).toThrow(
+      'Unexpected config key',
+    );
   });
 
   it('throws on unexpected log', () => {
@@ -100,7 +102,7 @@ describe('MockGitCLI', () => {
     const mock = new MockGitCLI();
     mock.setMergeBaseFails(true);
     expect(() => mock.mergeBase('HEAD', 'origin/HEAD')).toThrow(
-      'merge-base failed'
+      'merge-base failed',
     );
   });
 });

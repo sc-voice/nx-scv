@@ -1,6 +1,16 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { UUID64, Schema, Forma, RenderDetail, ZenoCoord } from '@sc-voice/nameforma';
-import { FormaField, DBG, FuzzyNamespace } from '@sc-voice/nameforma/unstable';
+import {
+  UUID64,
+  Schema,
+  Forma,
+  RenderDetail,
+  ZenoCoord,
+} from '@sc-voice/nameforma';
+import {
+  FormaField,
+  DBG,
+  FuzzyNamespace,
+} from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
 import type { IView } from '../src/navigable-view.js';
@@ -24,7 +34,7 @@ describe('Forma', () => {
     expect(f3a.id.validate()).toBe(true);
     expect(f3a.id.base64.includes(f3a.name)).toBe(true); // name is contained within id
     expect(f3a.summary).toBe(''); // default summary
-    expect(f3a.typeName).toBe('Forma'); 
+    expect(f3a.typeName).toBe('Forma');
 
     let t7g = new TestThing();
     expect(t7g.id.base64.includes(t7g.name)).toBe(true); // name is contained within id
@@ -33,8 +43,9 @@ describe('Forma', () => {
   it('patch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
-    const oldName = 'oldName';
-    let f3a = new Forma({name:oldName});
+    const name0 = 'name0';
+    const summary0 = 'summary0';
+    let f3a = new Forma({ name: name0, summary: summary0 });
     expect(f3a.validate({ defaultNameId: true })).toBe(true);
 
     // patch does not change immutable fields
@@ -44,10 +55,12 @@ describe('Forma', () => {
     expect(p1).toEqual({});
     dbg > 1 && cc.tag(msg, 'id is immutable');
 
-    // patch changes mutable fields and returns changed old values 
+    // patch changes mutable fields and returns changed old values
     const p2 = f3a.patch({ name: 'name2' });
     expect(f3a.id).toBe(id);
-    expect(p2).toEqual({name: oldName}); // previous name
+    expect(f3a.updatedAt).toStrictEqual(f3a.updateId.toDate());
+    expect(p2.name).toEqual(name0);
+    expect(p2.summary).toEqual(undefined);
     expect(f3a.name).toBe('name2');
     dbg > 1 && cc.tag(msg, 'name is mutable');
 
@@ -56,12 +69,12 @@ describe('Forma', () => {
     expect(f3a.id).toBe(id);
     expect(f3a.name).toBe('name2');
     expect(f3a.summary).toBe('summary3');
-    expect(p3).toEqual({summary:''}); // only summary changed from default
+    expect(p3).properties({ summary: summary0 }); // only summary changed from default
     dbg && cc.tag1(msg + UOK, 'summary is mutable');
 
     // patch ignores irrelevant properties
-    const p4 = f3a.patch({ summary: 'summary4', color:'red' });
-    expect(p4).toEqual({summary:'summary3'});
+    const p4 = f3a.patch({ summary: 'summary4', color: 'red' });
+    expect(p4).properties({ summary: 'summary3' });
     expect(f3a.name).toBe('name2');
     expect(f3a.summary).toBe('summary4');
   });
@@ -109,7 +122,7 @@ describe('Forma', () => {
       Object.assign(mockAnchor, f);
       Object.defineProperty(mockAnchor, 'namespace', {
         get: () => ns,
-        configurable: true
+        configurable: true,
       });
       return {
         anchor: mockAnchor,
@@ -119,14 +132,14 @@ describe('Forma', () => {
         zenoCoord: ZenoCoord.fromRenderDetail(detail),
         bodyIndent: '  ',
         theme: {
-          nfLabel: (t: string) => 'nfLabel-'+t,
-          nfBoundary: (t: string) => 'nfBoundary-'+t,
-          nfLink: (t: string) => 'nfLink-'+t,
-          nfNominal: (t: string) => 'nfNominal-'+t,
-          nfWarn: (t: string) => 'nfWarn-'+t,
-          nfAttend: (t: string) => 'nfAttend-'+t,
-          nfAway: (t: string) => 'nfAway-'+t,
-          nfNote: (t: string) => 'nfNote-'+t,
+          nfLabel: (t: string) => 'nfLabel-' + t,
+          nfBoundary: (t: string) => 'nfBoundary-' + t,
+          nfLink: (t: string) => 'nfLink-' + t,
+          nfNominal: (t: string) => 'nfNominal-' + t,
+          nfWarn: (t: string) => 'nfWarn-' + t,
+          nfAttend: (t: string) => 'nfAttend-' + t,
+          nfAway: (t: string) => 'nfAway-' + t,
+          nfNote: (t: string) => 'nfNote-' + t,
         },
         setAnchor: () => {},
         setPivot: () => {},
@@ -149,7 +162,9 @@ describe('Forma', () => {
     expect(dataAll[0][1].value).toBe('test-forma');
     expect(dataAll[1][0]).toBeInstanceOf(FormaField);
     expect(dataAll[1][0].name).toBe('summary');
-    expect(dataAll[1][0].value).toBe('nfNote-A test forma for verification');
+    expect(dataAll[1][0].value).toBe(
+      'nfNote-A test forma for verification',
+    );
 
     // Row (anchor=0): single row with id, name, summary
     const ns = new FuzzyNamespace();
@@ -217,7 +232,7 @@ describe('Forma', () => {
     const child = new Forma({
       id: relatedId,
       $parentId: parent.id,
-      name: 'child'
+      name: 'child',
     });
 
     expect(child.id.getSignature()).toBe(parent.id.getSignature());
@@ -235,7 +250,7 @@ describe('Forma', () => {
       new Forma({
         id: unrelatedId,
         $parentId: parent1.id,
-        name: 'child'
+        name: 'child',
       });
     }).toThrow(/signature mismatch/);
 
@@ -251,11 +266,10 @@ describe('Forma', () => {
     // Use string parent id
     const child = new Forma({
       $parentId: parentIdStr,
-      name: 'child'
+      name: 'child',
     });
 
     expect(child.id.getSignature()).toBe(parent.id.getSignature());
     dbg && cc.ok1(msg + UOK, 'string parent id works');
   });
-
 });

@@ -71,7 +71,7 @@ describe('navigable-view', () => {
   });
 
   describe('linesToZenoCoord', () => {
-    it('linesToZenoCoord(n, 0) bias towards anchor', ()=>{
+    it('linesToZenoCoord(n, 0) bias towards anchor', () => {
       const { linesToZenoCoord } = NavigableView;
       expect(linesToZenoCoord(1, 0).toString()).toEqual('Z(0,0)');
       expect(linesToZenoCoord(2, 0).toString()).toEqual('Z(0,0)');
@@ -94,7 +94,7 @@ describe('navigable-view', () => {
       expect(linesToZenoCoord(14, 0).toString()).toEqual('Z(6,0)');
       expect(linesToZenoCoord(15, 0).toString()).toEqual('Z(6,0)');
     });
-    it('linesToZenoCoord(n, 0.5) bias evenly', ()=>{
+    it('linesToZenoCoord(n, 0.5) bias evenly', () => {
       const { linesToZenoCoord } = NavigableView;
       expect(linesToZenoCoord(1, 0.5).toString()).toEqual('Z(0,0)');
       expect(linesToZenoCoord(2, 0.5).toString()).toEqual('Z(0,0)');
@@ -119,7 +119,7 @@ describe('navigable-view', () => {
 
       expect(linesToZenoCoord(15, 0.5).toString()).toEqual('Z(5,4)');
     });
-    it('linesToZenoCoord(n, 1) bias to pivot', ()=>{
+    it('linesToZenoCoord(n, 1) bias to pivot', () => {
       const { linesToZenoCoord } = NavigableView;
       expect(linesToZenoCoord(1, 1).toString()).toEqual('Z(0,0)');
 
@@ -145,18 +145,17 @@ describe('navigable-view', () => {
   });
 
   describe('ZenoCoord', () => {
-    it('bad ctor', ()=>{
-      expect(() => new ZenoCoord(-1,0)).toThrow();
-      expect(() => new ZenoCoord(0,-1)).toThrow();
-      expect(() => new ZenoCoord(0,1000)).toThrow();
-      expect(() => new ZenoCoord(1000,0)).toThrow();
+    it('bad ctor', () => {
+      expect(() => new ZenoCoord(-1, 0)).toThrow();
+      expect(() => new ZenoCoord(0, -1)).toThrow();
+      expect(() => new ZenoCoord(0, 1000)).toThrow();
+      expect(() => new ZenoCoord(1000, 0)).toThrow();
     });
-    it('toString()', ()=>{
-      expect((new ZenoCoord(0,0)).toString()).toEqual('Z(0,0)');
-      expect((new ZenoCoord(1,0)).toString()).toEqual('Z(1,0)');
-      expect((new ZenoCoord(0,1)).toString()).toEqual('Z(0,1)');
-      expect((new ZenoCoord(2,3)).toString()).toEqual('Z(2,3)');
+    it('toString()', () => {
+      expect(new ZenoCoord(0, 0).toString()).toEqual('Z(0,0)');
+      expect(new ZenoCoord(1, 0).toString()).toEqual('Z(1,0)');
+      expect(new ZenoCoord(0, 1).toString()).toEqual('Z(0,1)');
+      expect(new ZenoCoord(2, 3).toString()).toEqual('Z(2,3)');
     });
   });
-
 });

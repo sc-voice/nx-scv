@@ -80,12 +80,12 @@ export class NfWatch {
     if (!this._active) {
       return;
     }
-    const { _theme:theme } = this;
+    const { _theme: theme } = this;
     const { notify } = this._ctx.ui;
     const { world, view } = NfSession.shared;
-    const { namespace:ns } = view;
+    const { namespace: ns } = view;
     if (world == null) {
-      notify("world?");
+      notify('world?');
       return;
     }
     const { maxLines, detail, anchor, pivot } = view;
@@ -106,7 +106,7 @@ export class NfWatch {
       theme.nfBoundary(`${timeStr} NfWatch`),
       theme.nfLabel(`anchor`),
       theme.nfLink(ns.fuzzyIdOf(anchor)),
-      w3d == null ? 'null' : (w3d.id.base64 === world.id.base64),
+      w3d == null ? 'null' : w3d.id.base64 === world.id.base64,
       theme.nfLabel(`pivot`),
       (pivot && ns.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
       theme.nfLabel('lines'),
@@ -118,5 +118,4 @@ export class NfWatch {
     this._lines = [header, ...contentLines];
     notify(this._lines.join('\n'));
   }
-
 }

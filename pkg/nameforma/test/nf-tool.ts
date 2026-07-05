@@ -9,7 +9,9 @@ describe('validateParams', () => {
         field: 'name',
         value: 'test',
       });
-    }).toThrow('Missing required parameters for set_field_value: fuzzy_id');
+    }).toThrow(
+      'Missing required parameters for set_field_value: fuzzy_id',
+    );
   });
 
   it('throws error when field is undefined for set_field_value', () => {
@@ -38,7 +40,9 @@ describe('validateParams', () => {
         field: null,
         value: null,
       });
-    }).toThrow('Missing required parameters for set_field_value: fuzzy_id, field, value');
+    }).toThrow(
+      'Missing required parameters for set_field_value: fuzzy_id, field, value',
+    );
   });
 
   it('passes when all required params are provided', () => {
@@ -64,7 +68,9 @@ describe('validateParams', () => {
         field: 'name',
         value: 'test',
       });
-    }).toThrow('Missing required parameters for set_field_value: fuzzy_id');
+    }).toThrow(
+      'Missing required parameters for set_field_value: fuzzy_id',
+    );
   });
 });
 

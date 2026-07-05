@@ -22,7 +22,9 @@ describe('TuiList', () => {
 
   beforeEach(() => {
     worldPath = path.join(os.tmpdir(), `tui-list-test-${Date.now()}`);
-    world = FileRepository.worldFromPath(path.join(worldPath, '.nameforma'));
+    world = FileRepository.worldFromPath(
+      path.join(worldPath, '.nameforma'),
+    );
   });
 
   afterEach(() => {
@@ -100,7 +102,9 @@ describe('TuiList', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // Verify all tasks appear
       expect(output).toContain('Task 1');
@@ -191,7 +195,9 @@ describe('TuiList', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // All items should appear with bullets
       expect(output).toContain('Task 0');
@@ -224,7 +230,9 @@ describe('TuiList', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world, { fBullet: customBullet }).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // Custom bullets should appear in output
       expect(output).toContain('Item 1');
@@ -247,7 +255,9 @@ describe('TuiList', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world, { maxRows: 2 }).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // Only 2 tasks should appear (most recent first), not all 3
       expect(output).toContain('Task 2');
@@ -267,7 +277,9 @@ describe('TuiList', () => {
         maxWidth: 20,
       }).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // Output should show truncation (ellipsis)
       expect(output).toContain('…');
@@ -294,7 +306,9 @@ describe('TuiList', () => {
         textOverflow: 'hidden',
       }).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // Should not have ellipsis with hidden overflow
       expect(output).not.toContain('…');
@@ -318,7 +332,9 @@ describe('TuiList', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       new TuiList(entityList, world).render();
 
-      const output = consoleSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
+      const output = consoleSpy.mock.calls
+        .map((c: any[]) => c[0])
+        .join('\n');
 
       // Both tasks should appear with progress (0% since no actions)
       expect(output).toContain('Task 1');

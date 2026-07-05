@@ -125,9 +125,10 @@ export class FormaList<T extends Forma> {
    */
   addItem(item: any): T {
     const $parentId = Entity.parentIdFor(this.parent, this.#ItemClass);
-    const typedItem: T = item instanceof this.#ItemClass
-      ? item
-      : new (this.#ItemClass as any)({ ...item, $parentId});
+    const typedItem: T =
+      item instanceof this.#ItemClass
+        ? item
+        : new (this.#ItemClass as any)({ ...item, $parentId });
 
     this.items.push(typedItem);
     this.#invalidateCache();
@@ -184,7 +185,7 @@ export class FormaList<T extends Forma> {
     if (matches.length === 0) {
       // Ignore case
       const filter2 = Identifiable.idFilter(id, id.length, true);
-      matches = this.#filterItems((item) => filter2(this.#itemId(item)))
+      matches = this.#filterItems((item) => filter2(this.#itemId(item)));
     }
 
     if (matches.length === 0) {

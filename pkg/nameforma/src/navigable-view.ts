@@ -4,7 +4,10 @@ import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
 import { NameFormaTheme } from './nameforma-theme.js';
-import { FuzzyNamespace, type IReadOnlyNamespace } from './fuzzy-namespace.js';
+import {
+  FuzzyNamespace,
+  type IReadOnlyNamespace,
+} from './fuzzy-namespace.js';
 import { ViewNamespace } from './view-namespace.js';
 
 export { ViewNamespace } from './view-namespace.js';
@@ -46,14 +49,14 @@ export interface INameFormaTheme {
 /**
  * 3D Spatial Navigation Engine for a fractal semantic space of Forma objects.
  *
- * NameForma information is modelled as a fractal space of IRegistry 
- * instances that represent data subsets of interest. IRegistry instances 
+ * NameForma information is modelled as a fractal space of IRegistry
+ * instances that represent data subsets of interest. IRegistry instances
  * are presented with IViews anchored to that instance.
  *
- * IViews present their anchors fractally as a 
+ * IViews present their anchors fractally as a
  * semantically zoomable list of RenderRows.
  * RenderRows have arbitrary width that a renderer can
- * choose to render as one or more wrapped display lines according to viewport 
+ * choose to render as one or more wrapped display lines according to viewport
  * height/width constraints.
  * Each RenderRow comprises static read-only data as well as FormaFields, which
  * are potentilly mutable.
@@ -84,7 +87,7 @@ export interface INameFormaTheme {
 
 export type RenderCell = string | number | boolean | FormaField;
 
-export type RenderRow = | RenderCell[]
+export type RenderRow = RenderCell[];
 
 export type RenderData = RenderRow | RenderRow[];
 
@@ -206,7 +209,7 @@ export class ZenoCoord {
   }
 
   toString(): string {
-    let { anchorStep:a, pivotStep:p } = this;
+    let { anchorStep: a, pivotStep: p } = this;
     return `Z(${a},${p})`;
   }
 
@@ -261,7 +264,9 @@ export function zenoStepToLines(step: ZenoStep): number {
 
 export function linesToZenoStep(lines: number): ZenoStep {
   if (!Number.isInteger(lines) || lines < 1) {
-    throw new RangeError(`linesToZenoStep: lines must be positive integer, got ${lines}`);
+    throw new RangeError(
+      `linesToZenoStep: lines must be positive integer, got ${lines}`,
+    );
   }
   let best = 0;
   for (let i = 0; i <= MAX_ZENO_STEP; i++) {
@@ -366,7 +371,7 @@ export interface IView {
    * An IView comprises a header followed by an indented body.
    * Set the body indent
    */
-  setBodyIndent(indent:string): void;
+  setBodyIndent(indent: string): void;
 
   zoomTo(zeno: ZenoCoord): void;
 
@@ -380,13 +385,12 @@ export interface IView {
 
   getCursor(): ICursor;
 
-  /** Mark view as stale. @see validate() */ 
+  /** Mark view as stale. @see validate() */
   invalidate(): void;
 
   /** Execute callback to refresh view if stale */
   validate(action: () => void): void;
 }
-
 
 export class NavigableView implements IView {
   protected _anchor: IRegistry | null = null;
@@ -413,7 +417,7 @@ export class NavigableView implements IView {
    * @param {number} lines integer line budget
    * @param {number} bias lines towards anchor(0:default) or pivot(1)
    */
-  static linesToZenoCoord(lines:number, bias:number = 0): ZenoCoord {
+  static linesToZenoCoord(lines: number, bias: number = 0): ZenoCoord {
     if (lines <= 0) {
       throw new Error(`invalid lines:${lines}`);
     }
@@ -526,15 +530,15 @@ export class NavigableView implements IView {
 
   private _updateNamespace(): void {
     if (!this._anchor) return;
-    const anchorNs = 'mutableNamespace' in this._anchor
-      ? (this._anchor as any).mutableNamespace
-      : this._anchor.namespace as any;
-    const pivotNs = this._pivot && 'mutableNamespace' in this._pivot
-      ? (this._pivot as any).mutableNamespace
-      : new FuzzyNamespace();
+    const anchorNs =
+      'mutableNamespace' in this._anchor
+        ? (this._anchor as any).mutableNamespace
+        : (this._anchor.namespace as any);
+    const pivotNs =
+      this._pivot && 'mutableNamespace' in this._pivot
+        ? (this._pivot as any).mutableNamespace
+        : new FuzzyNamespace();
     const tracked = this._namespace?.tracked;
     this._namespace = new ViewNamespace(anchorNs, pivotNs, tracked);
   }
-
 }
-

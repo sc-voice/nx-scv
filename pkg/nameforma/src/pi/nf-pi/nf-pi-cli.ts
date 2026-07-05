@@ -1,7 +1,9 @@
 import { Command } from 'commander';
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
 import {
-  NavigableView, ZenoCoord, zenoStep
+  NavigableView,
+  ZenoCoord,
+  zenoStep,
 } from '../../navigable-view.js';
 import { NfSession } from './nf-session.js';
 import { World } from '../../world.js';
@@ -24,7 +26,10 @@ export class NfExtensionCommand extends NfProgram {
     const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
 
     if (!this.ctx.hasUI) {
-      this.ctx.ui.notify('nameforma extension requires interactive mode', 'error');
+      this.ctx.ui.notify(
+        'nameforma extension requires interactive mode',
+        'error',
+      );
       return;
     }
     const ctxui = this.ctx.ui;
@@ -35,9 +40,10 @@ export class NfExtensionCommand extends NfProgram {
       .description('NameForma CLI for pi-coding-agent')
       .configureOutput({
         writeOut: (str: string) => ctxui.notify(str.trim(), 'info'),
-        writeErr: (str: string) => ctxui.notify("w5r:"+str.trim(), 'error'),
+        writeErr: (str: string) =>
+          ctxui.notify('w5r:' + str.trim(), 'error'),
         outputError: (str: string, write: (s: string) => void) => {
-          ctxui.notify("o9r:"+str.trim(), 'error');
+          ctxui.notify('o9r:' + str.trim(), 'error');
         },
       });
 
@@ -45,10 +51,13 @@ export class NfExtensionCommand extends NfProgram {
     // HACK: Commander Command.exitOverride does not do what we want
     // so we have to hack the Command prototype itself
     // to avoid terminating Pi
-    (Command.prototype as any)._exit = 
-      function (exitCode:number, code:number, message:string) {
-        nfp.exitCallback({exitCode, code, message});
-      }
+    (Command.prototype as any)._exit = function (
+      exitCode: number,
+      code: number,
+      message: string,
+    ) {
+      nfp.exitCallback({ exitCode, code, message });
+    };
 
     this.registerPiWatchCommand();
     this.registerInitCommand();
@@ -57,14 +66,14 @@ export class NfExtensionCommand extends NfProgram {
     this.registerPiTestCommand();
   }
 
-  private exitCallback(err:any) {
+  private exitCallback(err: any) {
     const msg = 'nf-pi-cli.exitCallback';
     const nfp = this;
     const str = JSON.stringify(err);
     const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
 
     dbg && World.log(msg, str);
-  //  throw new Error(`${msg} throw`);
+    //  throw new Error(`${msg} throw`);
   }
 
   private registerPiWatchCommand(): void {
@@ -88,9 +97,11 @@ export class NfExtensionCommand extends NfProgram {
             return;
           }
           view.setMaxLines(lines);
-          if (sLines && (typeof detail === 'number')) {
+          if (sLines && typeof detail === 'number') {
             if (Number.isNaN(detail) || detail < 0 || 1 < detail) {
-              nfExt.cmdDelegate.error(`line detail must be between 0 and 1: ${sDetail}?`);
+              nfExt.cmdDelegate.error(
+                `line detail must be between 0 and 1: ${sDetail}?`,
+              );
               return;
             }
             view.setDetail(detail);
@@ -98,9 +109,15 @@ export class NfExtensionCommand extends NfProgram {
           const zc = NavigableView.linesToZenoCoord(lines, detail);
           view.zoomTo(zc);
 
-          nfExt.ctx.ui.notify(`detail: ${detail} ${session.view.detail}`, 'warning');
+          nfExt.ctx.ui.notify(
+            `detail: ${detail} ${session.view.detail}`,
+            'warning',
+          );
         } else {
-          nfExt.ctx.ui.notify('options:' + JSON.stringify(options), 'warning');
+          nfExt.ctx.ui.notify(
+            'options:' + JSON.stringify(options),
+            'warning',
+          );
         }
 
         if (session.watchInstance && options.quit) {
@@ -150,11 +167,15 @@ export class NfExtensionCommand extends NfProgram {
    */
   async parse(str: string): Promise<ICommand> {
     const msg = 'NfExtensionCommand.parse';
-    const args = ['node', 'nf', ...str.trim().split(/\s+/).filter(Boolean)];
+    const args = [
+      'node',
+      'nf',
+      ...str.trim().split(/\s+/).filter(Boolean),
+    ];
     let result;
     try {
       result = await this.parseAsync(args);
-    } catch (err:any) {
+    } catch (err: any) {
       console.log(msg, 'caught', err?.message);
     } finally {
       return result ?? this.cmdDelegate;
@@ -171,11 +192,11 @@ export async function nfPiCli(
   const nfExt = new NfExtensionCommand(ctx);
   const session = NfSession.shared;
   const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
-  const { watchCount:oldCount, world } = session;
+  const { watchCount: oldCount, world } = session;
   nfExt.initialize(world, { isAgent: true });
   await nfExt.parse(args);
-  const { watchCount:newCount, watchInstance } = session;
-  if (oldCount === newCount && watchInstance) { 
+  const { watchCount: newCount, watchInstance } = session;
+  if (oldCount === newCount && watchInstance) {
     // stop watching if we processed a different nf command
     dbg && world.log(msg, 'watchInstance.stop');
     await watchInstance.stop();

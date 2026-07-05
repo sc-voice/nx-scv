@@ -69,7 +69,10 @@ export default class IdCommand {
       .option('--user <user>', 'Generate UUID64 for user')
       .option('--git-user', 'Generate UUID64 for current git user')
       .option('--git-email', 'Generate UUID64 for current git user email')
-      .option('--git-observed <commit>', 'Generate UUID64 for git commit observation')
+      .option(
+        '--git-observed <commit>',
+        'Generate UUID64 for git commit observation',
+      )
       .action((words: string[], options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;

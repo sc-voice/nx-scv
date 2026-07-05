@@ -11,7 +11,9 @@ describe('User', () => {
 
   describe('constructor', () => {
     it('requires at least email or name', () => {
-      expect(() => new User()).toThrow('User requires at least email or name');
+      expect(() => new User()).toThrow(
+        'User requires at least email or name',
+      );
     });
 
     it('allows email only', () => {

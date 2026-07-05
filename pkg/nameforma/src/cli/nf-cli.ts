@@ -224,8 +224,7 @@ export class NfCLI extends NfProgram {
         const opts = thisCommand.optsWithGlobals();
         const cmdName = thisCommand._name || thisCommand.name?.();
         const isInitCommand =
-          cmdName === 'init' ||
-          process.argv.includes('init');
+          cmdName === 'init' || process.argv.includes('init');
 
         let world: World | undefined;
         if (!isInitCommand) {
@@ -264,9 +263,7 @@ export class NfCLI extends NfProgram {
       this,
     );
     GetCommand.registerCommand(
-      program
-        .command('get')
-        .description('Get a forma by fuzzy ID'),
+      program.command('get').description('Get a forma by fuzzy ID'),
       this,
     );
     ActionCommand.registerCommand(
@@ -305,7 +302,7 @@ export class NfCLI extends NfProgram {
       writeOut: (str: string) => nfTui.log(str),
       writeErr: (str: string) => nfTui.error(str),
       //outputError: (str: string, write: (str: string) => void): void;
-    })
+    });
   }
 
   private preprocessArgv(argv: string[]): string[] {

@@ -132,12 +132,7 @@ describe('CLI: action command', () => {
 
     // Add action with summary
     output = [];
-    await testCmd(
-      'action',
-      'add',
-      'Test Action',
-      'This is a summary',
-    );
+    await testCmd('action', 'add', 'Test Action', 'This is a summary');
 
     expect(output[0]).toMatch(/✓ Action added/);
 
@@ -233,12 +228,7 @@ describe('CLI: action command', () => {
 
     // Add an action
     output = [];
-    await testCmd(
-      'action',
-      'add',
-      'Original Name',
-      'Original summary',
-    );
+    await testCmd('action', 'add', 'Original Name', 'Original summary');
 
     const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const actionId = actionIdMatch![1];
@@ -285,12 +275,7 @@ describe('CLI: action command', () => {
 
     // Add an action
     output = [];
-    await testCmd(
-      'action',
-      'add',
-      'Original Name',
-      'Original summary',
-    );
+    await testCmd('action', 'add', 'Original Name', 'Original summary');
 
     const actionIdMatch = output[0].match(/✓ Action added: (\S+)/);
     const actionId = actionIdMatch![1];

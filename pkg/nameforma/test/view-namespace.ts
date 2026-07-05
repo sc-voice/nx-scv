@@ -19,7 +19,10 @@ class TestEntity extends Entity {
       name: 'TestEntity',
       namespace: 'test',
       type: 'record',
-      fields: [...Forma.avroSchema.fields, { name: 'name', type: 'string' }],
+      fields: [
+        ...Forma.avroSchema.fields,
+        { name: 'name', type: 'string' },
+      ],
     };
   }
 
@@ -294,7 +297,10 @@ describe('ViewNamespace', () => {
     });
 
     it('constructor accepts initial tracked entities', () => {
-      const entity = new TestEntity({ id: new UUID64(), name: 'pre-tracked' });
+      const entity = new TestEntity({
+        id: new UUID64(),
+        name: 'pre-tracked',
+      });
       const vn = new ViewNamespace(anchorNs, pivotNs, [entity]);
 
       const merged = Array.from(vn).map(([_, f]) => f);

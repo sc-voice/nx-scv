@@ -120,10 +120,7 @@ export default class WatchCommand {
                 const newTask = world.focusedForma('task') as Task | null;
 
                 // Check if focused task changed
-                if (
-                  newTask &&
-                  newTask.id.base64 !== task.id.base64
-                ) {
+                if (newTask && newTask.id.base64 !== task.id.base64) {
                   const oldTaskId = world.namespace.fuzzyIdOf(task);
                   task = newTask;
                   taskFilePath = path.join(

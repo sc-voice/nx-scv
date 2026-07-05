@@ -3,105 +3,97 @@
   "id": "0PyUhy1x005om57rN0GctW",
   "name": "IEntityRepository",
   "summary": "Multi-device storage abstraction: define IEntityRepository, extract FileSystemRepository from World, make storage methods async for mobile/browser compatibility",
+  "updateId": "0PyjIbYX085om57rN0GctW",
   "rawActions": [
     {
       "forma": "Action",
       "id": "0PyUoLX9005om57rN0GctW",
       "name": "IEntityRepository interface",
       "summary": "Define IEntityRepository in src/entity.ts: insertOne, findOne (primitive), findMany (AsyncGenerator over keys, realizes via findOne), delete, saveWorld, loadWorld, sync",
+      "updateId": "0PyUoLX9005om57rN0GctW",
       "status": "manage",
-      "statusNote": "Ready for review: IEntityRepository defined in src/world.ts with insertOne, findOne, findMany, delete, saveWorld, loadWorld methods",
-      "statusDate": "2026-07-01T21:05:34.255Z"
+      "statusNote": "Ready for review: IEntityRepository defined in src/world.ts with insertOne, findOne, findMany, delete, saveWorld, loadWorld methods"
     },
     {
       "forma": "Action",
       "id": "0PyUoLd5005om57rN0GctW",
       "name": "FileRepository",
       "summary": "Extract fs logic from World into FileRepository implementing IEntityRepository",
+      "updateId": "0PyUoLd5005om57rN0GctW",
       "status": "manage",
-      "statusNote": "FileRepository complete with async API matching MongoDB",
-      "statusDate": "2026-07-01T21:23:29.884Z"
+      "statusNote": "FileRepository complete with async API matching MongoDB"
     },
     {
       "forma": "Action",
       "id": "0PyVC1-K005om57rN0GctW",
       "name": "LazyNamespace",
       "summary": "FuzzyNamespace stores (id, EntityClass) stubs; realizes full entity via repository.findOne() on first access; populateNamespace streams keys via findMany AsyncGenerator",
+      "updateId": "0PyVC1-K005om57rN0GctW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-01T19:37:55.348Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PyVS8wg005om57rN0GctW",
-      "name": "Entity updatedAt",
-      "summary": "Add updatedAt timestamp to Entity so findMany can filter by modification time (enables delta-sync across all IEntityRepository implementations)",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-01T20:48:18.090Z"
+      "name": "Entity updateId",
+      "summary": "Add updateId timestamp to Forma so findMany can filter by modification time (enables delta-sync across all IEntityRepository implementations)",
+      "updateId": "0PyVS8wg005om57rN0GctW",
+      "status": "work",
+      "statusNote": "2"
     },
     {
       "forma": "Action",
       "id": "0PyZudaO005om57rN0GctW",
       "name": "World.insertOne() async",
       "summary": "Change World.insertOne(EntityClass, cfg) from sync to async: create instance, addToNamespace, then await repository.insertOne(EntityClass, instance) to persist. Return the instance. Update signature to return Promise<T>.",
-      "status": "spec",
-      "statusNote": "Make insertOne async, delegate persistence to repository.insertOne(), tests verify Promise return and namespace membership",
-      "statusDate": "2026-07-02T17:46:17.895Z"
+      "updateId": "0PyZudaO005om57rN0GctW",
+      "status": "manage",
+      "statusNote": "implemented and tested"
     },
     {
       "forma": "Action",
       "id": "0PyZudgF005om57rN0GctW",
       "name": "World.findOne() async",
       "summary": "Change World.loadEntity(EntityClass, id) from sync to async. Keep same logic but await repository.findOne(EntityClass, {id}). Return Promise<T|null>.",
+      "updateId": "0PyZudgF005om57rN0GctW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-02T17:31:12.911Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PyZudm5005om57rN0GctW",
       "name": "World.findMany() async",
       "summary": "Replace World entity iteration (currently uses entityList directory scan) to use repository.findMany(EntityClass, {}). Must become async generator compatible in tests.",
+      "updateId": "0PyZudm5005om57rN0GctW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-02T17:31:13.286Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PyZuds0005om57rN0GctW",
       "name": "World.delete() async",
       "summary": "Change World.delete(entityType, id) from sync to async. Call await repository.delete(entityType, id). Update #saveEntity handler to propagate async.",
+      "updateId": "0PyZuds0005om57rN0GctW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-02T17:31:13.664Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PyZudxv005om57rN0GctW",
       "name": "World.saveWorld() async",
       "summary": "Change World.save() from sync to async. Delegate to await repository.saveWorld(). Return Promise<void>.",
+      "updateId": "0PyZudxv005om57rN0GctW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-02T17:31:14.041Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PyZue1j005om57rN0GctW",
       "name": "World.loadWorld() async",
       "summary": "Change World constructor to be async-compatible. Load world data via await repository.loadWorld() during init. May need factory method instead of direct constructor.",
+      "updateId": "0PyZue1j005om57rN0GctW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-02T17:31:14.413Z"
-    },
-    {
-      "forma": "Action",
-      "id": "0PyZue7c005om57rN0GctW",
-      "name": "Update test callers",
-      "summary": "Update test/world.ts to await async World storage methods",
-      "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-07-02T17:31:14.790Z"
+      "statusNote": ""
     }
   ],
   "rawReferences": [
@@ -110,6 +102,7 @@
       "id": "0PyUiJqw005om57rN0GctW",
       "name": "world.ts",
       "summary": "File to refactor",
+      "updateId": "0PyUiJqw005om57rN0GctW",
       "relevance": 0.5,
       "source": "nf:./src/world.ts"
     },
@@ -118,6 +111,7 @@
       "id": "0PyUiJxA005om57rN0GctW",
       "name": "IEntityRepository",
       "summary": "Repository declaration",
+      "updateId": "0PyUiJxA005om57rN0GctW",
       "relevance": 0.5,
       "source": "nf:./src/entity.ts"
     },
@@ -126,6 +120,7 @@
       "id": "0PyUiK1K005om57rN0GctW",
       "name": "FileRepository",
       "summary": "implementation and test files in src, test",
+      "updateId": "0PyUiK1K005om57rN0GctW",
       "relevance": 0.5,
       "source": "file-repository.ts"
     },
@@ -134,6 +129,7 @@
       "id": "0PyUiK73005om57rN0GctW",
       "name": "world.ts",
       "summary": "",
+      "updateId": "0PyUiK73005om57rN0GctW",
       "relevance": 0.5,
       "source": "nf:./test/world.ts"
     },
@@ -142,6 +138,7 @@
       "id": "0PyVEutv005om57rN0GctW",
       "name": "saveWorld/loadWorld naming",
       "summary": "World is root entity; saveWorld/loadWorld on IEntityRepository persist/load the root. Resolved: these are correct names for the interface methods, not aliases for save()",
+      "updateId": "0PyVEutv005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
     },
@@ -150,6 +147,7 @@
       "id": "0PyVEuzk005om57rN0GctW",
       "name": "sync on interface",
       "summary": "sync() removed from IEntityRepository: it decomposes into loadWorld() + findMany(). Event-driven change notification is a separate concern (event bus), not a repo method. Resolved: drop sync from interface.",
+      "updateId": "0PyVEuzk005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
     },
@@ -158,6 +156,7 @@
       "id": "0PyVEv3Y005om57rN0GctW",
       "name": "findMany return type",
       "summary": "findMany<T extends EntityConstructor>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>>. Same MongoDB-style filter as findOne. FileRepository iterates matching files; MongoDB uses native query cursor. Resolved.",
+      "updateId": "0PyVEv3Y005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
     },
@@ -166,6 +165,7 @@
       "id": "0PyVEv9N005om57rN0GctW",
       "name": "findOne primitive",
       "summary": "findOne<T extends EntityConstructor>(EntityClass: T, filter: object): ReturnType<T['fromJson']>|null. MongoDB-style filter e.g. {id:'abc123'}. FileRepository scans files and matches fields; MongoDB uses native query. Resolved.",
+      "updateId": "0PyVEv9N005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
     },
@@ -174,6 +174,7 @@
       "id": "0PyVEvFD005om57rN0GctW",
       "name": "insertOne generic constraint",
       "summary": "insertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): ReturnType<T['fromJson']>. World.insertOne already has this signature — preserve it on IEntityRepository unchanged. Resolved.",
+      "updateId": "0PyVEvFD005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
     }

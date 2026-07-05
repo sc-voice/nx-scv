@@ -5,7 +5,7 @@ import RGA64Node from '../src/rga64-node.js';
 
 describe('RGA64Node', () => {
   it('creates a node with id, value, and defaults', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
     const dbg = 0;
 
@@ -15,17 +15,18 @@ describe('RGA64Node', () => {
     expect(node.value).toBe(value);
     expect(node.parent).toBeNull();
     expect(node.deleted).toBe(false);
-    dbg && console.log({
-      id:id.base64, 
-      value:value.base64, 
-      node:JSON.stringify(node),
-    });
+    dbg &&
+      console.log({
+        id: id.base64,
+        value: value.base64,
+        node: JSON.stringify(node),
+      });
   });
 
   it('creates a node with parent and deleted flag', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
-    const parent = new User(undefined, "Freddie Mercury").generateUUID64();
+    const parent = new User(undefined, 'Freddie Mercury').generateUUID64();
     const node = new RGA64Node(id, value, parent, true);
     const dbg = 0;
 
@@ -33,16 +34,17 @@ describe('RGA64Node', () => {
     expect(node.value).toBe(value);
     expect(node.parent).toBe(parent);
     expect(node.deleted).toBe(true);
-    dbg && console.log({
-      id:id.base64, 
-      value:value.base64, 
-      parent:parent.base64, 
-      node:JSON.stringify(node),
-    });
+    dbg &&
+      console.log({
+        id: id.base64,
+        value: value.base64,
+        parent: parent.base64,
+        node: JSON.stringify(node),
+      });
   });
 
   it('stringifies a node with null parent (top-of-stack)', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
 
     const node = new RGA64Node(id, value, null, false);
@@ -55,9 +57,9 @@ describe('RGA64Node', () => {
   });
 
   it('stringifies a node with parent and deleted flag', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
-    const parent = new User(undefined, "Freddie Mercury").generateUUID64();
+    const parent = new User(undefined, 'Freddie Mercury').generateUUID64();
 
     const node = new RGA64Node(id, value, parent, true);
     const str = node.toString();
@@ -68,9 +70,9 @@ describe('RGA64Node', () => {
   });
 
   it('parses a stringified node (round-trip)', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
-    const parent = new User(undefined, "Freddie Mercury").generateUUID64();
+    const parent = new User(undefined, 'Freddie Mercury').generateUUID64();
 
     const original = new RGA64Node(id, value, parent, false);
     const str = original.toString();
@@ -83,7 +85,7 @@ describe('RGA64Node', () => {
   });
 
   it('parses a node with nil parent (^)', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
 
     const node = new RGA64Node(id, value, null, false);
@@ -96,7 +98,7 @@ describe('RGA64Node', () => {
   });
 
   it('parses active node (@) vs deleted node (-)', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
 
     const active = new RGA64Node(id, value, null, false);
@@ -110,9 +112,9 @@ describe('RGA64Node', () => {
   });
 
   it('copies a node with overrides', () => {
-    const id = new User(undefined, "Alice In Wonderland").generateUUID64();
+    const id = new User(undefined, 'Alice In Wonderland').generateUUID64();
     const value = new UUID64();
-    const parent = new User(undefined, "Freddie Mercury").generateUUID64();
+    const parent = new User(undefined, 'Freddie Mercury').generateUUID64();
 
     const original = new RGA64Node(id, value, parent, false);
 
@@ -131,12 +133,17 @@ describe('RGA64Node', () => {
   });
 
   it('compare: null parent comes last', () => {
-    const rootNode = new RGA64Node(new UUID64(), new UUID64(), null, false);
+    const rootNode = new RGA64Node(
+      new UUID64(),
+      new UUID64(),
+      null,
+      false,
+    );
     const childNode = new RGA64Node(
       new UUID64(),
       new UUID64(),
       new UUID64(),
-      false
+      false,
     );
 
     expect(rootNode.compare(childNode)).toBeGreaterThan(0);

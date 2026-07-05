@@ -43,8 +43,7 @@ export default class ActionCommand {
       return task;
     }
     const task = world.focusedForma('task') as Task | null;
-    if (!task)
-      throw new Error('No task focused and --task not specified');
+    if (!task) throw new Error('No task focused and --task not specified');
     return task;
   }
 
@@ -340,10 +339,10 @@ export default class ActionCommand {
           cmd: any,
         ) => {
           const world = nfProgram.world;
-        if (!world) {
-          nfTui.error('World not initialized');
-          return;
-        }
+          if (!world) {
+            nfTui.error('World not initialized');
+            return;
+          }
           const task = ActionCommand.resolveTask(world, options.task);
           const parts = dotref.split('.');
           if (parts.length !== 2) {
@@ -352,7 +351,9 @@ export default class ActionCommand {
           const [fuzzyId, field] = parts;
           const forma = task.namespace.getForma(fuzzyId);
           if (forma == null) {
-            throw new Error(`Action ${fuzzyId} not found in task ${task.id.base64}`);
+            throw new Error(
+              `Action ${fuzzyId} not found in task ${task.id.base64}`,
+            );
           }
           const id = forma.id.base64;
           const actionList = task.actions(world);
@@ -379,13 +380,16 @@ export default class ActionCommand {
 
               if (settings.isAgent && newStatus === 'done') {
                 const code = new UUID64().base64;
-                const consensusConfirmed = await confirm([
-                  `>>> Confirmation: ${code}`,
-                  `>>> Action: ${action.id}`,
-                  `>>> name: ${action.name}`,
-                  `>>> Transition to '${newStatus}': `,
-                  `>>> Enter confirmation code: `,
-                ].join('\n'), { code });
+                const consensusConfirmed = await confirm(
+                  [
+                    `>>> Confirmation: ${code}`,
+                    `>>> Action: ${action.id}`,
+                    `>>> name: ${action.name}`,
+                    `>>> Transition to '${newStatus}': `,
+                    `>>> Enter confirmation code: `,
+                  ].join('\n'),
+                  { code },
+                );
                 if (!consensusConfirmed) {
                   nfTui.log('Transition cancelled - consensus required');
                   return;

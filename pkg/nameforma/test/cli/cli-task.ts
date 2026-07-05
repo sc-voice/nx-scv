@@ -10,10 +10,20 @@ import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { 
-  FileRepository, Task, Action, Reference, Rational, World 
+import {
+  FileRepository,
+  Task,
+  Action,
+  Reference,
+  Rational,
+  World,
 } from '@sc-voice/nameforma';
-import { TaskCommand, NfCLI, nfTui, CliRenderer } from '@sc-voice/nameforma/unstable';
+import {
+  TaskCommand,
+  NfCLI,
+  nfTui,
+  CliRenderer,
+} from '@sc-voice/nameforma/unstable';
 import {
   createTempDir,
   createTempWorld,
@@ -501,18 +511,22 @@ describe('CLI: task command', () => {
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
 
-    task!.references(world).addItem(new Reference({
-      name: 'Reference 1',
-      summary: 'First reference',
-      relevance: 0.9,
-      source: 'src/file.ts',
-    }));
+    task!.references(world).addItem(
+      new Reference({
+        name: 'Reference 1',
+        summary: 'First reference',
+        relevance: 0.9,
+        source: 'src/file.ts',
+      }),
+    );
 
-    task!.references(world).addItem(new Reference({
-      name: 'Reference 2',
-      summary: 'Second reference',
-      relevance: 0.7,
-    }));
+    task!.references(world).addItem(
+      new Reference({
+        name: 'Reference 2',
+        summary: 'Second reference',
+        relevance: 0.7,
+      }),
+    );
 
     world.save();
 
@@ -597,23 +611,29 @@ describe('CLI: task command', () => {
     const task = world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
 
-    task!.references(world).addItem(new Reference({
-      name: 'Low Relevance',
-      summary: 'Least relevant',
-      relevance: 0.3,
-    }));
+    task!.references(world).addItem(
+      new Reference({
+        name: 'Low Relevance',
+        summary: 'Least relevant',
+        relevance: 0.3,
+      }),
+    );
 
-    task!.references(world).addItem(new Reference({
-      name: 'High Relevance',
-      summary: 'Most relevant',
-      relevance: 0.9,
-    }));
+    task!.references(world).addItem(
+      new Reference({
+        name: 'High Relevance',
+        summary: 'Most relevant',
+        relevance: 0.9,
+      }),
+    );
 
-    task!.references(world).addItem(new Reference({
-      name: 'Medium Relevance',
-      summary: 'Mid relevance',
-      relevance: 0.6,
-    }));
+    task!.references(world).addItem(
+      new Reference({
+        name: 'Medium Relevance',
+        summary: 'Mid relevance',
+        relevance: 0.6,
+      }),
+    );
 
     world.save();
 
@@ -747,7 +767,9 @@ describe('CLI: task command', () => {
       // Add some actions
       task!
         .actions(world)
-        .addItem(new Action({ name: 'First action', summary: 'Do this first' }));
+        .addItem(
+          new Action({ name: 'First action', summary: 'Do this first' }),
+        );
       task!.actions(world).addItem(new Action({ name: 'Second action' }));
       world.save();
 
@@ -836,7 +858,9 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const taskList = world.entityList(Task);
       const task = Array.from(taskList)[0] as any;
-      task.actions(world).addItem(new Action({ name: 'Action 1', status: 'spec' }));
+      task
+        .actions(world)
+        .addItem(new Action({ name: 'Action 1', status: 'spec' }));
       world.save();
 
       output.length = 0;
@@ -1369,7 +1393,7 @@ describe('CLI: nameforma package script', () => {
   });
 
   it('cli task list without -w uses current directory', () => {
-    const { tempDir, cleanup } = createTempDir("NF1427-");
+    const { tempDir, cleanup } = createTempDir('NF1427-');
     console.log('tempDir:', tempDir);
     const worldFilePath = path.join(tempDir, '.nameforma', 'world.json');
     try {
@@ -1382,10 +1406,13 @@ describe('CLI: nameforma package script', () => {
       expect(!fs.existsSync(worldFilePath));
 
       // Run CLI from temp directory without -w option
-      const output = execSync('node nf-cli.js init; node nf-cli.js task list', {
-        cwd: tempDir,
-        encoding: 'utf8',
-      });
+      const output = execSync(
+        'node nf-cli.js init; node nf-cli.js task list',
+        {
+          cwd: tempDir,
+          encoding: 'utf8',
+        },
+      );
 
       expect(output).toMatch(/No tasks/);
     } finally {

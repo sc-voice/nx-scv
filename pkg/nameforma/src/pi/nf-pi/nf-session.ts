@@ -67,5 +67,4 @@ export class NfSession extends EventEmitter {
     NfSession._shared = ctx;
     return NfSession._shared;
   }
-
 }

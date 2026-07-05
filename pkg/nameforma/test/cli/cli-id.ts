@@ -10,7 +10,12 @@ import path from 'path';
 import os from 'os';
 import { Command } from 'commander';
 import { validate as validateUUID } from 'uuid';
-import { UUID64, FileRepository, World, NfProgram } from '@sc-voice/nameforma';
+import {
+  UUID64,
+  FileRepository,
+  World,
+  NfProgram,
+} from '@sc-voice/nameforma';
 import IdCommand from '../../src/cli/cli-id.js';
 import { createTestProgram } from './helpers.js';
 

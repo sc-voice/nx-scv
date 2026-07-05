@@ -53,9 +53,9 @@ describe('FileRepository', () => {
   });
 
   it('findOne throws on non-{id} filter', async () => {
-    await expect(
-      repo.findOne(Task, { name: 'foo' })
-    ).rejects.toThrow(/only \{id\} filter supported/);
+    await expect(repo.findOne(Task, { name: 'foo' })).rejects.toThrow(
+      /only \{id\} filter supported/,
+    );
   });
 
   it('findMany({}) yields all entities of type', async () => {
@@ -68,7 +68,7 @@ describe('FileRepository', () => {
     }
 
     expect(results.length).toBe(2);
-    expect(results.map(t => t.name).sort()).toEqual(['task1', 'task2']);
+    expect(results.map((t) => t.name).sort()).toEqual(['task1', 'task2']);
   });
 
   it('findMany({id}) yields single entity', async () => {
@@ -76,7 +76,9 @@ describe('FileRepository', () => {
     const t2 = await repo.insertOne(Task, { name: 'task2' });
 
     const results: any[] = [];
-    for await (const task of repo.findMany(Task, { id: t1.id.toString() })) {
+    for await (const task of repo.findMany(Task, {
+      id: t1.id.toString(),
+    })) {
       results.push(task);
     }
 
@@ -86,7 +88,9 @@ describe('FileRepository', () => {
 
   it('findMany throws on non-{} or {id} filter', async () => {
     const iter = repo.findMany(Task, { name: 'foo' });
-    await expect(iter.next()).rejects.toThrow(/only \{\} or \{id\} filter supported/);
+    await expect(iter.next()).rejects.toThrow(
+      /only \{\} or \{id\} filter supported/,
+    );
   });
 
   it('delete removes entity from disk', async () => {
@@ -98,10 +102,14 @@ describe('FileRepository', () => {
   });
 
   it('delete silently succeeds if entity does not exist', async () => {
-    await expect(repo.delete('task', 'nonexistent')).resolves.toBeUndefined();
+    await expect(
+      repo.delete('task', 'nonexistent'),
+    ).resolves.toBeUndefined();
   });
 
   it('saveWorld throws', async () => {
-    await expect(repo.saveWorld()).rejects.toThrow(/call World.save\(\) directly/);
+    await expect(repo.saveWorld()).rejects.toThrow(
+      /call World.save\(\) directly/,
+    );
   });
 });

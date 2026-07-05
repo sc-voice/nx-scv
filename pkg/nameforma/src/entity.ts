@@ -16,19 +16,22 @@ export abstract class Entity extends Forma implements IRegistry {
 
   /**
    * Entity ids are mutually independent and unrelated to one another.
-   * In contrast, when an Entity itself contains non-Entity Formas, 
+   * In contrast, when an Entity itself contains non-Entity Formas,
    * the non-Entity Forma ids are always related to the id
    * of their parent Entity by the UUID64 signature.
-   * Linking parent/child id signatures provides a pragmatic way 
-   * to locate the parent of a non-Entity Forma in any namespace that 
+   * Linking parent/child id signatures provides a pragmatic way
+   * to locate the parent of a non-Entity Forma in any namespace that
    * includes that parent. Parent collisions are highly unlikely and are
    * resolvable by examining the colliding entities.
-   * 
+   *
    * @param parent - Parent entity or null
    * @param ItemClass - Child item class to check
    * @returns Parent ID if child should be related to parent, undefined otherwise
    */
-  static parentIdFor(parent: Entity | null, ItemClass: typeof Forma): UUID64 | undefined {
+  static parentIdFor(
+    parent: Entity | null,
+    ItemClass: typeof Forma,
+  ): UUID64 | undefined {
     if (parent && !(ItemClass.prototype instanceof Entity)) {
       return parent.id;
     }
@@ -76,14 +79,14 @@ export abstract class Entity extends Forma implements IRegistry {
    * Concrete classes usually override this method:
    * - if they comprise multiple Forma classes
    * - if the default ordering differs from recency of creation
-   * 
+   *
    * @param targetClass Forma, Action or Reference
    * @param filter optional boolean filter callback
    * @returns Iterable<Forma> of matching items in this Task's namespace
    */
   *findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
-    filter?: (element:T) => boolean,
+    filter?: (element: T) => boolean,
   ): Generator<InstanceType<C>> {
     const resolvedFilter = filter ?? (() => true);
     return this.namespace.findByClass(targetClass, resolvedFilter);

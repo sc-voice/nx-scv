@@ -47,23 +47,32 @@ export default class GetCommand {
             const lineWidthInt = parseInt(options.lineWidth, 10);
 
             if (isNaN(zenoInt) || zenoInt < 0 || zenoInt > 17) {
-              nfTui.error(`✗ Invalid --zeno value: ${options.zeno} (must be 0-17)`);
+              nfTui.error(
+                `✗ Invalid --zeno value: ${options.zeno} (must be 0-17)`,
+              );
               process.exit(1);
             }
 
             if (isNaN(linesInt) || linesInt < 1) {
-              nfTui.error(`✗ Invalid --lines value: ${options.lines} (must be >= 1)`);
+              nfTui.error(
+                `✗ Invalid --lines value: ${options.lines} (must be >= 1)`,
+              );
               process.exit(1);
             }
 
             if (isNaN(lineWidthInt) || lineWidthInt < 1) {
-              nfTui.error(`✗ Invalid --line-width value: ${options.lineWidth} (must be >= 1)`);
+              nfTui.error(
+                `✗ Invalid --line-width value: ${options.lineWidth} (must be >= 1)`,
+              );
               process.exit(1);
             }
 
             // Render using EntityView + LineRenderer
             const view = new EntityView(forma as any);
-            const zenoCoord = new ZenoCoord(zenoStep(zenoInt), zenoStep(0));
+            const zenoCoord = new ZenoCoord(
+              zenoStep(zenoInt),
+              zenoStep(0),
+            );
             view.zoomTo(zenoCoord);
 
             const renderData = forma.asRenderData(view);
@@ -75,7 +84,7 @@ export default class GetCommand {
             });
 
             const lines = renderer.render(renderData);
-            lines.forEach(line => nfTui.log(line));
+            lines.forEach((line) => nfTui.log(line));
           }
         } catch (err: any) {
           console.log(err);

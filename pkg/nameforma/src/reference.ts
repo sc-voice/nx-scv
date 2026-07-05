@@ -102,11 +102,11 @@ export class Reference extends Forma {
    * @return {any} prior values changed
    */
   override patch(update: any = {}): any {
-    const changed:any = super.patch(update);
+    const changed: any = super.patch(update);
     let { source } = update;
 
     const relevance = this.patchableNumber(update, 'relevance', 0, 1);
-    
+
     if (relevance != null && relevance !== this.relevance) {
       changed.relevance = this.relevance;
       this.relevance = relevance;
@@ -126,7 +126,9 @@ export class Reference extends Forma {
     const msg = 't2k.tuiRowStrings';
     let { id, name, summary, relevance, source = '' } = this;
     let {
-      theme=NameFormaTheme.shared, itemId = id.timeId(), bullet
+      theme = NameFormaTheme.shared,
+      itemId = id.timeId(),
+      bullet,
     } = cfg;
 
     let linkId = theme.nfLink(itemId);

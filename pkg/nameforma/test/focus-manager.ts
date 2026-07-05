@@ -11,7 +11,6 @@ import os from 'os';
 import { FileRepository, World, Task } from '@sc-voice/nameforma';
 import { FocusManager } from '@sc-voice/nameforma/unstable';
 
-
 describe('FocusManager', () => {
   describe('FocusManager.focus()', () => {
     it('should push id onto focus stack', () => {
@@ -140,13 +139,13 @@ describe('FocusManager', () => {
       const json = fm.toJSON();
       const restored = FocusManager.fromJSON(json);
 
-      const originalIds = fm.ids().map(id => id.base64);
-      const restoredIds = restored.ids().map(id => id.base64);
+      const originalIds = fm.ids().map((id) => id.base64);
+      const restoredIds = restored.ids().map((id) => id.base64);
 
       expect(restoredIds).toEqual(originalIds);
     });
   });
-})
+});
 
 describe('FocusManager world', () => {
   let tempDir: string;
@@ -164,8 +163,6 @@ describe('FocusManager world', () => {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
-
-
 
   describe('focusedForma', () => {
     it('should return most recently focused entity of type', async () => {
@@ -208,10 +205,9 @@ describe('FocusManager world', () => {
       const world2 = FileRepository.worldFromPath(worldPath);
       world2.registerEntity(Task);
 
-      const ids = world2.focusManager.ids().map(id => id.base64);
+      const ids = world2.focusManager.ids().map((id) => id.base64);
       expect(ids).toEqual([e2.id.base64, e1.id.base64]);
     });
-
 
     it('should restore focus ids as UUID64 objects', async () => {
       const entity = await world.insertOne(Task, { name: 'test' });
@@ -254,7 +250,7 @@ describe('FocusManager world', () => {
       world.delete('task', e2.id.base64);
 
       expect(world.focusManager.size).toBe(2);
-      const ids = world.focusManager.ids().map(id => id.base64);
+      const ids = world.focusManager.ids().map((id) => id.base64);
       expect(ids[0]).toBe(e3.id.base64);
       expect(ids[1]).toBe(e1.id.base64);
       expect(ids).not.toContain(e2.id.base64);
@@ -282,7 +278,8 @@ describe('FocusManager world', () => {
       const entities = [e3, e2, e1];
       const sorted = entities.sort(
         (a, b) =>
-          world.focusManager.focusOrder(a.id) - world.focusManager.focusOrder(b.id) ||
+          world.focusManager.focusOrder(a.id) -
+            world.focusManager.focusOrder(b.id) ||
           a.id.base64.localeCompare(b.id.base64),
       );
 
@@ -294,6 +291,4 @@ describe('FocusManager world', () => {
       expect(sorted[2].id.base64).toBe(e3.id.base64);
     });
   });
-
 });
-

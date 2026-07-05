@@ -50,6 +50,7 @@ describe('Entity.parentIdFor', () => {
     const msg = 'te.parentIdFor.entity-no-parent';
     const parentId = Entity.parentIdFor(null, AnEntity);
     expect(parentId).toBeUndefined();
-    dbg && cc.tag1(msg + UOK, 'returns undefined for Entity without parent');
+    dbg &&
+      cc.tag1(msg + UOK, 'returns undefined for Entity without parent');
   });
 });

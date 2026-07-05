@@ -125,7 +125,9 @@ describe('NfExtensionCommand', () => {
       // Called with options warning first, then watch started
       const calls = notifyMock.mock.calls;
       expect(calls.some((c: any) => c[0].includes('options:'))).toBe(true);
-      expect(calls.some((c: any) => c[0] === 'NameForma watch started')).toBe(true);
+      expect(
+        calls.some((c: any) => c[0] === 'NameForma watch started'),
+      ).toBe(true);
     });
 
     it('stops watch with --quit', async () => {
@@ -134,7 +136,9 @@ describe('NfExtensionCommand', () => {
       // Start watch first
       await cmd.parse('watch');
       const startCalls = notifyMock.mock.calls;
-      expect(startCalls.some((c: any) => c[0] === 'NameForma watch started')).toBe(true);
+      expect(
+        startCalls.some((c: any) => c[0] === 'NameForma watch started'),
+      ).toBe(true);
 
       // Reset mock to check stop call
       notifyMock.mockClear();
@@ -186,10 +190,7 @@ describe('NfExtensionCommand', () => {
       const cmd = new NfExtensionCommand(mockCtx);
       const result = await cmd.parse('unknown');
       expect(result).toBeDefined();
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.any(String),
-        'error',
-      );
+      expect(notifyMock).toHaveBeenCalledWith(expect.any(String), 'error');
     });
   });
 });

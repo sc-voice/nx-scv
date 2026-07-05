@@ -1,29 +1,36 @@
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { Entity } from './entity.js';
-import { FuzzyNamespace, type IMutableNamespace } from './fuzzy-namespace.js';
+import {
+  FuzzyNamespace,
+  type IMutableNamespace,
+} from './fuzzy-namespace.js';
 
 type Constructor<T> = new (...args: any[]) => T;
 
 /**
  * NavigableView provides session context for a view.
  * Since a Navigable may comprise multiple namespaces, it must
- * dynamically merge those namespaces into a single namespace facade 
- * for presentation. 
+ * dynamically merge those namespaces into a single namespace facade
+ * for presentation.
  * ViewNamespace also maintains an Entity stack that
  * tracks relevant context during a session.
- * The ViewNamespace facade is specifically designed to provide 
+ * The ViewNamespace facade is specifically designed to provide
  * a namespace context that is:
- * - dynamically compacted, 
+ * - dynamically compacted,
  * - resumable
- * - mutable 
+ * - mutable
  */
 export class ViewNamespace implements IMutableNamespace {
   private anchorNs: IMutableNamespace;
   private pivotNs: IMutableNamespace;
   private _tracked: Entity[] = [];
 
-  constructor(anchor: IMutableNamespace, pivot: IMutableNamespace, tracked: Entity[] = []) {
+  constructor(
+    anchor: IMutableNamespace,
+    pivot: IMutableNamespace,
+    tracked: Entity[] = [],
+  ) {
     this.anchorNs = anchor;
     this.pivotNs = pivot;
     this._tracked = [...tracked];
@@ -41,7 +48,7 @@ export class ViewNamespace implements IMutableNamespace {
 
   untrack(entity: Entity): void {
     const { base64 } = entity.id;
-    this._tracked = this._tracked.filter(e => e.id.base64 !== base64);
+    this._tracked = this._tracked.filter((e) => e.id.base64 !== base64);
   }
 
   get tracked(): Entity[] {
@@ -93,12 +100,14 @@ export class ViewNamespace implements IMutableNamespace {
     const matchCase = true;
     const matchExact = Identifiable.idFilter(id, id.length, matchCase);
     const matchNoCase = Identifiable.idFilter(id, id.length, !matchCase);
-    return this._tracked.filter(e => matchExact(e.id.base64))[0] ??
-      this._tracked.filter(e => matchNoCase(e.id.base64))[0];
+    return (
+      this._tracked.filter((e) => matchExact(e.id.base64))[0] ??
+      this._tracked.filter((e) => matchNoCase(e.id.base64))[0]
+    );
   }
 
   fuzzyIdOf(forma: Forma): string {
-    const msg = "N11w.fuzzyIdOf"
+    const msg = 'N11w.fuzzyIdOf';
     const { anchorNs, pivotNs } = this;
     const base64 = forma.id.base64;
     const inA = anchorNs.getForma(base64);
@@ -125,7 +134,7 @@ export class ViewNamespace implements IMutableNamespace {
 
     // Forma is in both namespaces with same fuzzy id
     if (inA && inP && fzA === fzP) {
-      dbg && console.log(msg, "both", { base64, fzA });
+      dbg && console.log(msg, 'both', { base64, fzA });
       return fzA;
     }
 
@@ -136,11 +145,11 @@ export class ViewNamespace implements IMutableNamespace {
     const tidA = anchorNs.getForma(tid);
     const tidP = pivotNs.getForma(tid);
     if (tidA && (tidP == null || tidP === tidA)) {
-      dbg && console.log(msg, "tidA", { tid });
+      dbg && console.log(msg, 'tidA', { tid });
       return tid;
     }
     if (tidP) {
-      dbg && console.log(msg, "tidB", { tid });
+      dbg && console.log(msg, 'tidB', { tid });
       return tid;
     }
 
@@ -149,7 +158,7 @@ export class ViewNamespace implements IMutableNamespace {
 
   *findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
-    filter: (element: T) => boolean = (() => true)
+    filter: (element: T) => boolean = () => true,
   ): Generator<InstanceType<C>> {
     return this.getMerged().findByClass(targetClass, filter);
   }
@@ -158,7 +167,9 @@ export class ViewNamespace implements IMutableNamespace {
    * underlying namespaces and invalidate this one.
    */
   addForma(forma: Forma): void {
-    throw new Error('Ambiguous operation. Invalidate and mutate ancor/pivot directly.');
+    throw new Error(
+      'Ambiguous operation. Invalidate and mutate ancor/pivot directly.',
+    );
   }
 
   removeForma(fuzzyId: string): Forma | undefined {

@@ -159,7 +159,10 @@ class UUID64 {
    * @param relation UUID64 instance to create a relation with
    * @returns UUID64 instance with new timestamp/sequence and relation's random bits
    */
-  static createRelatedId(relation: UUID64, millis:number = Date.now()): UUID64 {
+  static createRelatedId(
+    relation: UUID64,
+    millis: number = Date.now(),
+  ): UUID64 {
     const uuidv7 = UUID64.createBufferUUIDV7(millis, relation.uuidv7);
     const base64 = UUID64.toOrderPreservingBase64(
       UUID64.toUUID64Buffer(uuidv7),
@@ -189,7 +192,10 @@ class UUID64 {
    * @returns Object with uuid64, timestamp (Date), and commit hash
    * @throws Error if the commit is not found or git command fails
    */
-  static forGitObserved(commit: string = 'HEAD', gitCLI?: IGitCLI): { uuid64: UUID64; timestamp: Date; commit: string } {
+  static forGitObserved(
+    commit: string = 'HEAD',
+    gitCLI?: IGitCLI,
+  ): { uuid64: UUID64; timestamp: Date; commit: string } {
     try {
       const cli = gitCLI || new GitCLI();
       let commitToUse = commit;
@@ -202,7 +208,8 @@ class UUID64 {
         commitToUse = commit;
       }
 
-      const out = cli.log(`-1 ${commitToUse} --format=%at%n%H`)
+      const out = cli
+        .log(`-1 ${commitToUse} --format=%at%n%H`)
         .split('\n');
       const timestampMs = parseInt(out[0], 10) * 1000;
       const commitHash = out[1];
@@ -221,8 +228,10 @@ class UUID64 {
         commit: commitHash,
       };
     } catch (err: any) {
-      throw new Error(err.stderr?.trim() || err.message ||
-        `Failed to get commit info for '${commit}'. Make sure you are in a git repository.`
+      throw new Error(
+        err.stderr?.trim() ||
+          err.message ||
+          `Failed to get commit info for '${commit}'. Make sure you are in a git repository.`,
       );
     }
   }
@@ -249,6 +258,28 @@ class UUID64 {
     }
 
     return instance;
+  }
+
+  /**
+   * Create a UUID64 instance from something.
+   * @param id - something
+   * @returns UUID64 instance
+   */
+  static fromAny(id: any): UUID64 {
+    if (id == null) {
+      return new UUID64();
+    } else if (typeof id === 'string') {
+      return UUID64.fromString(id);
+    } else if (id instanceof UUID64) {
+      return id;
+    } else if ((id as any) instanceof Buffer) {
+      return UUID64.fromBuffer(id as Buffer);
+    } else if ((id as any).uuidv7 instanceof Buffer) {
+      // Avro deserialized UUID64: { uuidv7: Buffer }
+      return UUID64.fromBuffer((id as any).uuidv7);
+    } else {
+      throw new Error(`cannot create UUID64: ${id}?`);
+    }
   }
 
   /**
@@ -695,8 +726,7 @@ class UUID64 {
     return true;
   }
 
-
-  /** Generate a new, related UUID64 that is guaranteed to be 
+  /** Generate a new, related UUID64 that is guaranteed to be
    * strictly greater than:
    * - the current system time
    * - the time associated with the source UUID64

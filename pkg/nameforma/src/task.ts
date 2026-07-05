@@ -1,6 +1,10 @@
 import { DBG } from './defines.js';
 import { Entity } from './entity.js';
-import { Forma, type ListItemStringCfg, type Constructor } from './forma.js';
+import {
+  Forma,
+  type ListItemStringCfg,
+  type Constructor,
+} from './forma.js';
 import { FormaField } from './forma-field.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Schema, type AvroType } from './schema.js';
@@ -72,7 +76,7 @@ export class Task extends Entity {
   constructor(cfg: any = {}) {
     const msg = 't2k.ctor';
     const dbg = T2K.CTOR;
-    super({ id: cfg.id });
+    super(cfg);
     this.put(cfg);
 
     dbg && cc.ok1(msg, ...cc.props(this));
@@ -265,8 +269,10 @@ export class Task extends Entity {
     const msg = 't2k.tuiRowStrings';
     let { id, name, summary } = this;
     let progressValue = this.progress();
-    const { 
-      theme=NameFormaTheme.shared, itemId = id.timeId(), bullet 
+    const {
+      theme = NameFormaTheme.shared,
+      itemId = id.timeId(),
+      bullet,
     } = cfg;
 
     const { NO_COLOR } = Unicode.LINUX_COLOR;
@@ -284,10 +290,14 @@ export class Task extends Entity {
    */
   override renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
     const { anchorStep, pivotStep } = zeno;
-    const { 
-      id, name, summary, rawActions:actions, rawReferences:refs 
+    const {
+      id,
+      name,
+      summary,
+      rawActions: actions,
+      rawReferences: refs,
     } = this;
-    const headerData:RenderData = super.renderDataAtZeno(view, zeno);
+    const headerData: RenderData = super.renderDataAtZeno(view, zeno);
     const ZENO_TERSE = new ZenoCoord(ZENO_1_ROW_TERSE, ZENO_1_ROW_TERSE);
 
     if (anchorStep <= ZENO_3_ROWS) {
@@ -299,14 +309,34 @@ export class Task extends Entity {
 
     if (buf.remainingRows === 1) {
       buf.pushRow([
-        new FormaField('actions', false, 'Actions', ''+actions.length),
-        new FormaField('references', false, 'References', ''+refs.length),
+        new FormaField('actions', false, 'Actions', '' + actions.length),
+        new FormaField(
+          'references',
+          false,
+          'References',
+          '' + refs.length,
+        ),
       ]);
     } else {
-      buf.pushRow([ new FormaField('actions', false, 'Actions', ''+actions.length) ]);
-      buf.pushCollection(actions.map(a => a.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
-      buf.pushRow([ new FormaField('references', false, 'References', ''+refs.length) ]);
-      buf.pushCollection(refs.map(r => r.renderDataAtZeno(view, ZENO_TERSE) as RenderRow));
+      buf.pushRow([
+        new FormaField('actions', false, 'Actions', '' + actions.length),
+      ]);
+      buf.pushCollection(
+        actions.map(
+          (a) => a.renderDataAtZeno(view, ZENO_TERSE) as RenderRow,
+        ),
+      );
+      buf.pushRow([
+        new FormaField(
+          'references',
+          false,
+          'References',
+          '' + refs.length,
+        ),
+      ]);
+      buf.pushCollection(
+        refs.map((r) => r.renderDataAtZeno(view, ZENO_TERSE) as RenderRow),
+      );
     }
     return buf.getRenderData();
   } // renderDataAtZeno
@@ -320,7 +350,7 @@ export class Task extends Entity {
    */
   override *findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
-    filter?: (element:T) => boolean,
+    filter?: (element: T) => boolean,
   ): Generator<InstanceType<C>> {
     const resolvedFilter = filter ?? (() => true);
     if (this.rawActions[0] instanceof targetClass) {
@@ -329,11 +359,12 @@ export class Task extends Entity {
       }
     }
     if (this.rawReferences[0] instanceof targetClass) {
-      const sortedReferences = [...this.rawReferences].sort((a, b) => b.relevance - a.relevance);
+      const sortedReferences = [...this.rawReferences].sort(
+        (a, b) => b.relevance - a.relevance,
+      );
       for (const ref of sortedReferences) {
         yield ref as unknown as InstanceType<C>;
       }
     }
   }
-
 } // Task

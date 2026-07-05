@@ -18,7 +18,7 @@ class Operation {
   public summary: string;
   public required_parameters: any;
 
-  constructor(name:string, summary:string, required_parameters: any[]) {
+  constructor(name: string, summary: string, required_parameters: any[]) {
     this.name = name;
     this.summary = summary;
     this.required_parameters = required_parameters;
@@ -30,48 +30,57 @@ class Operation {
 }
 
 const operations = [
-  new Operation('add-task',
-    'Add a new Task',
-    ['name', 'summary']),
-  new Operation('add-action', 
-    'Add a new Action to focused Task', 
-    ['name', 'summary', ]),
-  new Operation('add-reference', 
-    'Add a new Reference to focused Task', 
-    ['name', 'summary', 'relevance', 'source']),
-  new Operation('focus', 'Focus a task', ['fuzzy_id'] ),
-  new Operation('unfocus', 'Focus a task', ['fuzzy_id'] ),
-  new Operation('task', 'Get current task', [] ),
-  new Operation('rename', 'Rename a forma with given value', 
-    ['fuzzy_id', 'value']),
-  new Operation('set_action_status', 
+  new Operation('add-task', 'Add a new Task', ['name', 'summary']),
+  new Operation('add-action', 'Add a new Action to focused Task', [
+    'name',
+    'summary',
+  ]),
+  new Operation('add-reference', 'Add a new Reference to focused Task', [
+    'name',
+    'summary',
+    'relevance',
+    'source',
+  ]),
+  new Operation('focus', 'Focus a task', ['fuzzy_id']),
+  new Operation('unfocus', 'Focus a task', ['fuzzy_id']),
+  new Operation('task', 'Get current task', []),
+  new Operation('rename', 'Rename a forma with given value', [
+    'fuzzy_id',
+    'value',
+  ]),
+  new Operation(
+    'set_action_status',
     'Set action status and statusNote values',
-    ['fuzzy_id', 'actionStatus', 'statusNote'] ),
-  new Operation('set_field_value', 'Set a Forma field value', 
-    ['fuzzy_id', 'field', 'value']),
-  new Operation('get', 'Get JSON for a Forma', ['fuzzy_id']), 
+    ['fuzzy_id', 'actionStatus', 'statusNote'],
+  ),
+  new Operation('set_field_value', 'Set a Forma field value', [
+    'fuzzy_id',
+    'field',
+    'value',
+  ]),
+  new Operation('get', 'Get JSON for a Forma', ['fuzzy_id']),
 ];
 
-const opNames = [
-  ...operations.map(op=>op.name),
-];
+const opNames = [...operations.map((op) => op.name)];
 const opDescriptions = JSON.stringify(
-  operations.map(op=>op.description),
-)
+  operations.map((op) => op.description),
+);
 
 export function validateParams(operation: string, params: any): void {
-  const op = operations.find(o => o.name === operation);
+  const op = operations.find((o) => o.name === operation);
 
   if (!op) {
     throw new Error(`Unknown operation: ${operation}`);
   }
 
-  const missing = op.required_parameters.filter((param: string) =>
-    params[param] == null || params[param] === 'null'
+  const missing = op.required_parameters.filter(
+    (param: string) => params[param] == null || params[param] === 'null',
   );
 
   if (missing.length > 0) {
-    throw new Error(`Missing required parameters for ${operation}: ${missing.join(', ')}`);
+    throw new Error(
+      `Missing required parameters for ${operation}: ${missing.join(', ')}`,
+    );
   }
 }
 
@@ -123,12 +132,14 @@ export const nfTool = {
     ),
     relevance: Type.Optional(
       Type.Number({
-        description: 'Relevance score from 0:not-relevant to 1:highly-relevant',
+        description:
+          'Relevance score from 0:not-relevant to 1:highly-relevant',
       }),
     ),
     fuzzy_id: Type.Optional(
       Type.String({
-        description: 'identifier for a Forma (e.g., UUID64.base64 or namespace-unique substring thereof)',
+        description:
+          'identifier for a Forma (e.g., UUID64.base64 or namespace-unique substring thereof)',
       }),
     ),
     field: Type.Optional(
@@ -152,7 +163,9 @@ export const nfTool = {
   ) {
     try {
       onUpdate?.({
-        content: [{ type: 'text' as const, text: 'Running nf command...' }],
+        content: [
+          { type: 'text' as const, text: 'Running nf command...' },
+        ],
       });
 
       if (signal?.aborted) {
@@ -162,19 +175,19 @@ export const nfTool = {
         };
       }
 
-      const { 
+      const {
         actionStatus,
         debug,
-        field, 
+        field,
         forma,
-        fuzzy_id, 
-        name, 
-        operation, 
-        relevance, 
+        fuzzy_id,
+        name,
+        operation,
+        relevance,
         statusNote,
         source,
-        summary, 
-        value, 
+        summary,
+        value,
       } = params;
 
       validateParams(operation, params);
@@ -200,7 +213,9 @@ export const nfTool = {
       } else if (operation === 'rename') {
         cmd += ` set ${fuzzy_id}.name` + arg(value);
       } else if (operation === 'set_action_status') {
-        cmd += ` action set ${fuzzy_id}.status ${actionStatus} ` + arg(statusNote);
+        cmd +=
+          ` action set ${fuzzy_id}.status ${actionStatus} ` +
+          arg(statusNote);
       } else if (operation === 'set_field_value') {
         cmd += ` set ${fuzzy_id}.${field}` + arg(value);
       } else if (operation === 'task') {
@@ -223,7 +238,8 @@ export const nfTool = {
         details: { command: cmd, output: output.trim() },
       };
     } catch (error: any) {
-      const errorMsg = error.stderr?.toString().trim() || error.message || String(error);
+      const errorMsg =
+        error.stderr?.toString().trim() || error.message || String(error);
       throw new Error(`nf command failed: ${errorMsg}`);
     }
   },

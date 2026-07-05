@@ -14,10 +14,11 @@ export class RenderBuffer {
   private _rows: RenderRow[];
   private _truncated: number;
 
-
   constructor(view: IView, rowBudget: number) {
     if (rowBudget <= 0) {
-      throw new RangeError(`RenderBuffer: rowBudget must be > 0, got ${rowBudget}`);
+      throw new RangeError(
+        `RenderBuffer: rowBudget must be > 0, got ${rowBudget}`,
+      );
     }
     this._view = view;
     this.rowBudget = rowBudget;
@@ -31,10 +32,12 @@ export class RenderBuffer {
 
   pushRow(row: RenderRow): boolean {
     if (this.remainingRows <= 0) {
-      this._truncated = this._truncated <= 0 ? 2 : this._truncated+1;
-      this._rows[this._rows.length-1] = [theme.nfAway(`[…+${this._truncated}]`)];
+      this._truncated = this._truncated <= 0 ? 2 : this._truncated + 1;
+      this._rows[this._rows.length - 1] = [
+        theme.nfAway(`[…+${this._truncated}]`),
+      ];
       return false;
-    } 
+    }
 
     this._rows.push(row);
     return true;

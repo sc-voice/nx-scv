@@ -1,0 +1,95 @@
+{
+  "forma": "Task",
+  "id": "0Pyfs0TV007cDtNkTsNYdW",
+  "name": "Add updateId:UUID64 to Forma class (HLC implementation)",
+  "summary": "Implement Hybrid Logical Clock (HLC) with updateId:UUID64 in Forma class. Uses optimistic locking for single-user + occasional collaboration scenarios.",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PyfwOiz007cDtNkTsNYdW",
+      "name": "Add updateId:UUID64 field to Forma",
+      "summary": "Define and initialize updateId property in Forma class",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-03T21:36:39.229Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyfwPJ0007cDtNkTsNYdW",
+      "name": "Set updateId in openTransaction()",
+      "summary": "entity.openTransaction() sets entity.updateId = updateId.after()",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-03T21:36:41.664Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyfwPvl007cDtNkTsNYdW",
+      "name": "Copy updateId to patched formas",
+      "summary": "Patch operations copy transaction.updateId to updateId field of each patched forma",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-03T21:36:44.143Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyfwQU5007cDtNkTsNYdW",
+      "name": "Serialize entity in closeTransaction()",
+      "summary": "closeTransaction() serializes patched entity with updated timestamps",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-03T21:36:46.469Z"
+    },
+    {
+      "forma": "Action",
+      "id": "0PyfwR6T007cDtNkTsNYdW",
+      "name": "Reread entity on patch failure",
+      "summary": "On patch failure, reread entity from storage (optimistic locking conflict resolution)",
+      "status": "req",
+      "statusNote": "",
+      "statusDate": "2026-07-03T21:36:49.053Z"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PyftRz3007cDtNkTsNYdW",
+      "name": "src/uuid64.ts",
+      "summary": "UUID64.after() method implementation",
+      "relevance": 0.5,
+      "source": "nf:src/uuid64.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyfwdkI007cDtNkTsNYdW",
+      "name": "forma.ts",
+      "summary": "Forma class definition - add updateId:UUID64 field",
+      "relevance": 0.5,
+      "source": "nf:./src/forma.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyfweJQ007cDtNkTsNYdW",
+      "name": "entity.ts",
+      "summary": "Entity class - openTransaction/closeTransaction and patch mechanism",
+      "relevance": 0.5,
+      "source": "nf:./src/entity.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pyfwf31007cDtNkTsNYdW",
+      "name": "world.ts",
+      "summary": "World/IEntityRepository - persistence and conflict resolution on reread",
+      "relevance": 0.5,
+      "source": "nf:./src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PyfwgXY007cDtNkTsNYdW",
+      "name": "file-repository.ts",
+      "summary": "FileRepository - storage layer for optimistic locking conflict detection",
+      "relevance": 0.5,
+      "source": "nf:./src/file-repository.ts"
+    }
+  ]
+}

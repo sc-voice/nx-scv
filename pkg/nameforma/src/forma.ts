@@ -20,7 +20,6 @@ import type { AvroType } from './schema.js';
 
 export type Constructor<T> = new (...args: any[]) => T;
 
-
 const { cc } = ColorConsole;
 const UOK = Unicode.CHECKMARK;
 const UNA = Unicode.EMPTY_SET;
@@ -80,6 +79,7 @@ export class LevenshteinMatcher<T extends Forma> {
     );
     return 1 - normalizedDistance;
   }
+
   /**
    * Compare two items by similarity (descending: b - a)
    * @param a - First item
@@ -111,8 +111,9 @@ export class Forma extends Identifiable implements IRenderable {
   static patchableFields = ['name', 'summary'];
 
   #prefix: string = '';
-  name: string;
-  summary: string;
+  name: string; // short descriptive title
+  summary: string; // long description
+  updateId: UUID64; // creation id or most recent mutating transaction id
 
   constructor(cfg: any = {}) {
     const msg = 'f3a.ctor';
@@ -135,6 +136,8 @@ export class Forma extends Identifiable implements IRenderable {
 
     let { summary = '' } = cfg;
     this.summary = summary;
+
+    this.updateId = UUID64.fromAny(cfg.updateId ?? cfg.id ?? this.id);
 
     dbg && cc.ok1(msg + UOK, { id: this.id, name });
   }
@@ -171,6 +174,7 @@ export class Forma extends Identifiable implements IRenderable {
         { name: 'id', type: UUID64.avroSchema.fullName }, // immutable, unique, UUID64 POJO
         { name: 'name', type: 'string' }, // mutable
         { name: 'summary', type: 'string' }, // mutable
+        { name: 'updateId', type: UUID64.avroSchema.fullName }, // modification timestamp (HLC)
       ],
     });
   }
@@ -184,6 +188,10 @@ export class Forma extends Identifiable implements IRenderable {
     const { name } = this.constructor;
     const prefix = Identifiable.numeronym(name) || name;
     return prefix.toUpperCase();
+  }
+
+  get updatedAt(): Date {
+    return this.updateId.toDate();
   }
 
   /**
@@ -231,7 +239,12 @@ export class Forma extends Identifiable implements IRenderable {
    * @param min - Minimum value
    * @param max - Maximum value
    */
-  patchableNumber(update:any, key:string, min:number, max:number): number | undefined {
+  patchableNumber(
+    update: any,
+    key: string,
+    min: number,
+    max: number,
+  ): number | undefined {
     let value = update[key];
     if (value == null) {
       return undefined;
@@ -243,7 +256,9 @@ export class Forma extends Identifiable implements IRenderable {
       throw new Error(`Expected a number for ${key}:${value}?`);
     }
     if (value < min || max < value) {
-      throw new Error(`Expected ${min}<=value<=${max} for ${key}:${value}`);
+      throw new Error(
+        `Expected ${min}<=value<=${max} for ${key}:${value}`,
+      );
     }
     return value;
   }
@@ -251,13 +266,16 @@ export class Forma extends Identifiable implements IRenderable {
   /**
    * Patch (merge) properties on this instance.
    * Only updates mutable fields (name, summary); immutable id is preserved.
+   * If changes were made, updateId property is set to revised
    * @param update - Configuration object with properties to update
+   * @param transactionId - id of enclosing transaction (optional)
    * @return {any} prior values changed
    */
-  patch(update: Partial<Forma> = {}): any {
+  patch(update: Partial<Forma> = {}, txId: UUID64 = new UUID64()): any {
     const msg = 'Forma.patch';
+    const { id } = this;
     const { name, summary } = update;
-    const changed:any = {};
+    const changed: Record<string, any> = {};
     if (typeof name === 'string' && this.name !== name) {
       changed.name = this.name;
       this.name = name;
@@ -265,6 +283,11 @@ export class Forma extends Identifiable implements IRenderable {
     if (typeof summary === 'string' && this.summary !== summary) {
       changed.summary = this.summary;
       this.summary = summary;
+    }
+
+    if (Object.keys(changed).length > 0) {
+      changed.updateId = this.updateId;
+      this.updateId = txId;
     }
 
     return changed;
@@ -276,8 +299,11 @@ export class Forma extends Identifiable implements IRenderable {
   tuiRowStrings(cfg: ListItemStringCfg = {}): string[] {
     const msg = 'f3a.tuiRowStrings';
     const { id, name = 'name?', summary } = this;
-    const { 
-      theme = NameFormaTheme.shared, itemId = id.timeId(), bullet, separator = ' ' 
+    const {
+      theme = NameFormaTheme.shared,
+      itemId = id.timeId(),
+      bullet,
+      separator = ' ',
     } = cfg;
     const idLink = theme.nfLink(itemId);
     let row = [idLink, name];
@@ -296,7 +322,7 @@ export class Forma extends Identifiable implements IRenderable {
   listItemString(cfg: ListItemStringCfg = {}): string {
     const msg = 'f3a.listItemString';
     const { theme = NameFormaTheme.shared } = cfg;
-    const sep = theme.nfBoundary("|");
+    const sep = theme.nfBoundary('|');
     return this.tuiRowStrings(cfg).join(sep);
   }
 
@@ -310,7 +336,7 @@ export class Forma extends Identifiable implements IRenderable {
   /**
    * Render data at given zeno level of semantic detail
    */
-  renderDataAtZeno(view: IView, zeno:ZenoCoord): RenderData {
+  renderDataAtZeno(view: IView, zeno: ZenoCoord): RenderData {
     const theme = view.theme;
     const { id, name } = this;
     const summary = theme.nfNote(this.summary);
@@ -320,14 +346,10 @@ export class Forma extends Identifiable implements IRenderable {
     const ns = view.namespace;
     const shortId = theme.nfLink(ns.fuzzyIdOf(this));
     const indent = view.bodyIndent;
-    const sep = theme.nfBoundary("|");
+    const sep = theme.nfBoundary('|');
 
     if (anchorStep === ZENO_1_ROW_TERSE) {
-      return [ 
-        new FormaField('id', false, shortId, ''),
-        name,
-        summary,
-      ];
+      return [new FormaField('id', false, shortId, ''), name, summary];
     }
     if (anchorStep === ZENO_1_ROW_VERBOSE) {
       return [
@@ -340,16 +362,19 @@ export class Forma extends Identifiable implements IRenderable {
     // ZENO_2_ROWS is used for all futher detail
     const rows = [
       [
-        new FormaField('id', false, '',
-          `${theme.nfLabel(cls)+shortId} ${theme.nfLabel('id')+id.base64}`),
+        new FormaField(
+          'id',
+          false,
+          '',
+          `${theme.nfLabel(cls) + shortId} ${theme.nfLabel('id') + id.base64}`,
+        ),
         new FormaField('name', true, `name`, name),
       ],
-      [new FormaField('summary', true, indent+`summary`, summary)],
+      [new FormaField('summary', true, indent + `summary`, summary)],
     ];
 
     // Subclasses can add their detail rows
 
     return rows;
   } // asRenderData
-
 } // Forma
