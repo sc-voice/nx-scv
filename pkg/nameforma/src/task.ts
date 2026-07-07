@@ -60,26 +60,20 @@ const FORMA = Forma.avroSchema;
  * Empty arrays serialize as `[]`.
  */
 export class Task extends Entity {
-  rawActions: Array<Action> = [];
-  rawReferences: Array<Reference> = [];
+  rawActions!: Array<Action>;
+  rawReferences!: Array<Reference>;
 
   /**
    * Create a new Task instance.
-   *
-   * @param cfg Configuration object with optional:
-   *   - `id`: UUID64 for deserialized tasks (auto-generated if omitted)
-   *   - `name`: Task name (inherited from Entity)
-   *   - `actions`: Array of action configs (auto-constructed via FormaList)
-   *
-   * Calls put() to initialize all fields from cfg.
    */
-  constructor(cfg: any = {}) {
-    const msg = 't2k.ctor';
-    const dbg = T2K.CTOR;
+  constructor(cfg: Partial<Task> = {}) {
     super(cfg);
-    this.put(cfg);
 
-    dbg && cc.ok1(msg, ...cc.props(this));
+    let { rawActions = [], rawReferences = [] } = cfg;
+    Object.assign(this, {
+      rawActions: rawActions.map((data: any) => new Action(data)),
+      rawReferences: rawReferences.map((data: any) => new Reference(data)),
+    });
   }
 
   /**
@@ -231,31 +225,17 @@ export class Task extends Entity {
   }
 
   /**
-   * Replace all task fields including actions and references.
-   *
-   * @param value Configuration object with properties to set:
-   *   - `rawActions`: Array of Action
-   *   - `rawReferences`: Array of Reference
-   *
-   * Called by constructor to initialize instance. Also used for deserialization.
+   * Replace all task fields including actions and references (MongoDB semantics).
+   * @param content Configuration object with properties to set (name, summary, updateId, rawActions, rawReferences)
    */
-  put(value: any) {
-    const msg = 't2k.put';
+  override replace(content: Record<string, any> = {}): void {
+    const msg = 't2k.replace';
     const dbg = T2K.PUT;
-    super.patch(value);
-    let { rawActions = [], rawReferences = [] } = value;
+
+    super.replace(content);
+    let { rawActions = [], rawReferences = [] } = content;
     Object.assign(this, {
-      rawActions: rawActions.map((data: any) => {
-        const action = new Action(data);
-        try {
-          action.put(data);
-        } catch (err: any) {
-          throw new Error(
-            `Task ${this.id.timeId()} action ${data.id || '?'} '${data.name || '?'}': ${err.message}`,
-          );
-        }
-        return action;
-      }),
+      rawActions: rawActions.map((data: any) => new Action(data)),
       rawReferences: rawReferences.map((data: any) => new Reference(data)),
     });
 

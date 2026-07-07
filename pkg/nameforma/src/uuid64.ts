@@ -245,16 +245,19 @@ class UUID64 {
   static fromString(input: string): UUID64 {
     let instance;
 
-    // Check if it's a UUID string format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+    const uuid64Pattern = /^[0-9A-Za-z-_]{22}$/;
     const uuidPattern =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidPattern.test(input)) {
-      // UUID string format (UUIDv7)
-      instance = new UUID64(UUID64.uuidStringToBytes(input));
-    } else {
+
+    if (uuid64Pattern.test(input)) {
       // Order-preserving base64 string format (UUID64)
       const uuid64Buf = UUID64.bufferFromOPB64(input);
       instance = new UUID64(UUID64.toUUIDV7Buffer(uuid64Buf));
+    } else if (uuidPattern.test(input)) {
+      // UUID string format (UUIDv7)
+      instance = new UUID64(UUID64.uuidStringToBytes(input));
+    } else {
+      throw new Error(`invalid UUID64 string: ${input}`);
     }
 
     return instance;

@@ -26,78 +26,6 @@ const UNA = Unicode.EMPTY_SET;
 const { FORMA: F3A } = DBG;
 
 /**
- * Configuration for configuring the string representation of a list item
- */
-export interface ListItemStringCfg {
-  itemId?: string;
-  bullet?: string;
-  separator?: string;
-  theme?: NameFormaTheme;
-}
-
-/**
- * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
- * Returns similarity score (0-1) where 1 = exact match, 0 = completely different
- */
-export class LevenshteinMatcher<T extends Forma> {
-  /**
-   * Create a Levenshtein matcher
-   * @param searchValue - The id value to search for
-   * @param ignoreCase - If true (default), comparison is case-insensitive
-   */
-  constructor(
-    private searchValue: string,
-    private ignoreCase: boolean = true,
-  ) {}
-
-  /**
-   * Calculate similarity score between searchValue and item id
-   * @param item - Item to compare
-   * @returns Similarity: 1 = exact match, 0 = no similarity
-   */
-  similarity(item: T): number {
-    const msg = 'f3a.simlarity';
-    const s10e = this.ignoreCase
-      ? this.searchValue.toLowerCase()
-      : this.searchValue;
-
-    const itemId = item.id;
-    let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
-    itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
-
-    // Compare against prefix of same length as search
-    const compareStr =
-      s10e.length <= UUID64.TIME_SEQ_CHARS
-        ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
-        : itemIdStr;
-    //cc.tag1(msg, "TESTTAG1")
-
-    // Use normalized distance (0-1), convert to similarity (1-0)
-    const normalizedDistance = Levenshtein.normalizedDistance(
-      s10e,
-      compareStr,
-    );
-    return 1 - normalizedDistance;
-  }
-
-  /**
-   * Compare two items by similarity (descending: b - a)
-   * @param a - First item
-   * @param b - Second item
-   * @returns Positive if b more similar, negative if a more similar, 0 if equal
-   */
-  compare(a: T, b: T): number {
-    const simDiff = this.similarity(b) - this.similarity(a);
-    if (simDiff !== 0) return simDiff;
-
-    // Tiebreaker: compare by ID base64 lexicographically for deterministic ordering
-    if (a.id.base64 > b.id.base64) return 1;
-    if (a.id.base64 < b.id.base64) return -1;
-    return 0;
-  }
-}
-
-/**
  * Forma - Identifiable named objects
  *
  * ## Features
@@ -293,6 +221,20 @@ export class Forma extends Identifiable implements IRenderable {
     return changed;
   }
 
+  protected _replaceFrom<T extends Forma>(that: T): void {
+    delete (that as any).id; // id is immutable
+    Object.assign(this, that);
+  }
+
+  /**
+   * Re-instantiate with new content, preserving id.
+   * IMPORTANT: subclasses MUST override
+   * @param content - Object with properties to replace (name, summary, updateId, etc.)
+   */
+  replace(content: Partial<Forma> = {}): void {
+    this._replaceFrom(new Forma(content));
+  }
+
   /**
    * Return array of strings to be presented as a TUI row
    */
@@ -378,3 +320,75 @@ export class Forma extends Identifiable implements IRenderable {
     return rows;
   } // asRenderData
 } // Forma
+
+/**
+ * Configuration for configuring the string representation of a list item
+ */
+export interface ListItemStringCfg {
+  itemId?: string;
+  bullet?: string;
+  separator?: string;
+  theme?: NameFormaTheme;
+}
+
+/**
+ * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
+ * Returns similarity score (0-1) where 1 = exact match, 0 = completely different
+ */
+export class LevenshteinMatcher<T extends Forma> {
+  /**
+   * Create a Levenshtein matcher
+   * @param searchValue - The id value to search for
+   * @param ignoreCase - If true (default), comparison is case-insensitive
+   */
+  constructor(
+    private searchValue: string,
+    private ignoreCase: boolean = true,
+  ) {}
+
+  /**
+   * Calculate similarity score between searchValue and item id
+   * @param item - Item to compare
+   * @returns Similarity: 1 = exact match, 0 = no similarity
+   */
+  similarity(item: T): number {
+    const msg = 'f3a.simlarity';
+    const s10e = this.ignoreCase
+      ? this.searchValue.toLowerCase()
+      : this.searchValue;
+
+    const itemId = item.id;
+    let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
+    itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
+
+    // Compare against prefix of same length as search
+    const compareStr =
+      s10e.length <= UUID64.TIME_SEQ_CHARS
+        ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
+        : itemIdStr;
+    //cc.tag1(msg, "TESTTAG1")
+
+    // Use normalized distance (0-1), convert to similarity (1-0)
+    const normalizedDistance = Levenshtein.normalizedDistance(
+      s10e,
+      compareStr,
+    );
+    return 1 - normalizedDistance;
+  }
+
+  /**
+   * Compare two items by similarity (descending: b - a)
+   * @param a - First item
+   * @param b - Second item
+   * @returns Positive if b more similar, negative if a more similar, 0 if equal
+   */
+  compare(a: T, b: T): number {
+    const simDiff = this.similarity(b) - this.similarity(a);
+    if (simDiff !== 0) return simDiff;
+
+    // Tiebreaker: compare by ID base64 lexicographically for deterministic ordering
+    if (a.id.base64 > b.id.base64) return 1;
+    if (a.id.base64 < b.id.base64) return -1;
+    return 0;
+  }
+}

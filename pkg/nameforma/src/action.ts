@@ -75,41 +75,26 @@ export const STATUS_ORDER: Record<ActionStatus, number> = {
 export class Action extends Forma {
   status: ActionStatus;
   statusNote: string;
-  statusDate: Date;
 
   constructor(cfg: any = {}) {
-    const msg = 'Action.ctor';
-    const dbg = (A6N as any)?.CTOR;
     super(cfg);
 
-    let { status = ActionStatus.req, statusNote = '', statusDate } = cfg;
+    let { status = ActionStatus.req, statusNote = '' } = cfg;
     // Read-time compat: map legacy 'plan' status to 'req'
     if (status === 'plan') {
       status = ActionStatus.req;
     }
     this.status = status;
     this.statusNote = statusNote;
-    this.statusDate = statusDate ? new Date(statusDate) : new Date();
-
-    dbg && cc.ok1(msg + UOK, { id: this.id, name: this.name, status });
   }
 
-  put(cfg: any = {}): void {
-    const msg = 'Action.put';
-    if (cfg.statusDate === undefined) {
-      throw new Error(`${msg}: statusDate is required`);
-    }
-    const date = new Date(cfg.statusDate);
-    if (isNaN(date.getTime())) {
-      throw new Error(`${msg}: statusDate is invalid`);
-    }
-    this.statusDate = date;
-    if (cfg.status !== undefined) {
-      this.status = cfg.status;
-    }
-    if (cfg.statusNote !== undefined) {
-      this.statusNote = cfg.statusNote;
-    }
+  /**
+   * Re-instantiate with new content, preserving id.
+   * IMPORTANT: subclasses MUST override
+   * @param content - Object with properties to replace (name, summary, updateId, etc.)
+   */
+  override replace(content: Partial<Action> = {}): void {
+    this._replaceFrom(new Action(content));
   }
 
   /**
@@ -155,11 +140,6 @@ export class Action extends Forma {
           type: 'string',
           default: '',
         }, // mutable
-        {
-          name: 'statusDate',
-          type: 'string',
-          default: '',
-        }, // mutable
       ],
     });
   }
@@ -192,7 +172,6 @@ export class Action extends Forma {
       }
       changed.status = this.status;
       this.status = status as ActionStatus;
-      this.statusDate = new Date();
     }
     dbg && cc.ok1(msg, cfg);
 
@@ -265,7 +244,7 @@ export class Action extends Forma {
       done: BRIGHT_GREEN,
     };
     const c = statusColor[this.status] ?? '';
-    const dateStr = Action.shortDate(this.statusDate) + URAR;
+    const dateStr = Action.shortDate(this.updatedAt) + URAR;
     const status = this.status;
     const coloredStatus = c ? `${c}${status}${NO_COLOR}` : status;
     const sep = theme.nfBoundary(UBAR);

@@ -1,0 +1,101 @@
+{
+  "forma": "Task",
+  "id": "0PypFTsR000pv8_5ST9RtW",
+  "name": "add replace() method to Forma",
+  "summary": "semantics should follow MongoDB replaceOne()",
+  "updateId": "0PypFTsR000pv8_5ST9RtW",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0PypGpDZ000pv8_5ST9RtW",
+      "name": "implement replace() method in Forma class using MongoDB semantics",
+      "summary": "Add replace(content: Record<string, any>): void method to Forma class definition",
+      "updateId": "0PypIJyO00ELZ_jLqo_tNW",
+      "status": "manage",
+      "statusNote": "replace() implements MongoDB semantics for content replacement; provides deprecation path away from put() in subclasses"
+    },
+    {
+      "forma": "Action",
+      "id": "0PypGqty040pv8_5ST9RtW",
+      "name": "Deprecation Strategy for put()",
+      "summary": "Add @deprecated JSDoc tags to the legacy put() method.",
+      "updateId": "0PypGqty040pv8_5ST9RtW",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0PypIueq000pv8_5ST9RtW",
+      "name": "Update rational.ts usage of put() to replace()",
+      "summary": "Replace legacy put() calls with replace() in src/rational.ts",
+      "updateId": "0PypIueq000pv8_5ST9RtW",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0PypIv5u010pv8_5ST9RtW",
+      "name": "Update task.ts usage of put() to replace()",
+      "summary": "Replace legacy put() calls with replace() in src/task.ts",
+      "updateId": "0PypIv5u010pv8_5ST9RtW",
+      "status": "manage",
+      "statusNote": "Strangler pattern complete: Task.replace() implemented; constructor transitioned; put() deprecated but available for compatibility; all 774 tests passing"
+    },
+    {
+      "forma": "Action",
+      "id": "0Pypbe3V000pv8_5ST9RtW",
+      "name": "Update action.ts usage of put() to replace()",
+      "summary": "Apply strangler pattern: add Action.replace(), transition ctor, deprecate put()",
+      "updateId": "0Pypbe3V000pv8_5ST9RtW",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0Pypbm1A000pv8_5ST9RtW",
+      "name": "Update reference.ts usage of put() to replace()",
+      "summary": "Apply strangler pattern: add Reference.replace(), transition ctor, deprecate put()",
+      "updateId": "0Pypbm1A000pv8_5ST9RtW",
+      "status": "req",
+      "statusNote": ""
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0PypFsTp000pv8_5ST9RtW",
+      "name": "put() usage in rational.ts",
+      "summary": "File using the legacy put() method.",
+      "updateId": "0PypFsTp000pv8_5ST9RtW",
+      "relevance": 1,
+      "source": "./src/rational.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0PypFsw_050pv8_5ST9RtW",
+      "name": "put() usage in task.ts",
+      "summary": "File using the legacy put() method.",
+      "updateId": "0PypFsw_050pv8_5ST9RtW",
+      "relevance": 1,
+      "source": "./src/task.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pypbeyn000pv8_5ST9RtW",
+      "name": "put() usage in action.ts",
+      "summary": "File defining Action.put() that needs refactoring",
+      "updateId": "0Pypbeyn000pv8_5ST9RtW",
+      "relevance": 0.5,
+      "source": "./src/action.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Pypbmui000pv8_5ST9RtW",
+      "name": "put() usage in reference.ts",
+      "summary": "File defining Reference.put() that needs refactoring",
+      "updateId": "0Pypbmui000pv8_5ST9RtW",
+      "relevance": 0.5,
+      "source": "./src/reference.ts"
+    }
+  ]
+}

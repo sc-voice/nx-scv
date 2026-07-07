@@ -8,7 +8,6 @@ import { Unicode, ColorConsole } from '@sc-voice/tools/text';
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
 const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
-const { REFERENCE: REF } = DBG;
 
 /**
  * Reference - A link or citation with relevance scoring
@@ -25,30 +24,27 @@ export class Reference extends Forma {
 
   /**
    * Create a new Reference instance.
-   *
-   * @param cfg Configuration object with optional:
-   *   - `id`: UUID64 for deserialized references (auto-generated if omitted)
-   *   - `relevance`: Number [0..1] (default: 0)
-   *   - `source`: Optional source URL or reference string (default: '')
-   *
-   * Calls super constructor to initialize Forma fields.
    */
-  constructor(cfg: any = {}) {
-    const msg = 'ref.ctor';
-    const dbg = REF?.CTOR;
+  constructor(cfg: Partial<Reference> = {}) {
     super(cfg);
 
-    let { relevance = 0, source = '' } = cfg;
-    this.relevance = relevance;
-    this.source = source;
+    this.relevance = cfg.relevance ?? 0;
+    if (this.relevance < 0 || 1 < this.relevance) {
+      throw new Error(
+        `Expected relevance within [0,1]: ${cfg.relevance}?`,
+      );
+    }
 
-    dbg &&
-      cc.ok1(msg + UOK, {
-        id: this.id,
-        name: this.name,
-        relevance,
-        source,
-      });
+    this.source = cfg.source ?? '';
+  }
+
+  /**
+   * Re-instantiate with new content, preserving id.
+   * IMPORTANT: subclasses MUST override
+   * @param content - Object with properties to replace (name, summary, updateId, etc.)
+   */
+  override replace(content: Partial<Reference> = {}): void {
+    this._replaceFrom(new Reference(content));
   }
 
   /**

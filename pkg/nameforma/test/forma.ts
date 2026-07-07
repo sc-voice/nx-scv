@@ -40,6 +40,34 @@ describe('Forma', () => {
     expect(t7g.id.base64.includes(t7g.name)).toBe(true); // name is contained within id
     expect(t7g.summary).toBe(''); // default summary is blank
   });
+  it('updateId initialization', () => {
+    const msg = 'tf3a.updateId';
+
+    // Default: updateId initialized from id
+    const f1 = new Forma();
+    expect(f1.updateId).toBeDefined();
+    expect(f1.updateId).toBeInstanceOf(UUID64);
+    expect(f1.updateId.base64).toEqual(f1.id.base64);
+    dbg > 1 && cc.tag(msg, 'default updateId from id');
+
+    // Explicit cfg.updateId
+    const customId = new UUID64();
+    const f2 = new Forma({ updateId: customId });
+    expect(f2.updateId.base64).toEqual(customId.base64);
+    dbg > 1 && cc.tag(msg, 'explicit updateId');
+
+    // updateId as string
+    const f3 = new Forma({ updateId: customId.base64 });
+    expect(f3.updateId).toBeInstanceOf(UUID64);
+    expect(f3.updateId.base64).toEqual(customId.base64);
+    dbg > 1 && cc.tag(msg, 'updateId from string');
+
+    // updatedAt getter
+    const f4 = new Forma();
+    expect(f4.updatedAt).toStrictEqual(f4.updateId.toDate());
+    expect(f4.updatedAt).toBeInstanceOf(Date);
+    dbg && cc.tag1(msg + UOK, 'updatedAt getter returns date');
+  });
   it('patch', () => {
     const msg = 'tf3a.patch';
     dbg > 1 && cc.tag(msg, '===============');
@@ -77,6 +105,48 @@ describe('Forma', () => {
     expect(p4).properties({ summary: 'summary3' });
     expect(f3a.name).toBe('name2');
     expect(f3a.summary).toBe('summary4');
+  });
+  it('replace', () => {
+    const name = 'name0';
+    const summary = 'summary0';
+    let f3a = new Forma({ name, summary });
+    const id0 = f3a.id;
+
+    // replace call 1: reset summary to default
+    f3a.replace({ name: 'name1' });
+    expect(f3a.id).toBe(id0);
+    expect(f3a.name).toBe('name1');
+    expect(f3a.summary).toBe('');
+
+    // replace call 2: reset name to new default
+    const updateId2 = new UUID64();
+    f3a.replace({ summary: 'summary2' });
+    expect(f3a.id).toBe(id0);
+    expect(f3a.name).not.toBe('name1');
+    expect(id0.timeId()).not.toEqual(f3a.name);
+    expect(id0.timeId().substring(0, 8)).toEqual(f3a.name.substring(0, 8));
+    expect(f3a.summary).toBe('summary2');
+
+    // replace call 3: updateId as string
+    const updateId3 = new UUID64();
+    f3a.replace({ updateId: updateId3.base64 });
+    expect(f3a.updateId.base64).toBe(updateId3.base64);
+
+    // replace call 4: default updateId is time of replace()
+    const idBefore = new UUID64();
+    f3a.replace({ name: 'name4' });
+    const idAfter = new UUID64();
+    expect(f3a.name).toBe('name4');
+    expect(idBefore < f3a.updateId.base64).toBe(true);
+    expect(f3a.updateId.base64 < idAfter).toBe(true);
+  });
+  it('replace throws', () => {
+    const name = 'name0';
+    const summary = 'summary0';
+    let f3a = new Forma({ name, summary });
+
+    // id is immutable
+    expect(() => f3a.replace({ id: 'newId', name: 'name1' })).toThrow();
   });
   it('avro Forma defaultRegistry', () => {
     const msg = 'tf3a.avro';

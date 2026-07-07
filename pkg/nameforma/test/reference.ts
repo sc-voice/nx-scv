@@ -22,37 +22,43 @@ describe('Reference', () => {
   });
 
   it('ctor with values', () => {
-    const ref = new Reference({
-      name: 'Test Reference',
-      summary: 'A test reference',
-      relevance: 0.8,
-      source: 'https://example.com',
-    });
+    const name = 'Test Reference';
+    const summary = 'Test Summary';
+    const relevance = 0.8;
+    const source = 'https://example.com';
+    const ref = new Reference({ name, summary, relevance, source });
     expect(ref.id.validate()).toBe(true);
-    expect(ref.name).toBe('Test Reference');
-    expect(ref.summary).toBe('A test reference');
-    expect(ref.relevance).toBe(0.8);
-    expect(ref.source).toBe('https://example.com');
+    expect(ref).properties({ name, summary, relevance, source });
+    expect(ref.updateId).toEqual(ref.id);
   });
 
   it('ctor with id', () => {
     const id = new UUID64();
-    const ref = new Reference({ id, name: 'With ID' });
+    const name = 'test-name';
+    const ref = new Reference({ id, name });
+
     expect(ref.id.base64).toBe(id.base64);
-    expect(ref.name).toBe('With ID');
+    expect(ref).properties({ id, name });
+    expect(ref.name).toBe(name);
+    expect(ref.updateId).toEqual(id);
+  });
+
+  it('ctor throws', () => {
+    expect(() => new Reference({ relevance: 5 })).toThrow(
+      'Expected relevance within [0,1]: 5?',
+    );
+    expect(() => new Reference({ id: 'badId' })).toThrow(
+      'invalid UUID64 string: badId',
+    );
   });
 
   it('patch updates fields', () => {
-    const name1 = 'name1';
-    const summary1 = 'summary1';
-    const relevance1 = 0.5;
-    const source1 = 'src/file1.ts';
-    const ref = new Reference({
-      name: name1,
-      summary: summary1,
-      relevance: relevance1,
-      source: source1,
-    });
+    const name = 'name1';
+    const summary = 'summary1';
+    const relevance = 0.5;
+    const source = 'src/file1.ts';
+    const ref = new Reference({ name, summary, relevance, source });
+
     const name2 = 'name2';
     const summary2 = 'summary2';
     const relevance2 = 0.7;
@@ -67,12 +73,33 @@ describe('Reference', () => {
     expect(ref.summary).toBe(summary2);
     expect(ref.relevance).toBe(relevance2);
     expect(ref.source).toBe(source2);
-    expect(p2).properties({
-      name: name1,
-      summary: summary1,
-      relevance: relevance1,
-      source: source1,
+    expect(ref.id.base64 < ref.updateId.base64).toBe(true);
+    expect(p2).properties({ name, summary, relevance, source });
+  });
+
+  it('replace updates fields', () => {
+    const name = 'name1';
+    const summary = 'summary1';
+    const relevance = 0.5;
+    const source = 'src/file1.ts';
+    const ref = new Reference({ name, summary, relevance, source });
+
+    const name2 = 'name2';
+    const summary2 = 'summary2';
+    const relevance2 = 0.7;
+    const source2 = 'src/file2.ts';
+    const result = ref.replace({
+      name: name2,
+      summary: summary2,
+      relevance: relevance2,
+      source: source2,
     });
+    expect(ref.name).toBe(name2);
+    expect(ref.summary).toBe(summary2);
+    expect(ref.source).toBe(source2);
+    expect(ref.relevance).toBe(relevance2);
+    expect(ref.id.base64 < ref.updateId.base64).toBe(true);
+    // TODO: expect(result).toBe(ref);
   });
 
   it('patch with partial updates', () => {
