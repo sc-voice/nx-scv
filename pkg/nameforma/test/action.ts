@@ -105,6 +105,29 @@ describe('Action', () => {
     expect(a4n.statusNote).toBe('agreed on spec');
   });
 
+  it('replace updates fields', () => {
+    const name = 'Initial Action';
+    const summary = 'Initial summary';
+    const a4n = new Action({ name, summary, status: ActionStatus.req });
+    const originalId = a4n.id;
+    const originalUpdateId = a4n.updateId;
+
+    const newName = 'Replaced Action';
+    const newSummary = 'Replaced summary';
+    const result = a4n.replace({
+      name: newName,
+      summary: newSummary,
+      status: ActionStatus.spec,
+      statusNote: 'spec agreed',
+    });
+    expect(a4n.name).toBe(newName);
+    expect(a4n.summary).toBe(newSummary);
+    expect(a4n.status).toBe(ActionStatus.spec);
+    expect(a4n.statusNote).toBe('spec agreed');
+    expect(a4n.id.base64).toBe(originalId.base64); // id is immutable
+    expect(a4n.updateId.base64).not.toBe(originalUpdateId.base64); // updateId changed
+  });
+
   it('avro Action', () => {
     const msg = 'ta4n.avro';
     dbg > 1 && cc.tag(msg, '===========');
