@@ -166,14 +166,14 @@ describe('FocusManager world', () => {
 
   describe('focusedForma', () => {
     it('should return most recently focused entity of type', async () => {
-      const e1 = await world.insertOne(Task, { name: 'e1' });
+      const e1 = await world.upsertOne(Task, { name: 'e1' });
 
       world.focusManager.focus(e1.id);
 
       const focused = world.focusedForma('task');
       expect(focused).not.toBeNull();
       expect(focused?.id.base64).toBe(e1.id.base64);
-      expect((focused?.constructor as any).entity).toBe('task');
+      expect((focused?.constructor as any).collection).toBe('task');
     });
 
     it('should return null if type not in stack', () => {
@@ -182,8 +182,8 @@ describe('FocusManager world', () => {
     });
 
     it('should return first (most recent) when multiple of same type', async () => {
-      const e1 = await world.insertOne(Task, { name: 'e1' });
-      const e2 = await world.insertOne(Task, { name: 'e2' });
+      const e1 = await world.upsertOne(Task, { name: 'e1' });
+      const e2 = await world.upsertOne(Task, { name: 'e2' });
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
@@ -195,8 +195,8 @@ describe('FocusManager world', () => {
 
   describe('World serialization', () => {
     it('should persist focus state on save/load cycle', async () => {
-      const e1 = await world.insertOne(Task, { name: 'e1' });
-      const e2 = await world.insertOne(Task, { name: 'e2' });
+      const e1 = await world.upsertOne(Task, { name: 'e1' });
+      const e2 = await world.upsertOne(Task, { name: 'e2' });
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
@@ -210,7 +210,7 @@ describe('FocusManager world', () => {
     });
 
     it('should restore focus ids as UUID64 objects', async () => {
-      const entity = await world.insertOne(Task, { name: 'test' });
+      const entity = await world.upsertOne(Task, { name: 'test' });
 
       world.focusManager.focus(entity.id);
       world.save();
@@ -226,7 +226,7 @@ describe('FocusManager world', () => {
 
   describe('delete() removes from focusManager', () => {
     it('should remove focused entity from stack when deleted', async () => {
-      const entity = await world.insertOne(Task, { name: 'test' });
+      const entity = await world.upsertOne(Task, { name: 'test' });
 
       world.focusManager.focus(entity.id);
       expect(world.focusManager.size).toBe(1);
@@ -237,9 +237,9 @@ describe('FocusManager world', () => {
     });
 
     it('should remove only matching entity from multi-item stack', async () => {
-      const e1 = await world.insertOne(Task, { name: 'e1' });
-      const e2 = await world.insertOne(Task, { name: 'e2' });
-      const e3 = await world.insertOne(Task, { name: 'e3' });
+      const e1 = await world.upsertOne(Task, { name: 'e1' });
+      const e2 = await world.upsertOne(Task, { name: 'e2' });
+      const e3 = await world.upsertOne(Task, { name: 'e3' });
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
@@ -257,8 +257,8 @@ describe('FocusManager world', () => {
     });
 
     it('should be no-op if entity not in focus stack', async () => {
-      const e1 = await world.insertOne(Task, { name: 'e1' });
-      const e2 = await world.insertOne(Task, { name: 'e2' });
+      const e1 = await world.upsertOne(Task, { name: 'e1' });
+      const e2 = await world.upsertOne(Task, { name: 'e2' });
 
       world.focusManager.focus(e1.id);
       expect(() => world.delete('task', e2.id.base64)).not.toThrow();
@@ -268,9 +268,9 @@ describe('FocusManager world', () => {
 
   describe('sort integration', () => {
     it('should support sort pattern: focusOrder tiebreak with id lexicographic', async () => {
-      const e1 = await world.insertOne(Task, { name: 'e1' });
-      const e2 = await world.insertOne(Task, { name: 'e2' });
-      const e3 = await world.insertOne(Task, { name: 'e3' });
+      const e1 = await world.upsertOne(Task, { name: 'e1' });
+      const e2 = await world.upsertOne(Task, { name: 'e2' });
+      const e3 = await world.upsertOne(Task, { name: 'e3' });
 
       world.focusManager.focus(e2.id);
       world.focusManager.focus(e1.id);

@@ -119,13 +119,13 @@ describe('World Registry - Constructor & Entity Registration', () => {
   });
 
   describe('Entity Registration', () => {
-    it('should register entity and derive name from EntityClass.entity', () => {
+    it('should register entity and derive name from EntityClass.collection', () => {
       const world = FileRepository.worldFromPath(worldPath);
 
       expect(world.getEntityNames()).toContain('task');
     });
 
-    it('should throw if entity missing entity static property', () => {
+    it('should throw if entity missing collection static property', () => {
       const world = FileRepository.worldFromPath(worldPath);
       class BadEntity extends Forma {
         override patch() {}
@@ -133,7 +133,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       }
 
       expect(() => world.registerEntity(BadEntity as any)).toThrow(
-        /missing static entity property/,
+        /missing static collection property/,
       );
     });
 
@@ -141,7 +141,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       const world = FileRepository.worldFromPath(worldPath);
       class BadEntity extends Forma {
         override patch() {}
-        static entity = 'bad';
+        static collection = 'bad';
         static override avroSchema: any = undefined;
         static fromJson(data: any): BadEntity {
           return new BadEntity(data);
@@ -157,7 +157,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
       const world = FileRepository.worldFromPath(worldPath);
       class BadEntity extends Forma {
         override patch() {}
-        static entity = 'bad';
+        static collection = 'bad';
         static override avroSchema: any = {};
       }
 
@@ -171,7 +171,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
 
       class AnotherEntity extends Forma {
         override patch() {}
-        static entity = 'another';
+        static collection = 'another';
         static override avroSchema: any = {};
         static fromJson(data: any): AnotherEntity {
           return new AnotherEntity(data);
@@ -191,7 +191,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
 
       const ctor = world.entityClassOfName('task');
       expect(ctor).not.toBeNull();
-      expect(ctor?.entity).toBe('task');
+      expect(ctor?.collection).toBe('task');
       expect(ctor?.avroSchema).toBeDefined();
       expect(ctor?.fromJson).toBeDefined();
     });
@@ -282,7 +282,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('entityList API', () => {
     it('should save entity to disk via entityList.addItem()', async () => {
-      const entity = await world.insertOne(Task, { name: 'test-entity' });
+      const entity = await world.upsertOne(Task, { name: 'test-entity' });
 
       const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -292,13 +292,13 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const mockDir = path.join(worldPath, 'task');
       expect(fs.existsSync(mockDir)).toBe(false);
 
-      await world.insertOne(Task, { name: 'test-entity' });
+      await world.upsertOne(Task, { name: 'test-entity' });
 
       expect(fs.existsSync(mockDir)).toBe(true);
     });
 
     it('should store valid JSON that can be parsed', async () => {
-      const entity = await world.insertOne(Task, { name: 'test-entity' });
+      const entity = await world.upsertOne(Task, { name: 'test-entity' });
 
       const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       const data = fs.readFileSync(filePath, 'utf8');
@@ -309,9 +309,9 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
   });
 
-  describe('insertOne()', () => {
-    it('should create and save entity via insertOne()', async () => {
-      const entity = await world.insertOne(Task, {
+  describe('upsertOne()', () => {
+    it('should create and save entity via upsertOne()', async () => {
+      const entity = await world.upsertOne(Task, {
         name: 'inserted-task',
       });
 
@@ -321,7 +321,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should persist entity to disk', async () => {
-      const entity = await world.insertOne(Task, {
+      const entity = await world.upsertOne(Task, {
         name: 'persisted-task',
       });
 
@@ -330,7 +330,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should store valid JSON that can be parsed', async () => {
-      const entity = await world.insertOne(Task, { name: 'json-task' });
+      const entity = await world.upsertOne(Task, { name: 'json-task' });
 
       const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       const data = fs.readFileSync(filePath, 'utf8');
@@ -341,7 +341,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should add entity to namespace', async () => {
-      const entity = await world.insertOne(Task, {
+      const entity = await world.upsertOne(Task, {
         name: 'namespace-task',
       });
 
@@ -351,7 +351,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should load entity back via loadEntity()', async () => {
-      const original = await world.insertOne(Task, {
+      const original = await world.upsertOne(Task, {
         name: 'reload-task',
       });
 
@@ -365,7 +365,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const mockDir = path.join(worldPath, 'task');
       fs.rmSync(mockDir, { recursive: true, force: true });
 
-      await world.insertOne(Task, { name: 'dir-task' });
+      await world.upsertOne(Task, { name: 'dir-task' });
 
       expect(fs.existsSync(mockDir)).toBe(true);
     });
@@ -373,7 +373,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadEntity()', () => {
     it('should load entity by exact UUID64', async () => {
-      const original = await world.insertOne(Task, {
+      const original = await world.upsertOne(Task, {
         name: 'test-entity',
       });
 
@@ -385,7 +385,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should load entity by UUID64 string', async () => {
-      const original = await world.insertOne(Task, {
+      const original = await world.upsertOne(Task, {
         name: 'test-entity',
       });
 
@@ -409,7 +409,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should reconstruct id as UUID64 POJO', async () => {
-      const original = await world.insertOne(Task, {
+      const original = await world.upsertOne(Task, {
         name: 'test-entity',
       });
 
@@ -422,7 +422,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadFuzzy() - Default Levenshtein Behavior', () => {
     it('should match exact full UUID64 (default levenshtein = searchId.length)', async () => {
-      const original = await world.insertOne(Task, {
+      const original = await world.upsertOne(Task, {
         name: 'exact-match',
       });
 
@@ -434,7 +434,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should match partial UUID64 with default levenshtein', async () => {
-      const original = await world.insertOne(Task, {
+      const original = await world.upsertOne(Task, {
         name: 'partial-match',
       });
 
@@ -447,7 +447,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should return null if no match found', async () => {
-      await world.insertOne(Task, { name: 'test' });
+      await world.upsertOne(Task, { name: 'test' });
 
       const loaded = world.loadFuzzy(Task, 'nonexistent-id');
 
@@ -457,8 +457,8 @@ describe('World Storage - Save, Load, List, Delete', () => {
     it('should throw on ambiguous match', async () => {
       // Create two entities and use a short search string that could match both
       // UUID64 base64 uses specific characters; we search with a character that appears in both
-      await world.insertOne(Task, { name: 'entity1' });
-      await world.insertOne(Task, { name: 'entity2' });
+      await world.upsertOne(Task, { name: 'entity1' });
+      await world.upsertOne(Task, { name: 'entity2' });
 
       // Use a single character that both UUIDs likely contain (fuzzy matching with levenshtein=1)
       // This should match both entities and throw ambiguous error
@@ -466,7 +466,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should use searchId.length as default levenshtein', async () => {
-      const original = await world.insertOne(Task, { name: 'fuzzy-test' });
+      const original = await world.upsertOne(Task, { name: 'fuzzy-test' });
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 10);
@@ -478,7 +478,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadFuzzy() - Custom Levenshtein', () => {
     it('should accept explicit levenshtein parameter', async () => {
-      const original = await world.insertOne(Task, { name: 'custom-lev' });
+      const original = await world.upsertOne(Task, { name: 'custom-lev' });
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 5);
@@ -488,7 +488,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should throw if levenshtein out of range', async () => {
-      await world.insertOne(Task, { name: 'test' });
+      await world.upsertOne(Task, { name: 'test' });
 
       expect(() => world.loadFuzzy(Task, 'search', 999)).toThrow(
         /levenshtein out of range/,
@@ -498,7 +498,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadFuzzy() - Case Insensitivity', () => {
     it('should match case-insensitively by default', async () => {
-      const original = await world.insertOne(Task, { name: 'case-test' });
+      const original = await world.upsertOne(Task, { name: 'case-test' });
 
       const idStr = original.id.toString();
       const uppercase = idStr.toUpperCase().substring(0, 8);
@@ -510,7 +510,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('delete()', () => {
     it('should delete entity file from disk', async () => {
-      const entity = await world.insertOne(Task, { name: 'delete-me' });
+      const entity = await world.upsertOne(Task, { name: 'delete-me' });
 
       const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -524,8 +524,8 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
 
     it('should not affect other entities', async () => {
-      const t1 = await world.insertOne(Task, { name: 'keep' });
-      const t2 = await world.insertOne(Task, { name: 'delete' });
+      const t1 = await world.upsertOne(Task, { name: 'keep' });
+      const t2 = await world.upsertOne(Task, { name: 'delete' });
 
       world.delete('task', t2.id.toString());
 
@@ -667,7 +667,7 @@ describe('World Serialization - save()/load() methods', () => {
     });
 
     it('should preserve focus stack and numeronym across save/load cycle', async () => {
-      const entity = await world.insertOne(Task, { name: 'test-entity' });
+      const entity = await world.upsertOne(Task, { name: 'test-entity' });
 
       // Set up state: focus an entity and add numeronym mapping
       world.focusManager.focus(entity.id);
@@ -684,7 +684,7 @@ describe('World Serialization - save()/load() methods', () => {
       const world2 = FileRepository.worldFromPath(worldPath);
 
       // Verify focus stack was preserved
-      const focusedEntry = world2.focusedForma(Task.entity);
+      const focusedEntry = world2.focusedForma(Task.collection);
       expect(focusedEntry).not.toBeNull();
       expect(focusedEntry?.id.base64).toBe(entity.id.base64);
 
@@ -767,7 +767,7 @@ describe('World Serialization - save()/load() methods', () => {
       const world = FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
-      const task = await world.insertOne(Task, { name: 'test task' });
+      const task = await world.upsertOne(Task, { name: 'test task' });
 
       // Verify file was created
       const filePath = path.join(
@@ -790,7 +790,7 @@ describe('World Serialization - save()/load() methods', () => {
       const world = FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
-      const task = await world.insertOne(Task, { name: 'test task' });
+      const task = await world.upsertOne(Task, { name: 'test task' });
       const filePath = path.join(
         worldPath,
         'task',
@@ -813,7 +813,7 @@ describe('World Serialization - save()/load() methods', () => {
       const world = FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
-      const task = await world.insertOne(Task, { name: 'original' });
+      const task = await world.upsertOne(Task, { name: 'original' });
       const filePath = path.join(
         worldPath,
         'task',
@@ -839,8 +839,8 @@ describe('World Serialization - save()/load() methods', () => {
       world.registerEntity(Task);
 
       // Add and modify tasks
-      const task1 = await world.insertOne(Task, { name: 'task1' });
-      const task2 = await world.insertOne(Task, { name: 'task2' });
+      const task1 = await world.upsertOne(Task, { name: 'task1' });
+      const task2 = await world.upsertOne(Task, { name: 'task2' });
       const list1 = world.entityList(Task);
       list1.patchItem(task1.id.base64, { name: 'task1-updated' });
 
@@ -895,8 +895,8 @@ describe('World — namespace', () => {
     });
 
     it('should populate namespace with existing tasks at construct time', async () => {
-      const task1 = await world.insertOne(Task, { name: 'task1' });
-      const task2 = await world.insertOne(Task, { name: 'task2' });
+      const task1 = await world.upsertOne(Task, { name: 'task1' });
+      const task2 = await world.upsertOne(Task, { name: 'task2' });
 
       // Create new world instance to test population at construct time
       const world2 = FileRepository.worldFromPath(worldPath);
@@ -919,14 +919,14 @@ describe('World — namespace', () => {
         world.id.base64,
       );
 
-      const task = await world.insertOne(Task, { name: 'new-task' });
+      const task = await world.upsertOne(Task, { name: 'new-task' });
 
       const fz = ns.fuzzyIdOf(task);
       expect(ns.getForma(fz)?.id.base64).toBe(task.id.base64);
     });
 
     it('should keep namespace in sync when task is patched', async () => {
-      const task = await world.insertOne(Task, { name: 'original' });
+      const task = await world.upsertOne(Task, { name: 'original' });
 
       const ns = world.namespace;
       const fz = ns.fuzzyIdOf(task);
@@ -940,8 +940,8 @@ describe('World — namespace', () => {
     });
 
     it('should keep namespace in sync when task is deleted', async () => {
-      const task1 = await world.insertOne(Task, { name: 'task1' });
-      const task2 = await world.insertOne(Task, { name: 'task2' });
+      const task1 = await world.upsertOne(Task, { name: 'task1' });
+      const task2 = await world.upsertOne(Task, { name: 'task2' });
 
       const ns = world.namespace;
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
@@ -960,7 +960,7 @@ describe('World — namespace', () => {
     });
 
     it('should resolve task by full UUID64 fuzzyId', async () => {
-      const task = await world.insertOne(Task, { name: 'test' });
+      const task = await world.upsertOne(Task, { name: 'test' });
 
       const ns = world.namespace;
       const found = ns.getForma(task.id.base64);
@@ -971,7 +971,7 @@ describe('World — namespace', () => {
     });
 
     it('should resolve task by partial fuzzyId', async () => {
-      const task = await world.insertOne(Task, { name: 'test' });
+      const task = await world.upsertOne(Task, { name: 'test' });
 
       const ns = world.namespace;
       const fz = ns.fuzzyIdOf(task);
@@ -982,7 +982,7 @@ describe('World — namespace', () => {
     });
 
     it('should return undefined for non-existent fuzzyId', async () => {
-      await world.insertOne(Task, { name: 'task' });
+      await world.upsertOne(Task, { name: 'task' });
 
       const ns = world.namespace;
       const found = ns.getForma('nonexistent-id');
@@ -991,8 +991,8 @@ describe('World — namespace', () => {
     });
 
     it('should iterate namespace with masked fuzzyIds', async () => {
-      const task1 = await world.insertOne(Task, { name: 'task1' });
-      const task2 = await world.insertOne(Task, { name: 'task2' });
+      const task1 = await world.upsertOne(Task, { name: 'task1' });
+      const task2 = await world.upsertOne(Task, { name: 'task2' });
 
       const ns = world.namespace;
 
@@ -1014,8 +1014,8 @@ describe('World — namespace', () => {
 
   describe('entityList receives namespace for LEUI fuzzyIds', () => {
     it('should return FormaList with namespace so itemListId returns fuzzyId', async () => {
-      const task1 = await world.insertOne(Task, { name: 'task1' });
-      const task2 = await world.insertOne(Task, { name: 'task2' });
+      const task1 = await world.upsertOne(Task, { name: 'task1' });
+      const task2 = await world.upsertOne(Task, { name: 'task2' });
       const list = world.entityList(Task);
 
       // Get the itemListId for each task
@@ -1056,7 +1056,7 @@ describe('World — resolveFuzzyId()', () => {
   });
 
   it('returns { entity, forma } where entity === forma for world namespace', async () => {
-    const task = await world.insertOne(Task, { name: 'top-level task' });
+    const task = await world.upsertOne(Task, { name: 'top-level task' });
 
     const result = world.resolveFuzzyId(task.id.base64);
 
@@ -1079,7 +1079,7 @@ describe('World — resolveFuzzyId()', () => {
     // be impossible given UUID64 uniqueness), world namespace would win because it is checked
     // first. Overlapping namespaces are not currently possible by construction, but the
     // priority order (world > focus) defines the tiebreak if that assumption ever breaks.
-    const task = await world.insertOne(Task, { name: 'focused task' });
+    const task = await world.upsertOne(Task, { name: 'focused task' });
     world.focusManager.focus(task.id);
 
     const result = world.resolveFuzzyId(task.id.base64);
@@ -1090,7 +1090,7 @@ describe('World — resolveFuzzyId()', () => {
   });
 
   it('returns { entity: task, forma: action } for action in focused task namespace', async () => {
-    const task = await world.insertOne(Task, { name: 'parent task' });
+    const task = await world.upsertOne(Task, { name: 'parent task' });
     world.focusManager.focus(task.id);
     const action = task
       .actions(world)
@@ -1105,7 +1105,7 @@ describe('World — resolveFuzzyId()', () => {
   });
 
   it('resolves action after world reload (round-trip serialization)', async () => {
-    const task = await world.insertOne(Task, { name: 'parent task' });
+    const task = await world.upsertOne(Task, { name: 'parent task' });
     world.focusManager.focus(task.id);
     const action = task
       .actions(world)
@@ -1144,16 +1144,16 @@ describe('World — validate()', () => {
 
   it('returns true when all focused entities exist on disk', async () => {
     const world = FileRepository.worldFromPath(worldPath);
-    const t1 = await world.insertOne(Task, { name: 't1' });
+    const t1 = await world.upsertOne(Task, { name: 't1' });
     world.focusManager.focus(t1.id);
     expect(world.validate()).toBe(true);
   });
 
   it('removes stale focus entry and returns false', async () => {
     const world = FileRepository.worldFromPath(worldPath);
-    const t1 = await world.insertOne(Task, { name: 't1' });
-    const t2 = await world.insertOne(Task, { name: 't2' });
-    const t3 = await world.insertOne(Task, { name: 't3' });
+    const t1 = await world.upsertOne(Task, { name: 't1' });
+    const t2 = await world.upsertOne(Task, { name: 't2' });
+    const t3 = await world.upsertOne(Task, { name: 't3' });
     world.focusManager.focus(t1.id);
     world.focusManager.focus(t2.id);
     world.focusManager.focus(t3.id);
@@ -1167,7 +1167,7 @@ describe('World — validate()', () => {
 
   it('returns true on second validate after stale entry removed', async () => {
     const world = FileRepository.worldFromPath(worldPath);
-    const t1 = await world.insertOne(Task, { name: 't1' });
+    const t1 = await world.upsertOne(Task, { name: 't1' });
     world.focusManager.focus(t1.id);
     fs.unlinkSync(path.join(worldPath, 'task', `${t1.id.base64}.json`));
     expect(world.validate()).toBe(false);
@@ -1195,13 +1195,13 @@ describe('findByClass()', () => {
     expect([...world.findByClass(Task)]).toEqual([]);
 
     // unfocused tasks are sorted by recency of creation
-    const t1 = await world.insertOne(Task, { name: 'task1' });
+    const t1 = await world.upsertOne(Task, { name: 'task1' });
     expect([...world.findByClass(Task)]).toEqual([t1]);
-    const t2 = await world.insertOne(Task, { name: 'task2' });
+    const t2 = await world.upsertOne(Task, { name: 'task2' });
     expect([...world.findByClass(Task)]).toEqual([t2, t1]);
-    const t3 = await world.insertOne(Task, { name: 'task3' });
+    const t3 = await world.upsertOne(Task, { name: 'task3' });
     expect([...world.findByClass(Task)]).toEqual([t3, t2, t1]);
-    const t4 = await world.insertOne(Task, { name: 'task4' });
+    const t4 = await world.upsertOne(Task, { name: 'task4' });
     expect([...world.findByClass(Task)]).toEqual([t4, t3, t2, t1]);
 
     // focused tasks come first sorted by recency of focus
@@ -1212,7 +1212,7 @@ describe('findByClass()', () => {
   });
 });
 
-describe('World.insertOne() async — ZudaO', () => {
+describe('World.upsertOne() async — ZudaO', () => {
   let tempDir: string;
   let worldPath: string;
   let world: World;
@@ -1232,18 +1232,18 @@ describe('World.insertOne() async — ZudaO', () => {
   });
 
   it('should return a Promise', async () => {
-    const result = world.insertOne(Task, { name: 'test' });
+    const result = world.upsertOne(Task, { name: 'test' });
     expect(result).toBeInstanceOf(Promise);
   });
 
   it('should return a Task instance with correct name', async () => {
-    const entity = await world.insertOne(Task, { name: 'async-task' });
+    const entity = await world.upsertOne(Task, { name: 'async-task' });
     expect(entity).toBeInstanceOf(Task);
     expect(entity.name).toBe('async-task');
   });
 
   it('should persist to disk via repository', async () => {
-    const entity = await world.insertOne(Task, { name: 'disk-test' });
+    const entity = await world.upsertOne(Task, { name: 'disk-test' });
     const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
     expect(fs.existsSync(filePath)).toBe(true);
   });
@@ -1251,7 +1251,7 @@ describe('World.insertOne() async — ZudaO', () => {
   it('should add to namespace', async () => {
     const name = 'ns-test';
     const summary = 'ns-summary';
-    const entityInserted = await world.insertOne(Task, { name, summary });
+    const entityInserted = await world.upsertOne(Task, { name, summary });
     const id = entityInserted.id.base64;
     const entityLoaded = world.loadFuzzyForma(id);
     const entityRegistered = world.namespace.getForma(id);

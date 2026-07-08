@@ -9,10 +9,10 @@
       "forma": "Action",
       "id": "0PyUoLX9005om57rN0GctW",
       "name": "IEntityRepository interface",
-      "summary": "Define IEntityRepository in src/entity.ts: insertOne, findOne (primitive), findMany (AsyncGenerator over keys, realizes via findOne), delete, saveWorld, loadWorld, sync",
+      "summary": "Define IEntityRepository in src/entity.ts: upsertOne, findOne (primitive), findMany (AsyncGenerator over keys, realizes via findOne), delete, saveWorld, loadWorld, sync",
       "updateId": "0PyUoLX9005om57rN0GctW",
       "status": "manage",
-      "statusNote": "Ready for review: IEntityRepository defined in src/world.ts with insertOne, findOne, findMany, delete, saveWorld, loadWorld methods"
+      "statusNote": "Ready for review: IEntityRepository defined in src/world.ts with upsertOne, findOne, findMany, delete, saveWorld, loadWorld methods"
     },
     {
       "forma": "Action",
@@ -38,14 +38,14 @@
       "name": "Entity updateId",
       "summary": "Add updateId timestamp to Forma so findMany can filter by modification time (enables delta-sync across all IEntityRepository implementations)",
       "updateId": "0PyVS8wg005om57rN0GctW",
-      "status": "work",
-      "statusNote": "2"
+      "status": "manage",
+      "statusNote": "tested"
     },
     {
       "forma": "Action",
       "id": "0PyZudaO005om57rN0GctW",
-      "name": "World.insertOne() async",
-      "summary": "Change World.insertOne(EntityClass, cfg) from sync to async: create instance, addToNamespace, then await repository.insertOne(EntityClass, instance) to persist. Return the instance. Update signature to return Promise<T>.",
+      "name": "World.upsertOne() async",
+      "summary": "Change World.upsertOne(EntityClass, cfg) from sync to async: create instance, addToNamespace, then await repository.upsertOne(EntityClass, instance) to persist. Return the instance. Update signature to return Promise<T>.",
       "updateId": "0PyZudaO005om57rN0GctW",
       "status": "manage",
       "statusNote": "implemented and tested"
@@ -172,8 +172,8 @@
     {
       "forma": "Reference",
       "id": "0PyVEvFD005om57rN0GctW",
-      "name": "insertOne generic constraint",
-      "summary": "insertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): ReturnType<T['fromJson']>. World.insertOne already has this signature — preserve it on IEntityRepository unchanged. Resolved.",
+      "name": "upsertOne generic constraint",
+      "summary": "upsertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): ReturnType<T['fromJson']>. World.upsertOne already has this signature — preserve it on IEntityRepository unchanged. Resolved.",
       "updateId": "0PyVEvFD005om57rN0GctW",
       "relevance": 0.5,
       "source": ""

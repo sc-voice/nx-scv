@@ -77,6 +77,15 @@ export class Task extends Entity {
   }
 
   /**
+   * Re-instantiate with new content, preserving id.
+   * IMPORTANT: subclasses MUST override
+   * @param content - Object with properties to replace (name, summary, updateId, etc.)
+   */
+  override replace(content: Partial<Task> = {}): void {
+    this._replaceFrom(new Task(content));
+  }
+
+  /**
    * Populate namespace with actions and references
    */
   protected override populateNamespace(): void {
@@ -191,7 +200,7 @@ export class Task extends Entity {
     return avroType;
   }
 
-  static entity = 'task';
+  static collection = 'task'; // IEntityConstructor
 
   /**
    * Avro schema for Task serialization.
@@ -222,24 +231,6 @@ export class Task extends Entity {
 
   static fromJson(data: any): Task {
     return new Task(data);
-  }
-
-  /**
-   * Replace all task fields including actions and references (MongoDB semantics).
-   * @param content Configuration object with properties to set (name, summary, updateId, rawActions, rawReferences)
-   */
-  override replace(content: Record<string, any> = {}): void {
-    const msg = 't2k.replace';
-    const dbg = T2K.PUT;
-
-    super.replace(content);
-    let { rawActions = [], rawReferences = [] } = content;
-    Object.assign(this, {
-      rawActions: rawActions.map((data: any) => new Action(data)),
-      rawReferences: rawReferences.map((data: any) => new Reference(data)),
-    });
-
-    dbg && cc.ok1(msg, ...cc.props(this));
   }
 
   /**

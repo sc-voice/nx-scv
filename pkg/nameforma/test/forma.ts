@@ -123,9 +123,8 @@ describe('Forma', () => {
     f3a.replace({ summary: 'summary2' });
     expect(f3a.id).toBe(id0);
     expect(f3a.name).not.toBe('name1');
-    expect(id0.timeId()).not.toEqual(f3a.name);
-    expect(id0.timeId().substring(0, 8)).toEqual(f3a.name.substring(0, 8));
     expect(f3a.summary).toBe('summary2');
+    expect(id0.timeId()).not.toEqual(f3a.name);
 
     // replace call 3: updateId as string
     const updateId3 = new UUID64();

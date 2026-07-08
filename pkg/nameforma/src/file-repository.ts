@@ -15,14 +15,19 @@ export class FileRepository implements IEntityRepository {
     this.#worldPath = worldPath;
   }
 
-  async insertOne<T extends EntityConstructor>(
+  async upsertOne<T extends EntityConstructor>(
     EntityClass: T,
     cfg: object,
   ): Promise<ReturnType<T['fromJson']>> {
-    const instance = new (EntityClass as any)(cfg) as ReturnType<
-      T['fromJson']
-    >;
-    this.#save((EntityClass as any).entity, instance);
+    let instance: ReturnType<T['fromJson']>;
+    if ((cfg as any) instanceof (EntityClass as any)) {
+      instance = cfg as ReturnType<T['fromJson']>;
+    } else {
+      instance = new (EntityClass as any)(cfg) as ReturnType<
+        T['fromJson']
+      >;
+    }
+    this.#save((EntityClass as any).collection, instance);
     return instance;
   }
 
@@ -39,7 +44,7 @@ export class FileRepository implements IEntityRepository {
     const id = (filter as any).id;
     const filePath = path.join(
       this.#worldPath,
-      (EntityClass as any).entity,
+      (EntityClass as any).collection,
       `${id}.json`,
     );
     if (!fs.existsSync(filePath)) return null;
@@ -58,7 +63,7 @@ export class FileRepository implements IEntityRepository {
     }
     const entityDir = path.join(
       this.#worldPath,
-      (EntityClass as any).entity,
+      (EntityClass as any).collection,
     );
     if (!fs.existsSync(entityDir)) return;
     const id = (filter as any).id;

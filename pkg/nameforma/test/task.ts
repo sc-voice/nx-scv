@@ -652,4 +652,62 @@ describe('task', () => {
 
     dbg && cc.tag1(msg + UOK, 'actions then references by relevance');
   });
+
+  it('replace', () => {
+    const msg = 't2k.replace';
+    const name = 'initial-task';
+    const summary = 'initial summary';
+    let task = new Task({ name, summary });
+    const id0 = task.id;
+    const bus = { emit: () => {}, on: () => {} } as any;
+
+    // Setup: add actions and references
+    task.actions(bus).addItem(new Action({ name: 'action 1' }));
+    task.references(bus).addItem(new Reference({ name: 'ref 1' }));
+    expect(task.rawActions).toHaveLength(1);
+    expect(task.rawReferences).toHaveLength(1);
+    dbg > 1 && cc.tag(msg, 'setup task with actions and references');
+
+    // replace call 1: change name, reset summary and collections to defaults
+    task.replace({ name: 'new-task-name' });
+    expect(task.id).toBe(id0);
+    expect(task.name).toBe('new-task-name');
+    expect(task.summary).toBe(''); // reset to default
+    expect(task.rawActions).toHaveLength(0); // reset to empty
+    expect(task.rawReferences).toHaveLength(0); // reset to empty
+    dbg > 1 && cc.tag(msg, 'replace preserves id, resets arrays');
+
+    // replace call 2: add new actions and references via config
+    const newAction = new Action({ name: 'new action' });
+    const newRef = new Reference({ name: 'new ref' });
+    task.replace({
+      summary: 'new summary',
+      rawActions: [newAction],
+      rawReferences: [newRef],
+    });
+    expect(task.id).toBe(id0);
+    expect(task.summary).toBe('new summary');
+    expect(task.rawActions).toHaveLength(1);
+    expect(task.rawActions[0].name).toBe('new action');
+    expect(task.rawReferences).toHaveLength(1);
+    expect(task.rawReferences[0].name).toBe('new ref');
+    dbg > 1 && cc.tag(msg, 'replace can set new actions/references');
+
+    // replace call 3: reset with no config leaves defaults
+    task.replace({});
+    expect(task.id).toBe(id0);
+    expect(task.rawActions).toHaveLength(0);
+    expect(task.rawReferences).toHaveLength(0);
+    dbg &&
+      cc.tag1(
+        msg + UOK,
+        'replace resets collections to empty on no config',
+      );
+  });
+
+  it('replace throws on id change', () => {
+    const task = new Task({ name: 'task' });
+    expect(() => task.replace({ id: 'newId', name: 'updated' })).toThrow();
+    dbg && cc.tag1('t2k.replace.throws' + UOK, 'id is immutable');
+  });
 });

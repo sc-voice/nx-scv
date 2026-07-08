@@ -70,7 +70,7 @@ export class TuiList<T extends Forma> {
     // Generate title: use provided title or derive from entity class name
     const title =
       prefs.title ||
-      (this.list.itemClass as any).entity ||
+      (this.list.itemClass as any).collection ||
       this.list.itemClass.name;
 
     return {

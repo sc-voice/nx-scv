@@ -149,7 +149,7 @@ export class World extends Entity implements IEventBus {
         return; // No entity to persist
       }
 
-      const entityType = (entity.constructor as any).entity;
+      const entityType = (entity.constructor as any).collection;
       if (!entityType) {
         dbg && cc.bad1(`${msg} entity missing entity type`, entity);
         return;
@@ -169,7 +169,8 @@ export class World extends Entity implements IEventBus {
         case 'delete':
           // Check if the item being deleted is itself an entity (top-level)
           // or if it's a nested item (child of entity, like Action of Task)
-          const itemIsEntity = !!(event.item?.constructor as any).entity;
+          const itemIsEntity = !!(event.item?.constructor as any)
+            .collection;
           if (itemIsEntity) {
             // Top-level entity deletion: delete the entity file
             dbg &&
@@ -375,7 +376,7 @@ export class World extends Entity implements IEventBus {
 
   /**
    * Register an entity class with this world
-   * Derives entity name from EntityClass.entity static property
+   * Derives entity name from EntityClass.collection static property
    * @param {EntityConstructor} EntityClass - Entity class with entity, avroSchema, and fromJson
    * @throws {Error} - If entity missing required static properties
    */
@@ -386,9 +387,9 @@ export class World extends Entity implements IEventBus {
     // Validate entity class has required properties
     validateEntity(EntityClass);
 
-    const entityName = EntityClass.entity;
-    this.#entityRegistry.set(entityName, EntityClass);
-    dbg && cc.ok1(msg, `registered ${entityName}`);
+    const collection = EntityClass.collection;
+    this.#entityRegistry.set(collection, EntityClass);
+    dbg && cc.ok1(msg, `registered collection: ${collection}`);
   }
 
   /**
@@ -597,8 +598,8 @@ export class World extends Entity implements IEventBus {
     const msg = 'world.loadEntity';
     const dbg = WORLD?.LOAD;
 
-    // Extract entityType from EntityClass.entity
-    const entityType = EntityClass.entity;
+    // Extract entityType from EntityClass.collection
+    const entityType = EntityClass.collection;
 
     // Convert UUID64 to string if needed
     const idStr = typeof id === 'string' ? id : id.toString();
@@ -677,7 +678,7 @@ export class World extends Entity implements IEventBus {
     const msg = 'world.loadFuzzy';
     const dbg = WORLD?.LOAD;
 
-    const entityType = EntityClass.entity;
+    const entityType = EntityClass.collection;
     const entityDir = path.join(this.#worldPath, entityType);
 
     if (!fs.existsSync(entityDir)) {
@@ -753,7 +754,7 @@ export class World extends Entity implements IEventBus {
     const msg = 'world.entityList';
     const dbg = WORLD?.LIST;
 
-    const entityType = EntityClass.entity;
+    const entityType = EntityClass.collection;
     const entityDir = path.join(this.#worldPath, entityType);
     const items: ReturnType<T['fromJson']>[] = [];
 
@@ -796,11 +797,11 @@ export class World extends Entity implements IEventBus {
    * @param cfg - Configuration object passed to constructor
    * @returns Created entity instance
    */
-  async insertOne<T extends EntityConstructor>(
+  async upsertOne<T extends EntityConstructor>(
     EntityClass: T,
     cfg: any = {},
   ): Promise<ReturnType<T['fromJson']>> {
-    const instance = await this.repository.insertOne(EntityClass, cfg);
+    const instance = await this.repository.upsertOne(EntityClass, cfg);
     this.addToNamespace(instance);
     return instance;
   }
@@ -883,7 +884,7 @@ export class World extends Entity implements IEventBus {
     if (!this.entityClassOfName(formaType)) return null;
     for (const id of this.#focusManager.ids()) {
       const entity = this.namespace.getForma(id.base64);
-      if (entity && (entity.constructor as any).entity === formaType) {
+      if (entity && (entity.constructor as any).collection === formaType) {
         return entity;
       }
     }
@@ -1094,7 +1095,7 @@ export class World extends Entity implements IEventBus {
       const c8r = this.entityComparator;
       let formas = this.entityList(ec).sort(c8r);
       buf.pushRow([
-        new FormaField(eName, false, ec.entity, '' + formas.size),
+        new FormaField(eName, false, ec.collection, '' + formas.size),
       ]);
       for (const f of formas) {
         const row = f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow;
@@ -1143,7 +1144,7 @@ export class World extends Entity implements IEventBus {
 } // World
 
 export interface IEntityRepository {
-  insertOne<T extends EntityConstructor>(
+  upsertOne<T extends EntityConstructor>(
     EntityClass: T,
     cfg: object,
   ): Promise<ReturnType<T['fromJson']>>;

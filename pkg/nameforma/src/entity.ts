@@ -101,7 +101,7 @@ export abstract class Entity extends Forma implements IRegistry {
 }
 
 export interface EntityConstructor {
-  entity: string;
+  collection: string;
   avroSchema: any;
   fromJson(data: any): Entity;
 }
@@ -112,8 +112,10 @@ export interface EntityConstructor {
 export function validateEntity(
   EntityClass: any,
 ): EntityClass is EntityConstructor {
-  if (!EntityClass.entity) {
-    throw new Error(`${EntityClass.name} missing static entity property`);
+  if (!EntityClass.collection) {
+    throw new Error(
+      `${EntityClass.name} missing static collection property`,
+    );
   }
   if (!EntityClass.avroSchema) {
     throw new Error(

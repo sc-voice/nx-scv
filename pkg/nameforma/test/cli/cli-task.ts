@@ -1227,7 +1227,7 @@ describe('CLI: task command', () => {
 
   it('task focus pushes task to top of stack', async () => {
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = await world.insertOne(Task, { name: 'Focus Me' });
+    const task = await world.upsertOne(Task, { name: 'Focus Me' });
 
     await cli.parseArgv([
       'node',
@@ -1248,8 +1248,8 @@ describe('CLI: task command', () => {
 
   it('task focus moves existing entry to top without duplicating', async () => {
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const taskA = await world.insertOne(Task, { name: 'Task A' });
-    const taskB = await world.insertOne(Task, { name: 'Task B' });
+    const taskA = await world.upsertOne(Task, { name: 'Task A' });
+    const taskB = await world.upsertOne(Task, { name: 'Task B' });
 
     await cli.parseArgv([
       'node',
@@ -1291,7 +1291,7 @@ describe('CLI: task command', () => {
 
   it('task unfocus removes task from focus stack by id', async () => {
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = await world.insertOne(Task, { name: 'Unfocus Me' });
+    const task = await world.upsertOne(Task, { name: 'Unfocus Me' });
 
     await cli.parseArgv([
       'node',
@@ -1322,8 +1322,8 @@ describe('CLI: task command', () => {
 
   it('task unfocus with no id removes top of stack', async () => {
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const taskA = await world.insertOne(Task, { name: 'Task A' });
-    const taskB = await world.insertOne(Task, { name: 'Task B' });
+    const taskA = await world.upsertOne(Task, { name: 'Task A' });
+    const taskB = await world.upsertOne(Task, { name: 'Task B' });
 
     await cli.parseArgv([
       'node',

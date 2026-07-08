@@ -7,8 +7,8 @@
     {
       "forma": "Action",
       "id": "0PyTaVDe00Hc3Haqqb9XdW",
-      "name": "Implement insertOne() method",
-      "summary": "`insertOne<T extends Forma, C extends Constructor<T>>(targetClass: C, cfg: any): InstanceType<C>` in `src/world.ts where cfg are ctor args to Task. This may require updating Task ctor to handle Actions and References without ids`.",
+      "name": "Implement upsertOne() method",
+      "summary": "`upsertOne<T extends Forma, C extends Constructor<T>>(targetClass: C, cfg: any): InstanceType<C>` in `src/world.ts where cfg are ctor args to Task. This may require updating Task ctor to handle Actions and References without ids`.",
       "status": "req",
       "statusNote": "",
       "statusDate": "2026-07-01T12:05:32.136Z"

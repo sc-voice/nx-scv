@@ -28,8 +28,8 @@ describe('FileRepository', () => {
     }
   });
 
-  it('insertOne creates entity and persists to disk', async () => {
-    const task = await repo.insertOne(Task, { name: 'test task' });
+  it('upsertOne creates entity and persists to disk', async () => {
+    const task = await repo.upsertOne(Task, { name: 'test task' });
     expect(task.name).toBe('test task');
 
     const taskDir = path.join(worldPath, 'task');
@@ -40,7 +40,7 @@ describe('FileRepository', () => {
   });
 
   it('findOne({id}) retrieves persisted entity', async () => {
-    const inserted = await repo.insertOne(Task, { name: 'test task' });
+    const inserted = await repo.upsertOne(Task, { name: 'test task' });
     const found = await repo.findOne(Task, { id: inserted.id.toString() });
 
     expect(found).not.toBeNull();
@@ -59,8 +59,8 @@ describe('FileRepository', () => {
   });
 
   it('findMany({}) yields all entities of type', async () => {
-    const t1 = await repo.insertOne(Task, { name: 'task1' });
-    const t2 = await repo.insertOne(Task, { name: 'task2' });
+    const t1 = await repo.upsertOne(Task, { name: 'task1' });
+    const t2 = await repo.upsertOne(Task, { name: 'task2' });
 
     const results: any[] = [];
     for await (const task of repo.findMany(Task, {})) {
@@ -72,8 +72,8 @@ describe('FileRepository', () => {
   });
 
   it('findMany({id}) yields single entity', async () => {
-    const t1 = await repo.insertOne(Task, { name: 'task1' });
-    const t2 = await repo.insertOne(Task, { name: 'task2' });
+    const t1 = await repo.upsertOne(Task, { name: 'task1' });
+    const t2 = await repo.upsertOne(Task, { name: 'task2' });
 
     const results: any[] = [];
     for await (const task of repo.findMany(Task, {
@@ -94,7 +94,7 @@ describe('FileRepository', () => {
   });
 
   it('delete removes entity from disk', async () => {
-    const task = await repo.insertOne(Task, { name: 'task' });
+    const task = await repo.upsertOne(Task, { name: 'task' });
     await repo.delete('task', task.id.toString());
 
     const found = await repo.findOne(Task, { id: task.id.toString() });
