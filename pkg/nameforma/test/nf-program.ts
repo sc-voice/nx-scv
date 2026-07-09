@@ -105,7 +105,7 @@ describe('NfProgram.setFieldValue', () => {
     expect(task2?.summary).toBe('Updated summary');
   });
 
-  it('setFieldValue on nested action', () => {
+  it('setFieldValue on nested action', async () => {
     // Load task and focus it
     const task = world.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     expect(task).toBeTruthy();
@@ -121,7 +121,7 @@ describe('NfProgram.setFieldValue', () => {
     expect(updated.summary).toBe('Updated action summary');
 
     // Persist and verify
-    world.save();
+    await world.save();
     const reloaded = FileRepository.worldFromPath(tempWorldPath);
     const task2 = reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     const action = task2?.rawActions[0];

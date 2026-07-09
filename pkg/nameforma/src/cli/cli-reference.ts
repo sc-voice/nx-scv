@@ -236,7 +236,12 @@ export default class ReferenceCommand {
         ].join('\n'),
       )
       .action(
-        (dotref: string, values: string[], options: any, cmd: any) => {
+        async (
+          dotref: string,
+          values: string[],
+          options: any,
+          cmd: any,
+        ) => {
           if (!dotref.includes('.')) {
             throw new Error('dotref must be in format REF_ID.field');
           }
@@ -296,7 +301,7 @@ export default class ReferenceCommand {
             }
 
             const reference = refList.patchItem(refId, updateCfg);
-            world.save();
+            await world.save();
 
             nfTui.log(`✓ Reference updated`);
             nfTui.log(`  ${reference.name}`);
@@ -321,7 +326,7 @@ export default class ReferenceCommand {
         ].join('\n'),
       )
       .action(
-        (
+        async (
           name: string,
           summary: string | undefined,
           options: any,
@@ -357,7 +362,7 @@ export default class ReferenceCommand {
           const reference = task
             .references(world)
             .addItem(referenceConfig);
-          world.save();
+          await world.save();
 
           nfTui.log(`✓ Reference added: ${reference.id.base64}`);
           nfTui.log(`  ${reference.name}`);
@@ -376,7 +381,7 @@ export default class ReferenceCommand {
           ...ReferenceCommand.EXAMPLES.delete.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string, options: any, cmd: any) => {
+      .action(async (id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
         }
@@ -393,7 +398,7 @@ export default class ReferenceCommand {
 
         try {
           const reference = refList.deleteItem(id);
-          world.save();
+          await world.save();
 
           nfTui.log(`✓ Reference deleted`);
           nfTui.log(`  ${reference.name}`);

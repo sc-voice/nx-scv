@@ -12,6 +12,10 @@ export class FileRepository implements IEntityRepository {
   #worldPath: string;
 
   constructor(worldPath: string) {
+    const msg = 'FileRepository.ctor';
+    if (!worldPath.includes('.nameforma')) {
+      throw new Error(`${msg} invalid worldPath: ${worldPath}`);
+    }
     this.#worldPath = worldPath;
   }
 
@@ -81,10 +85,21 @@ export class FileRepository implements IEntityRepository {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
 
-  async saveWorld(): Promise<void> {
-    throw new Error(
-      'FileRepository.saveWorld: call World.save() directly',
-    );
+  async saveWorld(world: World): Promise<void> {
+    const msg = 'f12y.save';
+    const dbg = DBG.WORLD.SAVE;
+
+    // Ensure .nameforma directory exists
+    if (!fs.existsSync(this.#worldPath)) {
+      fs.mkdirSync(this.#worldPath, { recursive: true });
+      dbg && cc.ok1(msg, `created ${this.#worldPath}`);
+    }
+
+    const worldFile = path.join(this.#worldPath, 'world.json');
+    const data = JSON.stringify(world.toJSON(), null, 2);
+    fs.writeFileSync(worldFile, data, 'utf8');
+
+    dbg && cc.ok1(msg, `saved ${worldFile}`);
   }
 
   async loadWorld(): Promise<World> {
@@ -120,7 +135,7 @@ export class FileRepository implements IEntityRepository {
    */
   static worldFromPath(worldPath: string): World {
     const msg = 'world.fromPath';
-    const dbg = DBG.WORLD.CTOR;
+    const dbg = DBG.WORLD.LOAD;
 
     const worldFile = path.join(worldPath, 'world.json');
 
@@ -180,7 +195,7 @@ export class FileRepository implements IEntityRepository {
    */
   static load(worldPath: string): World {
     const msg = 'f12y.load';
-    const dbg = DBG.WORLD.CTOR;
+    const dbg = DBG.WORLD.LOAD;
 
     const worldFile = path.join(worldPath, 'world.json');
     if (!fs.existsSync(worldFile)) {
@@ -199,7 +214,7 @@ export class FileRepository implements IEntityRepository {
     const watermarkAdvanced = world.syncWatermark();
     const isValid = world.validate();
     if (!isValid || watermarkAdvanced) {
-      world.save();
+      /* await */ repository.saveWorld(world);
       dbg && cc.ok1(msg, `saved`);
     }
 

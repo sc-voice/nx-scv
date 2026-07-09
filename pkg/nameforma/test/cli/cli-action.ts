@@ -97,7 +97,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add an action to the focused task
@@ -127,7 +127,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add action with summary
@@ -158,7 +158,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add actions
@@ -192,7 +192,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add an action
@@ -223,7 +223,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add an action
@@ -270,7 +270,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add an action
@@ -308,7 +308,7 @@ describe('CLI: action command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add actions
@@ -355,7 +355,7 @@ describe('CLI: action command', () => {
         const w = FileRepository.worldFromPath(tempWorld.worldPath);
         const t = w.loadFuzzy(Task, taskId);
         w.focusManager.focus(t.id);
-        w.save();
+        await w.save();
       }
 
       // Add action

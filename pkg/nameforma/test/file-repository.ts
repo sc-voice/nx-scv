@@ -8,7 +8,7 @@ import {
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { FileRepository, Task, UUID64 } from '@sc-voice/nameforma';
+import { FileRepository, Task, UUID64, World } from '@sc-voice/nameforma';
 
 describe('FileRepository', () => {
   let tempDir: string;
@@ -108,8 +108,10 @@ describe('FileRepository', () => {
   });
 
   it('saveWorld throws', async () => {
-    await expect(repo.saveWorld()).rejects.toThrow(
-      /call World.save\(\) directly/,
-    );
+    const id = new UUID64();
+    const world = new World(worldPath, repo, id);
+    await repo.saveWorld(world);
+    const world2 = await repo.loadWorld();
+    expect(world2.id.base64).toEqual(world.id.base64);
   });
 });

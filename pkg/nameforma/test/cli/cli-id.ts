@@ -345,7 +345,7 @@ describe('CLI: id command', () => {
       try {
         // Use a new program with proper global options support
         const { program: testProgram, nfProgram: testNfProgram } =
-          createTestProgram(tempDir);
+          createTestProgram(worldPath);
         const testIdCmd = testProgram.command('id');
         IdCommand.registerCommand(testIdCmd, testNfProgram);
 

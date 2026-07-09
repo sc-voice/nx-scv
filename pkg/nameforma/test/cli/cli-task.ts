@@ -528,7 +528,7 @@ describe('CLI: task command', () => {
       }),
     );
 
-    world.save();
+    await world.save();
 
     output.length = 0;
 
@@ -635,7 +635,7 @@ describe('CLI: task command', () => {
       }),
     );
 
-    world.save();
+    await world.save();
 
     output.length = 0;
 
@@ -709,7 +709,7 @@ describe('CLI: task command', () => {
       const task = world.loadFuzzy(Task, taskId!);
       expect(task).not.toBeNull();
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -771,7 +771,7 @@ describe('CLI: task command', () => {
           new Action({ name: 'First action', summary: 'Do this first' }),
         );
       task!.actions(world).addItem(new Action({ name: 'Second action' }));
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -822,7 +822,7 @@ describe('CLI: task command', () => {
       task!
         .actions(world)
         .addItem(new Action({ name: 'Work action', status: 'work' }));
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -861,7 +861,7 @@ describe('CLI: task command', () => {
       task
         .actions(world)
         .addItem(new Action({ name: 'Action 1', status: 'spec' }));
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -900,7 +900,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -941,7 +941,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -980,7 +980,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -1053,7 +1053,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -1091,7 +1091,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -1129,7 +1129,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 
@@ -1173,7 +1173,7 @@ describe('CLI: task command', () => {
       const world = FileRepository.worldFromPath(tempWorld.worldPath);
       const task = world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
-      world.save();
+      await world.save();
 
       output.length = 0;
 

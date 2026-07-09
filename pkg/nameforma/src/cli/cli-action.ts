@@ -201,26 +201,28 @@ export default class ActionCommand {
           ...ActionCommand.EXAMPLES.add.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((name: string, summary: string, options: any, cmd: any) => {
-        const world = nfProgram.world;
-        if (!world) {
-          nfTui.error('World not initialized');
-          return;
-        }
-        const task = ActionCommand.getFocusedTask(world);
+      .action(
+        async (name: string, summary: string, options: any, cmd: any) => {
+          const world = nfProgram.world;
+          if (!world) {
+            nfTui.error('World not initialized');
+            return;
+          }
+          const task = ActionCommand.getFocusedTask(world);
 
-        if (!task) {
-          throw new Error('No task is currently focused');
-        }
+          if (!task) {
+            throw new Error('No task is currently focused');
+          }
 
-        const actionConfig: any = { name, summary };
+          const actionConfig: any = { name, summary };
 
-        const action = task.actions(world).addItem(actionConfig);
-        world.save();
+          const action = task.actions(world).addItem(actionConfig);
+          await world.save();
 
-        nfTui.log(`✓ Action added: ${action.id.base64}`);
-        nfTui.log(`  ${action.name}`);
-      });
+          nfTui.log(`✓ Action added: ${action.id.base64}`);
+          nfTui.log(`  ${action.name}`);
+        },
+      );
 
     // action delete <id>
     cmd
@@ -234,7 +236,7 @@ export default class ActionCommand {
           ...ActionCommand.EXAMPLES.delete.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string, options: any, cmd: any) => {
+      .action(async (id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
         }
@@ -254,7 +256,7 @@ export default class ActionCommand {
 
         try {
           const action = actionList.deleteItem(id);
-          world.save();
+          await world.save();
 
           nfTui.log(`✓ Action deleted`);
           nfTui.log(`  ${action.name}`);
@@ -397,13 +399,13 @@ export default class ActionCommand {
               }
 
               actionList.patchItem(id, { status: newStatus, statusNote });
-              world.save();
+              await world.save();
               nfTui.log(`✓ ${oldStatus}->${newStatus} ${statusNote}`);
             } else {
               const updateCfg: any = {};
               updateCfg[field] = values[0];
               actionList.patchItem(id, updateCfg);
-              world.save();
+              await world.save();
               nfTui.log(`✓ ${field} updated`);
             }
           } catch (err: any) {

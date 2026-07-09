@@ -73,7 +73,7 @@ export default class IdCommand {
         '--git-observed <commit>',
         'Generate UUID64 for git commit observation',
       )
-      .action((words: string[], options: any, cmd: any) => {
+      .action(async (words: string[], options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         try {
@@ -194,7 +194,7 @@ export default class IdCommand {
             const numeronymMap = world.getNumeronym();
             numeronymMap.set(numeronym, word);
             world.setNumeronym(numeronymMap);
-            world.save();
+            await world.save();
 
             nfTui.log(numeronym);
             return;

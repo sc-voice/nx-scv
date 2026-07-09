@@ -97,7 +97,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add a reference to the focused task
@@ -127,7 +127,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add reference with summary as positional arg
@@ -163,7 +163,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add reference with relevance and source
@@ -202,7 +202,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     output = [];
@@ -224,7 +224,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Create a real file in the temp world root for the probe to find
@@ -254,7 +254,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Try to add reference with invalid relevance
@@ -281,7 +281,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add references
@@ -315,7 +315,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add a reference
@@ -354,7 +354,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add a reference
@@ -395,7 +395,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add two references
@@ -428,7 +428,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add a reference
@@ -494,7 +494,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     try {
@@ -518,7 +518,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add a reference
@@ -552,7 +552,7 @@ describe('CLI: reference command', () => {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
       const t = w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
-      w.save();
+      await w.save();
     }
 
     // Add references

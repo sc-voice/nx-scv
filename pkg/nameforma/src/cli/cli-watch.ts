@@ -105,7 +105,7 @@ export default class WatchCommand {
           task: fs.statSync(taskFilePath).mtime.getTime(),
         };
 
-        const watchInterval = setInterval(() => {
+        const watchInterval = setInterval(async () => {
           try {
             // Check world.json for focus changes
             if (fs.existsSync(worldFilePath)) {
@@ -158,7 +158,7 @@ export default class WatchCommand {
                 mtimes.task = currentTaskMtime;
 
                 // Reload task from disk
-                const reloadedTask = world.loadEntity(
+                const reloadedTask = await world.loadEntity(
                   Task,
                   task.id.base64,
                 );

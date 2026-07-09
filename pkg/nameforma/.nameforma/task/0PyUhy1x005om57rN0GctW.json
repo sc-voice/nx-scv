@@ -56,8 +56,8 @@
       "name": "World.findOne() async",
       "summary": "Change World.loadEntity(EntityClass, id) from sync to async. Keep same logic but await repository.findOne(EntityClass, {id}). Return Promise<T|null>.",
       "updateId": "0PyZudgF005om57rN0GctW",
-      "status": "req",
-      "statusNote": ""
+      "status": "manage",
+      "statusNote": "ok"
     },
     {
       "forma": "Action",
@@ -74,8 +74,8 @@
       "name": "World.delete() async",
       "summary": "Change World.delete(entityType, id) from sync to async. Call await repository.delete(entityType, id). Update #saveEntity handler to propagate async.",
       "updateId": "0PyZuds0005om57rN0GctW",
-      "status": "req",
-      "statusNote": ""
+      "status": "manage",
+      "statusNote": "ok"
     },
     {
       "forma": "Action",
@@ -83,8 +83,8 @@
       "name": "World.saveWorld() async",
       "summary": "Change World.save() from sync to async. Delegate to await repository.saveWorld(). Return Promise<void>.",
       "updateId": "0PyZudxv005om57rN0GctW",
-      "status": "req",
-      "statusNote": ""
+      "status": "manage",
+      "statusNote": "ok"
     },
     {
       "forma": "Action",

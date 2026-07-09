@@ -200,7 +200,7 @@ describe('FocusManager world', () => {
 
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
-      world.save();
+      await world.save();
 
       const world2 = FileRepository.worldFromPath(worldPath);
       world2.registerEntity(Task);
@@ -213,7 +213,7 @@ describe('FocusManager world', () => {
       const entity = await world.upsertOne(Task, { name: 'test' });
 
       world.focusManager.focus(entity.id);
-      world.save();
+      await world.save();
 
       const world2 = FileRepository.worldFromPath(worldPath);
       const ids = world2.focusManager.ids();
@@ -231,7 +231,7 @@ describe('FocusManager world', () => {
       world.focusManager.focus(entity.id);
       expect(world.focusManager.size).toBe(1);
 
-      world.delete('task', entity.id.base64);
+      await world.delete('task', entity.id.base64);
 
       expect(world.focusManager.size).toBe(0);
     });
@@ -247,7 +247,7 @@ describe('FocusManager world', () => {
 
       expect(world.focusManager.size).toBe(3);
 
-      world.delete('task', e2.id.base64);
+      await world.delete('task', e2.id.base64);
 
       expect(world.focusManager.size).toBe(2);
       const ids = world.focusManager.ids().map((id) => id.base64);
@@ -261,7 +261,9 @@ describe('FocusManager world', () => {
       const e2 = await world.upsertOne(Task, { name: 'e2' });
 
       world.focusManager.focus(e1.id);
-      expect(() => world.delete('task', e2.id.base64)).not.toThrow();
+      await expect(
+        world.delete('task', e2.id.base64),
+      ).resolves.not.toThrow();
       expect(world.focusManager.size).toBe(1);
     });
   });

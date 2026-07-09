@@ -140,7 +140,7 @@ export class World extends Entity implements IEventBus {
     }
 
     // Wire persistence listener for FormaList mutations
-    this.#bus.on('change', (event: FormaListEvent<any>) => {
+    this.#bus.on('change', async (event: FormaListEvent<any>) => {
       const dbg = WORLD?.EVENT || WORLD?.ALL;
       const msg = 'w3d.#bus.change' + event.type;
       const { entity } = event;
@@ -178,7 +178,7 @@ export class World extends Entity implements IEventBus {
                 `${msg} ${entityType}: ${entity.id.toString()}`,
                 event,
               );
-            this.delete(entityType, entity.id.base64);
+            await this.delete(entityType, entity.id.base64);
           } else {
             // Nested item deletion: save the parent entity with updated children
             dbg &&
@@ -442,21 +442,8 @@ export class World extends Entity implements IEventBus {
    * Save World state to world.json
    * Creates .nameforma/ directory if missing
    */
-  save(): void {
-    const msg = 'world.save';
-    const dbg = WORLD?.SAVE;
-
-    // Ensure .nameforma directory exists
-    if (!fs.existsSync(this.#worldPath)) {
-      fs.mkdirSync(this.#worldPath, { recursive: true });
-      dbg && cc.ok1(msg, `created ${this.#worldPath}`);
-    }
-
-    const worldFile = path.join(this.#worldPath, 'world.json');
-    const data = JSON.stringify(this.toJSON(), null, 2);
-    fs.writeFileSync(worldFile, data, 'utf8');
-
-    dbg && cc.ok1(msg, `saved ${worldFile}`);
+  async save(): Promise<void> {
+    await this.repository.saveWorld(this);
   }
 
   /**
@@ -591,48 +578,12 @@ export class World extends Entity implements IEventBus {
    * @returns {ReturnType<T['fromJson']>|null} - Typed entity instance, or null if not found
    * @throws {Error} - If id validation fails
    */
-  loadEntity<T extends EntityConstructor>(
+  async loadEntity<T extends EntityConstructor>(
     EntityClass: T,
     id: UUID64 | string,
-  ): ReturnType<T['fromJson']> | null {
-    const msg = 'world.loadEntity';
-    const dbg = WORLD?.LOAD;
-
-    // Extract entityType from EntityClass.collection
-    const entityType = EntityClass.collection;
-
-    // Convert UUID64 to string if needed
+  ): Promise<ReturnType<T['fromJson']> | null> {
     const idStr = typeof id === 'string' ? id : id.toString();
-
-    const filePath = path.join(
-      this.#worldPath,
-      entityType,
-      `${idStr}.json`,
-    );
-    if (!fs.existsSync(filePath)) {
-      dbg && cc.ok1(msg, `not found ${filePath}`);
-      return null;
-    }
-
-    const data = fs.readFileSync(filePath, 'utf8');
-    const entity = JSON.parse(data);
-
-    // Validate and reconstruct id as UUID64 POJO
-    // After JSON.parse(), entity.id is OPB64 string (from uuid64.toJSON())
-    // Reconstruct it as UUID64 POJO so Entity contract (id: UUID64) is satisfied
-    if (entity.id) {
-      try {
-        entity.id = UUID64.fromString(entity.id);
-      } catch (err) {
-        throw new Error(`${filePath}: invalid id "${entity.id}"`);
-      }
-    }
-
-    // Reconstruct as typed instance via EntityClass.fromJson
-    const typedEntity = EntityClass.fromJson(entity);
-
-    dbg && cc.ok1(msg, `loaded ${filePath}`);
-    return typedEntity as ReturnType<T['fromJson']>;
+    return await this.repository.findOne(EntityClass, { id: idStr });
   }
 
   /**
@@ -811,24 +762,18 @@ export class World extends Entity implements IEventBus {
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {string} id - Entity id
    */
-  delete(entityType: string, id: string): void {
-    const msg = 'world.delete';
-    const dbg = WORLD?.DELETE;
-
-    const filePath = path.join(this.#worldPath, entityType, `${id}.json`);
-    if (!fs.existsSync(filePath)) {
-      dbg && cc.ok1(msg, `not found ${filePath}`);
-      return;
-    }
-
+  async delete(entityType: string, id: string): Promise<void> {
     // Remove from namespace
     this.mutableNamespace.removeForma(id);
 
-    // Remove from focus stack if present
-    this.#focusManager.unfocus(UUID64.fromString(id));
+    // Remove from focus stack if present (ignore invalid UUIDs)
+    try {
+      this.#focusManager.unfocus(UUID64.fromString(id));
+    } catch {
+      // Invalid UUID64 format; entity was not in focus
+    }
 
-    fs.unlinkSync(filePath);
-    dbg && cc.ok1(msg, `deleted ${filePath}`);
+    await this.repository.delete(entityType, id);
   }
 
   /**
@@ -1157,6 +1102,6 @@ export interface IEntityRepository {
     filter: object,
   ): AsyncGenerator<ReturnType<T['fromJson']>>;
   delete(entityType: string, id: string): Promise<void>;
-  saveWorld(): Promise<void>;
+  saveWorld(world: World): Promise<void>;
   loadWorld(): Promise<World>;
 }

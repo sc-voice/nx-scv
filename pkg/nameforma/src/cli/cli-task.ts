@@ -411,7 +411,7 @@ export default class TaskCommand {
         }
 
         const taskFuzzyId = world.namespace.fuzzyIdOf(task);
-        world.delete('task', task.id.toString());
+        await world.delete('task', task.id.toString());
         nfTui.log(`✓ Task deleted: ${taskFuzzyId}`);
       });
 
@@ -429,7 +429,7 @@ export default class TaskCommand {
           ...TaskCommand.EXAMPLES.focus.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string | undefined, options: any, cmd: any) => {
+      .action(async (id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         const verbosity = nfProgram.verbosity;
@@ -443,7 +443,7 @@ export default class TaskCommand {
           // Not in git repo, use default user
           world.focusManager.focus(task.id);
         }
-        world.save();
+        await world.save();
 
         nfTui.log(UOK + `Task focused:` + UNC, task.listItemString());
         TaskCommand.displayTask(world, task, verbosity);
@@ -461,19 +461,19 @@ export default class TaskCommand {
           ...TaskCommand.EXAMPLES.unfocus.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string | undefined, options: any, cmd: any) => {
+      .action(async (id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         const task = TaskCommand.resolveTask(world, id);
 
         world.focusManager.unfocus(task.id);
-        world.save();
+        await world.save();
 
         nfTui.log(UOK + `Task unfocused:` + UNC, task.listItemString());
         const values = world.focusManager.ids();
         nfTui.log(`Focus stack (${values.length}):`);
         for (const id of values) {
-          const t = world.loadEntity(Task, id.base64);
+          const t = await world.loadEntity(Task, id.base64);
           if (t) TaskCommand.displayTask(world, t, -2);
         }
       });

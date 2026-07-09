@@ -355,7 +355,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
         name: 'reload-task',
       });
 
-      const loaded = world.loadEntity(Task, original.id);
+      const loaded = await world.loadEntity(Task, original.id);
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('reload-task');
       expect(loaded?.id.toString()).toBe(original.id.toString());
@@ -377,7 +377,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
         name: 'test-entity',
       });
 
-      const loaded = world.loadEntity(Task, original.id);
+      const loaded = await world.loadEntity(Task, original.id);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('test-entity');
@@ -390,21 +390,21 @@ describe('World Storage - Save, Load, List, Delete', () => {
       });
 
       const idStr = original.id.toString();
-      const loaded = world.loadEntity(Task, idStr);
+      const loaded = await world.loadEntity(Task, idStr);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('test-entity');
     });
 
-    it('should return null if entity not found', () => {
+    it('should return null if entity not found', async () => {
       const fakeId = '0PqgFX2700-zCl_5WUKC7W';
-      const loaded = world.loadEntity(Task, fakeId);
+      const loaded = await world.loadEntity(Task, fakeId);
 
       expect(loaded).toBeNull();
     });
 
-    it('should return null on invalid UUID64 string', () => {
-      const loaded = world.loadEntity(Task, 'invalid-id');
+    it('should return null on invalid UUID64 string', async () => {
+      const loaded = await world.loadEntity(Task, 'invalid-id');
       expect(loaded).toBeNull();
     });
 
@@ -413,7 +413,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
         name: 'test-entity',
       });
 
-      const loaded = world.loadEntity(Task, original.id);
+      const loaded = await world.loadEntity(Task, original.id);
 
       expect(loaded?.id).toBeDefined();
       expect(typeof loaded?.id.base64).toBe('string');
@@ -515,19 +515,21 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
       expect(fs.existsSync(filePath)).toBe(true);
 
-      world.delete('task', entity.id.toString());
+      await world.delete('task', entity.id.toString());
       expect(fs.existsSync(filePath)).toBe(false);
     });
 
-    it('should silently succeed if entity not found', () => {
-      expect(() => world.delete('task', 'nonexistent-id')).not.toThrow();
+    it('should silently succeed if entity not found', async () => {
+      await expect(
+        world.delete('task', 'nonexistent-id'),
+      ).resolves.not.toThrow();
     });
 
     it('should not affect other entities', async () => {
       const t1 = await world.upsertOne(Task, { name: 'keep' });
       const t2 = await world.upsertOne(Task, { name: 'delete' });
 
-      world.delete('task', t2.id.toString());
+      await world.delete('task', t2.id.toString());
 
       expect([...world.findByClass(Task)]).toEqual([t1]);
     });
@@ -552,24 +554,24 @@ describe('World Serialization - save()/load() methods', () => {
   });
 
   describe('save()', () => {
-    it('should save World state to world.json', () => {
+    it('should save World state to world.json', async () => {
       const worldFile = path.join(worldPath, 'world.json');
-      world.save();
+      await world.save();
 
       expect(fs.existsSync(worldFile)).toBe(true);
     });
 
-    it('should create .nameforma directory if missing', () => {
+    it('should create .nameforma directory if missing', async () => {
       // Remove the world directory
       fs.rmSync(worldPath, { recursive: true, force: true });
       expect(fs.existsSync(worldPath)).toBe(false);
 
-      world.save();
+      await world.save();
       expect(fs.existsSync(worldPath)).toBe(true);
     });
 
-    it('should write correct JSON format with only id', () => {
-      world.save();
+    it('should write correct JSON format with only id', async () => {
+      await world.save();
 
       const worldFile = path.join(worldPath, 'world.json');
       const data = fs.readFileSync(worldFile, 'utf8');
@@ -589,9 +591,9 @@ describe('World Serialization - save()/load() methods', () => {
       ]);
     });
 
-    it('should preserve World id across save', () => {
+    it('should preserve World id across save', async () => {
       const originalId = world.id.toString();
-      world.save();
+      await world.save();
 
       const worldFile = path.join(worldPath, 'world.json');
       const data = fs.readFileSync(worldFile, 'utf8');
@@ -602,8 +604,8 @@ describe('World Serialization - save()/load() methods', () => {
   });
 
   describe('load()', () => {
-    it('should load existing world and preserve id', () => {
-      world.save();
+    it('should load existing world and preserve id', async () => {
+      await world.save();
 
       // fromPath should load existing world with same id
       const originalId = world.id.toString();
@@ -612,8 +614,8 @@ describe('World Serialization - save()/load() methods', () => {
       expect(world2.id.toString()).toBe(originalId);
     });
 
-    it('should throw Error when world.json missing id', () => {
-      world.save();
+    it('should throw Error when world.json missing id', async () => {
+      await world.save();
 
       // Corrupt the world.json file to remove id
       const worldFile = path.join(worldPath, 'world.json');
@@ -624,8 +626,8 @@ describe('World Serialization - save()/load() methods', () => {
       );
     });
 
-    it('should throw Error on invalid JSON', () => {
-      world.save();
+    it('should throw Error on invalid JSON', async () => {
+      await world.save();
 
       // Corrupt the world.json file
       const worldFile = path.join(worldPath, 'world.json');
@@ -636,8 +638,8 @@ describe('World Serialization - save()/load() methods', () => {
       );
     });
 
-    it('should throw Error when world.json has invalid id format', () => {
-      world.save();
+    it('should throw Error when world.json has invalid id format', async () => {
+      await world.save();
 
       // Corrupt the id field with invalid format
       const worldFile = path.join(worldPath, 'world.json');
@@ -656,10 +658,10 @@ describe('World Serialization - save()/load() methods', () => {
   });
 
   describe('round-trip: save() then load()', () => {
-    it('should preserve world id across save/fromPath cycle', () => {
+    it('should preserve world id across save/fromPath cycle', async () => {
       // Save world state
       const originalId = world.id.toString();
-      world.save();
+      await world.save();
 
       // Load into new instance at same path
       const world2 = FileRepository.worldFromPath(worldPath);
@@ -679,7 +681,7 @@ describe('World Serialization - save()/load() methods', () => {
       );
 
       // Save and load world
-      world.save();
+      await world.save();
 
       const world2 = FileRepository.worldFromPath(worldPath);
 
@@ -719,10 +721,10 @@ describe('World Serialization - save()/load() methods', () => {
       ]);
     });
 
-    it('should load existing World if world.json exists', () => {
+    it('should load existing World if world.json exists', async () => {
       // Create and save initial world
       const originalId = world.id.toString();
-      world.save();
+      await world.save();
 
       // Use fromPath to load it
       const world2 = FileRepository.worldFromPath(worldPath);
@@ -730,10 +732,10 @@ describe('World Serialization - save()/load() methods', () => {
       expect(world2.id.toString()).toBe(originalId);
     });
 
-    it('should not overwrite existing world.json on fromPath', () => {
+    it('should not overwrite existing world.json on fromPath', async () => {
       // Create and save initial world
       const originalId = world.id.toString();
-      world.save();
+      await world.save();
 
       // Use fromPath to load (should not overwrite)
       const world2 = FileRepository.worldFromPath(worldPath);
@@ -1110,7 +1112,7 @@ describe('World — resolveFuzzyId()', () => {
     const action = task
       .actions(world)
       .addItem(new Action({ name: 'nested action' }));
-    world.save();
+    await world.save();
 
     const w2 = FileRepository.worldFromPath(worldPath);
     const focused = w2.focusedForma('task') as Task | null;
