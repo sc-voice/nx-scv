@@ -76,7 +76,7 @@ export class NfWatch {
     return this._renderer.render(renderData);
   }
 
-  private update(): void {
+  private async update(): Promise<void> {
     if (!this._active) {
       return;
     }
@@ -98,7 +98,7 @@ export class NfWatch {
     const now = new Date();
     const timeStr = now.toLocaleTimeString(undefined, { hour12: false });
     const zenoStr = 'Z' + zeno.anchorStep + '/' + zeno.pivotStep;
-    world.sync();
+    /* await */ world.syncRepository();
     const worldName = world.name || 'name?';
     const worldId = world.id.timeId() || 'id?';
     const w3d = ns.getForma(world.id.base64);

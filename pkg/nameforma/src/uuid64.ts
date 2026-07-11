@@ -18,6 +18,19 @@ const { cc } = ColorConsole;
 export type UUID64String = string & { readonly __brand: 'UUID64String' };
 
 // ============================================================================
+// IUUID64Config - Configuration for UUID64 creation
+// ============================================================================
+
+/**
+ * Configuration for UUID64.create().
+ * Minimal configuration supporting deterministic UUID64 creation (for testing).
+ */
+export interface IUUID64Config {
+  /** Exact millisecond timestamp to embed (bypasses monotonicity). For testing only. */
+  millis?: number;
+}
+
+// ============================================================================
 // MonotonicityState - Ensures successive UUIDs are always strictly increasing
 // ============================================================================
 
@@ -283,6 +296,29 @@ class UUID64 {
     } else {
       throw new Error(`cannot create UUID64: ${id}?`);
     }
+  }
+
+  /**
+   * Create a UUID64 instance with configuration.
+   * If cfg.millis is provided, creates a UUID64 with exactly that ms timestamp
+   * (bypassing monotonicity). For testing/backfill only.
+   *
+   * @param cfg IUUID64Config with optional millis for deterministic creation
+   * @returns UUID64 instance
+   */
+  static create(cfg: IUUID64Config = {}): UUID64 {
+    if (cfg.millis !== undefined) {
+      // Deterministic creation with exact ms (bypass monotonicity)
+      const uuid = Buffer.alloc(16);
+      UUID64.buildTimestampAndSequence(uuid, BigInt(cfg.millis), 0);
+      // Generate random bytes for bytes 8-15
+      const random = randomBytes(16);
+      random.copy(uuid, 9, 0, 7);
+      uuid[8] = (random[7] & 0x3f) | 0x80;
+      return new UUID64(uuid);
+    }
+    // Default: use normal monotonic creation
+    return new UUID64();
   }
 
   /**

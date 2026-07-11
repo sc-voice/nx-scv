@@ -832,3 +832,27 @@ describe('UUID64 after', () => {
     expect(() => UUID64.fromAny(123)).toThrow();
   });
 });
+
+// ============================================================================
+// UUID64.create() Tests
+// ============================================================================
+
+describe('UUID64.create()', () => {
+  it('create({millis}) embeds exact millisecond timestamp', () => {
+    const targetMs = 1609459200000;
+    const u = UUID64.create({ millis: targetMs });
+    expect(u.getTimestamp()).toBe(targetMs);
+  });
+
+  it('create({millis}) preserves chronological ordering', () => {
+    const u1 = UUID64.create({ millis: 1000000000000 });
+    const u2 = UUID64.create({ millis: 1000000001000 });
+    expect(u1.isLessThan(u2)).toBe(true);
+  });
+
+  it('create() without millis is monotonic', () => {
+    const u1 = UUID64.create();
+    const u2 = UUID64.create();
+    expect(u1.isLessThan(u2)).toBe(true);
+  });
+});

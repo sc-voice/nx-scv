@@ -155,7 +155,7 @@
       "forma": "Reference",
       "id": "0PyVEv3Y005om57rN0GctW",
       "name": "findMany return type",
-      "summary": "findMany<T extends EntityConstructor>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>>. Same MongoDB-style filter as findOne. FileRepository iterates matching files; MongoDB uses native query cursor. Resolved.",
+      "summary": "findMany<T extends IEntity>(EntityClass: T, filter: object): AsyncGenerator<ReturnType<T['fromJson']>>. Same MongoDB-style filter as findOne. FileRepository iterates matching files; MongoDB uses native query cursor. Resolved.",
       "updateId": "0PyVEv3Y005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
@@ -164,7 +164,7 @@
       "forma": "Reference",
       "id": "0PyVEv9N005om57rN0GctW",
       "name": "findOne primitive",
-      "summary": "findOne<T extends EntityConstructor>(EntityClass: T, filter: object): ReturnType<T['fromJson']>|null. MongoDB-style filter e.g. {id:'abc123'}. FileRepository scans files and matches fields; MongoDB uses native query. Resolved.",
+      "summary": "findOne<T extends IEntity>(EntityClass: T, filter: object): ReturnType<T['fromJson']>|null. MongoDB-style filter e.g. {id:'abc123'}. FileRepository scans files and matches fields; MongoDB uses native query. Resolved.",
       "updateId": "0PyVEv9N005om57rN0GctW",
       "relevance": 0.5,
       "source": ""
@@ -173,7 +173,7 @@
       "forma": "Reference",
       "id": "0PyVEvFD005om57rN0GctW",
       "name": "upsertOne generic constraint",
-      "summary": "upsertOne<T extends EntityConstructor>(EntityClass: T, cfg: object): ReturnType<T['fromJson']>. World.upsertOne already has this signature — preserve it on IEntityRepository unchanged. Resolved.",
+      "summary": "upsertOne<T extends IEntity>(EntityClass: T, cfg: object): ReturnType<T['fromJson']>. World.upsertOne already has this signature — preserve it on IEntityRepository unchanged. Resolved.",
       "updateId": "0PyVEvFD005om57rN0GctW",
       "relevance": 0.5,
       "source": ""

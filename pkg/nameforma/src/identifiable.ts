@@ -18,7 +18,7 @@ const { cc } = ColorConsole;
  * - Fuzzy variant with Levenshtein distance tolerance
  *
  * Used throughout nameforma for flexible ID resolution:
- * - world.loadFuzzy(EntityClass, fuzzyId)
+ * - await world.loadFuzzy(EntityClass, fuzzyId)
  * - CLI commands accepting partial IDs
  *
  * Fuzzy matching uses Levenshtein distance with default tolerance of fuzzyId.length.

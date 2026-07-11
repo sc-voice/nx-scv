@@ -1,8 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import UUID64 from './uuid64.js';
-import { type EntityConstructor } from './entity.js';
-import { type IEntityRepository, World } from './world.js';
+import {
+  Filter,
+  TObject,
+  type IEntity,
+  IEntityRepository,
+} from './entity.js';
+import { World } from './world.js';
 import { DBG } from './defines.js';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
@@ -19,7 +24,7 @@ export class FileRepository implements IEntityRepository {
     this.#worldPath = worldPath;
   }
 
-  async upsertOne<T extends EntityConstructor>(
+  async upsertOne<T extends IEntity>(
     EntityClass: T,
     cfg: object,
   ): Promise<ReturnType<T['fromJson']>> {
@@ -35,7 +40,7 @@ export class FileRepository implements IEntityRepository {
     return instance;
   }
 
-  async findOne<T extends EntityConstructor>(
+  async findOne<T extends IEntity>(
     EntityClass: T,
     filter: object,
   ): Promise<ReturnType<T['fromJson']> | null> {
@@ -55,7 +60,7 @@ export class FileRepository implements IEntityRepository {
     return this.#load(EntityClass, filePath);
   }
 
-  async *findMany<T extends EntityConstructor>(
+  async *findMany<T extends IEntity>(
     EntityClass: T,
     filter: object,
   ): AsyncGenerator<ReturnType<T['fromJson']>> {
@@ -80,12 +85,169 @@ export class FileRepository implements IEntityRepository {
     }
   }
 
+  #parseUpdatedAtFilter(
+    updatedAt?: Date | { $eq?: Date; $gt?: Date; $gte?: Date; $lt?: Date; $lte?: Date },
+  ): { op: string; thresholdMs: number } | null {
+    if (!updatedAt) return null;
+    if (updatedAt instanceof Date) {
+      return { op: '$eq', thresholdMs: updatedAt.getTime() };
+    }
+    const ops = ['$eq', '$gt', '$gte', '$lt', '$lte'];
+    for (const op of ops) {
+      const val = (updatedAt as any)[op];
+      if (val instanceof Date) {
+        return { op, thresholdMs: val.getTime() };
+      }
+    }
+    return null;
+  }
+
+  #matchesUpdatedAtFilter(
+    updateMs: number,
+    mtimeMs: number,
+    filter: { op: string; thresholdMs: number },
+  ): { canSkip: boolean; matches: boolean } {
+    const { op, thresholdMs } = filter;
+    // mtime optimization: skip if mtime alone proves the filter can't match
+    if (op === '$gt' && mtimeMs < thresholdMs) return { canSkip: true, matches: false };
+    if (op === '$gte' && mtimeMs < thresholdMs) return { canSkip: true, matches: false };
+    if (op === '$lt' && mtimeMs > thresholdMs) return { canSkip: true, matches: false };
+    if (op === '$lte' && mtimeMs > thresholdMs) return { canSkip: true, matches: false };
+    if (op === '$eq' && mtimeMs !== thresholdMs) return { canSkip: true, matches: false };
+
+    // mtime couldn't rule it out, so check exactly
+    switch (op) {
+      case '$eq':
+        return { canSkip: false, matches: updateMs === thresholdMs };
+      case '$gt':
+        return { canSkip: false, matches: updateMs > thresholdMs };
+      case '$gte':
+        return { canSkip: false, matches: updateMs >= thresholdMs };
+      case '$lt':
+        return { canSkip: false, matches: updateMs < thresholdMs };
+      case '$lte':
+        return { canSkip: false, matches: updateMs <= thresholdMs };
+      default:
+        return { canSkip: false, matches: true };
+    }
+  }
+
+  async distinct<R>(
+    field: string,
+    filter?: Filter<TObject>,
+  ): Promise<R[]> {
+    const f = filter as any;
+
+    if (f?.id) {
+      // Filenames (`${id}.json`) are a covering index on id: when field==='id'
+      // we can answer from the directory listing alone, no file body read needed.
+      const dirs: string[] = f.collection
+        ? [f.collection]
+        : fs
+            .readdirSync(this.#worldPath, { withFileTypes: true })
+            .filter((d) => d.isDirectory())
+            .map((d) => d.name);
+      for (const dirName of dirs) {
+        const filePath = path.join(
+          this.#worldPath,
+          dirName,
+          `${f.id}.json`,
+        );
+        if (fs.existsSync(filePath)) {
+          if (field === 'id') return [f.id] as unknown as R[];
+          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          return field in data ? ([data[field]] as unknown as R[]) : [];
+        }
+      }
+      return [];
+    }
+
+    if (f?.collection) {
+      const entityDir = path.join(this.#worldPath, f.collection);
+      if (!fs.existsSync(entityDir)) return [];
+      const files = fs
+        .readdirSync(entityDir)
+        .filter((file) => file.endsWith('.json'));
+
+      const updatedAtFilter = this.#parseUpdatedAtFilter(f.updatedAt);
+
+      // If updatedAt filter is present, cannot use id-shortcut (must read files)
+      if (updatedAtFilter && field === 'id') {
+        const values = new Set<R>();
+        for (const file of files) {
+          const filePath = path.join(entityDir, file);
+          const stats = fs.statSync(filePath);
+          const { canSkip, matches } = this.#matchesUpdatedAtFilter(
+            0, // placeholder, will be calculated below
+            stats.mtimeMs,
+            updatedAtFilter,
+          );
+
+          if (canSkip && !matches) continue;
+
+          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          const updateId = UUID64.fromAny(data.updateId);
+          const updateMs = updateId.toDate().getTime();
+          const { matches: finalMatches } = this.#matchesUpdatedAtFilter(
+            updateMs,
+            stats.mtimeMs,
+            updatedAtFilter,
+          );
+
+          if (finalMatches) {
+            values.add(file.slice(0, -5) as unknown as R);
+          }
+        }
+        return Array.from(values);
+      }
+
+      if (field === 'id' && !updatedAtFilter) {
+        return files.map((file) => file.slice(0, -5)) as unknown as R[];
+      }
+
+      const values = new Set<R>();
+      for (const file of files) {
+        const filePath = path.join(entityDir, file);
+        const stats = fs.statSync(filePath);
+
+        if (updatedAtFilter) {
+          const { canSkip, matches } = this.#matchesUpdatedAtFilter(
+            0, // placeholder
+            stats.mtimeMs,
+            updatedAtFilter,
+          );
+          if (canSkip && !matches) continue;
+
+          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          const updateId = UUID64.fromAny(data.updateId);
+          const updateMs = updateId.toDate().getTime();
+          const { matches: finalMatches } = this.#matchesUpdatedAtFilter(
+            updateMs,
+            stats.mtimeMs,
+            updatedAtFilter,
+          );
+
+          if (!finalMatches) continue;
+          if (field in data) values.add(data[field]);
+        } else {
+          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          if (field in data) values.add(data[field]);
+        }
+      }
+      return Array.from(values);
+    }
+
+    throw new Error(
+      'FileRepository.distinct: filter.collection or filter.id required',
+    );
+  }
+
   async delete(entityType: string, id: string): Promise<void> {
     const filePath = path.join(this.#worldPath, entityType, `${id}.json`);
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
 
-  async saveWorld(world: World): Promise<void> {
+  async saveWorld(world: Record<string, any>): Promise<void> {
     const msg = 'f12y.save';
     const dbg = DBG.WORLD.SAVE;
 
@@ -117,7 +279,7 @@ export class FileRepository implements IEntityRepository {
     );
   }
 
-  #load<T extends EntityConstructor>(
+  #load<T extends IEntity>(
     EntityClass: T,
     filePath: string,
   ): ReturnType<T['fromJson']> {

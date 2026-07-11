@@ -345,7 +345,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
         name: 'namespace-task',
       });
 
-      const found = world.loadFuzzyForma(entity.id.base64);
+      const found = await await world.loadFuzzyForma(entity.id.base64);
       expect(found).toBeDefined();
       expect(found?.name).toBe('namespace-task');
     });
@@ -427,7 +427,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       });
 
       const idStr = original.id.toString();
-      const loaded = world.loadFuzzy(Task, idStr);
+      const loaded = await await world.loadFuzzy(Task, idStr);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('exact-match');
@@ -440,7 +440,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 8);
-      const loaded = world.loadFuzzy(Task, partial);
+      const loaded = await await world.loadFuzzy(Task, partial);
 
       expect(loaded).not.toBeNull();
       expect(loaded?.name).toBe('partial-match');
@@ -449,7 +449,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
     it('should return null if no match found', async () => {
       await world.upsertOne(Task, { name: 'test' });
 
-      const loaded = world.loadFuzzy(Task, 'nonexistent-id');
+      const loaded = await await world.loadFuzzy(Task, 'nonexistent-id');
 
       expect(loaded).toBeNull();
     });
@@ -462,7 +462,9 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
       // Use a single character that both UUIDs likely contain (fuzzy matching with levenshtein=1)
       // This should match both entities and throw ambiguous error
-      expect(() => world.loadFuzzy(Task, '0')).toThrow(/ambiguous match/);
+      await expect(world.loadFuzzy(Task, '0')).rejects.toThrow(
+        /ambiguous match/,
+      );
     });
 
     it('should use searchId.length as default levenshtein', async () => {
@@ -471,7 +473,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 10);
 
-      const loaded = world.loadFuzzy(Task, partial);
+      const loaded = await world.loadFuzzy(Task, partial);
       expect(loaded).not.toBeNull();
     });
   });
@@ -483,14 +485,14 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const idStr = original.id.toString();
       const partial = idStr.substring(0, 5);
 
-      const loaded = world.loadFuzzy(Task, partial, 5);
+      const loaded = await world.loadFuzzy(Task, partial, 5);
       expect(loaded).not.toBeNull();
     });
 
     it('should throw if levenshtein out of range', async () => {
       await world.upsertOne(Task, { name: 'test' });
 
-      expect(() => world.loadFuzzy(Task, 'search', 999)).toThrow(
+      await expect(world.loadFuzzy(Task, 'search', 999)).rejects.toThrow(
         /levenshtein out of range/,
       );
     });
@@ -503,7 +505,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       const idStr = original.id.toString();
       const uppercase = idStr.toUpperCase().substring(0, 8);
 
-      const loaded = world.loadFuzzy(Task, uppercase);
+      const loaded = await world.loadFuzzy(Task, uppercase);
       expect(loaded).not.toBeNull();
     });
   });
@@ -1163,17 +1165,17 @@ describe('World — validate()', () => {
 
     fs.unlinkSync(path.join(worldPath, 'task', `${t2.id.base64}.json`));
 
-    expect(world.validate()).toBe(false);
+    expect(await world.syncFocusManager()).toBe(false);
     expect(world.focusManager.size).toBe(2);
   });
 
-  it('returns true on second validate after stale entry removed', async () => {
+  it('returns true on second syncFocusManager after stale entry removed', async () => {
     const world = FileRepository.worldFromPath(worldPath);
     const t1 = await world.upsertOne(Task, { name: 't1' });
     world.focusManager.focus(t1.id);
     fs.unlinkSync(path.join(worldPath, 'task', `${t1.id.base64}.json`));
-    expect(world.validate()).toBe(false);
-    expect(world.validate()).toBe(true);
+    expect(await world.syncFocusManager()).toBe(false);
+    expect(await world.syncFocusManager()).toBe(true);
   });
 });
 
@@ -1255,7 +1257,7 @@ describe('World.upsertOne() async — ZudaO', () => {
     const summary = 'ns-summary';
     const entityInserted = await world.upsertOne(Task, { name, summary });
     const id = entityInserted.id.base64;
-    const entityLoaded = world.loadFuzzyForma(id);
+    const entityLoaded = await await world.loadFuzzyForma(id);
     const entityRegistered = world.namespace.getForma(id);
     expect(entityLoaded).properties({ name, summary });
     expect(entityInserted).properties({ name, summary });

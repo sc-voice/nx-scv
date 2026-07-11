@@ -200,7 +200,7 @@ export class Task extends Entity {
     return avroType;
   }
 
-  static collection = 'task'; // IEntityConstructor
+  static collection = 'task'; // IIEntity
 
   /**
    * Avro schema for Task serialization.

@@ -36,9 +36,9 @@ export default class ActionCommand {
     return world.focusedForma('task') as Task | null;
   }
 
-  static resolveTask(world: World, taskId?: string): Task {
+  static async resolveTask(world: World, taskId?: string): Promise<Task> {
     if (taskId) {
-      const task = world.loadFuzzy(Task, taskId);
+      const task = await world.loadFuzzy(Task, taskId);
       if (!task) throw new Error(`Task not found: ${taskId}`);
       return task;
     }
@@ -278,7 +278,7 @@ export default class ActionCommand {
           ...ActionCommand.EXAMPLES.get.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((dotref: string, options: any, cmd: any) => {
+      .action(async (dotref: string, options: any, cmd: any) => {
         const parts = dotref.split('.');
         if (parts.length !== 2) {
           throw new Error('Format: action get <id>.<field>');
@@ -294,7 +294,7 @@ export default class ActionCommand {
           nfTui.error('World not initialized');
           return;
         }
-        const task = ActionCommand.resolveTask(world, options.task);
+        const task = await ActionCommand.resolveTask(world, options.task);
         const actionList = task.actions(world);
 
         try {
@@ -345,7 +345,10 @@ export default class ActionCommand {
             nfTui.error('World not initialized');
             return;
           }
-          const task = ActionCommand.resolveTask(world, options.task);
+          const task = await ActionCommand.resolveTask(
+            world,
+            options.task,
+          );
           const parts = dotref.split('.');
           if (parts.length !== 2) {
             throw new Error('Format: action set <id>.<field> <value>');

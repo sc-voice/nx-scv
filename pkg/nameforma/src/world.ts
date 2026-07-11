@@ -6,7 +6,8 @@ import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
 import {
   Entity,
-  type EntityConstructor,
+  type IEntity,
+  type IEntityRepository,
   validateEntity,
 } from './entity.js';
 import { Task } from './task.js';
@@ -66,7 +67,7 @@ export class World extends Entity implements IEventBus {
   readonly repository: IEntityRepository;
   #worldPath: string;
   #gitCLI: GitCLI;
-  #entityRegistry: Map<string, EntityConstructor> = new Map();
+  #entityRegistry: Map<string, IEntity> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusManager: FocusManager;
   #watermark: RGA64Watermark;
@@ -208,7 +209,7 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Populate namespace with all entities from disk based on registered EntityConstructors
+   * Populate namespace with all entities from disk based on registered IEntitys
    */
   protected override populateNamespace(): void {
     const msg = 'world.populateNamespace';
@@ -228,9 +229,9 @@ export class World extends Entity implements IEventBus {
         .readdirSync(entityDir)
         .filter((f) => f.endsWith('.json'));
 
-      const EntityConstructor = this.entityClassOfName(entityTypeName);
-      if (!EntityConstructor) {
-        dbg && cc.bad1(msg, `no EntityConstructor for ${entityTypeName}`);
+      const IEntity = this.entityClassOfName(entityTypeName);
+      if (!IEntity) {
+        dbg && cc.bad1(msg, `no IEntity for ${entityTypeName}`);
         continue;
       }
 
@@ -250,7 +251,7 @@ export class World extends Entity implements IEventBus {
             }
           }
 
-          const instance = EntityConstructor.fromJson(entity);
+          const instance = IEntity.fromJson(entity);
           this.addToNamespace(instance);
           totalLoaded++;
         } catch (err) {
@@ -377,10 +378,10 @@ export class World extends Entity implements IEventBus {
   /**
    * Register an entity class with this world
    * Derives entity name from EntityClass.collection static property
-   * @param {EntityConstructor} EntityClass - Entity class with entity, avroSchema, and fromJson
+   * @param {IEntity} EntityClass - Entity class with entity, avroSchema, and fromJson
    * @throws {Error} - If entity missing required static properties
    */
-  registerEntity(EntityClass: EntityConstructor): void {
+  registerEntity(EntityClass: IEntity): void {
     const msg = 'world.registerEntity';
     const dbg = WORLD?.REGISTER;
 
@@ -403,9 +404,9 @@ export class World extends Entity implements IEventBus {
   /**
    * Get entity constructor by name
    * @param {string} name - Entity name
-   * @returns {EntityConstructor|null} - Entity constructor or null if not registered
+   * @returns {IEntity|null} - Entity constructor or null if not registered
    */
-  entityClassOfName(name: string): EntityConstructor | null {
+  entityClassOfName(name: string): IEntity | null {
     return this.#entityRegistry.get(name) || null;
   }
 
@@ -463,9 +464,9 @@ export class World extends Entity implements IEventBus {
    *
    * Updates lastSyncTime to now after reconciliation.
    */
-  sync(): void {
-    const msg = 'world.sync';
-    const dbg = WORLD?.ALL;
+  async syncRepository(): Promise<void> {
+    const msg = 'world.syncRepository';
+    const dbg = WORLD.SYNC_REPOSITORY;
 
     // Reload mutable state from world.json
     const worldFile = path.join(this.#worldPath, 'world.json');
@@ -491,12 +492,14 @@ export class World extends Entity implements IEventBus {
     // Collect all filesystem entities and track which ones we've seen
     const filesystemEntities = new Map<string, any>();
 
+    await this.syncFocusManager();
+
     for (const entityTypeName of this.getEntityNames()) {
       const entityDir = path.join(this.#worldPath, entityTypeName);
       if (!fs.existsSync(entityDir)) continue;
 
-      const EntityConstructor = this.entityClassOfName(entityTypeName);
-      if (!EntityConstructor) continue;
+      const IEntity = this.entityClassOfName(entityTypeName);
+      if (!IEntity) continue;
 
       const files = fs
         .readdirSync(entityDir)
@@ -528,7 +531,7 @@ export class World extends Entity implements IEventBus {
             }
 
             // Reconstruct as typed instance
-            const typedEntity = EntityConstructor.fromJson(entity);
+            const typedEntity = IEntity.fromJson(entity);
             filesystemEntities.set(idStr, typedEntity);
 
             // Add or replace in namespace
@@ -578,7 +581,7 @@ export class World extends Entity implements IEventBus {
    * @returns {ReturnType<T['fromJson']>|null} - Typed entity instance, or null if not found
    * @throws {Error} - If id validation fails
    */
-  async loadEntity<T extends EntityConstructor>(
+  async loadEntity<T extends IEntity>(
     EntityClass: T,
     id: UUID64 | string,
   ): Promise<ReturnType<T['fromJson']> | null> {
@@ -594,14 +597,14 @@ export class World extends Entity implements IEventBus {
    * @returns {any} - Matching forma instance, or null if not found
    *
    * @example
-   * const forma = world.loadFuzzyForma("partial-id"); // Could be Task, Action, etc.
+   * const forma = await await world.loadFuzzyForma("partial-id"); // Could be Task, Action, etc.
    */
-  loadFuzzyForma(match: string, levenshtein?: number): any {
+  async loadFuzzyForma(match: string, levenshtein?: number): Promise<any> {
     for (const entityName of this.getEntityNames()) {
       const EntityClass = this.entityClassOfName(entityName);
       if (!EntityClass) continue;
       try {
-        return this.loadFuzzy(EntityClass, match, levenshtein);
+        return await this.loadFuzzy(EntityClass, match, levenshtein);
       } catch {
         // Not found in this type, try next
       }
@@ -619,49 +622,44 @@ export class World extends Entity implements IEventBus {
    * @throws {Error} - If levenshtein parameter is out of range or multiple matches found
    *
    * @example
-   * const task = world.loadFuzzy(Task, "partial-id", 5); // Type is Task | null
+   * const task = await await world.loadFuzzy(Task, "partial-id", 5); // Type is Task | null
    */
-  loadFuzzy<T extends EntityConstructor>(
+  async loadFuzzy<T extends IEntity>(
     EntityClass: T,
     match: string,
     levenshtein?: number,
-  ): ReturnType<T['fromJson']> | null {
-    const msg = 'world.loadFuzzy';
+  ): Promise<ReturnType<T['fromJson']> | null> {
+    const msg = 'await world.loadFuzzy';
     const dbg = WORLD?.LOAD;
 
     const entityType = EntityClass.collection;
-    const entityDir = path.join(this.#worldPath, entityType);
+    const ids = await this.repository.distinct<string>('id', {
+      collection: entityType,
+    });
 
-    if (!fs.existsSync(entityDir)) {
+    if (ids.length === 0) {
       dbg && cc.ok1(msg, `no entities for ${entityType}`);
       return null;
     }
 
-    // Create filter function for filename matching
+    // Create filter function for id matching
     const filter = Identifiable.idFilter(match, levenshtein);
+    const matchingIds = ids.filter(filter);
 
-    // Get all .json files and filter by filename (id)
-    const files = fs
-      .readdirSync(entityDir)
-      .filter((f) => f.endsWith('.json'));
-    const matchingFiles = files.filter((file) =>
-      filter(file.slice(0, -5)),
-    );
-
-    if (matchingFiles.length === 0) {
+    if (matchingIds.length === 0) {
       dbg && cc.ok1(msg, `no match for ${match} in ${entityType}`);
       return null;
     }
 
-    if (matchingFiles.length > 1) {
-      const ids = matchingFiles.map((f) => f.slice(0, -5)).join(', ');
+    if (matchingIds.length > 1) {
       throw new Error(
-        `${msg}: ambiguous match for "${match}": found ${matchingFiles.length} matches [${ids}]`,
+        `${msg}: ambiguous match for "${match}": found ${matchingIds.length} matches [${matchingIds.join(', ')}]`,
       );
     }
 
     // Load and reconstruct the matching entity
-    const filePath = path.join(entityDir, matchingFiles[0]);
+    const id = matchingIds[0];
+    const filePath = path.join(this.#worldPath, entityType, `${id}.json`);
     const data = fs.readFileSync(filePath, 'utf8');
     const entity = JSON.parse(data);
 
@@ -699,7 +697,7 @@ export class World extends Entity implements IEventBus {
    *   console.log(task.title);
    * }
    */
-  entityList<T extends EntityConstructor>(
+  entityList<T extends IEntity>(
     EntityClass: T,
   ): FormaList<ReturnType<T['fromJson']>> {
     const msg = 'world.entityList';
@@ -748,7 +746,7 @@ export class World extends Entity implements IEventBus {
    * @param cfg - Configuration object passed to constructor
    * @returns Created entity instance
    */
-  async upsertOne<T extends EntityConstructor>(
+  async upsertOne<T extends IEntity>(
     EntityClass: T,
     cfg: any = {},
   ): Promise<ReturnType<T['fromJson']>> {
@@ -840,24 +838,25 @@ export class World extends Entity implements IEventBus {
    * Remove stale entries from focusManager where backing entity no longer exists
    * @returns {boolean} - true if any entries were removed, false otherwise
    */
-  override validate(opts: any = {}): boolean {
-    const msg = 'w3d.validate';
+  protected async syncFocusManager(opts: any = {}): Promise<boolean> {
+    const msg = 'w3d.syncFocusManager';
     const result = super.validate(opts);
     const fm = this.#focusManager;
-    const dbg = WORLD.VALIDATE;
+    const dbg = WORLD.SYNC_REPOSITORY;
+
+    const validIds = new Set<string>();
+    for (const entityType of this.getEntityNames()) {
+      const ids = await this.repository.distinct<string>('id', {
+        collection: entityType,
+      });
+      ids.forEach((id) => validIds.add(id));
+    }
 
     const beforeSize = fm.size;
     for (const id of fm.ids()) {
-      const idStr = id.toString();
-      const exists = fs
-        .readdirSync(this.#worldPath, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .some((d) =>
-          fs.existsSync(
-            path.join(this.#worldPath, d.name, `${idStr}.json`),
-          ),
-        );
-      if (!exists) fm.unfocus(id);
+      if (!validIds.has(id.toString())) {
+        fm.unfocus(id);
+      }
     }
 
     const isValid = fm.size === beforeSize;
@@ -946,7 +945,6 @@ export class World extends Entity implements IEventBus {
    * @returns {object} - JSON representation
    */
   toJSON(): any {
-    this.validate();
     return {
       id: this.id,
       name: this.name,
@@ -1087,21 +1085,3 @@ export class World extends Entity implements IEventBus {
     yield* items;
   }
 } // World
-
-export interface IEntityRepository {
-  upsertOne<T extends EntityConstructor>(
-    EntityClass: T,
-    cfg: object,
-  ): Promise<ReturnType<T['fromJson']>>;
-  findOne<T extends EntityConstructor>(
-    EntityClass: T,
-    filter: object,
-  ): Promise<ReturnType<T['fromJson']> | null>;
-  findMany<T extends EntityConstructor>(
-    EntityClass: T,
-    filter: object,
-  ): AsyncGenerator<ReturnType<T['fromJson']>>;
-  delete(entityType: string, id: string): Promise<void>;
-  saveWorld(world: World): Promise<void>;
-  loadWorld(): Promise<World>;
-}

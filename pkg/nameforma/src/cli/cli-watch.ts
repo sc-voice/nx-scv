@@ -73,11 +73,11 @@ export default class WatchCommand {
           '  $ nameforma watch abc123def456',
         ].join('\n'),
       )
-      .action((id: string | undefined, options: any, cmd: any) => {
+      .action(async (id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         let world = nfProgram.world;
         let verbosity = nfProgram.verbosity;
-        let task = TaskCommand.resolveTask(world, id);
+        let task = await TaskCommand.resolveTask(world, id);
         const worldPath =
           (world as any).worldPath ||
           path.join(process.cwd(), '.nameforma');

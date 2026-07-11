@@ -95,7 +95,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -109,7 +109,7 @@ describe('CLI: reference command', () => {
 
     // Verify reference was saved
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.references(world).items).toHaveLength(1);
     expect(task!.references(world).items[0].name).toBe('Test Reference');
@@ -125,7 +125,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -143,7 +143,7 @@ describe('CLI: reference command', () => {
 
     // Verify summary was saved
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.references(world).items).toHaveLength(1);
     expect(task!.references(world).items[0].summary).toBe(
@@ -161,7 +161,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -182,7 +182,7 @@ describe('CLI: reference command', () => {
 
     // Verify relevance and source were saved
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.references(world).items).toHaveLength(1);
     expect(task!.references(world).items[0].relevance).toBe(0.8);
@@ -200,7 +200,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -209,7 +209,7 @@ describe('CLI: reference command', () => {
     await testCmd('reference', 'add', 'Test Reference');
 
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task!.references(world).items[0].relevance).toBe(0.5);
   });
 
@@ -222,7 +222,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -236,7 +236,7 @@ describe('CLI: reference command', () => {
     await testCmd('reference', 'add', 'src/myfile.ts');
 
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     const ref = task!.references(world).items[0];
     expect(ref.name).toBe('myfile.ts');
     expect(ref.source).toBe('nf:./src/myfile.ts');
@@ -252,7 +252,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -279,7 +279,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -313,7 +313,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -352,7 +352,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -393,7 +393,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -426,7 +426,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -474,7 +474,7 @@ describe('CLI: reference command', () => {
 
     // Verify all updates persisted
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     const ref = task!.references(world).items[0];
     expect(ref.name).toBe('Updated Name');
     expect(ref.summary).toBe('New summary');
@@ -492,7 +492,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -516,7 +516,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -550,7 +550,7 @@ describe('CLI: reference command', () => {
     output = [];
     {
       const w = FileRepository.worldFromPath(tempWorld.worldPath);
-      const t = w.loadFuzzy(Task, taskId);
+      const t = await w.loadFuzzy(Task, taskId);
       w.focusManager.focus(t.id);
       await w.save();
     }
@@ -578,7 +578,7 @@ describe('CLI: reference command', () => {
 
     // Verify only one reference remains
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     if (task) {
       expect(task.references(world).items).toHaveLength(1);

@@ -100,18 +100,53 @@ export abstract class Entity extends Forma implements IRegistry {
   }
 }
 
-export interface EntityConstructor {
+export interface IEntity {
   collection: string;
   avroSchema: any;
   fromJson(data: any): Entity;
 }
 
+export type TObject = Record<string, unknown>;
+
+export interface FilterOperators<TValue> {
+  $eq?: TValue;
+  $gt?: TValue;
+  $gte?: TValue;
+  $lt?: TValue;
+  $lte?: TValue;
+}
+
+export type Filter<T extends TObject> =
+  | { id: string; collection?: string }
+  | { collection: string; updatedAt?: Date | FilterOperators<Date> };
+
+/**
+ * Entities are stored in a repository for a World
+ */
+export interface IEntityRepository {
+  upsertOne<T extends IEntity>(
+    EntityClass: T,
+    cfg: TObject,
+  ): Promise<ReturnType<T['fromJson']>>;
+  findOne<T extends IEntity>(
+    EntityClass: T,
+    filter: Filter<TObject>,
+  ): Promise<ReturnType<T['fromJson']> | null>;
+  findMany<T extends IEntity>(
+    EntityClass: T,
+    filter: Filter<TObject>,
+  ): AsyncGenerator<ReturnType<T['fromJson']>>;
+  distinct<R>(field: string, filter?: Filter<TObject>): Promise<R[]>;
+
+  delete(entityType: string, id: string): Promise<void>;
+  saveWorld(pojo: Record<string, any>): Promise<void>;
+  loadWorld(): Promise<Record<string, any>>;
+}
+
 /**
  * Verify class implements Entity contract
  */
-export function validateEntity(
-  EntityClass: any,
-): EntityClass is EntityConstructor {
+export function validateEntity(EntityClass: any): EntityClass is IEntity {
   if (!EntityClass.collection) {
     throw new Error(
       `${EntityClass.name} missing static collection property`,

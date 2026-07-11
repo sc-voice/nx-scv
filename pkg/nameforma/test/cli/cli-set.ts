@@ -75,7 +75,7 @@ describe('CLI: set command', () => {
 
     // Verify persistence (semantic: field was updated to new value)
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task?.name).toBe('New Name');
   });
 
@@ -112,7 +112,7 @@ describe('CLI: set command', () => {
 
     // Verify persistence (semantic: field was updated to new value)
     const world = FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = world.loadFuzzy(Task, taskId);
+    const task = await world.loadFuzzy(Task, taskId);
     expect(task?.summary).toBe('New Summary');
   });
 

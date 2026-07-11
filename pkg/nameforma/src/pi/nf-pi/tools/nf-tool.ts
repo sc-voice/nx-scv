@@ -44,10 +44,6 @@ const operations = [
   new Operation('focus', 'Focus a task', ['fuzzy_id']),
   new Operation('unfocus', 'Focus a task', ['fuzzy_id']),
   new Operation('task', 'Get current task', []),
-  new Operation('rename', 'Rename a forma with given value', [
-    'fuzzy_id',
-    'value',
-  ]),
   new Operation(
     'set_action_status',
     'Set action status and statusNote values',
@@ -117,12 +113,12 @@ export const nfTool = {
     ),
     name: Type.Optional(
       Type.String({
-        description: 'Short title of summary (required for add)',
+        description: 'Short name or title (required for add)',
       }),
     ),
     summary: Type.Optional(
       Type.String({
-        description: 'Detailed description (required for add)',
+        description: 'Detailed descriptive summary (required for add)',
       }),
     ),
     source: Type.Optional(
@@ -210,8 +206,6 @@ export const nfTool = {
         cmd += ` task focus ${fuzzy_id}`;
       } else if (operation === 'unfocus') {
         cmd += ` task unfocus ${fuzzy_id}`;
-      } else if (operation === 'rename') {
-        cmd += ` set ${fuzzy_id}.name` + arg(value);
       } else if (operation === 'set_action_status') {
         cmd +=
           ` action set ${fuzzy_id}.status ${actionStatus} ` +

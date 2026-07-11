@@ -86,9 +86,12 @@ describe('NfProgram.setFieldValue', () => {
     tempDirObj.cleanup();
   });
 
-  it('setFieldValue on top-level task', () => {
+  it('setFieldValue on top-level task', async () => {
     // Load existing task from sample data
-    const task = world.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
+    const task = await await world.loadFuzzy(
+      Task,
+      '0PxVmryB00tGyAPrFKqetW',
+    );
     expect(task).toBeTruthy();
 
     // Set field value
@@ -101,13 +104,16 @@ describe('NfProgram.setFieldValue', () => {
 
     // Verify persistence
     const reloaded = FileRepository.worldFromPath(tempWorldPath);
-    const task2 = reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
+    const task2 = await reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     expect(task2?.summary).toBe('Updated summary');
   });
 
   it('setFieldValue on nested action', async () => {
     // Load task and focus it
-    const task = world.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
+    const task = await await world.loadFuzzy(
+      Task,
+      '0PxVmryB00tGyAPrFKqetW',
+    );
     expect(task).toBeTruthy();
     world.focusManager.focus(task!.id);
 
@@ -123,7 +129,7 @@ describe('NfProgram.setFieldValue', () => {
     // Persist and verify
     await world.save();
     const reloaded = FileRepository.worldFromPath(tempWorldPath);
-    const task2 = reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
+    const task2 = await reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     const action = task2?.rawActions[0];
     expect(action?.summary).toBe('Updated action summary');
   });
@@ -164,8 +170,11 @@ describe('NfProgram.resolveDotRef', () => {
     expect(value).toBe(forma.name);
   });
 
-  it('resolves action dotref with focused task', () => {
-    const task = world.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
+  it('resolves action dotref with focused task', async () => {
+    const task = await await world.loadFuzzy(
+      Task,
+      '0PxVmryB00tGyAPrFKqetW',
+    );
     world.focusManager.focus(task!.id);
     const actionId = '0PxVwGSx00tGyAPrFKqetW';
     const { forma, fieldName, value } = program.resolveDotRef(

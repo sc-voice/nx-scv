@@ -137,7 +137,7 @@ export class REPL {
 
         try {
           await NfCLI.exec(args);
-          this.world.sync();
+          await this.world.syncRepository();
         } catch (execErr: any) {
           try {
             const msg = String(

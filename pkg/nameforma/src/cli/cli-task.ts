@@ -56,9 +56,9 @@ export default class TaskCommand {
    * @returns {Task} - Resolved task
    * @throws {Error} - If task not found or no focus available
    */
-  static resolveTask(world: World, id?: string): Task {
+  static async resolveTask(world: World, id?: string): Promise<Task> {
     if (id) {
-      const task = world.loadFuzzy(Task, id);
+      const task = await await world.loadFuzzy(Task, id);
       if (!task) {
         throw new Error(`Task not found: ${id}`);
       }
@@ -228,11 +228,11 @@ export default class TaskCommand {
     cmd.addHelpText('after', '\n' + helpText);
 
     // Default action: show focused task when no subcommand given
-    cmd.action((options: any, cmd: any) => {
+    cmd.action(async (options: any, cmd: any) => {
       if (!nfProgram.world) throw new Error('World not initialized');
       const world = nfProgram.world;
       const verbosity = nfProgram.verbosity;
-      const task = TaskCommand.resolveTask(world);
+      const task = await TaskCommand.resolveTask(world);
       TaskCommand.displayTask(world, task, verbosity);
     });
 
@@ -286,7 +286,7 @@ export default class TaskCommand {
           ...TaskCommand.EXAMPLES.list.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((options: any, cmd: any) => {
+      .action(async (options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         TaskCommand.listTasks(world);
@@ -305,11 +305,11 @@ export default class TaskCommand {
           ...TaskCommand.EXAMPLES.get.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string | undefined, options: any, cmd: any) => {
+      .action(async (id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         const verbosity = nfProgram.verbosity;
-        const task = TaskCommand.resolveTask(world, id);
+        const task = await TaskCommand.resolveTask(world, id);
 
         if (options.json) {
           nfTui.log(JSON.stringify(task, null, 2));
@@ -332,7 +332,12 @@ export default class TaskCommand {
         ].join('\n'),
       )
       .action(
-        (dotref: string, values: string[], options: any, cmd: any) => {
+        async (
+          dotref: string,
+          values: string[],
+          options: any,
+          cmd: any,
+        ) => {
           if (!nfProgram.world) throw new Error('World not initialized');
           const world = nfProgram.world;
           const f7t = world.entityList(Task);
@@ -365,7 +370,7 @@ export default class TaskCommand {
           }
 
           // Resolve task
-          const task = TaskCommand.resolveTask(world, taskId);
+          const task = await TaskCommand.resolveTask(world, taskId);
 
           // Update task
           const updates: any = {};
@@ -398,7 +403,7 @@ export default class TaskCommand {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
 
-        const task = TaskCommand.resolveTask(world, id);
+        const task = await TaskCommand.resolveTask(world, id);
 
         // Prompt for confirmation unless --force is specified
         if (!options.force) {
@@ -433,7 +438,7 @@ export default class TaskCommand {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         const verbosity = nfProgram.verbosity;
-        const task = TaskCommand.resolveTask(world, id);
+        const task = await TaskCommand.resolveTask(world, id);
 
         try {
           const gitDir = world.worldPath.replace(/.nameforma$/, '');
@@ -464,7 +469,7 @@ export default class TaskCommand {
       .action(async (id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        const task = TaskCommand.resolveTask(world, id);
+        const task = await TaskCommand.resolveTask(world, id);
 
         world.focusManager.unfocus(task.id);
         await world.save();
