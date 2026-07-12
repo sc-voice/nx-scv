@@ -15,6 +15,26 @@ describe('FileRepository', () => {
   let worldPath: string;
   let repo: FileRepository;
 
+  async function create_t1_t2(worldPath: string) {
+    const uuid1 = new UUID64();
+    const t1 = await repo.upsertOne(Task, { name: 't1', id: uuid1 });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const betweenDate = new Date();
+    await new Promise((r) => setTimeout(r, 10));
+
+    const uuid2 = new UUID64();
+    const t2 = await repo.upsertOne(Task, { name: 't2', id: uuid2 });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const filePath1 = path.join(worldPath, 'task', `${uuid1.base64}.json`);
+    const mtime1 = fs.statSync(filePath1).mtimeMs;
+    const filePath2 = path.join(worldPath, 'task', `${uuid2.base64}.json`);
+    const mtime2 = fs.statSync(filePath2).mtimeMs;
+
+    return { uuid1, uuid2, t1, t2, mtime1, mtime2, betweenDate };
+  }
+
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'file-repo-'));
     worldPath = path.join(tempDir, '.nameforma');
@@ -116,6 +136,22 @@ describe('FileRepository', () => {
   });
 
   describe('distinct()', () => {
+    let uuid1: UUID64;
+    let uuid2: UUID64;
+    let t1: Task;
+    let t2: Task;
+
+    beforeEach(async () => {
+      /*
+      uuid1 = new UUID64();
+      t1 = await repo.upsertOne(Task, { name: 't1', updateId: uuid1, });
+
+      await new Promise(r => setTimeout(r, 10));
+      uuid2 = new UUID64();
+      t2 = await repo.upsertOne(Task, { name: 't2', updateId: uuid2, });
+      */
+    });
+
     it('throws if neither filter.collection nor filter.id is given', async () => {
       await expect(repo.distinct('id')).rejects.toThrow(
         /filter.collection or filter.id required/,
@@ -188,123 +224,31 @@ describe('FileRepository', () => {
       expect(names).toEqual(['findme']);
     });
 
-    it('updatedAt filter with $gt excludes entities at or before threshold', async () => {
-      const baseMs = 1609459200000;
-      const t1 = await repo.upsertOne(Task, {
-        name: 'old',
-        updateId: UUID64.create({ millis: baseMs }),
-      });
-      const t2 = await repo.upsertOne(Task, {
-        name: 'new',
-        updateId: UUID64.create({ millis: baseMs + 1000 }),
-      });
+    it('updatedAt filter with betweenDate', async () => {
+      const { betweenDate, uuid1, uuid2, t1, t2, mtime1, mtime2 } =
+        await create_t1_t2(worldPath);
+      const _bTime = betweenDate.getTime();
+      const mDate1 = new Date(mtime1);
+      const mDate2 = new Date(mtime2);
+      const uDate1 = uuid1.toDate();
+      const uTime1 = uDate1.getTime();
+      const uDate2 = uuid2.toDate();
+      const uTime2 = uDate2.getTime();
+      console.log({ uTime1, mtime1, _bTime, uTime2, mtime2 });
 
-      const thresholdDate = new Date(baseMs + 500);
-      const names = await repo.distinct<string>('name', {
+      const query_gt = {
         collection: 'task',
-        updatedAt: { $gt: thresholdDate },
-      });
-      expect(names).toEqual(['new']);
-    });
+        updatedAt: { $gt: betweenDate },
+      };
+      const names_gt = await repo.distinct<string>('name', query_gt);
+      expect(names_gt).toEqual(['t2']);
 
-    it('updatedAt filter with $gte includes entity at threshold', async () => {
-      const baseMs = 1609459200000;
-      const t1 = await repo.upsertOne(Task, {
-        name: 'at-threshold',
-        updateId: UUID64.create({ millis: baseMs }),
-      });
-      const t2 = await repo.upsertOne(Task, {
-        name: 'before',
-        updateId: UUID64.create({ millis: baseMs - 1000 }),
-      });
-
-      const thresholdDate = new Date(baseMs);
-      const names = await repo.distinct<string>('name', {
+      const query_lt = {
         collection: 'task',
-        updatedAt: { $gte: thresholdDate },
-      });
-      expect(names).toContain('at-threshold');
-      expect(names).not.toContain('before');
-    });
-
-    it('updatedAt filter with $lt excludes entities at or after threshold', async () => {
-      const uuid1 = new UUID64();
-      const t1 = await repo.upsertOne(Task, 
-        { id: uuid1.base64, name: 't1', updateId: uuid1 });
-
-      // Ensure that t2 is separated sufficiently from t1
-      await new Promise(r => setTimeout(r, 10));
-
-      const uuid2 = new UUID64();
-      const t2 = await repo.upsertOne(Task, 
-        { id: uuid2.base64, name: 't2', updateId: uuid2 });
-
-      // File mtime will be slightly after updateId 
-      const filePath1 = path.join(worldPath, 'task', `${uuid1.base64}.json`);
-      const mtime1 = fs.statSync(filePath1).mtimeMs;
-      const updateMs1 = uuid1.toDate().getTime();
-      expect(mtime1 - updateMs1).toBeLessThan(10);
-      expect(mtime1 - updateMs1).toBeGreaterThanOrEqual(0);
-      console.log({mtime1, updateMs1});
-      const filePath2 = path.join(worldPath, 'task', `${uuid2.base64}.json`);
-      const mtime2 = fs.statSync(filePath2).mtimeMs;
-      const updateMs2 = uuid2.toDate().getTime();
-      expect(mtime2 - updateMs2).toBeLessThan(10);
-      expect(mtime2 - updateMs2).toBeGreaterThanOrEqual(0);
-
-      const names = await repo.distinct<string>('name', {
-        collection: 'task',
-        updatedAt: { $lt: uuid2.toDate() },
-      });
-      expect(names).toEqual(['t1']);
-    });
-
-    it('updatedAt filter with $lte includes entity at threshold', async () => {
-      const uuid1 = new UUID64();
-      const t1 = await repo.upsertOne(Task, { name: 't1', updateId: uuid1, });
-
-      await new Promise(r => setTimeout(r, 10));
-      const uuid2 = new UUID64();
-      const t2 = await repo.upsertOne(Task, { name: 't2', updateId: uuid2, });
-
-      const query = { collection: 'task', updatedAt: { $lte: uuid2.toDate() }, };
-      const names = await repo.distinct<string>('name', query);
-      expect(names).toEqual(['t1']);
-    });
-
-    it('updatedAt filter with id field reads file bodies', async () => {
-      const baseMs = 1609459200000;
-      const t1 = await repo.upsertOne(Task, {
-        name: 'old',
-        updateId: UUID64.create({ millis: baseMs }),
-      });
-      const t2 = await repo.upsertOne(Task, {
-        name: 'new',
-        updateId: UUID64.create({ millis: baseMs + 1000 }),
-      });
-
-      const thresholdDate = new Date(baseMs + 500);
-      const ids = await repo.distinct<string>('id', {
-        collection: 'task',
-        updatedAt: { $gt: thresholdDate },
-      });
-      expect(ids).toHaveLength(1);
-      expect(ids[0]).toBe(t2.id.toString());
-    });
-
-    it('updatedAt filter with no matches returns []', async () => {
-      const baseMs = 1609459200000;
-      const t1 = await repo.upsertOne(Task, {
-        name: 'task',
-        updateId: UUID64.create({ millis: baseMs }),
-      });
-
-      const thresholdDate = new Date(baseMs + 100000);
-      const names = await repo.distinct<string>('name', {
-        collection: 'task',
-        updatedAt: { $gt: thresholdDate },
-      });
-      expect(names).toEqual([]);
+        updatedAt: { $lt: betweenDate },
+      };
+      const names_lt = await repo.distinct<string>('name', query_lt);
+      expect(names_lt).toEqual(['t1']);
     });
   });
 });

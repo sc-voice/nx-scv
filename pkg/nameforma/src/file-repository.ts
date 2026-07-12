@@ -86,7 +86,9 @@ export class FileRepository implements IEntityRepository {
   }
 
   #parseUpdatedAtFilter(
-    updatedAt?: Date | { $eq?: Date; $gt?: Date; $gte?: Date; $lt?: Date; $lte?: Date },
+    updatedAt?:
+      | Date
+      | { $eq?: Date; $gt?: Date; $gte?: Date; $lt?: Date; $lte?: Date },
   ): { op: string; thresholdMs: number } | null {
     if (!updatedAt) return null;
     if (updatedAt instanceof Date) {
@@ -102,34 +104,26 @@ export class FileRepository implements IEntityRepository {
     return null;
   }
 
-  #matchesUpdatedAtFilter(
-    updateMs: number,
+  /** Use mtime as a proxy for updatedAt.  */
+  #filterUpdatedAt(
     mtimeMs: number,
     filter: { op: string; thresholdMs: number },
-  ): { canSkip: boolean; matches: boolean } {
+  ): boolean {
     const { op, thresholdMs } = filter;
-    // mtime optimization: skip if mtime alone proves the filter can't match
-    if (op === '$gt' && mtimeMs < thresholdMs) return { canSkip: true, matches: false };
-    if (op === '$gte' && mtimeMs < thresholdMs) return { canSkip: true, matches: false };
-    if (op === '$lt' && mtimeMs > thresholdMs) return { canSkip: true, matches: false };
-    if (op === '$lte' && mtimeMs > thresholdMs) return { canSkip: true, matches: false };
-    if (op === '$eq' && mtimeMs !== thresholdMs) return { canSkip: true, matches: false };
 
-    // mtime couldn't rule it out, so check exactly
+    // mtime optimization: skip if mtime alone proves the filter can't match
     switch (op) {
-      case '$eq':
-        return { canSkip: false, matches: updateMs === thresholdMs };
-      case '$gt':
-        return { canSkip: false, matches: updateMs > thresholdMs };
-      case '$gte':
-        return { canSkip: false, matches: updateMs >= thresholdMs };
       case '$lt':
-        return { canSkip: false, matches: updateMs < thresholdMs };
-      case '$lte':
-        return { canSkip: false, matches: updateMs <= thresholdMs };
+        return mtimeMs < thresholdMs ? true : false;
+      case '$gt':
+        return mtimeMs > thresholdMs ? true : false;
       default:
-        return { canSkip: false, matches: true };
+        throw new Error(
+          'Equality matches are not supported for updatedAt',
+        );
     }
+
+    return true;
   }
 
   async distinct<R>(
@@ -137,6 +131,16 @@ export class FileRepository implements IEntityRepository {
     filter?: Filter<TObject>,
   ): Promise<R[]> {
     const f = filter as any;
+    function fieldValue(filePath: string): any {
+      if (!fs.existsSync(filePath)) {
+        return undefined;
+      }
+
+      if (field === 'id') return f.id;
+
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      return data[field];
+    }
 
     if (f?.id) {
       // Filenames (`${id}.json`) are a covering index on id: when field==='id'
@@ -153,10 +157,9 @@ export class FileRepository implements IEntityRepository {
           dirName,
           `${f.id}.json`,
         );
-        if (fs.existsSync(filePath)) {
-          if (field === 'id') return [f.id] as unknown as R[];
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          return field in data ? ([data[field]] as unknown as R[]) : [];
+        const value = fieldValue(filePath);
+        if (value !== undefined) {
+          return [value];
         }
       }
       return [];
@@ -177,24 +180,12 @@ export class FileRepository implements IEntityRepository {
         for (const file of files) {
           const filePath = path.join(entityDir, file);
           const stats = fs.statSync(filePath);
-          const { canSkip, matches } = this.#matchesUpdatedAtFilter(
-            0, // placeholder, will be calculated below
+          const matches = this.#filterUpdatedAt(
             stats.mtimeMs,
             updatedAtFilter,
           );
 
-          if (canSkip && !matches) continue;
-
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          const updateId = UUID64.fromAny(data.updateId);
-          const updateMs = updateId.toDate().getTime();
-          const { matches: finalMatches } = this.#matchesUpdatedAtFilter(
-            updateMs,
-            stats.mtimeMs,
-            updatedAtFilter,
-          );
-
-          if (finalMatches) {
+          if (matches) {
             values.add(file.slice(0, -5) as unknown as R);
           }
         }
@@ -211,27 +202,19 @@ export class FileRepository implements IEntityRepository {
         const stats = fs.statSync(filePath);
 
         if (updatedAtFilter) {
-          const { canSkip, matches } = this.#matchesUpdatedAtFilter(
-            0, // placeholder
-            stats.mtimeMs,
-            updatedAtFilter,
-          );
-          if (canSkip && !matches) continue;
-
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          const updateId = UUID64.fromAny(data.updateId);
-          const updateMs = updateId.toDate().getTime();
-          const { matches: finalMatches } = this.#matchesUpdatedAtFilter(
-            updateMs,
+          const matches = this.#filterUpdatedAt(
             stats.mtimeMs,
             updatedAtFilter,
           );
 
-          if (!finalMatches) continue;
-          if (field in data) values.add(data[field]);
+          if (matches) {
+            values.add(fieldValue(filePath));
+          }
         } else {
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          if (field in data) values.add(data[field]);
+          const value = fieldValue(filePath);
+          if (value !== undefined) {
+            values.add(value);
+          }
         }
       }
       return Array.from(values);
