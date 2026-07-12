@@ -136,7 +136,11 @@ export class FileRepository implements IEntityRepository {
         return undefined;
       }
 
+      // return values for fields covered by metadata (e.g., indexes, etc.)
       if (field === 'id') return f.id;
+      if (field === 'collection') {
+        return path.basename(path.dirname(filePath));
+      }
 
       const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       return data[field];
