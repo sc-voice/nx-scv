@@ -203,7 +203,7 @@ describe('World Registry - Constructor & Entity Registration', () => {
   });
 });
 
-describe('FileRepository.create()', () => {
+describe('FileRepository.createWorld()', () => {
   let tempDir: string;
   let worldPath: string;
 
@@ -220,20 +220,20 @@ describe('FileRepository.create()', () => {
   });
 
   it('creates world.json and returns a World with the given worldPath', () => {
-    const world = FileRepository.create(worldPath);
+    const world = FileRepository.createWorld(worldPath);
     expect(world.worldPath).toBe(worldPath);
     expect(fs.existsSync(path.join(worldPath, 'world.json'))).toBe(true);
   });
 
   it('throws if world.json already exists', () => {
-    FileRepository.create(worldPath);
-    expect(() => FileRepository.create(worldPath)).toThrow(
+    FileRepository.createWorld(worldPath);
+    expect(() => FileRepository.createWorld(worldPath)).toThrow(
       /World exists at/,
     );
   });
 });
 
-describe('FileRepository.load()', () => {
+describe('FileRepository.loadWorld()', () => {
   let tempDir: string;
   let worldPath: string;
 
@@ -250,14 +250,14 @@ describe('FileRepository.load()', () => {
   });
 
   it('throws if world.json does not exist', () => {
-    expect(() => FileRepository.load(worldPath)).toThrow(
+    expect(() => FileRepository.loadWorld(worldPath)).toThrow(
       /World not found at/,
     );
   });
 
-  it('loads a world created by FileRepository.create() with the same id', () => {
-    const created = FileRepository.create(worldPath);
-    const loaded = FileRepository.load(worldPath);
+  it('loads a world created by FileRepository.createWorld() with the same id', () => {
+    const created = FileRepository.createWorld(worldPath);
+    const loaded = FileRepository.loadWorld(worldPath);
     expect(loaded.id.base64).toBe(created.id.base64);
     expect(loaded.worldPath).toBe(worldPath);
   });

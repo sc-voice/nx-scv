@@ -32,7 +32,7 @@ export function createTempWorld(prefix = 'nf-test') {
   fs.mkdirSync(worldPath, { recursive: true });
 
   // Force world creation in tests so world.json exists
-  const world = FileRepository.create(worldPath);
+  const world = FileRepository.createWorld(worldPath);
   const msg = 'createTempWorld';
   const jsonPath = path.join(worldPath, 'world.json');
   if (!fs.existsSync(jsonPath)) {

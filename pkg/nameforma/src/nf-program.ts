@@ -149,7 +149,7 @@ export class NfProgram {
     } else if (!resolvedPath.endsWith('.nameforma')) {
       resolvedPath = path.join(resolvedPath, '.nameforma');
     }
-    return FileRepository.load(resolvedPath);
+    return FileRepository.loadWorld(resolvedPath);
   }
 
   constructor(protected readonly cmdDelegate: ICommand) {
@@ -200,10 +200,10 @@ export class NfProgram {
     const msg = 'n7m.parseAsync';
     const dbg = DBG.NF_PROGRAM.ANY;
     try {
-      dbg && World.log(msg, args.join(' '));
+      dbg && FileRepository.log(msg, args.join(' '));
       return this.cmdDelegate.parseAsync(args);
     } catch (err) {
-      dbg && World.log(msg, (err as any)?.message);
+      dbg && FileRepository.log(msg, (err as any)?.message);
       throw err;
     }
   }
@@ -299,7 +299,7 @@ export class NfProgram {
     const msg = 'nfAdd';
     const dbg = DBG.NF_PROGRAM.ANY;
 
-    dbg && this.world.log(JSON.stringify({ typeName, name, summary }));
+    dbg && FileRepository.log(JSON.stringify({ typeName, name, summary }));
   }
 
   registerAddCommand(): void {
@@ -381,7 +381,7 @@ export class NfProgram {
         ? targetPath
         : path.join(targetPath, '.nameforma');
 
-      const world = FileRepository.create(worldPath);
+      const world = FileRepository.createWorld(worldPath);
       const lines = [
         theme.nfNominal(`✓ Initialized world at ${worldPath}`),
         theme.nfLabel('id:') + world.id.base64,

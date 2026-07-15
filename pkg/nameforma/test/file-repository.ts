@@ -35,11 +35,11 @@ describe('FileRepository', () => {
     return { uuid1, uuid2, t1, t2, mtime1, mtime2, betweenDate };
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'file-repo-'));
     worldPath = path.join(tempDir, '.nameforma');
     fs.mkdirSync(worldPath, { recursive: true });
-    repo = new FileRepository(worldPath);
+    repo = await FileRepository.create(worldPath);
   });
 
   afterEach(() => {
@@ -108,9 +108,7 @@ describe('FileRepository', () => {
 
   it('findMany throws on non-{} or {id} filter', async () => {
     const iter = repo.findMany(Task, { name: 'foo' });
-    await expect(iter.next()).rejects.toThrow(
-      /only \{\} or \{id\} filter supported/,
-    );
+    await expect(iter.next()).rejects.toThrow(/unsupported filter/);
   });
 
   it('delete removes entity from disk', async () => {

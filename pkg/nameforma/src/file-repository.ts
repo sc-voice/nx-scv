@@ -3,6 +3,7 @@ import path from 'path';
 import UUID64 from './uuid64.js';
 import {
   Filter,
+  FilterOperators,
   TObject,
   type IEntity,
   IEntityRepository,
@@ -13,8 +14,23 @@ import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
+class NfLogger {
+  private logFile: string;
+
+  constructor(logFile: string) {
+    this.logFile = logFile;
+  }
+
+  log(...strs: string[]): void {
+    const msg = strs.join(' ');
+    const id = UUID64.forSignature(World.NO_WORLD);
+    fs.appendFileSync(this.logFile, `${id}: ${msg}\n`);
+  }
+}
+
 export class FileRepository implements IEntityRepository {
   #worldPath: string;
+  static #loggerInstance: NfLogger | null = null;
 
   constructor(worldPath: string) {
     const msg = 'FileRepository.ctor';
@@ -22,6 +38,23 @@ export class FileRepository implements IEntityRepository {
       throw new Error(`${msg} invalid worldPath: ${worldPath}`);
     }
     this.#worldPath = worldPath;
+  }
+
+  static get logger(): NfLogger {
+    if (this.#loggerInstance === null) {
+      const worldPath = this.findWorld();
+      const logFile = path.join(worldPath ?? process.cwd(), 'nf.log');
+      this.#loggerInstance = new NfLogger(logFile);
+    }
+    return this.#loggerInstance;
+  }
+
+  static log(...strs: string[]): void {
+    FileRepository.logger.log(...strs);
+  }
+
+  static async create(worldPath: string): Promise<FileRepository> {
+    return new FileRepository(worldPath);
   }
 
   async upsertOne<T extends IEntity>(
@@ -65,23 +98,50 @@ export class FileRepository implements IEntityRepository {
     filter: object,
   ): AsyncGenerator<ReturnType<T['fromJson']>> {
     const keys = Object.keys(filter);
-    if (keys.length !== 0 && !(keys.length === 1 && keys[0] === 'id')) {
+    const allowed = new Set(['id', 'collection', 'updatedAt']);
+    if (!keys.every((k) => allowed.has(k))) {
       throw new Error(
-        `FileRepository.findMany: only {} or {id} filter supported, got ${JSON.stringify(filter)}`,
+        `FileRepository.findMany: unsupported filter ${JSON.stringify(filter)}`,
       );
     }
     const entityDir = path.join(
       this.#worldPath,
       (EntityClass as any).collection,
     );
+    for await (const { filePath } of this.#matchingFiles(
+      entityDir,
+      filter as any,
+    )) {
+      yield this.#load(EntityClass, filePath);
+    }
+  }
+
+  async *#matchingFiles(
+    entityDir: string,
+    filter?: { id?: string; updatedAt?: Date | FilterOperators<Date> },
+  ): AsyncGenerator<{ file: string; filePath: string }> {
     if (!fs.existsSync(entityDir)) return;
-    const id = (filter as any).id;
+    const updatedAtFilter = this.#parseUpdatedAtFilter(filter?.updatedAt);
+    const id = (filter as any)?.id;
+
+    if (id && !updatedAtFilter) {
+      const file = `${id}.json`;
+      const filePath = path.join(entityDir, file);
+      if (fs.existsSync(filePath)) yield { file, filePath };
+      return;
+    }
+
     const files = fs
       .readdirSync(entityDir)
       .filter((f) => f.endsWith('.json'));
     for (const file of files) {
       if (id && file.slice(0, -5) !== id) continue;
-      yield this.#load(EntityClass, path.join(entityDir, file));
+      if (updatedAtFilter) {
+        const stats = fs.statSync(path.join(entityDir, file));
+        if (!this.#filterUpdatedAt(stats.mtimeMs, updatedAtFilter))
+          continue;
+      }
+      yield { file, filePath: path.join(entityDir, file) };
     }
   }
 
@@ -171,54 +231,16 @@ export class FileRepository implements IEntityRepository {
 
     if (f?.collection) {
       const entityDir = path.join(this.#worldPath, f.collection);
-      if (!fs.existsSync(entityDir)) return [];
-      const files = fs
-        .readdirSync(entityDir)
-        .filter((file) => file.endsWith('.json'));
-
-      const updatedAtFilter = this.#parseUpdatedAtFilter(f.updatedAt);
-
-      // If updatedAt filter is present, cannot use id-shortcut (must read files)
-      if (updatedAtFilter && field === 'id') {
-        const values = new Set<R>();
-        for (const file of files) {
-          const filePath = path.join(entityDir, file);
-          const stats = fs.statSync(filePath);
-          const matches = this.#filterUpdatedAt(
-            stats.mtimeMs,
-            updatedAtFilter,
-          );
-
-          if (matches) {
-            values.add(file.slice(0, -5) as unknown as R);
-          }
-        }
-        return Array.from(values);
-      }
-
-      if (field === 'id' && !updatedAtFilter) {
-        return files.map((file) => file.slice(0, -5)) as unknown as R[];
-      }
-
       const values = new Set<R>();
-      for (const file of files) {
-        const filePath = path.join(entityDir, file);
-        const stats = fs.statSync(filePath);
-
-        if (updatedAtFilter) {
-          const matches = this.#filterUpdatedAt(
-            stats.mtimeMs,
-            updatedAtFilter,
-          );
-
-          if (matches) {
-            values.add(fieldValue(filePath));
-          }
+      for await (const { file, filePath } of this.#matchingFiles(
+        entityDir,
+        f,
+      )) {
+        if (field === 'id') {
+          values.add(file.slice(0, -5) as unknown as R);
         } else {
           const value = fieldValue(filePath);
-          if (value !== undefined) {
-            values.add(value);
-          }
+          if (value !== undefined) values.add(value);
         }
       }
       return Array.from(values);
@@ -252,7 +274,7 @@ export class FileRepository implements IEntityRepository {
   }
 
   async loadWorld(): Promise<World> {
-    return FileRepository.load(this.#worldPath);
+    return FileRepository.loadWorld(this.#worldPath);
   }
 
   #save(entityType: string, entity: any): void {
@@ -275,6 +297,31 @@ export class FileRepository implements IEntityRepository {
     return EntityClass.fromJson(entity) as ReturnType<T['fromJson']>;
   }
 
+  /**
+   * Search up filesystem tree for .nameforma/ directory
+   * @param {string} startPath - Starting directory
+   * @returns {string|null} - Path to .nameforma/ or null if not found
+   */
+  static findWorld(startPath: string = process.cwd()): string | null {
+    const msg = 'world.findWorld';
+    const dbg = DBG.WORLD.FIND_WORLD;
+
+    let currentPath = path.resolve(startPath);
+    const root = path.parse(currentPath).root;
+
+    while (currentPath !== root) {
+      const worldPath = path.join(currentPath, '.nameforma');
+      if (fs.existsSync(worldPath)) {
+        dbg && cc.ok1(msg, `found ${worldPath}`);
+        return worldPath;
+      }
+      currentPath = path.dirname(currentPath);
+    }
+
+    dbg && cc.ok1(msg, `not found from ${startPath}`);
+    return null;
+  }
+
   /** @deprecated
    * Load or create World from path
    * Reads .nameforma/world.json if exists, otherwise creates new World only if create option is true
@@ -291,9 +338,9 @@ export class FileRepository implements IEntityRepository {
     let world: World | undefined;
 
     if (fs.existsSync(worldFile)) {
-      world = this.load(worldPath);
+      world = this.loadWorld(worldPath);
     } else {
-      world = this.create(worldPath);
+      world = this.createWorld(worldPath);
     }
 
     // Initialize sync cursor to now
@@ -309,8 +356,8 @@ export class FileRepository implements IEntityRepository {
    * @returns {World} - World instance with persistent or new id
    * @throws {Error} - If world not found and create is not true
    */
-  static create(worldPath: string): World {
-    const msg = 'f12y.create';
+  static createWorld(worldPath: string): World {
+    const msg = 'f12y.createWorld';
     const dbg = DBG.WORLD.CTOR;
 
     const worldFile = path.join(worldPath, 'world.json');
@@ -342,7 +389,7 @@ export class FileRepository implements IEntityRepository {
    * @returns {World} - World instance with persistent or new id
    * @throws {Error} - If world not found and create is not true
    */
-  static load(worldPath: string): World {
+  static loadWorld(worldPath: string): World {
     const msg = 'f12y.load';
     const dbg = DBG.WORLD.LOAD;
 

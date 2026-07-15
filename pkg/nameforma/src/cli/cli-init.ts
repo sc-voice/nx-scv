@@ -24,7 +24,7 @@ export default class InitCommand {
             ? targetPath
             : path.join(targetPath, '.nameforma');
 
-          const world = FileRepository.create(worldPath);
+          const world = FileRepository.createWorld(worldPath);
           nfTui.log(`✓ Initialized world at ${worldPath}`);
           nfTui.log(`World ID: ${world.id.base64}`);
         } catch (err) {
