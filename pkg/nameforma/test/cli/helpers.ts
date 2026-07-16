@@ -88,9 +88,9 @@ export function countTasks(worldPath) {
  * @param {string} worldPath - Path to .nameforma directory
  * @returns {object} - { testCmd(...args), getGlobalOpts() }
  */
-export function createTestCmd(program: Command, worldPath: string) {
+export async function createTestCmd(program: Command, worldPath: string) {
   const nfProgram = new NfProgram(program as any);
-  const world = FileRepository.worldFromPath(worldPath);
+  const world = await FileRepository.worldFromPath(worldPath);
   nfProgram.initialize(world, { verbosity: 0, testRunner: true });
 
   program.option(
@@ -98,9 +98,9 @@ export function createTestCmd(program: Command, worldPath: string) {
     'Path to .nameforma directory (or auto-discover)',
   );
 
-  program.hook('preAction', () => {
+  program.hook('preAction', async () => {
     // Reload world from disk to pick up any persisted focus state
-    const reloadedWorld = FileRepository.worldFromPath(worldPath);
+    const reloadedWorld = await FileRepository.worldFromPath(worldPath);
     nfProgram.initialize(reloadedWorld, {
       verbosity: 0,
       testRunner: true,
@@ -126,10 +126,10 @@ export function createTestCmd(program: Command, worldPath: string) {
  * @param {string} worldPath - Path to .nameforma directory
  * @returns {object} - { program, getGlobalOpts }
  */
-export function createTestProgram(worldPath: string) {
+export async function createTestProgram(worldPath: string) {
   const program = new Command();
   const nfProgram = new NfProgram(program as any);
-  const world = FileRepository.worldFromPath(worldPath);
+  const world = await FileRepository.worldFromPath(worldPath);
   nfProgram.initialize(world, { verbosity: 0, testRunner: true });
 
   program.option(
@@ -137,9 +137,9 @@ export function createTestProgram(worldPath: string) {
     'Path to .nameforma directory (or auto-discover)',
   );
 
-  program.hook('preAction', () => {
+  program.hook('preAction', async () => {
     // Reload world from disk to pick up any persisted focus state
-    const reloadedWorld = FileRepository.worldFromPath(worldPath);
+    const reloadedWorld = await FileRepository.worldFromPath(worldPath);
     nfProgram.initialize(reloadedWorld, {
       verbosity: 0,
       testRunner: true,

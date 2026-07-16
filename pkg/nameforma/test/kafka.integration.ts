@@ -40,7 +40,7 @@ describe('Kafka Integration Tests', () => {
     const worldPath = path.join(tmpDir, '.nameforma');
 
     // Create World with unique ID
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
     topicName = `world-${world.id.base64}`;
 
     // Initialize Kafka client
@@ -225,18 +225,18 @@ describe('Kafka Integration Tests', () => {
     expect(replicatedList.size).toBe(0); // Empty until items added
   });
 
-  it('FileRepository.worldFromPath should create persistent world with stable ID', () => {
+  it('FileRepository.worldFromPath should create persistent world with stable ID', async () => {
     const testDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'world-persist-'),
     );
     const worldPath = path.join(testDir, '.nameforma');
 
     // Create world via fromPath
-    const world1 = FileRepository.worldFromPath(worldPath);
+    const world1 = await FileRepository.worldFromPath(worldPath);
     const id1 = world1.id.base64;
 
     // Load same world again
-    const world2 = FileRepository.worldFromPath(worldPath);
+    const world2 = await FileRepository.worldFromPath(worldPath);
     const id2 = world2.id.base64;
 
     // IDs should match (persistent)

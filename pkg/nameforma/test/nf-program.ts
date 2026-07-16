@@ -20,12 +20,12 @@ describe('NfProgram construction and initialization', () => {
   let tempWorldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDirObj = createTempDir('nfprogram-init-test');
     const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
     tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
-    world = FileRepository.worldFromPath(tempWorldPath);
+    world = await FileRepository.worldFromPath(tempWorldPath);
   });
 
   afterEach(() => {
@@ -67,7 +67,7 @@ describe('NfProgram.setFieldValue', () => {
   let world: World;
   let program: NfProgram;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDirObj = createTempDir('nf-program-test');
 
     // Copy sample .nameforma to temp directory
@@ -77,7 +77,7 @@ describe('NfProgram.setFieldValue', () => {
     // Recursively copy sample data
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
 
-    world = FileRepository.worldFromPath(tempWorldPath);
+    world = await FileRepository.worldFromPath(tempWorldPath);
     program = new NfProgram(new Command());
     program.initialize(world);
   });
@@ -103,7 +103,7 @@ describe('NfProgram.setFieldValue', () => {
     expect(updated.summary).toBe('Updated summary');
 
     // Verify persistence
-    const reloaded = FileRepository.worldFromPath(tempWorldPath);
+    const reloaded = await FileRepository.worldFromPath(tempWorldPath);
     const task2 = await reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     expect(task2?.summary).toBe('Updated summary');
   });
@@ -128,7 +128,7 @@ describe('NfProgram.setFieldValue', () => {
 
     // Persist and verify
     await world.save();
-    const reloaded = FileRepository.worldFromPath(tempWorldPath);
+    const reloaded = await FileRepository.worldFromPath(tempWorldPath);
     const task2 = await reloaded.loadFuzzy(Task, '0PxVmryB00tGyAPrFKqetW');
     const action = task2?.rawActions[0];
     expect(action?.summary).toBe('Updated action summary');
@@ -147,12 +147,12 @@ describe('NfProgram.resolveDotRef', () => {
   let world: World;
   let program: NfProgram;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDirObj = createTempDir('nf-program-dotref-test');
     const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
     tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
     fs.cpSync(samplePath, tempWorldPath, { recursive: true });
-    world = FileRepository.worldFromPath(tempWorldPath);
+    world = await FileRepository.worldFromPath(tempWorldPath);
     program = new NfProgram(new Command());
     program.initialize(world);
   });

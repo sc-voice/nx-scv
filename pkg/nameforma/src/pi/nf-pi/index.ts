@@ -70,8 +70,8 @@ function trackMouseClicks(pi: ExtensionAPI) {
   });
 } // trackMouseClicks
 
-export default function (pi: ExtensionAPI) {
-  NfSession.init();
+export default async function (pi: ExtensionAPI) {
+  await NfSession.init();
 
   // The single heartbeat for the entire extension
   setInterval(() => {

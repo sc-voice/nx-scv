@@ -16,10 +16,10 @@ describe('WorldView cursor state management', () => {
   let world: World;
   let view: WorldView;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-view-test-'));
     const worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
     view = new WorldView(world, 'test');
   });
 

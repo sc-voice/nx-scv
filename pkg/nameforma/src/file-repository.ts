@@ -329,7 +329,7 @@ export class FileRepository implements IEntityRepository {
    * @returns {World} - World instance with persistent or new id
    * @throws {Error} - If world not found and create is not true
    */
-  static worldFromPath(worldPath: string): World {
+  static async worldFromPath(worldPath: string): Promise<World> {
     const msg = 'world.fromPath';
     const dbg = DBG.WORLD.LOAD;
 

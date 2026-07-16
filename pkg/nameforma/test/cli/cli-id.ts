@@ -28,7 +28,7 @@ describe('CLI: id command', () => {
   let originalError: any;
   let tempWorld: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Capture console output
     output = [];
     errors = [];
@@ -53,7 +53,7 @@ describe('CLI: id command', () => {
     // Setup commander program
     program = new Command();
     const nfProgram = new NfProgram(program as any);
-    const world = FileRepository.worldFromPath(worldPath);
+    const world = await FileRepository.worldFromPath(worldPath);
     nfProgram.initialize(world, { verbosity: 0 });
 
     program.option('-w, --world <path>', 'Path to .nameforma directory');
@@ -345,7 +345,7 @@ describe('CLI: id command', () => {
       try {
         // Use a new program with proper global options support
         const { program: testProgram, nfProgram: testNfProgram } =
-          createTestProgram(worldPath);
+          await createTestProgram(worldPath);
         const testIdCmd = testProgram.command('id');
         IdCommand.registerCommand(testIdCmd, testNfProgram);
 
@@ -419,7 +419,7 @@ describe('CLI: id command', () => {
     it('generates and saves numeronym with -s -n', async () => {
       // Create new program for this test to isolate world directory
       const { program: testProgram, nfProgram: testNfProgram } =
-        createTestProgram(worldPath);
+        await createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
       IdCommand.registerCommand(testIdCmd, testNfProgram);
 
@@ -460,7 +460,7 @@ describe('CLI: id command', () => {
 
     it('uses -w option before command to specify world directory', async () => {
       const { program: testProgram, nfProgram: testNfProgram } =
-        createTestProgram(worldPath);
+        await createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
       IdCommand.registerCommand(testIdCmd, testNfProgram);
 
@@ -496,7 +496,7 @@ describe('CLI: id command', () => {
 
     it('generates and saves numeronym with --save --numeronym', async () => {
       const { program: testProgram, nfProgram: testNfProgram } =
-        createTestProgram(worldPath);
+        await createTestProgram(worldPath);
       const testIdCmd = testProgram.command('id');
       IdCommand.registerCommand(testIdCmd, testNfProgram);
 

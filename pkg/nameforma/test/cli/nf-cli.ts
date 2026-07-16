@@ -19,10 +19,10 @@ let world: World;
 
 let worldPath: string;
 
-beforeAll(() => {
+beforeAll(async () => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nameforma-test-'));
   worldPath = path.join(tmpDir, '.nameforma');
-  world = FileRepository.worldFromPath(worldPath);
+  world = await FileRepository.worldFromPath(worldPath);
 });
 
 afterAll(() => {

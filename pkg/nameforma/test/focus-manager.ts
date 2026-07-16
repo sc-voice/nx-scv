@@ -152,10 +152,10 @@ describe('FocusManager world', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {
@@ -202,7 +202,7 @@ describe('FocusManager world', () => {
       world.focusManager.focus(e2.id);
       await world.save();
 
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
       world2.registerEntity(Task);
 
       const ids = world2.focusManager.ids().map((id) => id.base64);
@@ -215,7 +215,7 @@ describe('FocusManager world', () => {
       world.focusManager.focus(entity.id);
       await world.save();
 
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
       const ids = world2.focusManager.ids();
 
       expect(ids.length).toBe(1);

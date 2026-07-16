@@ -46,11 +46,11 @@ class TestItem extends Entity {
 }
 
 describe('FormaList', () => {
-  it('FormaList.constructor with parent', () => {
+  it('FormaList.constructor with parent', async () => {
     const msg = 'tfl.ctor.with-parent';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -75,11 +75,11 @@ describe('FormaList', () => {
       cc.tag1(msg + UOK, 'constructor without parent creates empty list');
   });
 
-  it('FormaList.addItem with parent', () => {
+  it('FormaList.addItem with parent', async () => {
     const msg = 'tfl.addItem.with-parent';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -127,11 +127,11 @@ describe('FormaList', () => {
     dbg && cc.ok1(msg + UOK, 'multiple addItem without parent works');
   });
 
-  it('FormaList.getItem', () => {
+  it('FormaList.getItem', async () => {
     const msg = 'tfl.getItem';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -152,11 +152,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'getItem throws for missing ID');
   });
 
-  it('FormaList.deleteItem', () => {
+  it('FormaList.deleteItem', async () => {
     const msg = 'tfl.deleteItem';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -185,11 +185,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'deleteItem throws for missing ID');
   });
 
-  it('FormaList.patchItem', () => {
+  it('FormaList.patchItem', async () => {
     const msg = 'tfl.patchItem';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -210,11 +210,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'patchItem throws for missing ID');
   });
 
-  it('FormaList.moveItem with before anchor', () => {
+  it('FormaList.moveItem with before anchor', async () => {
     const msg = 'tfl.moveItem.before';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -246,11 +246,11 @@ describe('FormaList', () => {
       cc.tag1(msg + UOK, 'moveItem with before: null inserts at start');
   });
 
-  it('FormaList.moveItem with after anchor', () => {
+  it('FormaList.moveItem with after anchor', async () => {
     const msg = 'tfl.moveItem.after';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -281,11 +281,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'moveItem with after: null appends at end');
   });
 
-  it('FormaList.moveItem default behavior', () => {
+  it('FormaList.moveItem default behavior', async () => {
     const msg = 'tfl.moveItem.default';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -302,11 +302,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'moveItem with no options appends at end');
   });
 
-  it('FormaList.moveItem error cases', () => {
+  it('FormaList.moveItem error cases', async () => {
     const msg = 'tfl.moveItem.errors';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -331,11 +331,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'moveItem throws for invalid after anchor');
   });
 
-  it('FormaList.size getter', () => {
+  it('FormaList.size getter', async () => {
     const msg = 'tfl.size';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -350,11 +350,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'size getter returns correct count');
   });
 
-  it('FormaList.Symbol.iterator for iterable support', () => {
+  it('FormaList.Symbol.iterator for iterable support', async () => {
     const msg = 'tfl.iterator';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -377,11 +377,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'spread syntax works with iterator');
   });
 
-  it('FormaList mutates wrapped array directly', () => {
+  it('FormaList mutates wrapped array directly', async () => {
     const msg = 'tfl.mutate-direct';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -409,11 +409,11 @@ describe('FormaList', () => {
     dbg && cc.tag1(msg + UOK, 'moveItem mutates wrapped array directly');
   });
 
-  it('FormaList fuzzy ID matching', () => {
+  it('FormaList fuzzy ID matching', async () => {
     const msg = 'tfl.fuzzy-id';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
     });
@@ -519,11 +519,11 @@ describe('FormaList', () => {
       );
   });
 
-  it('FormaList emits change events', () => {
+  it('FormaList emits change events', async () => {
     const msg = 'tfl.emitter';
     const items: TestItem[] = [];
     const tempWorld = createTempWorld();
-    const world = FileRepository.worldFromPath(tempWorld.worldPath);
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
 
     // Create mock EventBus
     const events: any[] = [];

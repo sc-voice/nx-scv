@@ -20,9 +20,9 @@ describe('TuiList', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     worldPath = path.join(os.tmpdir(), `tui-list-test-${Date.now()}`);
-    world = FileRepository.worldFromPath(
+    world = await FileRepository.worldFromPath(
       path.join(worldPath, '.nameforma'),
     );
   });

@@ -61,7 +61,7 @@ describe('World — watermark persistence', () => {
 
     // No watermark for new worlds
     dbg && cc.tag1(msg, 'world1');
-    const world1 = FileRepository.worldFromPath(worldPath);
+    const world1 = await FileRepository.worldFromPath(worldPath);
     const worldFile = path.join(worldPath, 'world.json');
     const data1 = fs.readFileSync(worldFile, 'utf8');
     const json1 = JSON.parse(data1);
@@ -69,7 +69,7 @@ describe('World — watermark persistence', () => {
 
     // Existing world must have a watermark
     dbg && cc.tag1(msg, 'world2');
-    const world2 = FileRepository.worldFromPath(worldPath);
+    const world2 = await FileRepository.worldFromPath(worldPath);
     //const data2 = fs.readFileSync(worldFile, 'utf8');
     const data2 = JSON.stringify(world2);
     const json2 = JSON.parse(data2);
@@ -79,7 +79,7 @@ describe('World — watermark persistence', () => {
 
     // Existing world watermark does not change without a git pull
     dbg && cc.tag1(msg, 'world3');
-    const world3 = FileRepository.worldFromPath(worldPath);
+    const world3 = await FileRepository.worldFromPath(worldPath);
     //const data3 = fs.readFileSync(worldFile, 'utf8');
     const data3 = JSON.stringify(world3);
     const json3 = JSON.parse(data3);
@@ -106,27 +106,27 @@ describe('World Registry - Constructor & Entity Registration', () => {
   });
 
   describe('Constructor', () => {
-    it('should create World and initialize registry', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should create World and initialize registry', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
       expect(world.worldPath).toBe(worldPath);
       expect(fs.existsSync(worldPath)).toBe(true);
     });
 
-    it('should start with standard entities auto-registered', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should start with standard entities auto-registered', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
       expect(world.getEntityNames()).toContain('task');
     });
   });
 
   describe('Entity Registration', () => {
-    it('should register entity and derive name from EntityClass.collection', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should register entity and derive name from EntityClass.collection', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
 
       expect(world.getEntityNames()).toContain('task');
     });
 
-    it('should throw if entity missing collection static property', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should throw if entity missing collection static property', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
       class BadEntity extends Forma {
         override patch() {}
         static override avroSchema: any = {};
@@ -137,8 +137,8 @@ describe('World Registry - Constructor & Entity Registration', () => {
       );
     });
 
-    it('should throw if entity missing avroSchema static property', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should throw if entity missing avroSchema static property', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
       class BadEntity extends Forma {
         override patch() {}
         static collection = 'bad';
@@ -153,8 +153,8 @@ describe('World Registry - Constructor & Entity Registration', () => {
       );
     });
 
-    it('should throw if entity missing fromJson static method', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should throw if entity missing fromJson static method', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
       class BadEntity extends Forma {
         override patch() {}
         static collection = 'bad';
@@ -166,8 +166,8 @@ describe('World Registry - Constructor & Entity Registration', () => {
       );
     });
 
-    it('should register multiple entity types', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should register multiple entity types', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
 
       class AnotherEntity extends Forma {
         override patch() {}
@@ -186,8 +186,8 @@ describe('World Registry - Constructor & Entity Registration', () => {
       expect(names.length).toBe(2);
     });
 
-    it('should retrieve registered entity constructor by name', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should retrieve registered entity constructor by name', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
 
       const ctor = world.entityClassOfName('task');
       expect(ctor).not.toBeNull();
@@ -196,8 +196,8 @@ describe('World Registry - Constructor & Entity Registration', () => {
       expect(ctor?.fromJson).toBeDefined();
     });
 
-    it('should return null for unregistered entity type', () => {
-      const world = FileRepository.worldFromPath(worldPath);
+    it('should return null for unregistered entity type', async () => {
+      const world = await FileRepository.worldFromPath(worldPath);
       expect(world.entityClassOfName('unknown')).toBeNull();
     });
   });
@@ -268,10 +268,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {
@@ -543,10 +543,10 @@ describe('World Serialization - save()/load() methods', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {
@@ -611,7 +611,7 @@ describe('World Serialization - save()/load() methods', () => {
 
       // fromPath should load existing world with same id
       const originalId = world.id.toString();
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
 
       expect(world2.id.toString()).toBe(originalId);
     });
@@ -623,9 +623,9 @@ describe('World Serialization - save()/load() methods', () => {
       const worldFile = path.join(worldPath, 'world.json');
       fs.writeFileSync(worldFile, '{}', 'utf8');
 
-      expect(() => FileRepository.worldFromPath(worldPath)).toThrow(
-        /World.fromJson: missing id/,
-      );
+      await expect(
+        FileRepository.worldFromPath(worldPath),
+      ).rejects.toThrow(/World.fromJson: missing id/);
     });
 
     it('should throw Error on invalid JSON', async () => {
@@ -635,9 +635,9 @@ describe('World Serialization - save()/load() methods', () => {
       const worldFile = path.join(worldPath, 'world.json');
       fs.writeFileSync(worldFile, 'invalid json {', 'utf8');
 
-      expect(() => FileRepository.worldFromPath(worldPath)).toThrow(
-        SyntaxError,
-      );
+      await expect(
+        FileRepository.worldFromPath(worldPath),
+      ).rejects.toThrow(SyntaxError);
     });
 
     it('should throw Error when world.json has invalid id format', async () => {
@@ -655,7 +655,9 @@ describe('World Serialization - save()/load() methods', () => {
         'utf8',
       );
 
-      expect(() => FileRepository.worldFromPath(worldPath)).toThrow();
+      await expect(
+        FileRepository.worldFromPath(worldPath),
+      ).rejects.toThrow();
     });
   });
 
@@ -666,7 +668,7 @@ describe('World Serialization - save()/load() methods', () => {
       await world.save();
 
       // Load into new instance at same path
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
       expect(world2.id.toString()).toBe(originalId);
     });
 
@@ -685,7 +687,7 @@ describe('World Serialization - save()/load() methods', () => {
       // Save and load world
       await world.save();
 
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
 
       // Verify focus stack was preserved
       const focusedEntry = world2.focusedForma(Task.collection);
@@ -700,8 +702,8 @@ describe('World Serialization - save()/load() methods', () => {
   });
 
   describe('fromPath() integration', () => {
-    it('should create and save new World if world.json does not exist', () => {
-      const world2 = FileRepository.worldFromPath(worldPath);
+    it('should create and save new World if world.json does not exist', async () => {
+      const world2 = await FileRepository.worldFromPath(worldPath);
 
       const worldFile = path.join(worldPath, 'world.json');
       expect(fs.existsSync(worldFile)).toBe(true);
@@ -729,7 +731,7 @@ describe('World Serialization - save()/load() methods', () => {
       await world.save();
 
       // Use fromPath to load it
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
 
       expect(world2.id.toString()).toBe(originalId);
     });
@@ -740,7 +742,7 @@ describe('World Serialization - save()/load() methods', () => {
       await world.save();
 
       // Use fromPath to load (should not overwrite)
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
 
       // Verify the loaded world has same id
       expect(world2.id.toString()).toBe(originalId);
@@ -768,7 +770,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should persist entity to file when added via entityList', async () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = FileRepository.worldFromPath(worldPath);
+      const world = await FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
       const task = await world.upsertOne(Task, { name: 'test task' });
@@ -791,7 +793,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should delete entity file when removed via entityList', async () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = FileRepository.worldFromPath(worldPath);
+      const world = await FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
       const task = await world.upsertOne(Task, { name: 'test task' });
@@ -814,7 +816,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should update entity file when patched via entityList', async () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = FileRepository.worldFromPath(worldPath);
+      const world = await FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
       const task = await world.upsertOne(Task, { name: 'original' });
@@ -839,7 +841,7 @@ describe('World Serialization - save()/load() methods', () => {
     it('should load persisted entities on entityList() call', async () => {
       const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'test-'));
       const worldPath = path.join(tmpDir, '.nameforma');
-      const world = FileRepository.worldFromPath(worldPath);
+      const world = await FileRepository.worldFromPath(worldPath);
       world.registerEntity(Task);
 
       // Add and modify tasks
@@ -849,7 +851,7 @@ describe('World Serialization - save()/load() methods', () => {
       list1.patchItem(task1.id.base64, { name: 'task1-updated' });
 
       // Create new world instance and load
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
       world2.registerEntity(Task);
       const list2 = world2.entityList(Task);
 
@@ -871,10 +873,10 @@ describe('World — namespace', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {
@@ -903,7 +905,7 @@ describe('World — namespace', () => {
       const task2 = await world.upsertOne(Task, { name: 'task2' });
 
       // Create new world instance to test population at construct time
-      const world2 = FileRepository.worldFromPath(worldPath);
+      const world2 = await FileRepository.worldFromPath(worldPath);
       const ns = world2.namespace;
 
       expect(ns.getForma(world2.id.base64)?.id.base64).toBe(
@@ -1047,10 +1049,10 @@ describe('World — resolveFuzzyId()', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-test-'));
     worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {
@@ -1116,7 +1118,7 @@ describe('World — resolveFuzzyId()', () => {
       .addItem(new Action({ name: 'nested action' }));
     await world.save();
 
-    const w2 = FileRepository.worldFromPath(worldPath);
+    const w2 = await FileRepository.worldFromPath(worldPath);
     const focused = w2.focusedForma('task') as Task | null;
     w2.focusManager.focus(focused!.id);
 
@@ -1141,20 +1143,20 @@ describe('World — validate()', () => {
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('returns true when focus stack is empty', () => {
-    const world = FileRepository.worldFromPath(worldPath);
+  it('returns true when focus stack is empty', async () => {
+    const world = await FileRepository.worldFromPath(worldPath);
     expect(world.validate()).toBe(true);
   });
 
   it('returns true when all focused entities exist on disk', async () => {
-    const world = FileRepository.worldFromPath(worldPath);
+    const world = await FileRepository.worldFromPath(worldPath);
     const t1 = await world.upsertOne(Task, { name: 't1' });
     world.focusManager.focus(t1.id);
     expect(world.validate()).toBe(true);
   });
 
   it('removes stale focus entry and returns false', async () => {
-    const world = FileRepository.worldFromPath(worldPath);
+    const world = await FileRepository.worldFromPath(worldPath);
     const t1 = await world.upsertOne(Task, { name: 't1' });
     const t2 = await world.upsertOne(Task, { name: 't2' });
     const t3 = await world.upsertOne(Task, { name: 't3' });
@@ -1170,7 +1172,7 @@ describe('World — validate()', () => {
   });
 
   it('returns true on second syncFocusManager after stale entry removed', async () => {
-    const world = FileRepository.worldFromPath(worldPath);
+    const world = await FileRepository.worldFromPath(worldPath);
     const t1 = await world.upsertOne(Task, { name: 't1' });
     world.focusManager.focus(t1.id);
     fs.unlinkSync(path.join(worldPath, 'task', `${t1.id.base64}.json`));
@@ -1193,7 +1195,7 @@ describe('findByClass()', () => {
   });
 
   it('respects focus order in entityComparator', async () => {
-    const world = FileRepository.worldFromPath(worldPath);
+    const world = await FileRepository.worldFromPath(worldPath);
 
     // no tasks
     expect([...world.findByClass(Task)]).toEqual([]);
@@ -1221,12 +1223,12 @@ describe('World.upsertOne() async — ZudaO', () => {
   let worldPath: string;
   let world: World;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     tempDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'world-insertone-async-'),
     );
     worldPath = path.join(tempDir, '.nameforma');
-    world = FileRepository.worldFromPath(worldPath);
+    world = await FileRepository.worldFromPath(worldPath);
   });
 
   afterEach(() => {

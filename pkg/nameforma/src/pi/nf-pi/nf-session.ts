@@ -50,7 +50,7 @@ export class NfSession extends EventEmitter {
     return NfSession._shared;
   }
 
-  public static init(): NfSession {
+  public static async init(): Promise<NfSession> {
     if (NfSession._shared) {
       throw new Error('NfSession already initialized');
     }
@@ -58,7 +58,7 @@ export class NfSession extends EventEmitter {
     try {
       const worldPath = World.findWorld();
       if (worldPath) {
-        world = FileRepository.worldFromPath(worldPath);
+        world = await FileRepository.worldFromPath(worldPath);
       }
     } catch (error) {
       // World not found, context will work without anchor

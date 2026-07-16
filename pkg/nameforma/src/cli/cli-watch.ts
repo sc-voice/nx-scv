@@ -116,7 +116,7 @@ export default class WatchCommand {
                 mtimes.world = currentWorldMtime;
 
                 // Reload world to detect focus changes
-                world = FileRepository.worldFromPath(worldPath);
+                world = await FileRepository.worldFromPath(worldPath);
                 const newTask = world.focusedForma('task') as Task | null;
 
                 // Check if focused task changed
