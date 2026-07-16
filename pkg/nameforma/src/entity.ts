@@ -43,11 +43,24 @@ export abstract class Entity extends Forma implements IRegistry {
     super(cfg);
   }
 
-  /**
+  /** @deprecated
    * IRegistry implementation: return the read-only namespace managed by this entity
    * Lazy initialization: creates namespace and populates on first access
    */
   get namespace(): IReadOnlyNamespace {
+    if (!this.#namespace) {
+      throw new Error('deprecated property. use getNamespace()');
+      //this.#namespace = new FuzzyNamespace();
+      //this.populateNamespace();
+    }
+    return this.#namespace;
+  }
+
+  /**
+   * IRegistry implementation: return the read-only namespace managed by this entity
+   * Lazy initialization: creates namespace and populates on first access
+   */
+  async getNamespace(): Promise<IReadOnlyNamespace> {
     if (!this.#namespace) {
       this.#namespace = new FuzzyNamespace();
       this.populateNamespace();
@@ -71,25 +84,6 @@ export abstract class Entity extends Forma implements IRegistry {
       this.populateNamespace();
     }
     return this.#namespace;
-  }
-
-  /**
-   * Find all Formas matching the query in this Entity's namespace.
-   * Yields actions first, then references sorted by relevance (descending).
-   * Concrete classes usually override this method:
-   * - if they comprise multiple Forma classes
-   * - if the default ordering differs from recency of creation
-   *
-   * @param targetClass Forma, Action or Reference
-   * @param filter optional boolean filter callback
-   * @returns Iterable<Forma> of matching items in this Task's namespace
-   */
-  *findByClass<T extends Forma, C extends Constructor<T>>(
-    targetClass: C,
-    filter?: (element: T) => boolean,
-  ): Generator<InstanceType<C>> {
-    const resolvedFilter = filter ?? (() => true);
-    return this.namespace.findByClass(targetClass, resolvedFilter);
   }
 
   /**

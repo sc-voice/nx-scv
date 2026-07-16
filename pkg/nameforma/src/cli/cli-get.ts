@@ -29,7 +29,7 @@ export default class GetCommand {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
         try {
-          const resolved = world.resolveFuzzyId(fuzzyId);
+          const resolved = await world.resolveFuzzyId(fuzzyId);
 
           if (!resolved) {
             nfTui.error(`✗ Not found: ${fuzzyId}`);

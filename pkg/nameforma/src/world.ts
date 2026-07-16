@@ -313,23 +313,23 @@ export class World extends Entity implements IEventBus {
    * Resolve fuzzy ID with world namespace as primary, focused entity's namespace as secondary.
    * Verifies against RGA64Stack implementation.
    * @param {string} fuzzyId - Fuzzy ID to resolve
-   * @returns {{ entity: Forma, forma: Forma } | undefined} - entity is the serializing entity; forma is the matched forma
+   * @returns {Promise<{ entity: Forma, forma: Forma } | undefined>} - entity is the serializing entity; forma is the matched forma
    */
-  resolveFuzzyId(
+  async resolveFuzzyId(
     fuzzyId: string,
-  ): { entity: Forma; forma: Forma } | undefined {
+  ): Promise<{ entity: Forma; forma: Forma } | undefined> {
     const msg = 'world.resolveFuzzyId';
     const dbg = WORLD?.FUZZY_ID;
 
     // Get focused entity
     const focusId = this.#focusManager.peek();
     const focusedEntity = focusId
-      ? this.namespace.getForma(focusId.base64)
+      ? (await this.getNamespace()).getForma(focusId.base64)
       : null;
 
     // Primary namespace is in focused entity
     if (focusedEntity) {
-      const nsPrimary = (focusedEntity as any)?.namespace;
+      const nsPrimary = await (focusedEntity as any)?.getNamespace();
       const forma = nsPrimary.getForma(fuzzyId);
       if (forma) {
         dbg &&
@@ -339,7 +339,7 @@ export class World extends Entity implements IEventBus {
     }
 
     // Secondary namespace is the world
-    const nsSecondary = this.namespace;
+    const nsSecondary = await this.getNamespace();
     const forma = nsSecondary.getForma(fuzzyId);
     if (forma) {
       dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
@@ -511,7 +511,7 @@ export class World extends Entity implements IEventBus {
         const idStr = file.slice(0, -5);
 
         // Check if file was modified since last sync OR is not in namespace
-        const inNamespace = this.namespace.getForma(idStr);
+        const inNamespace = (await this.getNamespace()).getForma(idStr);
         const needsReload = stats.mtimeMs > syncStart || !inNamespace;
 
         if (needsReload) {
@@ -554,13 +554,13 @@ export class World extends Entity implements IEventBus {
     }
 
     // Ensure world is in namespace and won't be removed during sync
-    if (!this.namespace.getForma(this.id.base64)) {
+    if (!(await this.getNamespace()).getForma(this.id.base64)) {
       this.addToNamespace(this);
     }
     filesystemEntities.set(this.id.base64, this);
 
     // Remove entities from namespace that no longer exist on filesystem
-    for (const [fuzzyId, forma] of this.namespace) {
+    for (const [fuzzyId, forma] of await this.getNamespace()) {
       const idStr = forma.id.base64;
       if (!filesystemEntities.has(idStr)) {
         this.mutableNamespace.removeForma(idStr);
@@ -821,12 +821,13 @@ export class World extends Entity implements IEventBus {
    * Get focused forma of a given type (most recent).
    * Uses entity registry to validate type and namespace to resolve current entity state.
    * @param {string} formaType - Registered entity type name (e.g., 'task')
-   * @returns {Forma|null} - Focused entity or null
+   * @returns {Promise<Forma|null>} - Focused entity or null
    */
-  focusedForma(formaType: string): Forma | null {
+  async focusedForma(formaType: string): Promise<Forma | null> {
     if (!this.entityClassOfName(formaType)) return null;
+    const ns = await this.getNamespace();
     for (const id of this.#focusManager.ids()) {
-      const entity = this.namespace.getForma(id.base64);
+      const entity = ns.getForma(id.base64);
       if (entity && (entity.constructor as any).collection === formaType) {
         return entity;
       }
@@ -1068,20 +1069,4 @@ export class World extends Entity implements IEventBus {
 
     return buf.getRenderData();
   } // renderDataAtZeno
-
-  /** Find all Entities matching the query in this Task's namespace.
-   * @param targetClass Task or other Entity
-   * @param filter optional boolean filter callback
-   * @returns Iterable<Forma> of matching items in this Task's namespace
-   */
-  override *findByClass<T extends Forma, C extends Constructor<T>>(
-    targetClass: C,
-    filter?: (element: T) => boolean,
-  ): Generator<InstanceType<C>> {
-    const resolvedFilter = filter ?? (() => true);
-    const items = [
-      ...this.namespace.findByClass(targetClass, resolvedFilter),
-    ].sort(this.entityComparator);
-    yield* items;
-  }
 } // World

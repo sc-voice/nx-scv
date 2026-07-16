@@ -32,8 +32,8 @@ export default class ActionCommand {
     ],
   };
 
-  static getFocusedTask(world: World): Task | null {
-    return world.focusedForma('task') as Task | null;
+  static async getFocusedTask(world: World): Promise<Task | null> {
+    return (await world.focusedForma('task')) as Task | null;
   }
 
   static async resolveTask(world: World, taskId?: string): Promise<Task> {
@@ -42,7 +42,7 @@ export default class ActionCommand {
       if (!task) throw new Error(`Task not found: ${taskId}`);
       return task;
     }
-    const task = world.focusedForma('task') as Task | null;
+    const task = (await world.focusedForma('task')) as Task | null;
     if (!task) throw new Error('No task focused and --task not specified');
     return task;
   }
@@ -80,13 +80,13 @@ export default class ActionCommand {
           '  done   - Completed',
         ].join('\n'),
       )
-      .action((options: any, cmd: any) => {
+      .action(async (options: any, cmd: any) => {
         const world = nfProgram.world;
         if (!world) {
           nfTui.error('World not initialized');
           return;
         }
-        const task = ActionCommand.getFocusedTask(world);
+        const task = await ActionCommand.getFocusedTask(world);
 
         if (!task) {
           nfTui.log('No task is currently focused');
@@ -120,13 +120,13 @@ export default class ActionCommand {
           ...ActionCommand.EXAMPLES.list.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((options: any, cmd: any) => {
+      .action(async (options: any, cmd: any) => {
         const world = nfProgram.world;
         if (!world) {
           nfTui.error('World not initialized');
           return;
         }
-        const task = ActionCommand.getFocusedTask(world);
+        const task = await ActionCommand.getFocusedTask(world);
 
         if (!task) {
           nfTui.log('No task is currently focused');
@@ -160,7 +160,7 @@ export default class ActionCommand {
           ...ActionCommand.EXAMPLES.show.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string, options: any, cmd: any) => {
+      .action(async (id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
         }
@@ -170,7 +170,7 @@ export default class ActionCommand {
           nfTui.error('World not initialized');
           return;
         }
-        const task = ActionCommand.getFocusedTask(world);
+        const task = await ActionCommand.getFocusedTask(world);
 
         if (!task) {
           throw new Error('No task is currently focused');
@@ -208,7 +208,7 @@ export default class ActionCommand {
             nfTui.error('World not initialized');
             return;
           }
-          const task = ActionCommand.getFocusedTask(world);
+          const task = await ActionCommand.getFocusedTask(world);
 
           if (!task) {
             throw new Error('No task is currently focused');
@@ -246,7 +246,7 @@ export default class ActionCommand {
           nfTui.error('World not initialized');
           return;
         }
-        const task = ActionCommand.getFocusedTask(world);
+        const task = await ActionCommand.getFocusedTask(world);
 
         if (!task) {
           throw new Error('No task is currently focused');
@@ -354,7 +354,7 @@ export default class ActionCommand {
             throw new Error('Format: action set <id>.<field> <value>');
           }
           const [fuzzyId, field] = parts;
-          const forma = task.namespace.getForma(fuzzyId);
+          const forma = (await task.getNamespace()).getForma(fuzzyId);
           if (forma == null) {
             throw new Error(
               `Action ${fuzzyId} not found in task ${task.id.base64}`,

@@ -95,7 +95,7 @@ describe('NfProgram.setFieldValue', () => {
     expect(task).toBeTruthy();
 
     // Set field value
-    const updated = program.setFieldValue(
+    const updated = await program.setFieldValue(
       task!.id.base64,
       'summary',
       'Updated summary',
@@ -119,7 +119,7 @@ describe('NfProgram.setFieldValue', () => {
 
     // Set action field value
     const actionId = '0PxVwGSx00tGyAPrFKqetW';
-    const updated = program.setFieldValue(
+    const updated = await program.setFieldValue(
       actionId,
       'summary',
       'Updated action summary',
@@ -134,10 +134,10 @@ describe('NfProgram.setFieldValue', () => {
     expect(action?.summary).toBe('Updated action summary');
   });
 
-  it('error on unknown forma ID', () => {
-    expect(() => {
-      program.setFieldValue('nonexistent', 'name', 'value');
-    }).toThrow(/Not found: nonexistent/);
+  it('error on unknown forma ID', async () => {
+    await expect(
+      program.setFieldValue('nonexistent', 'name', 'value'),
+    ).rejects.toThrow(/Not found: nonexistent/);
   });
 });
 
@@ -161,9 +161,9 @@ describe('NfProgram.resolveDotRef', () => {
     tempDirObj.cleanup();
   });
 
-  it('resolves task dotref and returns field value', () => {
+  it('resolves task dotref and returns field value', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
-    const { forma, fieldName, value } = program.resolveDotRef(
+    const { forma, fieldName, value } = await program.resolveDotRef(
       `${taskId}.name`,
     );
     expect(fieldName).toBe('name');
@@ -177,22 +177,22 @@ describe('NfProgram.resolveDotRef', () => {
     );
     world.focusManager.focus(task!.id);
     const actionId = '0PxVwGSx00tGyAPrFKqetW';
-    const { forma, fieldName, value } = program.resolveDotRef(
+    const { forma, fieldName, value } = await program.resolveDotRef(
       `${actionId}.status`,
     );
     expect(fieldName).toBe('status');
     expect(value).toBe((forma as any).status);
   });
 
-  it('throws on missing dot separator', () => {
-    expect(() => program.resolveDotRef('nodothere')).toThrow(
+  it('throws on missing dot separator', async () => {
+    await expect(program.resolveDotRef('nodothere')).rejects.toThrow(
       /dotRef must be FORMA_ID.FIELD_NAME/,
     );
   });
 
-  it('throws on unknown forma ID', () => {
-    expect(() => program.resolveDotRef('nonexistent.name')).toThrow(
-      /Not found: nonexistent/,
-    );
+  it('throws on unknown forma ID', async () => {
+    await expect(
+      program.resolveDotRef('nonexistent.name'),
+    ).rejects.toThrow(/Not found: nonexistent/);
   });
 });

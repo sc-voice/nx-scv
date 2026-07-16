@@ -170,14 +170,14 @@ describe('FocusManager world', () => {
 
       world.focusManager.focus(e1.id);
 
-      const focused = world.focusedForma('task');
+      const focused = await world.focusedForma('task');
       expect(focused).not.toBeNull();
       expect(focused?.id.base64).toBe(e1.id.base64);
       expect((focused?.constructor as any).collection).toBe('task');
     });
 
-    it('should return null if type not in stack', () => {
-      const focused = world.focusedForma('nonexistent');
+    it('should return null if type not in stack', async () => {
+      const focused = await world.focusedForma('nonexistent');
       expect(focused).toBeNull();
     });
 
@@ -188,7 +188,7 @@ describe('FocusManager world', () => {
       world.focusManager.focus(e1.id);
       world.focusManager.focus(e2.id);
 
-      const focused = world.focusedForma('task');
+      const focused = await world.focusedForma('task');
       expect(focused?.id.base64).toBe(e2.id.base64);
     });
   });

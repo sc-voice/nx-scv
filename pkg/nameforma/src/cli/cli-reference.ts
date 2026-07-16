@@ -33,8 +33,8 @@ export default class ReferenceCommand {
     delete: ['$ nf ref delete REF_ID # delete a reference'],
   };
 
-  static getFocusedTask(world: World): Task | null {
-    return world.focusedForma('task') as Task | null;
+  static async getFocusedTask(world: World): Promise<Task | null> {
+    return (await world.focusedForma('task')) as Task | null;
   }
 
   static probeSource(
@@ -86,10 +86,10 @@ export default class ReferenceCommand {
       .description(
         'Manage references linking tasks/actions to external resources',
       )
-      .action((options: any, cmd: any) => {
+      .action(async (options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        const task = ReferenceCommand.getFocusedTask(world);
+        const task = await ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
           nfTui.log('No task is currently focused');
@@ -124,10 +124,10 @@ export default class ReferenceCommand {
           ...ReferenceCommand.EXAMPLES.list.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((options: any, cmd: any) => {
+      .action(async (options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        const task = ReferenceCommand.getFocusedTask(world);
+        const task = await ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
           nfTui.log('No task is currently focused');
@@ -162,14 +162,14 @@ export default class ReferenceCommand {
           ...ReferenceCommand.EXAMPLES.get.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string, options: any, cmd: any) => {
+      .action(async (id: string, options: any, cmd: any) => {
         if (id.length < 3) {
           throw new Error('ID must be at least 3 characters');
         }
 
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        const task = ReferenceCommand.getFocusedTask(world);
+        const task = await ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
           throw new Error('No task is currently focused');
@@ -200,10 +200,10 @@ export default class ReferenceCommand {
           ...ReferenceCommand.EXAMPLES.json.map((e) => `  ${e}`),
         ].join('\n'),
       )
-      .action((id: string | undefined, options: any, cmd: any) => {
+      .action(async (id: string | undefined, options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        const task = ReferenceCommand.getFocusedTask(world);
+        const task = await ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
           throw new Error('No task is currently focused');
@@ -275,7 +275,7 @@ export default class ReferenceCommand {
 
           if (!nfProgram.world) throw new Error('World not initialized');
           const world = nfProgram.world;
-          const task = ReferenceCommand.getFocusedTask(world);
+          const task = await ReferenceCommand.getFocusedTask(world);
 
           if (!task) {
             throw new Error('No task is currently focused');
@@ -334,7 +334,7 @@ export default class ReferenceCommand {
         ) => {
           if (!nfProgram.world) throw new Error('World not initialized');
           const world = nfProgram.world;
-          const task = ReferenceCommand.getFocusedTask(world);
+          const task = await ReferenceCommand.getFocusedTask(world);
 
           if (!task) {
             throw new Error('No task is currently focused');
@@ -388,7 +388,7 @@ export default class ReferenceCommand {
 
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        const task = ReferenceCommand.getFocusedTask(world);
+        const task = await ReferenceCommand.getFocusedTask(world);
 
         if (!task) {
           throw new Error('No task is currently focused');

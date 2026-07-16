@@ -92,7 +92,9 @@ export default class WatchCommand {
           throw new Error(`Task file not found: ${taskFilePath}`);
         }
 
-        nfTui.log(`🔍 Watching task: ${world.namespace.fuzzyIdOf(task)}`);
+        nfTui.log(
+          `🔍 Watching task: ${(await world.getNamespace()).fuzzyIdOf(task)}`,
+        );
         nfTui.log(`Press h for help\n`);
 
         // Display initial state
@@ -117,11 +119,15 @@ export default class WatchCommand {
 
                 // Reload world to detect focus changes
                 world = await FileRepository.worldFromPath(worldPath);
-                const newTask = world.focusedForma('task') as Task | null;
+                const newTask = (await world.focusedForma(
+                  'task',
+                )) as Task | null;
 
                 // Check if focused task changed
                 if (newTask && newTask.id.base64 !== task.id.base64) {
-                  const oldTaskId = world.namespace.fuzzyIdOf(task);
+                  const oldTaskId = (await world.getNamespace()).fuzzyIdOf(
+                    task,
+                  );
                   task = newTask;
                   taskFilePath = path.join(
                     worldPath,
@@ -133,7 +139,7 @@ export default class WatchCommand {
                     `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`,
                   );
                   nfTui.log(
-                    `📌 Focus changed from ${oldTaskId} to ${world.namespace.fuzzyIdOf(task)}`,
+                    `📌 Focus changed from ${oldTaskId} to ${(await world.getNamespace()).fuzzyIdOf(task)}`,
                   );
 
                   // Reset task file mtime for the new task

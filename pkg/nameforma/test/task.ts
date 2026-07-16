@@ -189,12 +189,12 @@ describe('task', () => {
         'actions backed by rawActions as Action instances',
       );
   });
-  it('actions getter wraps rawActions', () => {
+  it('actions getter wraps rawActions', async () => {
     const msg = 't2k.actions.wrap';
     dbg > 1 && cc.tag(msg, '===================');
 
     const t2k = new Task({ name: 'test task' });
-    const ns = t2k.namespace;
+    const ns = await t2k.getNamespace();
     const mockBus = { emit: () => {}, on: () => {} };
     const actions = t2k.actions(mockBus);
 
@@ -316,7 +316,7 @@ describe('task', () => {
     expect(task.progress()).toBe(1);
   });
 
-  it('references getter returns FormaList', () => {
+  it('references getter returns FormaList', async () => {
     const msg = 't2k.references';
     dbg > 1 && cc.tag(msg, '===================');
 
@@ -369,7 +369,9 @@ describe('task', () => {
     expect(t2k.rawReferences[1]).toBe(ref2);
     expect(t2k.rawReferences[0] instanceof Reference).toBe(true);
     expect(t2k.rawReferences[1] instanceof Reference).toBe(true);
-    const references2 = [...t2k.namespace.findByClass(Reference)];
+    const references2 = [
+      ...(await t2k.getNamespace()).findByClass(Reference),
+    ];
     expect(references2.length).toBe(2);
     expect(references2[0]).toBe(ref1);
     expect(references2[1]).toBe(ref2);
@@ -614,43 +616,6 @@ describe('task', () => {
 
     dbg &&
       cc.tag1(msg + UOK, 'namespace fuzzy IDs update correctly on delete');
-  });
-
-  it('Task.findByClass yields actions then references sorted by relevance', () => {
-    const msg = 't2k.findByClass';
-    const t1 = new Task({ name: 'test task' });
-    const bus = { emit: () => {}, on: () => {} } as any;
-
-    const actionsList = t1.actions(bus);
-    const action1 = actionsList.addItem(
-      new Action({ name: 'action1', status: 'req' }),
-    );
-    const action2 = actionsList.addItem(
-      new Action({ name: 'action2', status: 'spec' }),
-    );
-
-    const refsList = t1.references(bus);
-    const ref1 = refsList.addItem(
-      new Reference({ name: 'ref1', relevance: 0.5 }),
-    );
-    const ref2 = refsList.addItem(
-      new Reference({ name: 'ref2', relevance: 0.9 }),
-    );
-    const ref3 = refsList.addItem(
-      new Reference({ name: 'ref3', relevance: 0.1 }),
-    );
-
-    const formas = [...t1.findByClass(Forma)];
-
-    // Should yield actions first (action1, action2), then references sorted by relevance descending
-    expect(formas).toHaveLength(5);
-    expect(formas[0]).toBe(action1);
-    expect(formas[1]).toBe(action2);
-    expect(formas[2]).toBe(ref2); // relevance 0.9 (highest)
-    expect(formas[3]).toBe(ref1); // relevance 0.5
-    expect(formas[4]).toBe(ref3); // relevance 0.1 (lowest)
-
-    dbg && cc.tag1(msg + UOK, 'actions then references by relevance');
   });
 
   it('replace', () => {

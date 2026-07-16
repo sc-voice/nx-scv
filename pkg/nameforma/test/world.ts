@@ -533,7 +533,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
       await world.delete('task', t2.id.toString());
 
-      expect([...world.findByClass(Task)]).toEqual([t1]);
+      expect(world.entityList(Task).items).toEqual([t1]);
     });
   });
 });
@@ -690,7 +690,7 @@ describe('World Serialization - save()/load() methods', () => {
       const world2 = await FileRepository.worldFromPath(worldPath);
 
       // Verify focus stack was preserved
-      const focusedEntry = world2.focusedForma(Task.collection);
+      const focusedEntry = await world2.focusedForma(Task.collection);
       expect(focusedEntry).not.toBeNull();
       expect(focusedEntry?.id.base64).toBe(entity.id.base64);
 
@@ -886,15 +886,15 @@ describe('World — namespace', () => {
   });
 
   describe('namespace method', () => {
-    it('should return IReadOnlyNamespace interface', () => {
-      const ns = world.namespace;
+    it('should return IReadOnlyNamespace interface', async () => {
+      const ns = await world.getNamespace();
       expect(ns).toBeDefined();
       expect(typeof ns[Symbol.iterator]).toBe('function');
       expect(typeof ns.getForma).toBe('function');
     });
 
-    it('should return only world in namespace when no tasks exist', () => {
-      const ns = world.namespace;
+    it('should return only world in namespace when no tasks exist', async () => {
+      const ns = await world.getNamespace();
       const items = Array.from(ns);
       expect(items.length).toBe(1);
       expect(items[0][1].id.base64).toBe(world.id.base64);
@@ -906,7 +906,7 @@ describe('World — namespace', () => {
 
       // Create new world instance to test population at construct time
       const world2 = await FileRepository.worldFromPath(worldPath);
-      const ns = world2.namespace;
+      const ns = await world2.getNamespace();
 
       expect(ns.getForma(world2.id.base64)?.id.base64).toBe(
         world2.id.base64,
@@ -920,7 +920,7 @@ describe('World — namespace', () => {
     });
 
     it('should keep namespace in sync when task is added', async () => {
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
         world.id.base64,
       );
@@ -934,7 +934,7 @@ describe('World — namespace', () => {
     it('should keep namespace in sync when task is patched', async () => {
       const task = await world.upsertOne(Task, { name: 'original' });
 
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       const fz = ns.fuzzyIdOf(task);
       expect(ns.getForma(fz)?.name).toBe('original');
 
@@ -949,7 +949,7 @@ describe('World — namespace', () => {
       const task1 = await world.upsertOne(Task, { name: 'task1' });
       const task2 = await world.upsertOne(Task, { name: 'task2' });
 
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
         world.id.base64,
       );
@@ -968,7 +968,7 @@ describe('World — namespace', () => {
     it('should resolve task by full UUID64 fuzzyId', async () => {
       const task = await world.upsertOne(Task, { name: 'test' });
 
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       const found = ns.getForma(task.id.base64);
 
       expect(found).toBeDefined();
@@ -979,7 +979,7 @@ describe('World — namespace', () => {
     it('should resolve task by partial fuzzyId', async () => {
       const task = await world.upsertOne(Task, { name: 'test' });
 
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       const fz = ns.fuzzyIdOf(task);
       const found = ns.getForma(fz);
 
@@ -990,7 +990,7 @@ describe('World — namespace', () => {
     it('should return undefined for non-existent fuzzyId', async () => {
       await world.upsertOne(Task, { name: 'task' });
 
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       const found = ns.getForma('nonexistent-id');
 
       expect(found).toBeUndefined();
@@ -1000,7 +1000,7 @@ describe('World — namespace', () => {
       const task1 = await world.upsertOne(Task, { name: 'task1' });
       const task2 = await world.upsertOne(Task, { name: 'task2' });
 
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
 
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
         world.id.base64,
@@ -1037,7 +1037,7 @@ describe('World — namespace', () => {
       expect(id2.length).toBeLessThan(task2.id.base64.length);
 
       // Should be resolvable via namespace.getForma
-      const ns = world.namespace;
+      const ns = await world.getNamespace();
       expect(ns.getForma(id1)).toBe(task1);
       expect(ns.getForma(id2)).toBe(task2);
     });
@@ -1064,15 +1064,15 @@ describe('World — resolveFuzzyId()', () => {
   it('returns { entity, forma } where entity === forma for world namespace', async () => {
     const task = await world.upsertOne(Task, { name: 'top-level task' });
 
-    const result = world.resolveFuzzyId(task.id.base64);
+    const result = await world.resolveFuzzyId(task.id.base64);
 
     expect(result).toBeDefined();
     expect(result!.forma).toBe(result!.entity);
     expect(result!.forma.id.base64).toBe(task.id.base64);
   });
 
-  it('returns undefined for unknown fuzzyId', () => {
-    const result = world.resolveFuzzyId('nonexistent-id');
+  it('returns undefined for unknown fuzzyId', async () => {
+    const result = await world.resolveFuzzyId('nonexistent-id');
     expect(result).toBeUndefined();
   });
 
@@ -1088,7 +1088,7 @@ describe('World — resolveFuzzyId()', () => {
     const task = await world.upsertOne(Task, { name: 'focused task' });
     world.focusManager.focus(task.id);
 
-    const result = world.resolveFuzzyId(task.id.base64);
+    const result = await world.resolveFuzzyId(task.id.base64);
 
     expect(result).toBeDefined();
     expect(result!.entity).toBe(result!.forma);
@@ -1102,7 +1102,7 @@ describe('World — resolveFuzzyId()', () => {
       .actions(world)
       .addItem(new Action({ name: 'nested action' }));
 
-    const result = world.resolveFuzzyId(action.id.base64);
+    const result = await world.resolveFuzzyId(action.id.base64);
 
     expect(result).toBeDefined();
     expect(result!.entity.id.base64).toBe(task.id.base64);
@@ -1119,10 +1119,10 @@ describe('World — resolveFuzzyId()', () => {
     await world.save();
 
     const w2 = await FileRepository.worldFromPath(worldPath);
-    const focused = w2.focusedForma('task') as Task | null;
+    const focused = (await w2.focusedForma('task')) as Task | null;
     w2.focusManager.focus(focused!.id);
 
-    const result = w2.resolveFuzzyId(action.id.base64);
+    const result = await w2.resolveFuzzyId(action.id.base64);
 
     expect(result).toBeDefined();
     expect(result!.entity.id.base64).toBe(task.id.base64);
@@ -1181,43 +1181,6 @@ describe('World — validate()', () => {
   });
 });
 
-describe('findByClass()', () => {
-  let tempDir: string;
-  let worldPath: string;
-
-  beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-findByClass-'));
-    worldPath = path.join(tempDir, '.nameforma');
-  });
-
-  afterEach(() => {
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  });
-
-  it('respects focus order in entityComparator', async () => {
-    const world = await FileRepository.worldFromPath(worldPath);
-
-    // no tasks
-    expect([...world.findByClass(Task)]).toEqual([]);
-
-    // unfocused tasks are sorted by recency of creation
-    const t1 = await world.upsertOne(Task, { name: 'task1' });
-    expect([...world.findByClass(Task)]).toEqual([t1]);
-    const t2 = await world.upsertOne(Task, { name: 'task2' });
-    expect([...world.findByClass(Task)]).toEqual([t2, t1]);
-    const t3 = await world.upsertOne(Task, { name: 'task3' });
-    expect([...world.findByClass(Task)]).toEqual([t3, t2, t1]);
-    const t4 = await world.upsertOne(Task, { name: 'task4' });
-    expect([...world.findByClass(Task)]).toEqual([t4, t3, t2, t1]);
-
-    // focused tasks come first sorted by recency of focus
-    world.focusManager.focus(t2.id);
-    expect([...world.findByClass(Task)]).toEqual([t2, t4, t3, t1]);
-    world.focusManager.focus(t3.id);
-    expect([...world.findByClass(Task)]).toEqual([t3, t2, t4, t1]);
-  });
-});
-
 describe('World.upsertOne() async — ZudaO', () => {
   let tempDir: string;
   let worldPath: string;
@@ -1260,7 +1223,7 @@ describe('World.upsertOne() async — ZudaO', () => {
     const entityInserted = await world.upsertOne(Task, { name, summary });
     const id = entityInserted.id.base64;
     const entityLoaded = await await world.loadFuzzyForma(id);
-    const entityRegistered = world.namespace.getForma(id);
+    const entityRegistered = (await world.getNamespace()).getForma(id);
     expect(entityLoaded).properties({ name, summary });
     expect(entityInserted).properties({ name, summary });
     expect(entityRegistered).toBe(entityLoaded);

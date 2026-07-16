@@ -17,8 +17,13 @@ import {
  * Callers depend on IRegistry (not specific implementations like World or Task).
  */
 export interface IRegistry extends Forma {
-  /**
+  /** @deprecated
    * Returns the read-only namespace managed by this registry.
    */
   readonly namespace: IReadOnlyNamespace;
+
+  /**
+   * Returns the read-only namespace managed by this registry.
+   */
+  getNamespace(): Promise<IReadOnlyNamespace>;
 }

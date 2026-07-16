@@ -66,7 +66,7 @@ export default class TaskCommand {
     }
 
     world.validate();
-    const task = world.focusedForma('task') as Task | null;
+    const task = (await world.focusedForma('task')) as Task | null;
     if (!task) {
       throw new Error('No task focused');
     }
@@ -102,11 +102,11 @@ export default class TaskCommand {
    * @param {Task} task - Task to display
    * @param {number} verbosity - Verbosity level: <0=minimal, 0=moderate, 1=4-line actions, 2=full actions, 3=view all
    */
-  static displayTask(
+  static async displayTask(
     world: World,
     task: Task,
     verbosity: number = 0,
-  ): void {
+  ): Promise<void> {
     if (verbosity < -1) {
       const tui = new TuiList(task.actions(world), world, {
         maxWidth: 74,
@@ -122,7 +122,7 @@ export default class TaskCommand {
       maxWidth: 74,
     });
 
-    nfTui.log(`Task: ${world.namespace.fuzzyIdOf(task)}`);
+    nfTui.log(`Task: ${(await world.getNamespace()).fuzzyIdOf(task)}`);
     nfTui.log(`  name: ${task.name}`);
 
     // Display progress
@@ -233,7 +233,7 @@ export default class TaskCommand {
       const world = nfProgram.world;
       const verbosity = nfProgram.verbosity;
       const task = await TaskCommand.resolveTask(world);
-      TaskCommand.displayTask(world, task, verbosity);
+      await TaskCommand.displayTask(world, task, verbosity);
     });
 
     // task add
@@ -268,7 +268,9 @@ export default class TaskCommand {
 
           const task = await world.upsertOne(Task, taskConfig);
 
-          nfTui.log(`✓ Task added: ${world.namespace.fuzzyIdOf(task)}`);
+          nfTui.log(
+            `✓ Task added: ${(await world.getNamespace()).fuzzyIdOf(task)}`,
+          );
           nfTui.log(`  ${task.toString()}`);
         },
       );
@@ -316,7 +318,7 @@ export default class TaskCommand {
           return;
         }
 
-        TaskCommand.displayTask(world, task, verbosity);
+        await TaskCommand.displayTask(world, task, verbosity);
       });
 
     // task set
@@ -379,7 +381,7 @@ export default class TaskCommand {
           const updated = f7t.getItem(task.id.base64);
 
           nfTui.log(
-            `✓ Task updated: ${world.namespace.fuzzyIdOf(updated)}`,
+            `✓ Task updated: ${(await world.getNamespace()).fuzzyIdOf(updated)}`,
           );
           nfTui.log(`  ${updated.toString()}`);
         },
@@ -415,7 +417,7 @@ export default class TaskCommand {
           }
         }
 
-        const taskFuzzyId = world.namespace.fuzzyIdOf(task);
+        const taskFuzzyId = (await world.getNamespace()).fuzzyIdOf(task);
         await world.delete('task', task.id.toString());
         nfTui.log(`✓ Task deleted: ${taskFuzzyId}`);
       });
@@ -479,7 +481,7 @@ export default class TaskCommand {
         nfTui.log(`Focus stack (${values.length}):`);
         for (const id of values) {
           const t = await world.loadEntity(Task, id.base64);
-          if (t) TaskCommand.displayTask(world, t, -2);
+          if (t) await TaskCommand.displayTask(world, t, -2);
         }
       });
   }

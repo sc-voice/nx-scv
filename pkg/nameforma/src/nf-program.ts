@@ -215,8 +215,12 @@ export class NfProgram {
    * @param value - New value for the field
    * @returns The updated forma
    */
-  setFieldValue(formaId: FuzzyId, fieldPath: string, value: any): Forma {
-    const resolved = this.world.resolveFuzzyId(formaId);
+  async setFieldValue(
+    formaId: FuzzyId,
+    fieldPath: string,
+    value: any,
+  ): Promise<Forma> {
+    const resolved = await this.world.resolveFuzzyId(formaId);
     if (!resolved) {
       throw new Error(`Not found: ${formaId}`);
     }
@@ -233,13 +237,13 @@ export class NfProgram {
   }
 
   /** Parse dotref: FORMA_ID.FIELD_NAME */
-  resolveDotRef(dotRef: string): {
+  async resolveDotRef(dotRef: string): Promise<{
     entity: Forma;
     forma: Forma;
     fieldName: string;
     fuzzyId: string;
     value: any;
-  } {
+  }> {
     const dotIdx = dotRef.indexOf('.');
     if (dotIdx === -1) {
       throw new Error('dotRef must be FORMA_ID.FIELD_NAME');
@@ -248,7 +252,7 @@ export class NfProgram {
     const fuzzyId = dotRef.slice(0, dotIdx);
     const fieldName = dotRef.slice(dotIdx + 1);
 
-    const resolved = this.world.resolveFuzzyId(fuzzyId);
+    const resolved = await this.world.resolveFuzzyId(fuzzyId);
     if (!resolved) {
       throw new Error(`Not found: ${fuzzyId}`);
     }
@@ -348,11 +352,15 @@ export class NfProgram {
             fieldName,
             fuzzyId,
             value: oldValue,
-          } = nfp.resolveDotRef(dotRef);
+          } = await nfp.resolveDotRef(dotRef);
           const formaId = forma.id.base64;
 
           // Update and persist
-          const updated = nfp.setFieldValue(formaId, fieldName, value);
+          const updated = await nfp.setFieldValue(
+            formaId,
+            fieldName,
+            value,
+          );
 
           // Output result
           if (options.json) {
