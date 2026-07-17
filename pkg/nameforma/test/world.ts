@@ -942,6 +942,9 @@ describe('World — namespace', () => {
       const list = world.entityList(Task);
       list.patchItem(task.id.base64, { name: 'updated' });
 
+      // Yield to event loop for async event listener to run
+      await new Promise((resolve) => setImmediate(resolve));
+
       expect(ns.getForma(fz)?.name).toBe('updated');
     });
 

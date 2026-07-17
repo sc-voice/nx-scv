@@ -130,7 +130,7 @@ export class World extends Entity implements IEventBus {
         case 'patch':
           dbg &&
             cc.ok(`${msg} ${entityType}: ${entity.id.toString()}`, event);
-          this.#saveEntity(entityType, entity);
+          await this.#saveEntity(entityType, entity);
           if (entityType === 'task') {
             this.mutableNamespace.removeForma(entity.id.base64);
             this.mutableNamespace.addForma(entity);
@@ -156,7 +156,7 @@ export class World extends Entity implements IEventBus {
                 `${msg} nested item deleted, saving parent ${entityType}: ${entity.id.toString()}`,
                 event,
               );
-            this.#saveEntity(entityType, entity);
+            await this.#saveEntity(entityType, entity);
             if (entityType === 'task') {
               this.mutableNamespace.removeForma(entity.id.base64);
               this.mutableNamespace.addForma(entity);
@@ -266,31 +266,6 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Search up filesystem tree for .nameforma/ directory
-   * @param {string} startPath - Starting directory
-   * @returns {string|null} - Path to .nameforma/ or null if not found
-   */
-  static findWorld(startPath: string = process.cwd()): string | null {
-    const msg = 'world.findWorld';
-    const dbg = WORLD?.FIND_WORLD;
-
-    let currentPath = path.resolve(startPath);
-    const root = path.parse(currentPath).root;
-
-    while (currentPath !== root) {
-      const worldPath = path.join(currentPath, '.nameforma');
-      if (fs.existsSync(worldPath)) {
-        dbg && cc.ok1(msg, `found ${worldPath}`);
-        return worldPath;
-      }
-      currentPath = path.dirname(currentPath);
-    }
-
-    dbg && cc.ok1(msg, `not found from ${startPath}`);
-    return null;
-  }
-
-  /**
    * Register an entity class with this world
    * Derives entity name from EntityClass.collection static property
    * @param {IEntity} EntityClass - Entity class with entity, avroSchema, and fromJson
@@ -330,7 +305,7 @@ export class World extends Entity implements IEventBus {
    * @param {string} entityType - Entity type (e.g., 'task')
    * @param {object} entity - Entity with id
    */
-  #saveEntity(entityType: string, entity: any): void {
+  async #saveEntity(entityType: string, entity: any): Promise<void> {
     const msg = 'world.save';
     const dbg = WORLD?.SAVE;
 
@@ -338,20 +313,13 @@ export class World extends Entity implements IEventBus {
       throw new Error(`${msg}: entity missing id`);
     }
 
-    const { id } = entity;
-    const entityDir = path.join(this.#worldPath, entityType);
-
-    // Create entity subdirectory on demand
-    if (!fs.existsSync(entityDir)) {
-      fs.mkdirSync(entityDir, { recursive: true });
-      dbg && cc.ok1(msg, `created ${entityDir}`);
+    const EntityClass = this.entityClassOfName(entityType);
+    if (!EntityClass) {
+      throw new Error(`${msg}: ${entityType} not registered`);
     }
 
-    const filePath = path.join(entityDir, `${id}.json`);
-    const data = JSON.stringify(entity, null, 2);
-    fs.writeFileSync(filePath, data, 'utf8');
-
-    dbg && cc.ok1(msg, `saved ${filePath}`);
+    await this.repository.upsertOne(EntityClass, entity);
+    dbg && cc.ok1(msg, `saved ${entityType}:${entity.id}`);
   }
 
   /**

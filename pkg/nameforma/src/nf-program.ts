@@ -140,7 +140,7 @@ export class NfProgram {
   static async resolveWorld(worldPath?: string): Promise<World> {
     let resolvedPath = worldPath;
     if (!resolvedPath) {
-      resolvedPath = World.findWorld() || undefined;
+      resolvedPath = FileRepository.findWorld() || undefined;
       if (!resolvedPath) {
         throw new Error(
           `No world found. Run 'nf init' in your project directory to create one.`,

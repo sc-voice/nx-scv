@@ -56,7 +56,7 @@ export class NfSession extends EventEmitter {
     }
     let world: World | undefined;
     try {
-      const worldPath = World.findWorld();
+      const worldPath = FileRepository.findWorld();
       if (worldPath) {
         world = await FileRepository.worldFromPath(worldPath);
       }
