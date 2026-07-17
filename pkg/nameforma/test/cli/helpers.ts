@@ -26,13 +26,13 @@ export function createTempDir(prefix = 'nf-test') {
  * @param {string} prefix - Prefix for temp directory name (default: 'nf-test')
  * @returns {object} - { worldPath, cleanup() }
  */
-export function createTempWorld(prefix = 'nf-test') {
+export async function createTempWorld(prefix = 'nf-test') {
   const { tempDir, cleanup } = createTempDir(prefix);
   const worldPath = path.join(tempDir, '.nameforma');
   fs.mkdirSync(worldPath, { recursive: true });
 
   // Force world creation in tests so world.json exists
-  const world = FileRepository.createWorld(worldPath);
+  const world = await FileRepository.createWorld(worldPath);
   const msg = 'createTempWorld';
   const jsonPath = path.join(worldPath, 'world.json');
   if (!fs.existsSync(jsonPath)) {

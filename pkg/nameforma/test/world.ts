@@ -219,15 +219,15 @@ describe('FileRepository.createWorld()', () => {
     }
   });
 
-  it('creates world.json and returns a World with the given worldPath', () => {
-    const world = FileRepository.createWorld(worldPath);
+  it('creates world.json and returns a World with the given worldPath', async () => {
+    const world = await FileRepository.createWorld(worldPath);
     expect(world.worldPath).toBe(worldPath);
     expect(fs.existsSync(path.join(worldPath, 'world.json'))).toBe(true);
   });
 
-  it('throws if world.json already exists', () => {
-    FileRepository.createWorld(worldPath);
-    expect(() => FileRepository.createWorld(worldPath)).toThrow(
+  it('throws if world.json already exists', async () => {
+    await FileRepository.createWorld(worldPath);
+    expect(() => FileRepository.createWorld(worldPath)).rejects.toThrow(
       /World exists at/,
     );
   });
@@ -249,15 +249,15 @@ describe('FileRepository.loadWorld()', () => {
     }
   });
 
-  it('throws if world.json does not exist', () => {
-    expect(() => FileRepository.loadWorld(worldPath)).toThrow(
+  it('throws if world.json does not exist', async () => {
+    expect(() => FileRepository.loadWorld(worldPath)).rejects.toThrow(
       /World not found at/,
     );
   });
 
-  it('loads a world created by FileRepository.createWorld() with the same id', () => {
-    const created = FileRepository.createWorld(worldPath);
-    const loaded = FileRepository.loadWorld(worldPath);
+  it('loads a world created by FileRepository.createWorld() with the same id', async () => {
+    const created = await FileRepository.createWorld(worldPath);
+    const loaded = await FileRepository.loadWorld(worldPath);
     expect(loaded.id.base64).toBe(created.id.base64);
     expect(loaded.worldPath).toBe(worldPath);
   });
@@ -887,14 +887,14 @@ describe('World — namespace', () => {
 
   describe('namespace method', () => {
     it('should return IReadOnlyNamespace interface', async () => {
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       expect(ns).toBeDefined();
       expect(typeof ns[Symbol.iterator]).toBe('function');
       expect(typeof ns.getForma).toBe('function');
     });
 
     it('should return only world in namespace when no tasks exist', async () => {
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       const items = Array.from(ns);
       expect(items.length).toBe(1);
       expect(items[0][1].id.base64).toBe(world.id.base64);
@@ -906,7 +906,7 @@ describe('World — namespace', () => {
 
       // Create new world instance to test population at construct time
       const world2 = await FileRepository.worldFromPath(worldPath);
-      const ns = await world2.getNamespace();
+      const ns = await world2.namespace;
 
       expect(ns.getForma(world2.id.base64)?.id.base64).toBe(
         world2.id.base64,
@@ -920,7 +920,7 @@ describe('World — namespace', () => {
     });
 
     it('should keep namespace in sync when task is added', async () => {
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
         world.id.base64,
       );
@@ -934,7 +934,7 @@ describe('World — namespace', () => {
     it('should keep namespace in sync when task is patched', async () => {
       const task = await world.upsertOne(Task, { name: 'original' });
 
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       const fz = ns.fuzzyIdOf(task);
       expect(ns.getForma(fz)?.name).toBe('original');
 
@@ -949,7 +949,7 @@ describe('World — namespace', () => {
       const task1 = await world.upsertOne(Task, { name: 'task1' });
       const task2 = await world.upsertOne(Task, { name: 'task2' });
 
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
         world.id.base64,
       );
@@ -968,7 +968,7 @@ describe('World — namespace', () => {
     it('should resolve task by full UUID64 fuzzyId', async () => {
       const task = await world.upsertOne(Task, { name: 'test' });
 
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       const found = ns.getForma(task.id.base64);
 
       expect(found).toBeDefined();
@@ -979,7 +979,7 @@ describe('World — namespace', () => {
     it('should resolve task by partial fuzzyId', async () => {
       const task = await world.upsertOne(Task, { name: 'test' });
 
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       const fz = ns.fuzzyIdOf(task);
       const found = ns.getForma(fz);
 
@@ -990,7 +990,7 @@ describe('World — namespace', () => {
     it('should return undefined for non-existent fuzzyId', async () => {
       await world.upsertOne(Task, { name: 'task' });
 
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       const found = ns.getForma('nonexistent-id');
 
       expect(found).toBeUndefined();
@@ -1000,7 +1000,7 @@ describe('World — namespace', () => {
       const task1 = await world.upsertOne(Task, { name: 'task1' });
       const task2 = await world.upsertOne(Task, { name: 'task2' });
 
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
 
       expect(ns.getForma(world.id.base64)?.id.base64).toBe(
         world.id.base64,
@@ -1037,7 +1037,7 @@ describe('World — namespace', () => {
       expect(id2.length).toBeLessThan(task2.id.base64.length);
 
       // Should be resolvable via namespace.getForma
-      const ns = await world.getNamespace();
+      const ns = await world.namespace;
       expect(ns.getForma(id1)).toBe(task1);
       expect(ns.getForma(id2)).toBe(task2);
     });
@@ -1223,7 +1223,7 @@ describe('World.upsertOne() async — ZudaO', () => {
     const entityInserted = await world.upsertOne(Task, { name, summary });
     const id = entityInserted.id.base64;
     const entityLoaded = await await world.loadFuzzyForma(id);
-    const entityRegistered = (await world.getNamespace()).getForma(id);
+    const entityRegistered = world.namespace.getForma(id);
     expect(entityLoaded).properties({ name, summary });
     expect(entityInserted).properties({ name, summary });
     expect(entityRegistered).toBe(entityLoaded);

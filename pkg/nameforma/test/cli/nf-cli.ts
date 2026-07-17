@@ -64,7 +64,7 @@ describe('nf binary', () => {
     nfTui.clearAll();
     const renderer = new TestReplRenderer();
     renderer.feedLine('/quit');
-    const testWorld = resolveWorld(worldPath);
+    const testWorld = await resolveWorld(worldPath);
     const repl = new REPL(testWorld, renderer);
     await repl.start();
     console.log(`[scrollLines]: ${JSON.stringify(renderer.scrollLines)}`);

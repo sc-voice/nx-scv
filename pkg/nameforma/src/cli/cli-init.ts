@@ -17,14 +17,14 @@ export default class InitCommand {
         '[path]',
         'Directory to initialize (defaults to current directory)',
       )
-      .action((pathArg: string | undefined, options: any) => {
+      .action(async (pathArg: string | undefined, options: any) => {
         try {
           const targetPath = pathArg || process.cwd();
           const worldPath = targetPath.endsWith('.nameforma')
             ? targetPath
             : path.join(targetPath, '.nameforma');
 
-          const world = FileRepository.createWorld(worldPath);
+          const world = await FileRepository.createWorld(worldPath);
           nfTui.log(`✓ Initialized world at ${worldPath}`);
           nfTui.log(`World ID: ${world.id.base64}`);
         } catch (err) {

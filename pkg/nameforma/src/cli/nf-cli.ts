@@ -165,8 +165,8 @@ export class REPL {
   }
 }
 
-export function resolveWorld(worldPath?: string): World {
-  return NfProgram.resolveWorld(worldPath);
+export async function resolveWorld(worldPath?: string): Promise<World> {
+  return await NfProgram.resolveWorld(worldPath);
 }
 
 /** NameForma command-line interface for managing tasks, formas, and schemas */
@@ -220,7 +220,7 @@ export class NfCLI extends NfProgram {
         '--test-runner',
         'Run as test runner (for vitest/jest integration)',
       )
-      .hook('preAction', (thisCommand: any) => {
+      .hook('preAction', async (thisCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
         const cmdName = thisCommand._name || thisCommand.name?.();
         const isInitCommand =
@@ -229,7 +229,7 @@ export class NfCLI extends NfProgram {
         let world: World | undefined;
         if (!isInitCommand) {
           try {
-            world = NfProgram.resolveWorld(opts.world);
+            world = await NfProgram.resolveWorld(opts.world);
           } catch (err) {
             nfTui.error(err instanceof Error ? err.message : String(err));
             process.exit(1);
@@ -380,28 +380,33 @@ const isMainModule =
   realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (isMainModule) {
-  const isTestRunner = process.argv.includes('--test-runner');
+  (async () => {
+    const isTestRunner = process.argv.includes('--test-runner');
 
-  if (!isTestRunner) {
-    const argsIdx = process.argv.indexOf('--args');
-    if (argsIdx !== -1) {
-      console.log(JSON.stringify(process.argv.slice(argsIdx + 1)));
-      process.exit(0);
-    }
+    if (!isTestRunner) {
+      const argsIdx = process.argv.indexOf('--args');
+      if (argsIdx !== -1) {
+        console.log(JSON.stringify(process.argv.slice(argsIdx + 1)));
+        process.exit(0);
+      }
 
-    if (process.argv.length <= 2) {
-      const world = NfProgram.resolveWorld(process.env.WORLD);
-      const repl = new REPL(world);
-      repl.start().catch((err) => {
-        nfTui.error(err);
-        process.exit(1);
-      });
-    } else {
-      const cli = new NfCLI();
-      cli.parseArgv(process.argv).catch((err) => {
-        nfTui.error(err);
-        process.exit(1);
-      });
+      if (process.argv.length <= 2) {
+        const world = await NfProgram.resolveWorld(process.env.WORLD);
+        const repl = new REPL(world);
+        repl.start().catch((err) => {
+          nfTui.error(err);
+          process.exit(1);
+        });
+      } else {
+        const cli = new NfCLI();
+        cli.parseArgv(process.argv).catch((err) => {
+          nfTui.error(err);
+          process.exit(1);
+        });
+      }
     }
-  }
+  })().catch((err) => {
+    nfTui.error(err);
+    process.exit(1);
+  });
 }

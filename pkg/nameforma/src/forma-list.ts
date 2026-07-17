@@ -74,7 +74,7 @@ export class FormaList<T extends Forma> {
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
   #emitter?: IEventBus;
-  #namespace?: IMutableNamespace;
+  _namespace?: IMutableNamespace;
 
   constructor(
     items: T[],
@@ -91,7 +91,7 @@ export class FormaList<T extends Forma> {
     this.parent = cfg?.parent ?? null;
     this.keyField = cfg?.keyField ?? 'id';
     this.#emitter = cfg?.emitter;
-    this.#namespace = cfg?.namespace;
+    this._namespace = cfg?.namespace;
   }
 
   /**
@@ -132,7 +132,7 @@ export class FormaList<T extends Forma> {
 
     this.items.push(typedItem);
     this.#invalidateCache();
-    this.#namespace?.addForma(typedItem);
+    this._namespace?.addForma(typedItem);
 
     if (this.#emitter) {
       const { entity } = this.#computeEntityInfo(typedItem);
@@ -158,7 +158,7 @@ export class FormaList<T extends Forma> {
     const index = this.items.indexOf(itemToDelete);
     this.items.splice(index, 1);
     this.#invalidateCache();
-    this.#namespace?.removeForma(id);
+    this._namespace?.removeForma(id);
 
     if (this.#emitter) {
       const { entity } = this.#computeEntityInfo(itemToDelete);
@@ -376,8 +376,8 @@ export class FormaList<T extends Forma> {
    * Otherwise returns the raw timeId.
    */
   itemListId(item: T): string {
-    if (this.#namespace) {
-      return this.#namespace.fuzzyIdOf(item);
+    if (this._namespace) {
+      return this._namespace.fuzzyIdOf(item);
     }
     return ((item as any)[this.keyField] as UUID64).timeId();
   }

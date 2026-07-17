@@ -12,7 +12,7 @@ import { IRegistry } from './registry.js';
  * Extends Forma with namespace management for child Forma objects (actions, references, etc.)
  */
 export abstract class Entity extends Forma implements IRegistry {
-  #namespace?: FuzzyNamespace;
+  protected _namespace?: FuzzyNamespace;
 
   /**
    * Entity ids are mutually independent and unrelated to one another.
@@ -43,47 +43,25 @@ export abstract class Entity extends Forma implements IRegistry {
     super(cfg);
   }
 
-  /** @deprecated
-   * IRegistry implementation: return the read-only namespace managed by this entity
-   * Lazy initialization: creates namespace and populates on first access
-   */
+  /** IRegistry implementation: subclass must initialize namespace */
   get namespace(): IReadOnlyNamespace {
-    if (!this.#namespace) {
-      throw new Error('deprecated property. use getNamespace()');
-      //this.#namespace = new FuzzyNamespace();
-      //this.populateNamespace();
+    if (!this._namespace) {
+      const subclass = this.constructor.name;
+      throw new Error(`${subclass} must initialize _namespace`);
     }
-    return this.#namespace;
+    return this._namespace;
   }
-
-  /**
-   * IRegistry implementation: return the read-only namespace managed by this entity
-   * Lazy initialization: creates namespace and populates on first access
-   */
-  async getNamespace(): Promise<IReadOnlyNamespace> {
-    if (!this.#namespace) {
-      this.#namespace = new FuzzyNamespace();
-      this.populateNamespace();
-    }
-    return this.#namespace;
-  }
-
-  /**
-   * Populate namespace with child Forma objects.
-   * Subclasses override to add their specific collections (actions, references, etc.)
-   */
-  protected abstract populateNamespace(): void;
 
   /**
    * Get the mutable namespace for subclass use.
    * Lazy initialization: creates namespace and populates on first access
    */
   get mutableNamespace(): IMutableNamespace {
-    if (!this.#namespace) {
-      this.#namespace = new FuzzyNamespace();
-      this.populateNamespace();
+    if (!this._namespace) {
+      const subclass = this.constructor.name;
+      throw new Error(`${subclass} must initialize _namespace`);
     }
-    return this.#namespace;
+    return this._namespace;
   }
 
   /**

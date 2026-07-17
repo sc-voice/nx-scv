@@ -49,7 +49,7 @@ describe('FormaList', () => {
   it('FormaList.constructor with parent', async () => {
     const msg = 'tfl.ctor.with-parent';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -78,7 +78,7 @@ describe('FormaList', () => {
   it('FormaList.addItem with parent', async () => {
     const msg = 'tfl.addItem.with-parent';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -130,7 +130,7 @@ describe('FormaList', () => {
   it('FormaList.getItem', async () => {
     const msg = 'tfl.getItem';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -155,7 +155,7 @@ describe('FormaList', () => {
   it('FormaList.deleteItem', async () => {
     const msg = 'tfl.deleteItem';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -188,7 +188,7 @@ describe('FormaList', () => {
   it('FormaList.patchItem', async () => {
     const msg = 'tfl.patchItem';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -213,7 +213,7 @@ describe('FormaList', () => {
   it('FormaList.moveItem with before anchor', async () => {
     const msg = 'tfl.moveItem.before';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -249,7 +249,7 @@ describe('FormaList', () => {
   it('FormaList.moveItem with after anchor', async () => {
     const msg = 'tfl.moveItem.after';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -284,7 +284,7 @@ describe('FormaList', () => {
   it('FormaList.moveItem default behavior', async () => {
     const msg = 'tfl.moveItem.default';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -305,7 +305,7 @@ describe('FormaList', () => {
   it('FormaList.moveItem error cases', async () => {
     const msg = 'tfl.moveItem.errors';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -334,7 +334,7 @@ describe('FormaList', () => {
   it('FormaList.size getter', async () => {
     const msg = 'tfl.size';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -353,7 +353,7 @@ describe('FormaList', () => {
   it('FormaList.Symbol.iterator for iterable support', async () => {
     const msg = 'tfl.iterator';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -380,7 +380,7 @@ describe('FormaList', () => {
   it('FormaList mutates wrapped array directly', async () => {
     const msg = 'tfl.mutate-direct';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -412,7 +412,7 @@ describe('FormaList', () => {
   it('FormaList fuzzy ID matching', async () => {
     const msg = 'tfl.fuzzy-id';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     const list = new FormaList<TestItem>(items, TestItem, {
       parent: world,
@@ -522,7 +522,7 @@ describe('FormaList', () => {
   it('FormaList emits change events', async () => {
     const msg = 'tfl.emitter';
     const items: TestItem[] = [];
-    const tempWorld = createTempWorld();
+    const tempWorld = await createTempWorld();
     const world = await FileRepository.worldFromPath(tempWorld.worldPath);
 
     // Create mock EventBus

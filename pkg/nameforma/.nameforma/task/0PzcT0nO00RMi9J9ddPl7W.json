@@ -27,7 +27,7 @@
       "forma": "Action",
       "id": "0PzcT4Vl00RMi9J9ddPl7W",
       "name": "Resolve async populateNamespace vs sync namespace getters",
-      "summary": "populateNamespace() becoming async conflicts with the synchronous Entity.namespace/mutableNamespace getters (entity.ts:50-56, 68-74) which call it lazily. Population must happen eagerly in World.create() so #namespace is already populated before any getter runs. Investigate whether Entity.populateNamespace() can stay abstract/sync for other subclasses (e.g. Task, task.ts:91) while World special-cases eager population in its own constructor path/create().",
+      "summary": "populateNamespace() becoming async conflicts with the synchronous Entity.namespace/mutableNamespace getters (entity.ts:50-56, 68-74) which call it lazily. Population must happen eagerly in World.create() so _namespace is already populated before any getter runs. Investigate whether Entity.populateNamespace() can stay abstract/sync for other subclasses (e.g. Task, task.ts:91) while World special-cases eager population in its own constructor path/create().",
       "updateId": "0PzcT4Vl00RMi9J9ddPl7W",
       "status": "req",
       "statusNote": ""

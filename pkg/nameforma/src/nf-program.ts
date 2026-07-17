@@ -137,7 +137,7 @@ export class NfProgram {
    * Resolve a World by path. Auto-discovers if no path given.
    * Static method for use by different CLI implementations.
    */
-  static resolveWorld(worldPath?: string): World {
+  static async resolveWorld(worldPath?: string): Promise<World> {
     let resolvedPath = worldPath;
     if (!resolvedPath) {
       resolvedPath = World.findWorld() || undefined;
@@ -149,7 +149,7 @@ export class NfProgram {
     } else if (!resolvedPath.endsWith('.nameforma')) {
       resolvedPath = path.join(resolvedPath, '.nameforma');
     }
-    return FileRepository.loadWorld(resolvedPath);
+    return await FileRepository.loadWorld(resolvedPath);
   }
 
   constructor(protected readonly cmdDelegate: ICommand) {
@@ -380,7 +380,7 @@ export class NfProgram {
   }
 
   /** Action handler for @see registerInitCommand */
-  nfInit(pathArg: string | undefined, options: any): void {
+  async nfInit(pathArg: string | undefined, options: any): Promise<void> {
     const msg = theme.nfAttend('nfInit');
     const dbg = DBG.NF_PROGRAM.ANY;
     try {
@@ -389,7 +389,7 @@ export class NfProgram {
         ? targetPath
         : path.join(targetPath, '.nameforma');
 
-      const world = FileRepository.createWorld(worldPath);
+      const world = await FileRepository.createWorld(worldPath);
       const lines = [
         theme.nfNominal(`✓ Initialized world at ${worldPath}`),
         theme.nfLabel('id:') + world.id.base64,
@@ -405,6 +405,7 @@ export class NfProgram {
   }
 
   registerInitCommand(): void {
+    const nfp = this;
     this.cmdDelegate
       .command('init')
       .description('Initialize NameForma environment')
@@ -412,6 +413,6 @@ export class NfProgram {
         '[path]',
         'Directory to initialize (defaults to current directory)',
       )
-      .action(this.nfInit);
+      .action((pathArg, options) => nfp.nfInit(pathArg, options));
   }
 }

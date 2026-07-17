@@ -14,8 +14,8 @@ describe('CLI: set command', () => {
   let originalError: any;
   let tempWorld: any;
 
-  beforeEach(() => {
-    tempWorld = createTempWorld();
+  beforeEach(async () => {
+    tempWorld = await createTempWorld();
 
     output = [];
     errors = [];

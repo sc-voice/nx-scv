@@ -40,9 +40,9 @@ describe('CLI: task command', () => {
   let originalError;
   let tempWorld;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Create isolated temp world
-    tempWorld = createTempWorld();
+    tempWorld = await createTempWorld();
 
     // Capture console output
     output = [];
@@ -1398,8 +1398,8 @@ describe('CLI: nameforma package script', () => {
     expect(output).toMatch(/task/i);
   });
 
-  it('npm run cli task list shows no tasks when empty', () => {
-    const tempWorld = createTempWorld();
+  it('npm run cli task list shows no tasks when empty', async () => {
+    const tempWorld = await createTempWorld();
     try {
       const output = execSync(
         `npm run cli -- task -w ${tempWorld.tempDir} list`,

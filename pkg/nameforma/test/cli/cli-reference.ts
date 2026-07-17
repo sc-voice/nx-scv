@@ -25,7 +25,7 @@ describe('CLI: reference command', () => {
 
   beforeEach(async () => {
     // Create isolated temp world
-    tempWorld = createTempWorld('nameforma-reference-test');
+    tempWorld = await createTempWorld('nameforma-reference-test');
 
     // Capture console output
     output = [];

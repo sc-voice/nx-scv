@@ -13,6 +13,7 @@ import {
 import { Task } from './task.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Identifiable } from './identifiable.js';
+import { FuzzyNamespace, IReadOnlyNamespace } from './fuzzy-namespace.js';
 import { Forma, type Constructor } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { User } from './user.js';
@@ -208,10 +209,8 @@ export class World extends Entity implements IEventBus {
     World.#lastWorld = this;
   }
 
-  /**
-   * Populate namespace with all entities from disk based on registered IEntitys
-   */
-  protected override populateNamespace(): void {
+  /** Initialize namespace with all registered entities */
+  #populateNamespace(): void {
     const msg = 'world.populateNamespace';
     const dbg = WORLD?.ALL;
 
@@ -309,6 +308,14 @@ export class World extends Entity implements IEventBus {
     fs.appendFileSync(logFile, `${id}: ${msg}\n`);
   }
 
+  /** Must be called after construction */
+  async initialize(): Promise<void> {
+    if (!this._namespace) {
+      this._namespace = new FuzzyNamespace();
+      this.#populateNamespace();
+    }
+  }
+
   /**
    * Resolve fuzzy ID with world namespace as primary, focused entity's namespace as secondary.
    * Verifies against RGA64Stack implementation.
@@ -320,16 +327,15 @@ export class World extends Entity implements IEventBus {
   ): Promise<{ entity: Forma; forma: Forma } | undefined> {
     const msg = 'world.resolveFuzzyId';
     const dbg = WORLD?.FUZZY_ID;
+    const ns = await this.namespace;
 
     // Get focused entity
     const focusId = this.#focusManager.peek();
-    const focusedEntity = focusId
-      ? (await this.getNamespace()).getForma(focusId.base64)
-      : null;
+    const focusedEntity = focusId ? ns.getForma(focusId.base64) : null;
 
     // Primary namespace is in focused entity
     if (focusedEntity) {
-      const nsPrimary = await (focusedEntity as any)?.getNamespace();
+      const nsPrimary = await (focusedEntity as any)?.namespace;
       const forma = nsPrimary.getForma(fuzzyId);
       if (forma) {
         dbg &&
@@ -339,7 +345,7 @@ export class World extends Entity implements IEventBus {
     }
 
     // Secondary namespace is the world
-    const nsSecondary = await this.getNamespace();
+    const nsSecondary = await this.namespace;
     const forma = nsSecondary.getForma(fuzzyId);
     if (forma) {
       dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
@@ -511,7 +517,7 @@ export class World extends Entity implements IEventBus {
         const idStr = file.slice(0, -5);
 
         // Check if file was modified since last sync OR is not in namespace
-        const inNamespace = (await this.getNamespace()).getForma(idStr);
+        const inNamespace = this.namespace.getForma(idStr);
         const needsReload = stats.mtimeMs > syncStart || !inNamespace;
 
         if (needsReload) {
@@ -554,13 +560,13 @@ export class World extends Entity implements IEventBus {
     }
 
     // Ensure world is in namespace and won't be removed during sync
-    if (!(await this.getNamespace()).getForma(this.id.base64)) {
+    if (!this.namespace.getForma(this.id.base64)) {
       this.addToNamespace(this);
     }
     filesystemEntities.set(this.id.base64, this);
 
     // Remove entities from namespace that no longer exist on filesystem
-    for (const [fuzzyId, forma] of await this.getNamespace()) {
+    for (const [fuzzyId, forma] of this.namespace) {
       const idStr = forma.id.base64;
       if (!filesystemEntities.has(idStr)) {
         this.mutableNamespace.removeForma(idStr);
@@ -825,7 +831,7 @@ export class World extends Entity implements IEventBus {
    */
   async focusedForma(formaType: string): Promise<Forma | null> {
     if (!this.entityClassOfName(formaType)) return null;
-    const ns = await this.getNamespace();
+    const ns = this.namespace;
     for (const id of this.#focusManager.ids()) {
       const entity = ns.getForma(id.base64);
       if (entity && (entity.constructor as any).collection === formaType) {

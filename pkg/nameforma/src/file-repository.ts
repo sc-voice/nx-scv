@@ -274,7 +274,7 @@ export class FileRepository implements IEntityRepository {
   }
 
   async loadWorld(): Promise<World> {
-    return FileRepository.loadWorld(this.#worldPath);
+    return await FileRepository.loadWorld(this.#worldPath);
   }
 
   #save(entityType: string, entity: any): void {
@@ -338,9 +338,9 @@ export class FileRepository implements IEntityRepository {
     let world: World | undefined;
 
     if (fs.existsSync(worldFile)) {
-      world = this.loadWorld(worldPath);
+      world = await this.loadWorld(worldPath);
     } else {
-      world = this.createWorld(worldPath);
+      world = await this.createWorld(worldPath);
     }
 
     // Initialize sync cursor to now
@@ -356,7 +356,7 @@ export class FileRepository implements IEntityRepository {
    * @returns {World} - World instance with persistent or new id
    * @throws {Error} - If world not found and create is not true
    */
-  static createWorld(worldPath: string): World {
+  static async createWorld(worldPath: string): Promise<World> {
     const msg = 'f12y.createWorld';
     const dbg = DBG.WORLD.CTOR;
 
@@ -370,6 +370,7 @@ export class FileRepository implements IEntityRepository {
     // Create new World only if create flag is true
     const repository = new FileRepository(worldPath);
     world = new World(worldPath, repository);
+    await world.initialize();
 
     // Save world.json with generated id
     const worldData = JSON.stringify(world.toJSON(), null, 2);
@@ -389,7 +390,7 @@ export class FileRepository implements IEntityRepository {
    * @returns {World} - World instance with persistent or new id
    * @throws {Error} - If world not found and create is not true
    */
-  static loadWorld(worldPath: string): World {
+  static async loadWorld(worldPath: string): Promise<World> {
     const msg = 'f12y.load';
     const dbg = DBG.WORLD.LOAD;
 
@@ -410,9 +411,11 @@ export class FileRepository implements IEntityRepository {
     const watermarkAdvanced = world.syncWatermark();
     const isValid = world.validate();
     if (!isValid || watermarkAdvanced) {
-      /* await */ repository.saveWorld(world);
+      await repository.saveWorld(world);
       dbg && cc.ok1(msg, `saved`);
     }
+
+    await world.initialize();
 
     // Initialize sync cursor to now
     world.lastSyncTime = Date.now();

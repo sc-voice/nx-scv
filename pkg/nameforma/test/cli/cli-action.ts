@@ -25,7 +25,7 @@ describe('CLI: action command', () => {
 
   beforeEach(async () => {
     // Create isolated temp world
-    tempWorld = createTempWorld('nameforma-action-test');
+    tempWorld = await createTempWorld('nameforma-action-test');
 
     // Capture console output
     output = [];

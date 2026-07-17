@@ -354,7 +354,7 @@ export default class ActionCommand {
             throw new Error('Format: action set <id>.<field> <value>');
           }
           const [fuzzyId, field] = parts;
-          const forma = (await task.getNamespace()).getForma(fuzzyId);
+          const forma = task.namespace.getForma(fuzzyId);
           if (forma == null) {
             throw new Error(
               `Action ${fuzzyId} not found in task ${task.id.base64}`,

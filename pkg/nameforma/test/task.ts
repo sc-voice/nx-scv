@@ -194,7 +194,7 @@ describe('task', () => {
     dbg > 1 && cc.tag(msg, '===================');
 
     const t2k = new Task({ name: 'test task' });
-    const ns = await t2k.getNamespace();
+    const ns = t2k.namespace;
     const mockBus = { emit: () => {}, on: () => {} };
     const actions = t2k.actions(mockBus);
 
@@ -369,9 +369,7 @@ describe('task', () => {
     expect(t2k.rawReferences[1]).toBe(ref2);
     expect(t2k.rawReferences[0] instanceof Reference).toBe(true);
     expect(t2k.rawReferences[1] instanceof Reference).toBe(true);
-    const references2 = [
-      ...(await t2k.getNamespace()).findByClass(Reference),
-    ];
+    const references2 = [...t2k.namespace.findByClass(Reference)];
     expect(references2.length).toBe(2);
     expect(references2[0]).toBe(ref1);
     expect(references2[1]).toBe(ref2);

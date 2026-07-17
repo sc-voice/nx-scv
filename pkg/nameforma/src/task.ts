@@ -7,6 +7,7 @@ import {
 } from './forma.js';
 import { FormaField } from './forma-field.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { FuzzyNamespace } from './fuzzy-namespace.js';
 import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
@@ -74,6 +75,8 @@ export class Task extends Entity {
       rawActions: rawActions.map((data: any) => new Action(data)),
       rawReferences: rawReferences.map((data: any) => new Reference(data)),
     });
+
+    this.#populateNamespace();
   }
 
   /**
@@ -88,7 +91,8 @@ export class Task extends Entity {
   /**
    * Populate namespace with actions and references
    */
-  protected override populateNamespace(): void {
+  #populateNamespace(): void {
+    this._namespace = this._namespace ?? new FuzzyNamespace();
     this.rawActions.forEach((action) => this.addToNamespace(action));
     this.rawReferences.forEach((ref) => this.addToNamespace(ref));
   }

@@ -55,8 +55,8 @@ describe('NfProgram construction and initialization', () => {
     expect(p.isAgent).toBe(true);
   });
 
-  it('resolveWorld finds world by path', () => {
-    const resolved = NfProgram.resolveWorld(tempWorldPath);
+  it('resolveWorld finds world by path', async () => {
+    const resolved = await NfProgram.resolveWorld(tempWorldPath);
     expect(resolved).toBeInstanceOf(World);
   });
 });
