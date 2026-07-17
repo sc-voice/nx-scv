@@ -127,7 +127,7 @@ describe('FileRepository', () => {
 
   it('saveWorld throws', async () => {
     const id = new UUID64();
-    const world = new World(worldPath, repo, id);
+    const world = new World(worldPath, repo, { id });
     await repo.saveWorld(world);
     const world2 = await repo.loadWorld();
     expect(world2.id.base64).toEqual(world.id.base64);

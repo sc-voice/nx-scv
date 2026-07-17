@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import pino from 'pino';
+import { createStream } from 'rotating-file-stream';
 import UUID64 from './uuid64.js';
 import {
   Filter,
@@ -10,27 +12,13 @@ import {
 } from './entity.js';
 import { World } from './world.js';
 import { DBG } from './defines.js';
+import { NfUrl } from './nf-url.js';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-class NfLogger {
-  private logFile: string;
-
-  constructor(logFile: string) {
-    this.logFile = logFile;
-  }
-
-  log(...strs: string[]): void {
-    const msg = strs.join(' ');
-    const id = UUID64.forSignature(World.NO_WORLD);
-    fs.appendFileSync(this.logFile, `${id}: ${msg}\n`);
-  }
-}
-
 export class FileRepository implements IEntityRepository {
   #worldPath: string;
-  static #loggerInstance: NfLogger | null = null;
 
   constructor(worldPath: string) {
     const msg = 'FileRepository.ctor';
@@ -38,19 +26,6 @@ export class FileRepository implements IEntityRepository {
       throw new Error(`${msg} invalid worldPath: ${worldPath}`);
     }
     this.#worldPath = worldPath;
-  }
-
-  static get logger(): NfLogger {
-    if (this.#loggerInstance === null) {
-      const worldPath = this.findWorld();
-      const logFile = path.join(worldPath ?? process.cwd(), 'nf.log');
-      this.#loggerInstance = new NfLogger(logFile);
-    }
-    return this.#loggerInstance;
-  }
-
-  static log(...strs: string[]): void {
-    FileRepository.logger.log(...strs);
   }
 
   static async create(worldPath: string): Promise<FileRepository> {
@@ -367,9 +342,40 @@ export class FileRepository implements IEntityRepository {
     if (fs.existsSync(worldFile)) {
       throw new Error(`World exists at ${worldPath}`);
     }
+
+    // Compute name and summary defaults for new world
+    const worldRoot = path.dirname(worldPath);
+    let name: string | undefined;
+    let summary: string | undefined;
+    try {
+      const packageJsonPath = path.join(worldRoot, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        name = pkg.name;
+        summary = pkg.description;
+      }
+    } catch (err) {
+      // Silently ignore package.json read errors
+    }
+
+    // Fallback to path-based defaults
+    if (!name) {
+      const nfUrl = new NfUrl(worldRoot, '~');
+      name = nfUrl.uri;
+    }
+    if (!summary) {
+      summary = worldPath;
+    }
+
+    // Ensure .nameforma directory exists
+    if (!fs.existsSync(worldPath)) {
+      fs.mkdirSync(worldPath, { recursive: true });
+      dbg && cc.ok1(msg, `created ${worldPath}`);
+    }
+
     // Create new World only if create flag is true
     const repository = new FileRepository(worldPath);
-    world = new World(worldPath, repository);
+    world = new World(worldPath, repository, { name, summary });
     await world.initialize();
 
     // Save world.json with generated id
@@ -423,3 +429,25 @@ export class FileRepository implements IEntityRepository {
     return world;
   }
 }
+
+export const logger = (() => {
+  const worldPath = FileRepository.findWorld() || process.cwd();
+  const logDir = path.join(worldPath, '.nameforma');
+
+  // Ensure log directory exists
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  const stream = createStream(
+    (time, index) => {
+      return path.join(logDir, 'nf.log');
+    },
+    {
+      size: '10M',
+      maxFiles: 10,
+    },
+  );
+
+  return pino(stream);
+})();

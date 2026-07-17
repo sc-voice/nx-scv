@@ -71,6 +71,8 @@
     "bubbly": "^1.1.2",
     "commander": "^12.1.0",
     "kafkajs": "^2.2.4",
+    "pino": "^9.4.0",
+    "rotating-file-stream": "^3.1.1",
     "uuid": "^14.0.0"
   },
   "bin": {

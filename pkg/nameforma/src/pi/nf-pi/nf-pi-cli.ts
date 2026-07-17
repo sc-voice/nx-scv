@@ -11,6 +11,7 @@ import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
 import { NfProgram, ICommand } from '../../nf-program.js';
 import { DBG } from '../../defines.js';
+import { logger } from '../../file-repository.js';
 
 const theme = NameFormaTheme.shared;
 
@@ -67,12 +68,12 @@ export class NfExtensionCommand extends NfProgram {
   }
 
   private exitCallback(err: any) {
-    const msg = 'nf-pi-cli.exitCallback';
+    const ctx = 'nf-pi-cli.exitCallback';
     const nfp = this;
     const str = JSON.stringify(err);
     const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
 
-    dbg && World.log(msg, str);
+    dbg && logger.info({ ctx }, str);
     //  throw new Error(`${msg} throw`);
   }
 
@@ -186,10 +187,10 @@ export class NfExtensionCommand extends NfProgram {
 /** NfExtensionCommand adapter */
 export async function nfPiCli(
   args: string,
-  ctx: ExtensionCommandContext,
+  ecc: ExtensionCommandContext,
 ): Promise<void> {
-  const msg = 'nfPiCli';
-  const nfExt = new NfExtensionCommand(ctx);
+  const ctx = 'nfPiCli';
+  const nfExt = new NfExtensionCommand(ecc);
   const session = NfSession.shared;
   const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
   const { watchCount: oldCount, world } = session;
@@ -198,7 +199,7 @@ export async function nfPiCli(
   const { watchCount: newCount, watchInstance } = session;
   if (oldCount === newCount && watchInstance) {
     // stop watching if we processed a different nf command
-    dbg && world.log(msg, 'watchInstance.stop');
+    dbg && logger.info({ ctx }, 'watchInstance.stop');
     await watchInstance.stop();
     session.watchInstance = null;
   }

@@ -1,4 +1,4 @@
-import { FileRepository } from './file-repository.js';
+import { FileRepository, logger } from './file-repository.js';
 import { World } from './world.js';
 import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
@@ -200,10 +200,10 @@ export class NfProgram {
     const msg = 'n7m.parseAsync';
     const dbg = DBG.NF_PROGRAM.ANY;
     try {
-      dbg && FileRepository.log(msg, args.join(' '));
+      dbg && logger.debug(`${msg}: ${args.join(' ')}`);
       return this.cmdDelegate.parseAsync(args);
     } catch (err) {
-      dbg && FileRepository.log(msg, (err as any)?.message);
+      dbg && logger.debug(`${msg}: ${(err as any)?.message}`);
       throw err;
     }
   }
@@ -303,7 +303,7 @@ export class NfProgram {
     const msg = 'nfAdd';
     const dbg = DBG.NF_PROGRAM.ANY;
 
-    dbg && FileRepository.log(JSON.stringify({ typeName, name, summary }));
+    dbg && logger.debug(JSON.stringify({ typeName, name, summary }));
   }
 
   registerAddCommand(): void {

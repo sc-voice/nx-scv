@@ -4,6 +4,7 @@ import { EventEmitter } from 'node:events';
 import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
 import { DBG } from './defines.js';
+import { logger } from './file-repository.js';
 import {
   Entity,
   type IEntity,
@@ -25,7 +26,6 @@ import {
 } from './forma-list.js';
 import { Focus } from './focus.js';
 import { FocusManager, type IFocusManager } from './focus-manager.js';
-import { NfUrl } from './nf-url.js';
 import {
   RenderData,
   RenderRow,
@@ -74,7 +74,6 @@ export class World extends Entity implements IEventBus {
   #watermark: RGA64Watermark;
   #bus: EventEmitter;
   lastSyncTime: number;
-  #logFile: string;
 
   // UUID64 signature of the non-specific world (@see log)
   static readonly NO_WORLD = '_NO_WORLD_NW';
@@ -83,44 +82,20 @@ export class World extends Entity implements IEventBus {
   static Focus = Focus;
 
   /**
-   * Create a World at the given path with optional id (internal use only)
+   * Create a World at the given path with optional config (internal use only)
    * Use FileRepository.worldFromPath() to get or create a World instance.
    * @param {string} worldPath - Path to .nameforma/ directory
-   * @param {UUID64 | string} id - Optional world id (generates new if not provided)
+   * @param {IEntityRepository} repository - Entity repository implementation
+   * @param {Partial<World>} cfg - Configuration with optional id, name, summary
    */
   constructor(
     worldPath: string,
     repository: IEntityRepository,
-    id: UUID64 | string = new UUID64(),
+    cfg: Partial<World> = {},
   ) {
-    const worldRoot = path.dirname(worldPath);
-
-    // Try to use package.json name/description as defaults
-    let name: string | undefined;
-    let summary: string | undefined;
-    try {
-      const packageJsonPath = path.join(worldRoot, 'package.json');
-      if (fs.existsSync(packageJsonPath)) {
-        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-        name = pkg.name;
-        summary = pkg.description;
-      }
-    } catch (err) {
-      // Silently ignore package.json read errors
-    }
-
-    // Fallback to path-based defaults
-    if (!name) {
-      const nfUrl = new NfUrl(worldRoot, '~');
-      name = nfUrl.uri;
-    }
-    if (!summary) {
-      summary = worldPath;
-    }
-
+    const ctx = 'World.ctor';
+    const { id = new UUID64(), name = 'name', summary = 'summary?' } = cfg;
     super({ id, name, summary });
-
-    const msg = 'world.ctor';
     const dbg = WORLD?.CTOR;
 
     this.repository = repository;
@@ -130,16 +105,9 @@ export class World extends Entity implements IEventBus {
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
     this.lastSyncTime = 0;
-    this.#logFile = path.join(worldPath, 'nf.log');
 
     // Register standard entities
     this.registerEntity(Task);
-
-    // Ensure .nameforma directory exists
-    if (!fs.existsSync(worldPath)) {
-      fs.mkdirSync(worldPath, { recursive: true });
-      dbg && cc.ok1(msg, `created ${worldPath}`);
-    }
 
     // Wire persistence listener for FormaList mutations
     this.#bus.on('change', async (event: FormaListEvent<any>) => {
@@ -204,13 +172,12 @@ export class World extends Entity implements IEventBus {
       }
     });
 
-    dbg && cc.ok1(msg, `initialized ${worldPath}`);
-    this.log('initialized', new Date().toISOString());
+    logger.info({ ctx }, worldPath);
     World.#lastWorld = this;
   }
 
   /** Initialize namespace with all registered entities */
-  #populateNamespace(): void {
+  async #populateNamespace(): Promise<void> {
     const msg = 'world.populateNamespace';
     const dbg = WORLD?.ALL;
 
@@ -218,48 +185,31 @@ export class World extends Entity implements IEventBus {
     let totalLoaded = 0;
 
     for (const entityTypeName of entityNames) {
-      const entityDir = path.join(this.#worldPath, entityTypeName);
-      if (!fs.existsSync(entityDir)) {
-        dbg && cc.ok1(msg, `no ${entityTypeName} directory`);
-        continue;
-      }
-
-      const files = fs
-        .readdirSync(entityDir)
-        .filter((f) => f.endsWith('.json'));
-
       const IEntity = this.entityClassOfName(entityTypeName);
       if (!IEntity) {
         dbg && cc.bad1(msg, `no IEntity for ${entityTypeName}`);
         continue;
       }
 
-      for (const file of files) {
-        const filePath = path.join(entityDir, file);
+      let typeLoaded = 0;
+      for await (const instance of this.repository.findMany(IEntity, {
+        collection: entityTypeName,
+      })) {
         try {
-          const data = fs.readFileSync(filePath, 'utf8');
-          const entity = JSON.parse(data);
-
-          if (entity.id) {
-            try {
-              entity.id = UUID64.fromString(entity.id);
-            } catch (err) {
-              dbg &&
-                cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
-              continue;
-            }
-          }
-
-          const instance = IEntity.fromJson(entity);
           this.addToNamespace(instance);
+          typeLoaded++;
           totalLoaded++;
         } catch (err) {
-          dbg && cc.bad1(`${msg} failed to load ${filePath}`, err);
+          dbg &&
+            cc.bad1(
+              `${msg} failed to add ${entityTypeName} to namespace`,
+              err,
+            );
         }
       }
 
       dbg &&
-        cc.ok1(msg, `loaded ${files.length} ${entityTypeName} entities`);
+        cc.ok1(msg, `loaded ${typeLoaded} ${entityTypeName} entities`);
     }
     // add self
     this.addToNamespace(this);
@@ -267,52 +217,11 @@ export class World extends Entity implements IEventBus {
     dbg && cc.ok1(msg, `total loaded ${totalLoaded} entities`);
   }
 
-  /** Append Forma message to nf.log */
-  logForma(forma: Forma, ...strs: string[]) {
-    const msg = strs.join(' ');
-    const id = UUID64.createRelatedId(forma.id);
-    fs.appendFileSync(this.#logFile, `${id}: ${msg}\n`);
-  }
-
-  /** Append World message to nf.log */
-  log(...strs: string[]) {
-    const msg = strs.join(' ');
-    if (fs.existsSync(this.#worldPath)) {
-      this.logForma(this, msg);
-    } else {
-      // Ignore messages for orphaned worlds.
-      // Tests create orphaned worlds
-    }
-  }
-
-  /** Log messages independent of any world.
-   * Use this sparingly to track pre-world creation events
-   * The nf.log file will be created within the cwd hierarchy
-   * or within the cwd itself if cws has no valid worldPath.
-   */
-  static log(...strs: string[]) {
-    if (World.#lastWorld != null) {
-      // World is normally a singleton except in testing, which needs
-      // creates multiple worlds. Using #lastWorld provides diagnostic
-      // logs for testing.
-      World.#lastWorld.log(...strs);
-      return;
-    }
-
-    // Usecase1: logging before world creation (Production)
-    // Usecase2: logging before first test world creation (Test)
-    const msg = strs.join(' ');
-    const id = UUID64.forSignature(World.NO_WORLD);
-    const worldPath = World.findWorld();
-    const logFile = path.join(worldPath ?? process.cwd(), 'nf.log');
-    fs.appendFileSync(logFile, `${id}: ${msg}\n`);
-  }
-
   /** Must be called after construction */
   async initialize(): Promise<void> {
     if (!this._namespace) {
       this._namespace = new FuzzyNamespace();
-      this.#populateNamespace();
+      await this.#populateNamespace();
     }
   }
 
@@ -663,29 +572,18 @@ export class World extends Entity implements IEventBus {
       );
     }
 
-    // Load and reconstruct the matching entity
+    // Load the matching entity via repository
     const id = matchingIds[0];
-    const filePath = path.join(this.#worldPath, entityType, `${id}.json`);
-    const data = fs.readFileSync(filePath, 'utf8');
-    const entity = JSON.parse(data);
-
-    // Reconstruct id as UUID64 POJO
-    if (entity.id) {
-      try {
-        entity.id = UUID64.fromString(entity.id);
-      } catch (err) {
-        throw new Error(`${filePath}: invalid id "${entity.id}"`);
-      }
+    const typedEntity = await this.repository.findOne(EntityClass, { id });
+    if (!typedEntity) {
+      throw new Error(`${msg}: entity ${entityType}/${id} not found`);
     }
-
-    // Reconstruct as typed instance
-    const typedEntity = EntityClass.fromJson(entity);
 
     // Namespace is the canonical source of Forma instances: registering the
     // freshly-loaded instance keeps it in sync (addForma replaces any stale entry for this id).
     this.addToNamespace(typedEntity);
 
-    dbg && cc.ok1(msg, `loaded ${entityType}/${entity.id}`);
+    dbg && cc.ok1(msg, `loaded ${entityType}/${typedEntity.id}`);
     return typedEntity as ReturnType<T['fromJson']>;
   }
 
@@ -982,7 +880,7 @@ export class World extends Entity implements IEventBus {
     // worldPath is the directory containing world.json
     const worldPath = baseDir || '.';
 
-    const world = new World(worldPath, repository, data.id);
+    const world = new World(worldPath, repository, { id: data.id });
 
     // Restore numeronym map if present
     if (data.numeronym && typeof data.numeronym === 'object') {
