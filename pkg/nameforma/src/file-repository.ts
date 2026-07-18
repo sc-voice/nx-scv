@@ -318,9 +318,6 @@ export class FileRepository implements IEntityRepository {
       world = await this.createWorld(worldPath);
     }
 
-    // Initialize sync cursor to now
-    world.lastSyncTime = Date.now();
-
     return world;
   }
 
@@ -383,9 +380,6 @@ export class FileRepository implements IEntityRepository {
     fs.writeFileSync(worldFile, worldData, 'utf8');
     dbg && cc.ok1(msg, `created ${worldFile}`);
 
-    // Initialize sync cursor to now
-    world.lastSyncTime = Date.now();
-
     return world;
   }
 
@@ -422,9 +416,6 @@ export class FileRepository implements IEntityRepository {
     }
 
     await world.initialize();
-
-    // Initialize sync cursor to now
-    world.lastSyncTime = Date.now();
 
     return world;
   }

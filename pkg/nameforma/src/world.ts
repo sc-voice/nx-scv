@@ -73,7 +73,6 @@ export class World extends Entity implements IEventBus {
   #focusManager: FocusManager;
   #watermark: RGA64Watermark;
   #bus: EventEmitter;
-  lastSyncTime: number;
 
   // UUID64 signature of the non-specific world (@see log)
   static readonly NO_WORLD = '_NO_WORLD_NW';
@@ -104,7 +103,6 @@ export class World extends Entity implements IEventBus {
     this.#watermark = new RGA64Watermark();
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
-    this.lastSyncTime = 0;
 
     // Register standard entities
     this.registerEntity(Task);
@@ -330,130 +328,25 @@ export class World extends Entity implements IEventBus {
     await this.repository.saveWorld(this);
   }
 
+  override copyFrom(that: World): void {
+    super.copyFrom(that);
+    this.#numeronym = new Map(that.#numeronym);
+    this.#watermark = RGA64Watermark.fromJSON(that.#watermark.toJSON());
+    this.#focusManager = FocusManager.fromJSON(
+      that.#focusManager.toJSON(),
+    );
+    this._namespace = new FuzzyNamespace(that._namespace);
+  }
+
   /**
-   * Synchronize namespace with filesystem state, maintaining 1-to-1 invariant.
-   *
-   * World maintains that namespace entities are exactly those on disk. External
-   * processes may add/modify/delete entity files; sync() reconciles these changes:
-   * - Reloads entities modified after lastSyncTime
-   * - Adds entities that don't exist in namespace
-   * - Removes entities whose backing files were deleted
-   *
-   * Also reloads mutable state (focusManager, numeronym, watermark) from world.json.
+   * Synchronize world with repository
    *
    * Intended for polling scenarios (e.g., nf-watch) where a long-lived World
-   * instance needs to stay current with external writes. Called automatically
-   * by fromPath() on world creation/load.
-   *
-   * Updates lastSyncTime to now after reconciliation.
+   * instance needs to stay current with external writes.
    */
   async syncRepository(): Promise<void> {
-    const msg = 'world.syncRepository';
-    const dbg = WORLD.SYNC_REPOSITORY;
-
-    // Reload mutable state from world.json
-    const worldFile = path.join(this.#worldPath, 'world.json');
-    if (fs.existsSync(worldFile)) {
-      const data = JSON.parse(fs.readFileSync(worldFile, 'utf8'));
-
-      if (data.numeronym && typeof data.numeronym === 'object') {
-        this.#numeronym = new Map(Object.entries(data.numeronym));
-      }
-
-      if (data.watermark && typeof data.watermark === 'object') {
-        this.#watermark = RGA64Watermark.fromJSON(data.watermark);
-      }
-
-      if (data.focusManager) {
-        this.#focusManager = FocusManager.fromJSON(data.focusManager);
-      }
-    }
-
-    // Reconcile filesystem entities with namespace
-    const syncStart = this.lastSyncTime;
-
-    // Collect all filesystem entities and track which ones we've seen
-    const filesystemEntities = new Map<string, any>();
-
-    await this.syncFocusManager();
-
-    for (const entityTypeName of this.getEntityNames()) {
-      const entityDir = path.join(this.#worldPath, entityTypeName);
-      if (!fs.existsSync(entityDir)) continue;
-
-      const IEntity = this.entityClassOfName(entityTypeName);
-      if (!IEntity) continue;
-
-      const files = fs
-        .readdirSync(entityDir)
-        .filter((f) => f.endsWith('.json'));
-
-      for (const file of files) {
-        const filePath = path.join(entityDir, file);
-        const stats = fs.statSync(filePath);
-        const idStr = file.slice(0, -5);
-
-        // Check if file was modified since last sync OR is not in namespace
-        const inNamespace = this.namespace.getForma(idStr);
-        const needsReload = stats.mtimeMs > syncStart || !inNamespace;
-
-        if (needsReload) {
-          try {
-            const data = fs.readFileSync(filePath, 'utf8');
-            const entity = JSON.parse(data);
-
-            // Reconstruct id as UUID64 POJO
-            if (entity.id) {
-              try {
-                entity.id = UUID64.fromString(entity.id);
-              } catch (err) {
-                dbg &&
-                  cc.bad1(`${msg} invalid id in ${filePath}`, entity.id);
-                continue;
-              }
-            }
-
-            // Reconstruct as typed instance
-            const typedEntity = IEntity.fromJson(entity);
-            filesystemEntities.set(idStr, typedEntity);
-
-            // Add or replace in namespace
-            if (inNamespace) {
-              this.mutableNamespace.removeForma(idStr);
-            }
-            this.mutableNamespace.addForma(typedEntity);
-
-            dbg &&
-              cc.ok(
-                `${msg} ${entityTypeName} ${idStr} ${inNamespace ? 'reloaded' : 'added'}`,
-              );
-          } catch (err) {
-            dbg && cc.bad1(`${msg} failed to load ${filePath}`, err);
-          }
-        } else {
-          filesystemEntities.set(idStr, inNamespace);
-        }
-      }
-    }
-
-    // Ensure world is in namespace and won't be removed during sync
-    if (!this.namespace.getForma(this.id.base64)) {
-      this.addToNamespace(this);
-    }
-    filesystemEntities.set(this.id.base64, this);
-
-    // Remove entities from namespace that no longer exist on filesystem
-    for (const [fuzzyId, forma] of this.namespace) {
-      const idStr = forma.id.base64;
-      if (!filesystemEntities.has(idStr)) {
-        this.mutableNamespace.removeForma(idStr);
-        dbg && cc.ok(`${msg} removed stale ${idStr}`);
-      }
-    }
-
-    // Update sync cursor
-    this.lastSyncTime = Date.now();
-    dbg && cc.ok1(msg, `synchronized namespace with filesystem`);
+    let freshWorld = (await this.repository.loadWorld()) as World;
+    this.copyFrom(freshWorld);
   }
 
   /**

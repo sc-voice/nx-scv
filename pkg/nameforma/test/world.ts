@@ -1232,3 +1232,82 @@ describe('World.upsertOne() async — ZudaO', () => {
     expect(entityRegistered).toBe(entityLoaded);
   });
 });
+
+describe('World.syncRepository()', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let world: World;
+
+  beforeEach(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-sync-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    world = await FileRepository.worldFromPath(worldPath);
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('reloads an entity file modified externally after lastSyncTime', async () => {
+    const name = 'name1';
+    const summary = 'summary1';
+    const action1 = new Action({ name: 'action1' });
+    const task = await world.upsertOne(Task, {
+      name,
+      summary,
+      rawActions: [action1],
+    });
+    const filePath = path.join(worldPath, 'task', `${task.id}.json`);
+    await world.syncRepository();
+
+    const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const name2 = 'name2';
+    const updateId2 = new UUID64();
+    const summary2 = 'summary2';
+    const action2 = new Action({ name: 'action2' });
+    raw.name = name2;
+    raw.summary = summary2;
+    raw.rawActions = [action2];
+    raw.updateId = updateId2.base64;
+    fs.writeFileSync(filePath, JSON.stringify(raw));
+    fs.utimesSync(filePath, new Date(), new Date(Date.now() + 1000));
+
+    await world.syncRepository();
+    const reloaded = world.namespace.getForma(task.id.base64);
+    expect(reloaded.name).toBe(name2);
+    expect(reloaded.summary).toBe(summary2);
+    expect(reloaded.updateId.base64).toBe(updateId2.base64);
+    expect(reloaded.rawActions).toEqual([action2]);
+  });
+
+  it('adds an entity present on disk but absent from namespace', async () => {
+    const task = await world.upsertOne(Task, { name: 'orphan' });
+    world.mutableNamespace.removeForma(task.id.base64);
+    expect(world.namespace.getForma(task.id.base64)).toBeFalsy();
+
+    await world.syncRepository();
+    expect(world.namespace.getForma(task.id.base64)?.name).toBe('orphan');
+  });
+
+  it('removes a namespace entry whose backing file was deleted', async () => {
+    const task = await world.upsertOne(Task, { name: 'doomed' });
+    await world.syncRepository();
+    const filePath = path.join(worldPath, 'task', `${task.id}.json`);
+    fs.unlinkSync(filePath);
+
+    await world.syncRepository();
+    expect(world.namespace.getForma(task.id.base64)).toBeFalsy();
+  });
+
+  it('reloads numeronym map from world.json', async () => {
+    world.setNumeronym(new Map([['abc', 'xyz']]));
+    await world.save();
+
+    const other = await FileRepository.worldFromPath(worldPath);
+    other.lastSyncTime = 0;
+    await other.syncRepository();
+    expect(other.getNumeronym().get('abc')).toBe('xyz');
+  });
+});

@@ -70,6 +70,15 @@ export class FuzzyNamespace implements IMutableNamespace {
   #cachedPrefixLen: number | null = null;
   #cachedSuffixLen: number | null = null;
 
+  constructor(that?: FuzzyNamespace) {
+    if (that) {
+      this.#formas = [...that.#formas];
+      this.#fuzzyIdCache = new Map(that.#fuzzyIdCache);
+      this.#cachedPrefixLen = that.#cachedPrefixLen;
+      this.#cachedSuffixLen = that.#cachedSuffixLen;
+    }
+  }
+
   /**
    * Add a Forma instance to this namespace.
    * Replaces any existing entry with the same exact id (last write wins) —

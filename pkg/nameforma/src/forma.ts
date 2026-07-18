@@ -38,7 +38,6 @@ export class Forma extends Identifiable implements IRenderable {
   static #instances: Record<string, number> = {}; // instance count
   static patchableFields = ['name', 'summary'];
 
-  #prefix: string = '';
   name: string; // short descriptive title
   summary: string; // long description
   updateId: UUID64; // creation id or most recent mutating transaction id
@@ -68,6 +67,13 @@ export class Forma extends Identifiable implements IRenderable {
     this.updateId = UUID64.fromAny(cfg.updateId ?? cfg.id ?? this.id);
 
     dbg && cc.ok1(msg + UOK, { id: this.id, name });
+  }
+
+  /** copy all properties except id */
+  copyFrom(that: Forma): void {
+    this.name = that.name;
+    this.summary = that.summary;
+    this.updateId = that.updateId;
   }
 
   /**
