@@ -6,6 +6,8 @@
  */
 
 import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { User } from './user.js';
 
 /**
  * Interface for git operations. Allows decoupling from direct execSync calls.
@@ -30,7 +32,17 @@ export class GitCLI implements IGitCLI {
   readonly cwd?: string;
 
   constructor(cwd?: string) {
-    this.cwd = cwd;
+    this.cwd = cwd ?? process.cwd();
+  }
+
+  /** Create GitCLI from a file:// URL by extracting its pathname
+   * @param url URL object (typically file:// URL)
+   * @returns GitCLI instance with working directory set to URL pathname
+   */
+  static fromUrl(url: URL): GitCLI {
+    const pathname =
+      url.protocol === 'file:' ? fileURLToPath(url) : url.pathname;
+    return new GitCLI(pathname);
   }
 
   /** Get git config value for given key
@@ -79,6 +91,12 @@ export class GitCLI implements IGitCLI {
       stdio: ['pipe', 'pipe', 'pipe'],
       ...(this.cwd ? { cwd: this.cwd } : {}),
     }).trim();
+  }
+
+  getUser(): User {
+    const email = this.configGet('user.email');
+    const name = this.configGet('user.name');
+    return new User(email, name);
   }
 }
 

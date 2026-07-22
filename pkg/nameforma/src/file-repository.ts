@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import pino from 'pino';
 import { createStream } from 'rotating-file-stream';
 import UUID64 from './uuid64.js';
@@ -26,6 +27,11 @@ export class FileRepository implements IEntityRepository {
       throw new Error(`${msg} invalid worldPath: ${worldPath}`);
     }
     this.#worldPath = worldPath;
+  }
+
+  get projectUrl(): URL {
+    const projectPath = path.dirname(this.#worldPath);
+    return pathToFileURL(projectPath);
   }
 
   static async create(worldPath: string): Promise<FileRepository> {
@@ -423,7 +429,7 @@ export class FileRepository implements IEntityRepository {
 
 export const logger = (() => {
   const worldPath = FileRepository.findWorld() || process.cwd();
-  const logDir = path.join(worldPath, '.nameforma');
+  const logDir = worldPath;
 
   // Ensure log directory exists
   if (!fs.existsSync(logDir)) {

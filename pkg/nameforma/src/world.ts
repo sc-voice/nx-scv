@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { EventEmitter } from 'node:events';
 import { Text } from '@sc-voice/tools';
 import UUID64 from './uuid64.js';
@@ -99,7 +97,7 @@ export class World extends Entity implements IEventBus {
 
     this.repository = repository;
     this.#worldPath = worldPath;
-    this.#gitCLI = new GitCLI(path.dirname(worldPath));
+    this.#gitCLI = GitCLI.fromUrl(this.repository.projectUrl);
     this.#watermark = new RGA64Watermark();
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
@@ -448,6 +446,32 @@ export class World extends Entity implements IEventBus {
     return typedEntity as ReturnType<T['fromJson']>;
   }
 
+  /** Generate stream of entities ordered by entityComparator
+   * @param {targetClass} desired Entity class (e.g., Task)
+   * @param {filter} Optional Entity filter
+   * @param {limit} Optional maximum number of entities to return
+   */
+  *entityStream<T extends Entity, C extends Constructor<T>>(
+    targetClass: C,
+    filter?: (element: T) => boolean,
+    limit?: number,
+  ): Generator<InstanceType<C>> {
+    const msg = 'world.entityStream';
+    const dbg = DBG.WORLD.ENTITY_STREAM;
+    const ns = this._namespace;
+    if (ns == null) throw new Error(`${msg} uninitialized world`);
+    const rawEntities = [...ns.findByClass(targetClass, filter)];
+    const entities = filter ? rawEntities.filter(filter) : rawEntities;
+    entities.sort(this.entityComparator);
+
+    let count = 0;
+    for (const entity of entities) {
+      if (limit !== undefined && count >= limit) break;
+      yield entity;
+      count++;
+    }
+  }
+
   /**
    * @deprecated
    * Load entities of a given type as a FormaList for CRUD operations
@@ -465,39 +489,7 @@ export class World extends Entity implements IEventBus {
   entityList<T extends IEntity>(
     EntityClass: T,
   ): FormaList<ReturnType<T['fromJson']>> {
-    const msg = 'world.entityList';
-    const dbg = WORLD?.LIST;
-
-    const entityType = EntityClass.collection;
-    const entityDir = path.join(this.#worldPath, entityType);
-    const items: ReturnType<T['fromJson']>[] = [];
-
-    if (fs.existsSync(entityDir)) {
-      const files = fs
-        .readdirSync(entityDir)
-        .filter((f) => f.endsWith('.json'));
-      for (const file of files) {
-        const filePath = path.join(entityDir, file);
-        const data = fs.readFileSync(filePath, 'utf8');
-        const entity = JSON.parse(data);
-
-        // Reconstruct id as UUID64 POJO (consistent with loadEntity/loadFuzzy)
-        if (entity.id) {
-          try {
-            entity.id = UUID64.fromString(entity.id);
-          } catch (err) {
-            throw new Error(`${filePath}: invalid id "${entity.id}"`);
-          }
-        }
-
-        // Reconstruct as typed instance
-        const typedEntity = EntityClass.fromJson(entity);
-        items.push(typedEntity as ReturnType<T['fromJson']>);
-      }
-    }
-
-    dbg &&
-      cc.ok1(msg, `loaded ${items.length} ${entityType}(s) as FormaList`);
+    const items = [...this.entityStream(EntityClass as any)];
     return new FormaList<ReturnType<T['fromJson']>>(
       items,
       EntityClass as any,
@@ -652,9 +644,7 @@ export class World extends Entity implements IEventBus {
     const startTime = performance.now();
 
     try {
-      const gitDir = path.dirname(this.#worldPath);
-      const user = User.fromGit(gitDir);
-      const userSignature = user.signature();
+      const userSignature = this.#gitCLI.getUser().signature();
 
       // Get current HEAD as UUID64
       const { uuid64: headUuid } = UUID64.forGitObserved(
@@ -802,9 +792,9 @@ export class World extends Entity implements IEventBus {
         continue;
       }
       const c8r = this.entityComparator;
-      let formas = this.entityList(ec).sort(c8r);
+      let formas = [...this.entityStream(ec as any)].sort(c8r);
       buf.pushRow([
-        new FormaField(eName, false, ec.collection, '' + formas.size),
+        new FormaField(eName, false, ec.collection, '' + formas.length),
       ]);
       for (const f of formas) {
         const row = f.renderDataAtZeno(view, ZENO_TERSE) as RenderRow;

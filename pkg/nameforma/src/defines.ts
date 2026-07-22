@@ -147,7 +147,7 @@ const WORLD = {
   EVENT: 0,
   FIND_WORLD: 0,
   FUZZY_ID: 0,
-  LIST: 0,
+  ENTITY_STREAM: 0,
   LOAD: 0,
   REGISTER: 0,
   SAVE: 0,

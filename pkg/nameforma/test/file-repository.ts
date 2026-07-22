@@ -8,6 +8,7 @@ import {
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import { FileRepository, Task, UUID64, World } from '@sc-voice/nameforma';
 
 describe('FileRepository', () => {
@@ -131,6 +132,15 @@ describe('FileRepository', () => {
     await repo.saveWorld(world);
     const world2 = await repo.loadWorld();
     expect(world2.id.base64).toEqual(world.id.base64);
+  });
+
+  it('projectUrl returns file:// URL of project root', () => {
+    const projectUrl = repo.projectUrl;
+    expect(projectUrl).toBeInstanceOf(URL);
+    expect(projectUrl.protocol).toBe('file:');
+
+    const projectPath = fileURLToPath(projectUrl);
+    expect(projectPath).toBe(tempDir);
   });
 
   describe('distinct()', () => {

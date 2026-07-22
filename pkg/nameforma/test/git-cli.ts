@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { pathToFileURL, fileURLToPath } from 'url';
 import { GitCLI, defaultGitCLI } from '../src/git-cli.js';
 
 export class MockGitCLI {
@@ -59,7 +60,11 @@ export class MockGitCLI {
 describe('GitCLI', () => {
   it('instantiates', () => {
     const git = new GitCLI();
+    const url = pathToFileURL(git.cwd);
+    const gitUrl = GitCLI.fromUrl(url);
     expect(git).toBeDefined();
+    expect(gitUrl).toBeDefined();
+    expect(gitUrl.cwd).toEqual(git.cwd);
   });
 
   it('defaultGitCLI is defined', () => {

@@ -96,6 +96,8 @@ export type Filter<T extends TObject> =
  * Entities are stored in a repository for a World
  */
 export interface IEntityRepository {
+  readonly projectUrl: URL;
+
   upsertOne<T extends IEntity>(
     EntityClass: T,
     cfg: TObject,

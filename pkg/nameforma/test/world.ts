@@ -1233,6 +1233,190 @@ describe('World.upsertOne() async — ZudaO', () => {
   });
 });
 
+describe('World.entityStream()', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let world: World;
+
+  beforeEach(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-stream-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    world = await FileRepository.worldFromPath(worldPath);
+  });
+
+  afterEach(() => {
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('should be a generator function', () => {
+    const stream = world.entityStream(Task);
+    expect(typeof stream[Symbol.iterator]).toBe('function');
+    expect(typeof stream.next).toBe('function');
+  });
+
+  it('should yield no entities when none exist', () => {
+    const stream = world.entityStream(Task);
+    const entities = Array.from(stream);
+    expect(entities).toEqual([]);
+  });
+
+  it('should yield all entities of given type', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'task1' });
+    const task2 = await world.upsertOne(Task, { name: 'task2' });
+    const task3 = await world.upsertOne(Task, { name: 'task3' });
+
+    const entities = Array.from(world.entityStream(Task));
+
+    expect(entities).toHaveLength(3);
+    expect(entities.map((e) => e.name)).toEqual(
+      expect.arrayContaining(['task1', 'task2', 'task3']),
+    );
+  });
+
+  it('should yield entities sorted by entityComparator', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'task1' });
+    const task2 = await world.upsertOne(Task, { name: 'task2' });
+    const task3 = await world.upsertOne(Task, { name: 'task3' });
+
+    // Focus task2 first, then task1 (so focus order is task1, task2, task3 from top to bottom)
+    world.focusManager.focus(task2.id);
+    world.focusManager.focus(task1.id);
+
+    const entities = Array.from(world.entityStream(Task));
+
+    // Should be ordered by focus (task1, task2) then by id (task3)
+    expect(entities[0].id.base64).toBe(task1.id.base64);
+    expect(entities[1].id.base64).toBe(task2.id.base64);
+    expect(entities[2].id.base64).toBe(task3.id.base64);
+  });
+
+  it('should respect filter predicate', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'keep1' });
+    const task2 = await world.upsertOne(Task, { name: 'skip' });
+    const task3 = await world.upsertOne(Task, { name: 'keep2' });
+
+    const filter = (e: Task) => e.name.startsWith('keep');
+    const entities = Array.from(world.entityStream(Task, filter));
+
+    expect(entities).toHaveLength(2);
+    expect(entities.map((e) => e.name)).toEqual(['keep2', 'keep1']);
+  });
+
+  it('should return empty stream when filter matches nothing', async () => {
+    await world.upsertOne(Task, { name: 'task1' });
+    await world.upsertOne(Task, { name: 'task2' });
+
+    const filter = (e: Task) => e.name === 'nonexistent';
+    const entities = Array.from(world.entityStream(Task, filter));
+
+    expect(entities).toEqual([]);
+  });
+
+  it('should respect limit parameter', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'task1' });
+    const task2 = await world.upsertOne(Task, { name: 'task2' });
+    const task3 = await world.upsertOne(Task, { name: 'task3' });
+
+    const entities = Array.from(world.entityStream(Task, undefined, 2));
+
+    expect(entities).toHaveLength(2);
+  });
+
+  it('should respect both filter and limit', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'keep1' });
+    const task2 = await world.upsertOne(Task, { name: 'skip' });
+    const task3 = await world.upsertOne(Task, { name: 'keep2' });
+    const task4 = await world.upsertOne(Task, { name: 'keep3' });
+
+    const filter = (e: Task) => e.name.startsWith('keep');
+    const entities = Array.from(world.entityStream(Task, filter, 2));
+
+    expect(entities).toHaveLength(2);
+    expect(entities.every((e) => e.name.startsWith('keep'))).toBe(true);
+  });
+
+  it('should throw if namespace not initialized', () => {
+    // Create a world but don't initialize namespace
+    const rawRepository = new FileRepository(worldPath);
+    const uninitWorld = new World(worldPath, rawRepository);
+
+    expect(() => Array.from(uninitWorld.entityStream(Task))).toThrow(
+      /uninitialized world/,
+    );
+  });
+
+  it('should yield entities lazily (generator behavior)', async () => {
+    for (const name of ['task1', 'task2', 'task3']) {
+      await world.upsertOne(Task, { name });
+    }
+
+    // Tasks are ordered by recency
+    const stream = world.entityStream(Task);
+    const first = stream.next();
+    expect(first.done).toBe(false);
+    expect(first.value.name).toBe('task3');
+
+    const second = stream.next();
+    expect(second.done).toBe(false);
+    expect(second.value.name).toBe('task2');
+
+    const third = stream.next();
+    expect(third.done).toBe(false);
+    expect(third.value.name).toBe('task1');
+
+    const fourth = stream.next();
+    expect(fourth.done).toBe(true);
+  });
+
+  it('should work with for...of loop', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'task1' });
+    const task2 = await world.upsertOne(Task, { name: 'task2' });
+
+    const names: string[] = [];
+    for (const entity of world.entityStream(Task)) {
+      names.push(entity.name);
+    }
+
+    expect(names).toContain('task1');
+    expect(names).toContain('task2');
+  });
+
+  it('should handle limit of 0', async () => {
+    await world.upsertOne(Task, { name: 'task1' });
+    await world.upsertOne(Task, { name: 'task2' });
+
+    const entities = Array.from(world.entityStream(Task, undefined, 0));
+
+    expect(entities).toEqual([]);
+  });
+
+  it('should handle limit greater than entity count', async () => {
+    const task1 = await world.upsertOne(Task, { name: 'task1' });
+    const task2 = await world.upsertOne(Task, { name: 'task2' });
+
+    const entities = Array.from(world.entityStream(Task, undefined, 100));
+
+    expect(entities).toHaveLength(2);
+  });
+
+  it('should yield entities that match both filter and limit in order', async () => {
+    const entities = await Promise.all([
+      world.upsertOne(Task, { name: 'a-keep' }),
+      world.upsertOne(Task, { name: 'b-skip' }),
+      world.upsertOne(Task, { name: 'c-keep' }),
+      world.upsertOne(Task, { name: 'd-keep' }),
+    ]);
+
+    const filter = (e: Task) => e.name.includes('keep');
+    const stream = Array.from(world.entityStream(Task, filter, 2));
+
+    expect(stream).toHaveLength(2);
+    expect(stream.every((e) => e.name.includes('keep'))).toBe(true);
+  });
+});
+
 describe('World.syncRepository()', () => {
   let tempDir: string;
   let worldPath: string;

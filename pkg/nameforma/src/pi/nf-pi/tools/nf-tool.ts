@@ -81,7 +81,7 @@ export function validateParams(operation: string, params: any): void {
 }
 
 export const nfTool = {
-  name: 'nf',
+  name: 'nfTool',
   label: 'Nameforma',
   description: 'Manage nameforma tasks, actions, and references',
   promptSnippet: 'Create and manage tasks, actions, and references',

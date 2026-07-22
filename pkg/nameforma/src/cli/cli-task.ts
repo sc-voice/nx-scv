@@ -13,6 +13,7 @@ import { TuiList } from './tui-list.js';
 import { confirmDelete } from './confirm.js';
 import { Unicode } from '@sc-voice/tools/text';
 import { NfProgram } from '../nf-program.js';
+import { FormaList } from '../forma-list.js';
 import type { ICommand } from '../nf-program.js';
 const { GREEN_CHECKBOX } = Unicode;
 const { BRIGHT_GREEN, NO_COLOR: UNC } = Unicode.LINUX_COLOR;
@@ -197,9 +198,9 @@ export default class TaskCommand {
    * List tasks, with focused tasks at top and top-of-stack highlighted in bright green
    * @param {World} world - World instance
    */
-  static listTasks(world: World): void {
-    const entityList = world.entityList(Task);
-    if (entityList.size === 0) {
+  static async listTasks(world: World): Promise<void> {
+    const items = [...world.entityStream(Task)];
+    if (items.length === 0) {
       nfTui.log('No tasks');
       return;
     }
@@ -215,7 +216,11 @@ export default class TaskCommand {
           : Unicode.BUL_HYPHEN;
       },
     };
-    new TuiList(entityList, world, prefs).render();
+    const taskList = new FormaList(items, Task, {
+      emitter: world,
+      namespace: world.mutableNamespace,
+    });
+    new TuiList(taskList, world, prefs).render();
   }
 
   static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
@@ -289,7 +294,7 @@ export default class TaskCommand {
       .action(async (options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
-        TaskCommand.listTasks(world);
+        await TaskCommand.listTasks(world);
       });
 
     // task get
