@@ -119,6 +119,138 @@ describe('FocusManager', () => {
       expect(fm.isFocused(e1)).toBe(false);
     });
   });
+
+  describe('FocusManager.focusLocal()', () => {
+    it('should push id onto local focus stack', () => {
+      const fm = new FocusManager();
+      const entity = new Task({ name: 'test' });
+
+      fm.focusLocal(entity.id);
+
+      expect(fm.peekLocal()?.base64).toBe(entity.id.base64);
+    });
+
+    it('should maintain stack order (most recent first)', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+      const e3 = new Task({ name: 'e3' });
+
+      fm.focusLocal(e1.id);
+      fm.focusLocal(e2.id);
+      fm.focusLocal(e3.id);
+
+      expect(fm.peekLocal()?.base64).toBe(e3.id.base64);
+    });
+  });
+
+  describe('FocusManager.unfocusLocal()', () => {
+    it('should remove specified id and return it', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+
+      fm.focusLocal(e1.id);
+      fm.focusLocal(e2.id);
+
+      const removed = fm.unfocusLocal(e1.id);
+      expect(removed?.base64).toBe(e1.id.base64);
+      expect(fm.peekLocal()?.base64).toBe(e2.id.base64);
+    });
+
+    it('should return null for non-existent id', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+
+      fm.focusLocal(e1.id);
+      expect(fm.unfocusLocal(e2.id)).toBeNull();
+      expect(fm.peekLocal()?.base64).toBe(e1.id.base64);
+    });
+
+    it('should return null on empty stack', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+
+      expect(fm.unfocusLocal(e1.id)).toBeNull();
+    });
+
+    it('should remove middle element from stack', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+      const e3 = new Task({ name: 'e3' });
+
+      fm.focusLocal(e1.id);
+      fm.focusLocal(e2.id);
+      fm.focusLocal(e3.id);
+
+      fm.unfocusLocal(e2.id);
+      expect(fm.peekLocal()?.base64).toBe(e3.id.base64);
+    });
+  });
+
+  describe('FocusManager.peekLocal()', () => {
+    it('should return most recent id in local focus stack', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+
+      fm.focusLocal(e1.id);
+      fm.focusLocal(e2.id);
+
+      expect(fm.peekLocal()?.base64).toBe(e2.id.base64);
+    });
+
+    it('should return null on empty stack', () => {
+      const fm = new FocusManager();
+      expect(fm.peekLocal()).toBeNull();
+    });
+  });
+
+  describe('FocusManager local vs RGA64 isolation', () => {
+    it('should keep local focus separate from RGA64 focus', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+
+      fm.focus(e1.id);
+      fm.focusLocal(e2.id);
+
+      expect(fm.peek()?.base64).toBe(e1.id.base64);
+      expect(fm.peekLocal()?.base64).toBe(e2.id.base64);
+    });
+
+    it('should not affect RGA64 focus when clearing local focus', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+
+      fm.focus(e1.id);
+      fm.focusLocal(e2.id);
+      fm.unfocusLocal(e2.id);
+
+      expect(fm.peek()?.base64).toBe(e1.id.base64);
+      expect(fm.peekLocal()).toBeNull();
+      expect(fm.size).toBe(1);
+    });
+
+    it('should not affect local focus when manipulating RGA64 focus', () => {
+      const fm = new FocusManager();
+      const e1 = new Task({ name: 'e1' });
+      const e2 = new Task({ name: 'e2' });
+      const e3 = new Task({ name: 'e3' });
+
+      fm.focusLocal(e1.id);
+      fm.focus(e2.id);
+      fm.focus(e3.id);
+      fm.unfocus(e3.id);
+
+      expect(fm.peekLocal()?.base64).toBe(e1.id.base64);
+      expect(fm.peek()?.base64).toBe(e2.id.base64);
+      expect(fm.size).toBe(1);
+    });
+  });
   describe('FocusManager serialization', () => {
     it('should serialize empty focusManager to JSON', () => {
       const fm = new FocusManager();

@@ -3,51 +3,62 @@
   "id": "0PxbexGd00dWFafUkPdttW",
   "name": "Integrate NfProgram with NfDispatch",
   "summary": "Plan the integration of NfProgram into the existing nf-dispatch command structure to allow for more complex program execution/management.",
+  "updateId": "0PxbexGd00dWFafUkPdttW",
+  "_namespace": {},
   "rawActions": [
     {
       "forma": "Action",
       "id": "0PxblX3c00dWFafUkPdttW",
       "name": "Structural Transformation",
       "summary": "Refactor `nf-dispatch.ts` from a procedural function to a class that extends `NfProgram`.",
+      "updateId": "0PxblX3c00dWFafUkPdttW",
       "status": "manage",
-      "statusNote": "All tests passing; ready for review",
-      "statusDate": "2026-06-20T21:06:57.509Z"
+      "statusNote": "All tests passing; ready for review"
     },
     {
       "forma": "Action",
       "id": "0PxblXrV00dWFafUkPdttW",
       "name": "Bridge Configuration",
       "summary": "Implement output redirection logic within the class to route `writeOut` and `writeErr` to `ctx.ui.notify` when `ctx.hasUI` is true, otherwise to `stdout/stderr`.",
+      "updateId": "0PxblXrV00dWFafUkPdttW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-06-20T15:55:02.367Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PxblYXr00dWFafUkPdttW",
       "name": "Lifecycle Hooks Implementation",
       "summary": "Add a `preAction` hook to the root command configuration to handle `World` resolution and program initialization.",
+      "updateId": "0PxblYXr00dWFafUkPdttW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-06-20T15:55:05.205Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PxblZGL00dWFafUkPdttW",
       "name": "Argument Pre-processing",
       "summary": "Implement `preprocessArgv` to handle global flags (like `--world` and `--debug`) before they are passed to the `commander` parser.",
+      "updateId": "0PxblZGL00dWFafUkPdttW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-06-20T15:55:08.181Z"
+      "statusNote": ""
     },
     {
       "forma": "Action",
       "id": "0PxblZxs00dWFafUkPdttW",
       "name": "Subcommand Delegation",
       "summary": "Refactor subcommand definitions (watch, set, test) into dedicated registration methods within the new class.",
+      "updateId": "0PxblZxs00dWFafUkPdttW",
       "status": "req",
-      "statusNote": "",
-      "statusDate": "2026-06-20T15:55:10.966Z"
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P-OunTp00dWFafUkPdttW",
+      "name": "Implement fromJson() factory",
+      "summary": "Implement the `fromJson(json: string): Command[]` factory method in the `Mutator` class. This method should parse the transactional JSON (supporting implicit $set, explicit $set, $push, and $pop) and return an array of internal mutation commands.",
+      "updateId": "0P-OunTp00dWFafUkPdttW",
+      "status": "req",
+      "statusNote": ""
     }
   ],
   "rawReferences": [
@@ -56,6 +67,7 @@
       "id": "0PxbfKNv00dWFafUkPdttW",
       "name": "NfProgram Implementation",
       "summary": "Reference for the NfProgram implementation being integrated into nf-dispatch.",
+      "updateId": "0PxbfKNv00dWFafUkPdttW",
       "relevance": 1,
       "source": "src/nf-program.ts"
     },
@@ -64,6 +76,7 @@
       "id": "0PxbfRbI00dWFafUkPdttW",
       "name": "NfDispatch implementation",
       "summary": "Reference for the current command dispatch logic that will be updated to include NfProgram.",
+      "updateId": "0PxbfRbI00dWFafUkPdttW",
       "relevance": 1,
       "source": "src/pi/nf-pi/nf-dispatch.ts"
     },
@@ -72,6 +85,7 @@
       "id": "0Pxbfyg400dWFafUkPdttW",
       "name": "NfCLI Implementation Example",
       "summary": "Reference for the professional NfProgram implementation pattern used in the full CLI.",
+      "updateId": "0Pxbfyg400dWFafUkPdttW",
       "relevance": 1,
       "source": "src/cli/nf-cli.ts"
     },
@@ -80,6 +94,7 @@
       "id": "0PxbmoPa00dWFafUkPdttW",
       "name": "Architectural Decisions (lX3c0)",
       "summary": "Detailed architectural decisions for the structural transformation of nf-dispatch.",
+      "updateId": "0PxbmoPa00dWFafUkPdttW",
       "relevance": 1,
       "source": "local/lX3c0.md"
     },
@@ -88,6 +103,7 @@
       "id": "0PxbrTJb00dWFafUkPdttW",
       "name": "Commander.js Error Handling Reference",
       "summary": "Reference for handling and swallowing commander.js errors within the nf-dispatch implementation.",
+      "updateId": "0PxbrTJb00dWFafUkPdttW",
       "relevance": 0.8,
       "source": "local/commanderjs-errors.md"
     }

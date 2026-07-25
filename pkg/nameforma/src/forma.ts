@@ -1,6 +1,7 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { IMutable, Mutator, Command, SetCommand } from './mutator.js';
 import {
   RenderData,
   RenderDetail,
@@ -25,16 +26,8 @@ const UOK = Unicode.CHECKMARK;
 const UNA = Unicode.EMPTY_SET;
 const { FORMA: F3A } = DBG;
 
-/**
- * Forma - Identifiable named objects
- *
- * ## Features
- * 1. **Named Identity**: Extends Identifiable with mutable `name` and `summary` properties
- *    - Default name format: `{PREFIX}-{UUID_PREFIX}` (e.g., "T2K-01234567" for Task instances)
- * 3. **Patching**: `patch(cfg)` method merges properties, only updates mutable fields (name)
- * 4. **Validation**: `validate(opts)` checks UUID v7 format and optional name prefix validation
- */
-export class Forma extends Identifiable implements IRenderable {
+/** Forma - Base class for Identifiable with a name and summary */
+export class Forma extends Identifiable implements IRenderable, IMutable {
   static #instances: Record<string, number> = {}; // instance count
   static patchableFields = ['name', 'summary'];
 
@@ -325,6 +318,19 @@ export class Forma extends Identifiable implements IRenderable {
 
     return rows;
   } // asRenderData
+
+  /* IMutator implementation */
+  mutate(cmd: Command): void {
+    const ctx = 'Forma.mutate';
+    if (cmd instanceof SetCommand) {
+      if (cmd.id !== this.id.base64) {
+        throw new Error(`${ctx}: command targets different id`);
+      }
+      this.patch(cmd.value);
+    } else {
+      throw new Error(`${ctx} not supported: ${cmd.constructor?.name}`);
+    }
+  }
 } // Forma
 
 /**
@@ -335,7 +341,7 @@ export interface ListItemStringCfg {
   bullet?: string;
   separator?: string;
   theme?: NameFormaTheme;
-}
+} // ListItemStringCfg
 
 /**
  * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance
@@ -397,4 +403,4 @@ export class LevenshteinMatcher<T extends Forma> {
     if (a.id.base64 < b.id.base64) return -1;
     return 0;
   }
-}
+} // LevenshteinMatcher

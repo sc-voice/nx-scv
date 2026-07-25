@@ -222,8 +222,10 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Resolve fuzzy ID with world namespace as primary, focused entity's namespace as secondary.
-   * Verifies against RGA64Stack implementation.
+   * Resolve fuzzy ID using active names spaces in order:
+   * 1. transient focus
+   * 2. persistent focus (@see RGA64Stack)
+   * 3. world entity namespace
    * @param {string} fuzzyId - Fuzzy ID to resolve
    * @returns {Promise<{ entity: Forma, forma: Forma } | undefined>} - entity is the serializing entity; forma is the matched forma
    */
@@ -234,8 +236,9 @@ export class World extends Entity implements IEventBus {
     const dbg = WORLD?.FUZZY_ID;
     const ns = await this.namespace;
 
-    // Get focused entity
-    const focusId = this.#focusManager.peek();
+    // Get focused entity: local focus (transactional) takes precedence over RGA64 focus
+    const focusId =
+      this.#focusManager.peekLocal() || this.#focusManager.peek();
     const focusedEntity = focusId ? ns.getForma(focusId.base64) : null;
 
     // Primary namespace is in focused entity
@@ -510,6 +513,29 @@ export class World extends Entity implements IEventBus {
     const instance = await this.repository.upsertOne(EntityClass, cfg);
     this.addToNamespace(instance);
     return instance;
+  }
+
+  /**
+   * Patch field values in forma identified by resolveFuzzyId().
+   * @param fuzzyId - Fuzzy ID to resolve
+   * @param patch - Properties to patch
+   * @returns Updated forma instance
+   * @throws {Error} if fuzzyId not found
+   */
+  async patchForma(
+    fuzzyId: string,
+    patch: Record<string, any>,
+  ): Promise<Forma> {
+    const resolved = await this.resolveFuzzyId(fuzzyId);
+    if (!resolved) throw new Error(`Entity not found: ${fuzzyId}`);
+
+    const { entity, forma } = resolved;
+    forma.patch(patch);
+
+    const entityType = (entity.constructor as any).collection;
+    await this.#saveEntity(entityType, entity);
+
+    return forma;
   }
 
   /**

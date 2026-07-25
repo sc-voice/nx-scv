@@ -4,6 +4,8 @@ import {
   expect,
   beforeEach,
   afterEach,
+  beforeAll,
+  afterAll,
 } from '@sc-voice/vitest';
 import fs from 'fs';
 import path from 'path';
@@ -1493,5 +1495,67 @@ describe('World.syncRepository()', () => {
     other.lastSyncTime = 0;
     await other.syncRepository();
     expect(other.getNumeronym().get('abc')).toBe('xyz');
+  });
+});
+
+describe('World.patchForma()', () => {
+  let tempDir: string;
+  let worldPath: string;
+  let world: World;
+
+  beforeAll(async () => {
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'world-patch-'));
+    worldPath = path.join(tempDir, '.nameforma');
+    world = await FileRepository.worldFromPath(worldPath);
+  });
+
+  afterAll(() => {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it('patches forma by fuzzyId and persists', async () => {
+    const task = await world.upsertOne(Task, { name: 'original' });
+    const patched = await world.patchForma(task.id.base64, {
+      name: 'updated',
+    });
+
+    const { entity, forma } = await world.resolveFuzzyId(task.id.base64);
+    expect(forma.name).toEqual('updated');
+    expect(forma).toBe(entity);
+  });
+
+  it('throws on nonexistent fuzzyId', async () => {
+    await expect(
+      world.patchForma('bad-id', { name: 'x' }),
+    ).rejects.toThrow(/Entity not found/);
+  });
+
+  it('dispatches to Action.patch() for nested formas', async () => {
+    const task = await world.upsertOne(Task, { name: 'test' });
+    const fm = world.focusManager;
+
+    // Ensure that world resolveFuzzyId
+    fm.focusLocal(task.id);
+    const action = task.actions(world).addItem({ name: 'a1' });
+    const patched = (await world.patchForma(action.id.base64, {
+      status: 'spec',
+      statusNote: 'ready',
+    })) as Action;
+    fm.unfocusLocal(task.id);
+
+    // Check namespace integrity
+    const { entity, forma } = await world.resolveFuzzyId(task.id.base64);
+
+    // verify patched content
+    expect(entity.rawActions.length).toEqual(1);
+    expect(entity.rawActions[0].name).toEqual('a1');
+    expect(entity.rawActions[0].id.base64).toEqual(action.id.base64);
+    expect(entity.rawActions[0].status).toEqual('spec');
+    expect(entity.rawActions[0].statusNote).toEqual('ready');
+
+    // verify object identity
+    expect(entity).toEqual(task);
+    expect(entity.rawActions[0]).toBe(action);
+    expect(entity.rawActions[0]).toBe(patched);
   });
 });

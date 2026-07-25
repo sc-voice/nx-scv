@@ -1,0 +1,38 @@
+{
+  "forma": "Task",
+  "id": "0P-OumMx00Jb8sCj_8QNNW",
+  "name": "Create Mutator class",
+  "summary": "Implement a Mutator class in src/mutator.ts to translate transactional JSON into domain commands that mutate IMutable classes. The first action is to define the JSON spec for the fromJson() factory method.",
+  "updateId": "0P-O-ArH00DGI40ANvfvNW",
+  "_namespace": {},
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0P-OvJ0o00Jb8sCj_8QNNW",
+      "name": "Define JSON specification for fromJson()",
+      "summary": "Define JSON input spec for Mutator.fromJson(). Top-level operators: $set (Record<string, any>), $push (array of values), $pop (array of indices). One JSON object can have multiple operators: { \"$set\": { \"name\": \"Joe\" }, \"$push\": { \"tags\": \"tag1\" } }. Returns Mutator with commands: Command[] parsed from operators. Throw on unknown operators or malformed input.",
+      "updateId": "0P-PFidp00gRXcUifzE6NW",
+      "status": "manage",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P-Ow6QC00Jb8sCj_8QNNW",
+      "name": "Implement implicit $set logic",
+      "summary": "Implement implicit $set logic in Mutator.fromJson(). Non-$-prefixed top-level keys (excluding id) are implicit $set fields. $-prefixed keys are always meta-properties ($set, $push, $pop, or unknown -> throw); they cannot be used as implicit field names. Implicit fields merge into the same SetCommand as an explicit $set (one SetCommand per Mutator, not two). If a field name appears in both explicit $set and as an implicit key, throw an error (ambiguous, caller must resolve). Example: { id, name: \"Joe\" } produces a SetCommand with value { name: \"Joe\" }; { id, $set: { a: 1 }, b: 2 } produces one SetCommand with value { a: 1, b: 2 }; { id, $set: { name: \"A\" }, name: \"B\" } throws.",
+      "updateId": "0P-PQmv_002yrzOnbKy5tW",
+      "status": "manage",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P-P6cK400Jb8sCj_8QNNW",
+      "name": "Implement IMutable and Command hierarchy",
+      "summary": "Implement IMutable interface and Command hierarchy. Command is a data holder: abstract class with public props id (FuzzyId) and value (any). Subclasses: SetCommand(id, Record<string, any>), PushCommand(id, Record<string, any>), PopCommand(id, Record<string, number>). Field information is embedded in value structure. IMutable interface: mutate(cmd: Command): void. Each IMutable class implements mutation logic by inspecting the command type and value structure.",
+      "updateId": "0P-PHZJB00dYuMvFU1oF7W",
+      "status": "manage",
+      "statusNote": ""
+    }
+  ],
+  "rawReferences": []
+}

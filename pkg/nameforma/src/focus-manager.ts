@@ -28,12 +28,22 @@ export interface IFocusManager {
 
   /** Number of items in focus stack. */
   get size(): number;
+
+  /** Push id onto local transient focus stack. */
+  focusLocal(id: UUID64): void;
+
+  /** Remove id from local transient focus stack. Returns removed id or null if not found. */
+  unfocusLocal(id: UUID64): UUID64 | null;
+
+  /** Get most recent id in local focus stack, or null if empty. */
+  peekLocal(): UUID64 | null;
 }
 
 /** Manages the focus stack using RGA64 replicated list. */
 export class FocusManager implements IFocusManager {
   private _rgaFocusStack: RGA64Stack;
   private _focusOrderCache: Map<string, number> | null = null;
+  private _localFocus: UUID64[] = [];
 
   constructor() {
     this._rgaFocusStack = new RGA64Stack({ name: 'Focus Stack' });
@@ -105,6 +115,27 @@ export class FocusManager implements IFocusManager {
   /** Remove tombstones older than minObservedTime (safe GC for distributed CRDT). */
   compact(minObservedTime: number): boolean {
     return this._rgaFocusStack.compact(minObservedTime);
+  }
+
+  /** Push id onto local transient focus stack. */
+  focusLocal(id: UUID64): void {
+    this._localFocus.unshift(id);
+  }
+
+  /** Remove id from local transient focus stack. Returns removed id or null if not found. */
+  unfocusLocal(id: UUID64): UUID64 | null {
+    const index = this._localFocus.findIndex(
+      (item) => item.base64 === id.base64,
+    );
+    if (index !== -1) {
+      return this._localFocus.splice(index, 1)[0];
+    }
+    return null;
+  }
+
+  /** Get most recent id in local focus stack, or null if empty. */
+  peekLocal(): UUID64 | null {
+    return this._localFocus.length > 0 ? this._localFocus[0] : null;
   }
 
   /** Serialize to JSON. */

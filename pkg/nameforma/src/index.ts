@@ -14,18 +14,31 @@ import { User } from './user.js';
 import { World } from './world.js';
 import { NfProgram } from './nf-program.js';
 import type { IRegistry } from './registry.js';
+import {
+  Command,
+  SetCommand,
+  PushCommand,
+  PopCommand,
+  Mutator,
+  type IMutable,
+} from './mutator.js';
 
 export {
   Action,
+  Command,
   Entity,
   FileRepository,
   Forma,
   Identifiable,
+  Mutator,
   NfProgram,
+  PopCommand,
+  PushCommand,
   Rational,
   Reference,
   RenderDetail,
   Schema,
+  SetCommand,
   Task,
   TObject,
   User,
@@ -33,4 +46,4 @@ export {
   World,
   ZenoCoord,
 };
-export type { Constructor, IEntityRepository, IUUID64Config };
+export type { Constructor, IEntityRepository, IMutable, IUUID64Config };

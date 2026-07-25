@@ -5,6 +5,8 @@ import {
   Forma,
   RenderDetail,
   ZenoCoord,
+  SetCommand,
+  PushCommand,
 } from '@sc-voice/nameforma';
 import {
   FormaField,
@@ -340,5 +342,44 @@ describe('Forma', () => {
 
     expect(child.id.getSignature()).toBe(parent.id.getSignature());
     dbg && cc.ok1(msg + UOK, 'string parent id works');
+  });
+
+  it('mutate applies SetCommand', () => {
+    const msg = 'tf3a.mutate.set';
+    const forma = new Forma({
+      name: 'original',
+      summary: 'original summary',
+    });
+    const idBase64 = forma.id.base64;
+
+    const cmd = new SetCommand(idBase64, {
+      name: 'updated',
+      summary: 'new',
+    });
+    forma.mutate(cmd);
+
+    expect(forma.name).toBe('updated');
+    expect(forma.summary).toBe('new');
+    dbg && cc.ok1(msg + UOK, 'SetCommand applied');
+  });
+
+  it('mutate throws on SetCommand with mismatched id', () => {
+    const msg = 'tf3a.mutate.mismatch';
+    const forma = new Forma({ name: 'original' });
+    const wrongId = new UUID64().base64;
+
+    const cmd = new SetCommand(wrongId, { name: 'hacked' });
+    expect(() => forma.mutate(cmd)).toThrow('targets different id');
+    expect(forma.name).toBe('original'); // unchanged
+    dbg && cc.ok1(msg + UOK, 'id mismatch throws');
+  });
+
+  it('mutate throws on unsupported command type', () => {
+    const msg = 'tf3a.mutate.unsupported';
+    const forma = new Forma();
+    const cmd = new PushCommand(forma.id.base64, { tags: 'new' });
+
+    expect(() => forma.mutate(cmd)).toThrow('not supported');
+    dbg && cc.ok1(msg + UOK, 'unsupported command throws');
   });
 });
