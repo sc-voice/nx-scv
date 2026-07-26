@@ -196,3 +196,311 @@ describe('NfProgram.resolveDotRef', () => {
     ).rejects.toThrow(/Not found: nonexistent/);
   });
 });
+
+describe('NfProgram.registerPatchCommand', () => {
+  let tempDirObj: any;
+  let tempWorldPath: string;
+  let world: World;
+  let program: NfProgram;
+
+  beforeEach(async () => {
+    tempDirObj = createTempDir('nf-program-patch-test');
+    const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
+    tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
+    fs.cpSync(samplePath, tempWorldPath, { recursive: true });
+    world = await FileRepository.worldFromPath(tempWorldPath);
+    program = new NfProgram(new Command());
+    program.initialize(world);
+  });
+
+  afterEach(() => {
+    tempDirObj.cleanup();
+  });
+
+  it('patch with implicit $set via bare fields mutates and persists', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+    const task = await world.loadFuzzy(Task, taskId);
+    expect(task).toBeTruthy();
+    const oldName = task!.name;
+
+    // Call registerPatchCommand's action handler directly via mutate
+    const json = { id: task!.id.base64, name: 'Updated via Patch' };
+    const { Mutator } = await import('../src/mutator.js');
+    const mutator = Mutator.fromJson(json);
+    const delta = await world.mutate(taskId, mutator.commands);
+
+    // Verify delta contains old value
+    expect(delta.name).toBe(oldName);
+
+    // Verify mutation persisted
+    const reloaded = await FileRepository.worldFromPath(tempWorldPath);
+    const reloadedTask = await reloaded.loadFuzzy(Task, taskId);
+    expect(reloadedTask?.name).toBe('Updated via Patch');
+  });
+
+  it('patch with explicit $set operator produces same result', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+    const task = await world.loadFuzzy(Task, taskId);
+    expect(task).toBeTruthy();
+    const oldSummary = task!.summary;
+
+    const json = {
+      id: task!.id.base64,
+      $set: { summary: 'Explicit Set Summary' },
+    };
+    const { Mutator } = await import('../src/mutator.js');
+    const mutator = Mutator.fromJson(json);
+    const delta = await world.mutate(taskId, mutator.commands);
+
+    // Verify delta reflects old value
+    expect(delta.summary).toBe(oldSummary);
+
+    // Verify persistence
+    const reloaded = await FileRepository.worldFromPath(tempWorldPath);
+    const reloadedTask = await reloaded.loadFuzzy(Task, taskId);
+    expect(reloadedTask?.summary).toBe('Explicit Set Summary');
+  });
+
+  it('error on unknown forma ID', async () => {
+    const { Mutator } = await import('../src/mutator.js');
+    const mutator = Mutator.fromJson({
+      id: 'nonexistent-id',
+      name: 'x',
+    });
+    await expect(
+      world.mutate('nonexistent', mutator.commands),
+    ).rejects.toThrow(/fuzzyId not found/);
+  });
+});
+
+describe('NfCLI patch command', () => {
+  let cli: any;
+  let output: string[];
+  let errors: string[];
+  let originalLog: any;
+  let originalError: any;
+  let tempWorld: any;
+
+  beforeEach(async () => {
+    const { NfCLI } = await import('../src/cli/nf-cli.js');
+    const helpers = await import('./cli/helpers.js');
+    tempWorld = await helpers.createTempWorld();
+
+    output = [];
+    errors = [];
+
+    originalLog = console.log;
+    originalError = console.error;
+
+    console.log = (...args: any[]) => {
+      output.push(args.join(' '));
+    };
+
+    console.error = (...args: any[]) => {
+      errors.push(args.join(' '));
+    };
+
+    cli = new NfCLI();
+  });
+
+  afterEach(() => {
+    console.log = originalLog;
+    console.error = originalError;
+    tempWorld.cleanup();
+  });
+
+  it('patch command mutates and outputs changes', async () => {
+    // Create task first
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      'Original Name',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch![1];
+
+    output.length = 0;
+
+    // Patch task
+    await cli.parseArgv([
+      'node',
+      'test',
+      'patch',
+      '-w',
+      tempWorld.worldPath,
+      '--',
+      taskId,
+      "name: 'Updated Name'",
+    ]);
+
+    const outputStr = output.join('\n');
+    expect(outputStr).toContain(taskId);
+    expect(outputStr).toContain('Updated Name');
+
+    // Verify persistence
+    const reloaded = await FileRepository.worldFromPath(
+      tempWorld.worldPath,
+    );
+    const reloadedTask = await reloaded.loadFuzzy(Task, taskId);
+    expect(reloadedTask?.name).toBe('Updated Name');
+  });
+
+  it('patch with $set operator works', async () => {
+    // Create task first
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      'Task Name',
+      'Old Summary',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch![1];
+
+    output.length = 0;
+
+    // Patch with $set operator
+    await cli.parseArgv([
+      'node',
+      'test',
+      'patch',
+      '-w',
+      tempWorld.worldPath,
+      '--',
+      taskId,
+      '$set: { summary: "New Summary" }',
+    ]);
+
+    const outputStr = output.join('\n');
+    expect(outputStr).toContain('New Summary');
+
+    // Verify persistence
+    const reloaded = await FileRepository.worldFromPath(
+      tempWorld.worldPath,
+    );
+    const reloadedTask = await reloaded.loadFuzzy(Task, taskId);
+    expect(reloadedTask?.summary).toBe('New Summary');
+  });
+
+  it('patch with disjoint JSON works', async () => {
+    // Create task first
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      'Task Name',
+      'Old Summary',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch![1];
+
+    output.length = 0;
+
+    // Patch with $set operator
+    await cli.parseArgv([
+      'node',
+      'test',
+      'patch',
+      '-w',
+      tempWorld.worldPath,
+      '--',
+      taskId,
+      'summary:',
+      'New Summary',
+    ]);
+
+    const outputStr = output.join('\n');
+    expect(outputStr).toContain('New Summary');
+
+    // Verify persistence
+    const reloaded = await FileRepository.worldFromPath(
+      tempWorld.worldPath,
+    );
+    const reloadedTask = await reloaded.loadFuzzy(Task, taskId);
+    expect(reloadedTask?.summary).toBe('New Summary');
+  });
+
+  it('patch with --json outputs JSON', async () => {
+    // Create task first
+    await cli.parseArgv([
+      'node',
+      'test',
+      'task',
+      '-w',
+      tempWorld.worldPath,
+      'add',
+      'Task',
+    ]);
+
+    const createOutput = output.join('\n');
+    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
+    const taskId = idMatch![1];
+
+    output.length = 0;
+
+    // Patch with JSON output
+    await cli.parseArgv([
+      'node',
+      'test',
+      'patch',
+      '-w',
+      tempWorld.worldPath,
+      '--json',
+      '--',
+      taskId,
+      'summary: "JSON Test"',
+    ]);
+
+    const jsonOutput = output.join('\n');
+    const parsed = JSON.parse(jsonOutput);
+    expect(parsed.summary).toBe('JSON Test');
+  });
+
+  it('patch errors on invalid forma ID', async () => {
+    await expect(
+      cli.parseArgv([
+        'node',
+        'test',
+        'patch',
+        '-w',
+        tempWorld.worldPath,
+        '--',
+        'nonexistent',
+        'name: x',
+      ]),
+    ).rejects.toThrow(/Not found|nonexistent/);
+  });
+
+  it('patch errors on invalid HJSON', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await expect(
+      cli.parseArgv([
+        'node',
+        'test',
+        'patch',
+        '-w',
+        tempWorld.worldPath,
+        '--',
+        taskId,
+        'invalid hjson {{',
+      ]),
+    ).rejects.toThrow();
+  });
+});

@@ -276,7 +276,7 @@ export class World extends Entity implements IEventBus {
    */
   async mutate<T extends Forma = Forma>(
     fuzzyId: string,
-    commands: Command[],
+    commands: readonly Command[],
   ): Promise<Partial<T>> {
     const msg = 'world.mutate';
     const dbg = WORLD?.MUTATE;

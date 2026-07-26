@@ -64,6 +64,7 @@ export class NfExtensionCommand extends NfProgram {
     this.registerInitCommand();
     this.registerAddCommand();
     this.registerSetCommand();
+    this.registerPatchCommand();
     this.registerPiTestCommand();
   }
 

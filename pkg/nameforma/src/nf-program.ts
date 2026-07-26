@@ -4,12 +4,15 @@ import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Mutator } from './mutator.js';
+// @ts-ignore - hjson has no type definitions
+import * as HJSON_CJS from 'hjson';
 import path from 'path';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { readFileSync, realpathSync } from 'fs';
 import { DBG } from './defines.js';
 
+const Hjson = HJSON_CJS as any;
 const USER = process.env.CLAUDECODE ? 'Claude' : 'Standard';
 const IS_CLAUDE = USER === 'Claude';
 const theme = NameFormaTheme.shared;
@@ -415,5 +418,62 @@ export class NfProgram {
         'Directory to initialize (defaults to current directory)',
       )
       .action((pathArg, options) => nfp.nfInit(pathArg, options));
+  }
+
+  registerPatchCommand(): void {
+    const nfp = this;
+    this.cmdDelegate
+      .command('patch')
+      .description(
+        'Apply mutations to a forma using operator-based commands',
+      )
+      .argument('<fuzzyId>', 'Forma FUZZY_ID to mutate')
+      .argument('<hjson...>', 'Mutation commands as HJSON')
+      .option('-j, --json', 'Output mutated forma as JSON')
+      .addHelpText(
+        'after',
+        `
+Examples:
+  nf patch TASK_ID "name: 'new name'"
+  nf patch ACTION_ID "status: 'work'"
+  nf patch ACTION_ID "$set: {status: 'work'}"
+  nf patch ACTION_ID "$push: {tags: 'urgent'}"`,
+      )
+      .action(async (fuzzyId: string, hjson: string[], options: any) => {
+        try {
+          const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
+          if (!resolved) {
+            throw new Error(`Not found: ${fuzzyId}`);
+          }
+
+          let hjsonStr = hjson.join(' ').trim();
+          const json = Hjson.parse(hjsonStr);
+          json.id = resolved.forma.id.base64;
+
+          const mutator = Mutator.fromJson(json);
+          const { forma: oldForma } = resolved;
+          const oldSnapshot = JSON.parse(JSON.stringify(oldForma));
+
+          const delta = await nfp.world.mutate(fuzzyId, mutator.commands);
+          const updated = (await nfp.world.resolveFuzzyId(fuzzyId))?.forma;
+
+          if (options.json) {
+            nfp.writeOut(JSON.stringify(updated, null, 2));
+          } else {
+            nfp.writeOut();
+            nfp.writeOut(fuzzyId + ' ' + theme.nfLink(fuzzyId));
+            for (const [key, oldValue] of Object.entries(delta)) {
+              const newValue = (updated as any)?.[key];
+              const oldStr = JSON.stringify(oldValue);
+              const newStr = JSON.stringify(newValue);
+              nfp.writeOut(`- ${theme.nfAttend(oldStr)}`);
+              nfp.writeOut(`+ ${theme.nfNominal(newStr)}`);
+            }
+          }
+        } catch (err: any) {
+          nfp.writeErr(`✗ Error: ${err.message}`);
+          throw err;
+        }
+      });
   }
 }

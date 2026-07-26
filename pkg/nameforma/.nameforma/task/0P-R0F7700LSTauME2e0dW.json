@@ -1,9 +1,9 @@
 {
   "forma": "Task",
   "id": "0P-R0F7700LSTauME2e0dW",
-  "name": "Implement patch command using Mutator",
+  "name": "",
   "summary": "Implement `patch` command using `Mutator` and `IMutable.mutate()` to replace event-based updates.",
-  "updateId": "0P-R10Dj00qCJF5h5_3iNW",
+  "updateId": "0P-VBFK900KwckI_W4C2NW",
   "_namespace": {},
   "rawActions": [
     {
@@ -30,17 +30,17 @@
       "name": "Test World.mutate()",
       "summary": "Test World.mutate() via integration tests, verifying target resolution, command application, and entity persistence.",
       "updateId": "0P-UTanb00LSTauME2e0dW",
-      "status": "test",
-      "statusNote": "World.mutate() integration tests pass"
+      "status": "manage",
+      "statusNote": "Integration tests pass; patchForma() removed"
     },
     {
       "forma": "Action",
       "id": "0P-UTmVZ00LSTauME2e0dW",
       "name": "Implement patch command in NfProgram",
-      "summary": "Register the \"patch\" command in NfProgram, integrating Mutator.fromJson and World.mutate() to provide the CLI interface.",
-      "updateId": "0P-UTmVZ00LSTauME2e0dW",
-      "status": "req",
-      "statusNote": ""
+      "summary": "Register patch command: nf patch <fuzzyId> <HJSON>. Parse HJSON → Mutator.fromJson() → World.mutate(). Output colored diff (red=old, green=new). Follow registerSetCommand() pattern for CLI integration and error handling.",
+      "updateId": "0P-UoL0Y00CT03EzHT927W",
+      "status": "work",
+      "statusNote": "Implementing patch command in NfProgram"
     },
     {
       "forma": "Action",
