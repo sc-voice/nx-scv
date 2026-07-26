@@ -1,7 +1,12 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
-import { IMutable, Mutator, Command, SetCommand } from './mutator.js';
+import {
+  ICommandMutable,
+  Mutator,
+  Command,
+  SetCommand,
+} from './mutator.js';
 import {
   RenderData,
   RenderDetail,
@@ -27,7 +32,10 @@ const UNA = Unicode.EMPTY_SET;
 const { FORMA: F3A } = DBG;
 
 /** Forma - Base class for Identifiable with a name and summary */
-export class Forma extends Identifiable implements IRenderable, IMutable {
+export class Forma
+  extends Identifiable
+  implements IRenderable, ICommandMutable
+{
   static #instances: Record<string, number> = {}; // instance count
   static patchableFields = ['name', 'summary'];
 
@@ -319,14 +327,14 @@ export class Forma extends Identifiable implements IRenderable, IMutable {
     return rows;
   } // asRenderData
 
-  /* IMutator implementation */
-  mutate(cmd: Command): void {
-    const ctx = 'Forma.mutate';
+  /* ICommandMutable implementation */
+  applyCommand(cmd: Command): Partial<Forma> {
+    const ctx = 'Forma.applyCommand';
     if (cmd instanceof SetCommand) {
       if (cmd.id !== this.id.base64) {
         throw new Error(`${ctx}: command targets different id`);
       }
-      this.patch(cmd.value);
+      return this.patch(cmd.value);
     } else {
       throw new Error(`${ctx} not supported: ${cmd.constructor?.name}`);
     }
@@ -342,6 +350,14 @@ export interface ListItemStringCfg {
   separator?: string;
   theme?: NameFormaTheme;
 } // ListItemStringCfg
+
+/**
+ * IFormaMutator - Interface for bulk mutation of forma instances
+ * Resolves target by fuzzyId, applies multiple commands, returns delta of changes
+ */
+export interface IFormaMutator<T extends Forma> {
+  mutate(fuzzyId: string, commands: Command[]): Promise<Partial<T>>;
+}
 
 /**
  * LevenshteinMatcher - Fuzzy matches Forma items by id using Levenshtein distance

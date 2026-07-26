@@ -356,7 +356,7 @@ describe('Forma', () => {
       name: 'updated',
       summary: 'new',
     });
-    forma.mutate(cmd);
+    forma.applyCommand(cmd);
 
     expect(forma.name).toBe('updated');
     expect(forma.summary).toBe('new');
@@ -369,7 +369,7 @@ describe('Forma', () => {
     const wrongId = new UUID64().base64;
 
     const cmd = new SetCommand(wrongId, { name: 'hacked' });
-    expect(() => forma.mutate(cmd)).toThrow('targets different id');
+    expect(() => forma.applyCommand(cmd)).toThrow('targets different id');
     expect(forma.name).toBe('original'); // unchanged
     dbg && cc.ok1(msg + UOK, 'id mismatch throws');
   });
@@ -379,7 +379,7 @@ describe('Forma', () => {
     const forma = new Forma();
     const cmd = new PushCommand(forma.id.base64, { tags: 'new' });
 
-    expect(() => forma.mutate(cmd)).toThrow('not supported');
+    expect(() => forma.applyCommand(cmd)).toThrow('not supported');
     dbg && cc.ok1(msg + UOK, 'unsupported command throws');
   });
 });

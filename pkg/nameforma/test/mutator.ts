@@ -229,4 +229,15 @@ describe('Mutator.fromJson() — error cases', () => {
       'unknown operator "$unknown"',
     );
   });
+
+  it('throws on field conflict across commands', () => {
+    const json = {
+      id: 'e1',
+      $push: { items: 'new-item' },
+      $pop: { items: 0 },
+    };
+    expect(() => Mutator.fromJson(json)).toThrow(
+      'field "items" modified by multiple commands',
+    );
+  });
 });

@@ -55,11 +55,12 @@ export class PopCommand extends Command {
 }
 
 /**
- * IMutable - Interface for objects that can be mutated by Command instances
+ * ICommandMutable - Interface for single-command mutations
  * Implementations inspect the command type and apply the mutation.
+ * Return value is implementation-specific (may be delta, null, or other data).
  */
-export interface IMutable {
-  mutate(cmd: Command): void;
+export interface ICommandMutable {
+  applyCommand(cmd: Command): any;
 }
 
 /**
@@ -69,7 +70,7 @@ export interface IMutable {
 export class Mutator {
   private readonly _commands: Command[];
 
-  constructor(commands: Command[] = []) {
+  private constructor(commands: Command[] = []) {
     this._commands = commands;
   }
 
@@ -145,6 +146,21 @@ export class Mutator {
         merged[field] = value;
       }
       commands.push(new SetCommand(id, merged));
+    }
+
+    // Validate for field conflicts across commands
+    const fieldsSeen = new Set<string>();
+    for (const cmd of commands) {
+      if (cmd.value && typeof cmd.value === 'object') {
+        for (const field of Object.keys(cmd.value)) {
+          if (fieldsSeen.has(field)) {
+            throw new Error(
+              `${ctx}: field "${field}" modified by multiple commands`,
+            );
+          }
+          fieldsSeen.add(field);
+        }
+      }
     }
 
     return new Mutator(commands);

@@ -3,6 +3,7 @@ import { World } from './world.js';
 import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { Mutator } from './mutator.js';
 import path from 'path';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';

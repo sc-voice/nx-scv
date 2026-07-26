@@ -20,7 +20,7 @@ import {
   PushCommand,
   PopCommand,
   Mutator,
-  type IMutable,
+  type ICommandMutable,
 } from './mutator.js';
 
 export {
@@ -46,4 +46,9 @@ export {
   World,
   ZenoCoord,
 };
-export type { Constructor, IEntityRepository, IMutable, IUUID64Config };
+export type {
+  Constructor,
+  IEntityRepository,
+  ICommandMutable,
+  IUUID64Config,
+};

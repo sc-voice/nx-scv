@@ -149,6 +149,7 @@ const WORLD = {
   FUZZY_ID: 0,
   ENTITY_STREAM: 0,
   LOAD: 0,
+  MUTATE: 0,
   REGISTER: 0,
   SAVE: 0,
   SYNC_REPOSITORY: 0,

@@ -13,7 +13,8 @@ import { Task } from './task.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Identifiable } from './identifiable.js';
 import { FuzzyNamespace, IReadOnlyNamespace } from './fuzzy-namespace.js';
-import { Forma, type Constructor } from './forma.js';
+import { Forma, type Constructor, type IFormaMutator } from './forma.js';
+import { Command } from './mutator.js';
 import { FormaField } from './forma-field.js';
 import { User } from './user.js';
 import { GitCLI } from './git-cli.js';
@@ -265,6 +266,48 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * Apply batch mutations to a forma via commands, persisting changes
+   * Implements IFormaMutator for bulk transactional updates
+   * @template T - Forma type being mutated
+   * @param {string} fuzzyId - Fuzzy ID to resolve target forma
+   * @param {Command[]} commands - Mutation commands to apply
+   * @returns {Promise<Partial<T>>} Delta of changes (prior values)
+   * @throws {Error} If fuzzyId not found or field conflicts detected
+   */
+  async mutate<T extends Forma = Forma>(
+    fuzzyId: string,
+    commands: Command[],
+  ): Promise<Partial<T>> {
+    const msg = 'world.mutate';
+    const dbg = WORLD?.MUTATE;
+
+    const resolved = await this.resolveFuzzyId(fuzzyId);
+    if (!resolved) {
+      throw new Error(`${msg}: fuzzyId not found: ${fuzzyId}`);
+    }
+
+    const { entity, forma } = resolved;
+    const delta: Record<string, any> = {};
+
+    // Apply commands and aggregate deltas
+    for (const cmd of commands) {
+      const changed = forma.applyCommand(cmd);
+      if (changed && Object.keys(changed).length > 0) {
+        for (const [key, value] of Object.entries(changed)) {
+          delta[key] = value;
+        }
+      }
+    }
+
+    // Persist parent entity with mutated content
+    const entityType = (entity.constructor as any).collection || 'forma';
+    await this.#saveEntity(entityType, entity);
+    dbg && cc.ok1(msg, `mutated ${fuzzyId}`, delta);
+
+    return delta as Partial<T>;
+  }
+
+  /**
    * Register an entity class with this world
    * Derives entity name from EntityClass.collection static property
    * @param {IEntity} EntityClass - Entity class with entity, avroSchema, and fromJson
@@ -513,29 +556,6 @@ export class World extends Entity implements IEventBus {
     const instance = await this.repository.upsertOne(EntityClass, cfg);
     this.addToNamespace(instance);
     return instance;
-  }
-
-  /**
-   * Patch field values in forma identified by resolveFuzzyId().
-   * @param fuzzyId - Fuzzy ID to resolve
-   * @param patch - Properties to patch
-   * @returns Updated forma instance
-   * @throws {Error} if fuzzyId not found
-   */
-  async patchForma(
-    fuzzyId: string,
-    patch: Record<string, any>,
-  ): Promise<Forma> {
-    const resolved = await this.resolveFuzzyId(fuzzyId);
-    if (!resolved) throw new Error(`Entity not found: ${fuzzyId}`);
-
-    const { entity, forma } = resolved;
-    forma.patch(patch);
-
-    const entityType = (entity.constructor as any).collection;
-    await this.#saveEntity(entityType, entity);
-
-    return forma;
   }
 
   /**
