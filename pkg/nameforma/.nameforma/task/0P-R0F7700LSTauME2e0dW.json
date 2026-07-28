@@ -39,8 +39,8 @@
       "name": "Implement patch command in NfProgram",
       "summary": "Register patch command: nf patch <fuzzyId> <HJSON>. Parse HJSON → Mutator.fromJson() → World.mutate(). Output colored diff (red=old, green=new). Follow registerSetCommand() pattern for CLI integration and error handling.",
       "updateId": "0P-UoL0Y00CT03EzHT927W",
-      "status": "work",
-      "statusNote": "Implementing patch command in NfProgram"
+      "status": "done",
+      "statusNote": "ok"
     },
     {
       "forma": "Action",

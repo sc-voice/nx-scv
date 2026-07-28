@@ -57,7 +57,7 @@ function trackMouseClicks(pi: ExtensionAPI) {
 
     pi.registerMessageRenderer('text', (message, options, theme) => {
       const mc: any = message.content;
-      let lines = [];
+      let lines: string[] = [];
 
       if (typeof mc === 'string') {
         lines = mc.split('\n');

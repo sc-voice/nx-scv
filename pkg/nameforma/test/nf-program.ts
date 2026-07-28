@@ -435,42 +435,6 @@ describe('NfCLI patch command', () => {
     expect(reloadedTask?.summary).toBe('New Summary');
   });
 
-  it('patch with --json outputs JSON', async () => {
-    // Create task first
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Task',
-    ]);
-
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch![1];
-
-    output.length = 0;
-
-    // Patch with JSON output
-    await cli.parseArgv([
-      'node',
-      'test',
-      'patch',
-      '-w',
-      tempWorld.worldPath,
-      '--json',
-      '--',
-      taskId,
-      'summary: "JSON Test"',
-    ]);
-
-    const jsonOutput = output.join('\n');
-    const parsed = JSON.parse(jsonOutput);
-    expect(parsed.summary).toBe('JSON Test');
-  });
-
   it('patch errors on invalid forma ID', async () => {
     await expect(
       cli.parseArgv([

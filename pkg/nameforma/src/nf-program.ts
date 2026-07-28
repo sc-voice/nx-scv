@@ -429,7 +429,6 @@ export class NfProgram {
       )
       .argument('<fuzzyId>', 'Forma FUZZY_ID to mutate')
       .argument('<hjson...>', 'Mutation commands as HJSON')
-      .option('-j, --json', 'Output mutated forma as JSON')
       .addHelpText(
         'after',
         `
@@ -442,6 +441,7 @@ Examples:
       .action(async (fuzzyId: string, hjson: string[], options: any) => {
         let json;
         let hjsonStr;
+        let lines: string[] = [];
         try {
           const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
           if (!resolved) {
@@ -459,26 +459,31 @@ Examples:
           const delta = await nfp.world.mutate(fuzzyId, mutator.commands);
           const updated = (await nfp.world.resolveFuzzyId(fuzzyId))?.forma;
 
-          if (options.json) {
-            nfp.writeOut(JSON.stringify(updated, null, 2));
-          } else {
-            nfp.writeOut();
-            nfp.writeOut(fuzzyId + ' ' + theme.nfLink(fuzzyId));
-            for (const [key, oldValue] of Object.entries(delta)) {
-              const newValue = (updated as any)?.[key];
-              const oldStr = JSON.stringify(oldValue);
-              const newStr = JSON.stringify(newValue);
-              nfp.writeOut(`- ${theme.nfAttend(oldStr)}`);
-              nfp.writeOut(`+ ${theme.nfNominal(newStr)}`);
-            }
+          if (json) {
+            lines.push(
+              theme.nfNote(
+                `requested patch: ${JSON.stringify(json, null, 2)}`,
+              ),
+            );
           }
+          const formaId = theme.nfLink(oldForma.id.base64);
+          const formaType = oldForma.constructor.name;
+          lines.push(`${formaType} ${fuzzyId} ${formaId}`);
+          for (const [key, oldValue] of Object.entries(delta)) {
+            const newValue = (updated as any)?.[key];
+            const oldStr = JSON.stringify(oldValue);
+            const newStr = JSON.stringify(newValue);
+            lines.push(`- ${key}: ${theme.nfAttend(oldStr)}`);
+            lines.push(`+ ${key}: ${theme.nfNominal(newStr)}`);
+          }
+          nfp.writeOut(lines.join('\n'));
         } catch (err: any) {
           if (json) {
-            nfp.writeOut('requested patch:', JSON.stringify(json, null, 2));
+            lines.push('requested patch:' + JSON.stringify(json, null, 2));
           } else if (hjsonStr) {
-            nfp.writeOut('hjsonStr:', hjsonStr);
+            lines.push('hjsonStr:' + hjsonStr);
           }
-          nfp.writeErr(`✗ Error: ${err.message}`);
+          nfp.writeErr(`${lines.join('\n')}\n✗ Error: ${err.message}`);
           throw err;
         }
       });
