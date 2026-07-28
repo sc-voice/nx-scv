@@ -421,8 +421,7 @@ describe('NfCLI patch command', () => {
       tempWorld.worldPath,
       '--',
       taskId,
-      'summary:',
-      'New Summary',
+      'summary:"New Summary"',
     ]);
 
     const outputStr = output.join('\n');

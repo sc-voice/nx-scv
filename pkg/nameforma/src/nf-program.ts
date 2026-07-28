@@ -434,20 +434,22 @@ export class NfProgram {
         'after',
         `
 Examples:
-  nf patch TASK_ID "name: 'new name'"
-  nf patch ACTION_ID "status: 'work'"
+  nf patch TASK_ID name:'new name'
+  nf patch ACTION_ID status:work statusNote:prototype
   nf patch ACTION_ID "$set: {status: 'work'}"
   nf patch ACTION_ID "$push: {tags: 'urgent'}"`,
       )
       .action(async (fuzzyId: string, hjson: string[], options: any) => {
+        let json;
+        let hjsonStr;
         try {
           const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
           if (!resolved) {
             throw new Error(`Not found: ${fuzzyId}`);
           }
 
-          let hjsonStr = hjson.join(' ').trim();
-          const json = Hjson.parse(hjsonStr);
+          hjsonStr = hjson.join(' ').trim();
+          json = Object.assign({}, ...hjson.map((s) => Hjson.parse(s)));
           json.id = resolved.forma.id.base64;
 
           const mutator = Mutator.fromJson(json);
@@ -471,6 +473,11 @@ Examples:
             }
           }
         } catch (err: any) {
+          if (json) {
+            nfp.writeOut('requested patch:', JSON.stringify(json, null, 2));
+          } else if (hjsonStr) {
+            nfp.writeOut('hjsonStr:', hjsonStr);
+          }
           nfp.writeErr(`✗ Error: ${err.message}`);
           throw err;
         }

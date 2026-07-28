@@ -3,3 +3,4 @@ dist
 local
 tsconfig.tsbuildinfo
 .nameforma/nf.log
+.codegraph
