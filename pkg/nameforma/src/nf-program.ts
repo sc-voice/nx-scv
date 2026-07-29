@@ -212,34 +212,6 @@ export class NfProgram {
     }
   }
 
-  /**
-   * Set a field value on a forma by resolving it and persisting via its entity
-   * @param formaId - Fuzzy ID of the forma to update
-   * @param fieldPath - Field to update (e.g., 'name', 'summary')
-   * @param value - New value for the field
-   * @returns The updated forma
-   */
-  async setFieldValue(
-    formaId: FuzzyId,
-    fieldPath: string,
-    value: any,
-  ): Promise<Forma> {
-    const resolved = await this.world.resolveFuzzyId(formaId);
-    if (!resolved) {
-      throw new Error(`Not found: ${formaId}`);
-    }
-
-    const { entity, forma } = resolved;
-    forma.patch({ [fieldPath]: value });
-    this.world.emit('change', {
-      type: 'patch',
-      item: forma,
-      entity,
-    });
-
-    return forma;
-  }
-
   /** Parse dotref: FORMA_ID.FIELD_NAME */
   async resolveDotRef(dotRef: string): Promise<{
     entity: Forma;
@@ -339,50 +311,6 @@ export class NfProgram {
       );
   }
 
-  registerSetCommand(): void {
-    const nfp = this;
-    this.cmdDelegate
-      .command('set')
-      .description('Set a forma field')
-      .argument('<dotRef>', 'Forma FUZZY_ID.field')
-      .argument('<value...>', 'Value(s) to set')
-      .option('-j, --json', 'Output update forma as JSON')
-      .action(async (dotRef: string, values: string[], options: any) => {
-        const value = values.join(' ').trim();
-
-        try {
-          const {
-            forma,
-            fieldName,
-            fuzzyId,
-            value: oldValue,
-          } = await nfp.resolveDotRef(dotRef);
-          const formaId = forma.id.base64;
-
-          // Update and persist
-          const updated = await nfp.setFieldValue(
-            formaId,
-            fieldName,
-            value,
-          );
-
-          // Output result
-          if (options.json) {
-            nfp.writeOut(JSON.stringify(updated, null, 2));
-          } else {
-            let id = formaId.replace(fuzzyId, theme.nfLink(fuzzyId));
-            nfp.writeOut();
-            nfp.writeOut(dotRef + ' ' + id + '.' + fieldName);
-            nfp.writeOut(`- ${theme.nfAttend(oldValue)}`);
-            nfp.writeOut(`+ ${theme.nfNominal(value)}`);
-          }
-        } catch (err: any) {
-          nfp.writeErr(`✗ Error: ${err.message}`);
-          throw err;
-        }
-      });
-  }
-
   /** Action handler for @see registerInitCommand */
   async nfInit(pathArg: string | undefined, options: any): Promise<void> {
     const msg = theme.nfAttend('nfInit');
@@ -434,6 +362,8 @@ export class NfProgram {
         `
 Examples:
   nf patch TASK_ID name:'new name'
+  nf patch focus name:'new name'
+  nf patch world name:'new name'
   nf patch ACTION_ID status:work statusNote:prototype
   nf patch ACTION_ID "$set: {status: 'work'}"
   nf patch ACTION_ID "$push: {tags: 'urgent'}"`,

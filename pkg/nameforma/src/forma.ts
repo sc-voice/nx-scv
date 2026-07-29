@@ -37,7 +37,6 @@ export class Forma
   implements IRenderable, ICommandMutable
 {
   static #instances: Record<string, number> = {}; // instance count
-  static patchableFields = ['name', 'summary'];
 
   name: string; // short descriptive title
   summary: string; // long description

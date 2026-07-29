@@ -238,26 +238,41 @@ export class World extends Entity implements IEventBus {
     const ns = await this.namespace;
 
     // Get focused entity: local focus (transactional) takes precedence over RGA64 focus
-    const focusId =
-      this.#focusManager.peekLocal() || this.#focusManager.peek();
+    const fm = this.#focusManager;
+    const focusId = fm.peekLocal() || fm.peek();
     const focusedEntity = focusId ? ns.getForma(focusId.base64) : null;
+    let forma: Forma | undefined;
+
+    // Focused entity
+    if (fuzzyId === 'focus') {
+      if (focusedEntity) {
+        return { entity: focusedEntity, forma: focusedEntity };
+      }
+    }
 
     // Primary namespace is in focused entity
     if (focusedEntity) {
       const nsPrimary = await (focusedEntity as any)?.namespace;
-      const forma = nsPrimary.getForma(fuzzyId);
+      forma = nsPrimary.getForma(fuzzyId);
       if (forma) {
         dbg &&
-          cc.ok1(msg, `found in focused entity namespace: ${fuzzyId}`);
+          cc.ok1(msg, `focus namespace: ${fuzzyId} => ${forma.id.base64}`);
         return { entity: focusedEntity, forma };
       }
     }
 
+    // World entity
+    if (fuzzyId === 'world') {
+      dbg && cc.ok1(msg, `world: ${fuzzyId} => ${this.id.base64}`);
+      return { entity: this, forma: this };
+    }
+
     // Secondary namespace is the world
     const nsSecondary = await this.namespace;
-    const forma = nsSecondary.getForma(fuzzyId);
+    forma = nsSecondary.getForma(fuzzyId);
     if (forma) {
-      dbg && cc.ok1(msg, `found in world namespace: ${fuzzyId}`);
+      dbg &&
+        cc.ok1(msg, `world namespace: ${fuzzyId} => ${forma.id.base64}`);
       return { entity: forma, forma };
     }
 
