@@ -12,7 +12,7 @@ import { IRegistry } from './registry.js';
  * Extends Forma with namespace management for child Forma objects (actions, references, etc.)
  */
 export abstract class Entity extends Forma implements IRegistry {
-  protected _namespace?: FuzzyNamespace;
+  #namespace?: FuzzyNamespace;
 
   /**
    * Entity ids are mutually independent and unrelated to one another.
@@ -43,13 +43,22 @@ export abstract class Entity extends Forma implements IRegistry {
     super(cfg);
   }
 
+  clearNamespace() {
+    this.#namespace = new FuzzyNamespace();
+  }
+
+  override copyFrom(that: Entity): void {
+    super.copyFrom(that);
+    this.#namespace = that.#namespace;
+  }
+
   /** IRegistry implementation: subclass must initialize namespace */
   get namespace(): IReadOnlyNamespace {
-    if (!this._namespace) {
+    if (!this.#namespace) {
       const subclass = this.constructor.name;
-      throw new Error(`${subclass} must initialize _namespace`);
+      throw new Error(`uninitialized ${subclass}`);
     }
-    return this._namespace;
+    return this.#namespace;
   }
 
   /**
@@ -57,11 +66,11 @@ export abstract class Entity extends Forma implements IRegistry {
    * Lazy initialization: creates namespace and populates on first access
    */
   get mutableNamespace(): IMutableNamespace {
-    if (!this._namespace) {
+    if (!this.#namespace) {
       const subclass = this.constructor.name;
-      throw new Error(`${subclass} must initialize _namespace`);
+      throw new Error(`uninitialized ${subclass}`);
     }
-    return this._namespace;
+    return this.#namespace;
   }
 
   /**

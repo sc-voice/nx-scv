@@ -201,13 +201,13 @@ export class NfProgram {
   }
 
   async parseAsync(args: string[]): Promise<ICommand> {
-    const msg = 'n7m.parseAsync';
+    const ctx = 'n7m.parseAsync';
     const dbg = DBG.NF_PROGRAM.ANY;
     try {
-      dbg && logger.debug(`${msg}: ${args.join(' ')}`);
+      dbg && logger.debug({ ctx, args });
       return this.cmdDelegate.parseAsync(args);
     } catch (err) {
-      dbg && logger.debug(`${msg}: ${(err as any)?.message}`);
+      logger.error({ ctx, err });
       throw err;
     }
   }
@@ -276,10 +276,9 @@ export class NfProgram {
     summary: string | undefined,
     options: any,
   ): void {
-    const msg = 'nfAdd';
+    const ctx = 'nfAdd';
     const dbg = DBG.NF_PROGRAM.ANY;
-
-    dbg && logger.debug(JSON.stringify({ typeName, name, summary }));
+    dbg && logger.debug({ ctx, typeName, name, summary });
   }
 
   registerAddCommand(): void {
@@ -348,10 +347,72 @@ export class NfProgram {
       .action((pathArg, options) => nfp.nfInit(pathArg, options));
   }
 
-  registerPatchCommand(): void {
+  registerFindCommand(): void {
     const nfp = this;
     this.cmdDelegate
-      .command('patch')
+      .command('find')
+      .alias('findOne')
+      .description('Find a Forma')
+      .argument('<fuzzyId>', 'Forma FUZZY_ID to find')
+      .argument(
+        '[hjson...]',
+        'Optional projection, e.g.: {name:1, summary:1}',
+      )
+      .addHelpText(
+        'after',
+        `
+Examples:
+  nf find TASK_ID
+  nf find focus name:1 summary:1
+  nf find world summary:0
+  nf find ACTION_ID`,
+      )
+      .action(
+        async (fuzzyId: string, hjson: string[] = [], options: any) => {
+          const ctx = 'NfProgram.registerFindCommand';
+          let lines: string[] = [];
+          try {
+            const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
+            if (!resolved) {
+              throw new Error(`Not found: ${fuzzyId}`);
+            }
+
+            const hjsonStr = hjson.join(' ').trim();
+            const projection = Object.assign(
+              {},
+              ...hjson.map((s) => Hjson.parse(s)),
+            );
+            const pv = Object.values(projection);
+            const optIn = !pv.some((v) => v === 0);
+
+            const { forma } = resolved;
+            const fkv = Object.entries(forma);
+
+            const output: Record<string, any> = {};
+
+            for (const [k, v] of Object.entries(forma)) {
+              if (projection[k] !== 0 || (optIn && projection[k] === 1)) {
+                output[k] = v;
+              }
+            }
+            lines.push(JSON.stringify(output, null, 2));
+
+            nfp.writeOut(lines.join('\n'));
+          } catch (err: any) {
+            logger.error({ ctx, err });
+            nfp.writeErr(`✗ ${ctx} Error: ${err.message}`);
+            throw err;
+          }
+        },
+      );
+  } // registerFindCommand
+
+  registerUpdateCommand(): void {
+    const nfp = this;
+    this.cmdDelegate
+      .command('update')
+      .alias('updateOne')
+      .alias('patch')
       .description(
         'Apply mutations to a forma using operator-based commands',
       )
@@ -361,12 +422,12 @@ export class NfProgram {
         'after',
         `
 Examples:
-  nf patch TASK_ID name:'new name'
-  nf patch focus name:'new name'
-  nf patch world name:'new name'
-  nf patch ACTION_ID status:work statusNote:prototype
-  nf patch ACTION_ID "$set: {status: 'work'}"
-  nf patch ACTION_ID "$push: {tags: 'urgent'}"`,
+  nf update TASK_ID name:'new name'
+  nf update focus name:'new name'
+  nf update world name:'new name'
+  nf update ACTION_ID status:work statusNote:prototype
+  nf update ACTION_ID "$set: {status: 'work'}"
+  nf update ACTION_ID "$push: {tags: 'urgent'}"`,
       )
       .action(async (fuzzyId: string, hjson: string[], options: any) => {
         let json;
@@ -417,5 +478,5 @@ Examples:
           throw err;
         }
       });
-  }
+  } // registerUpdateCommand
 }

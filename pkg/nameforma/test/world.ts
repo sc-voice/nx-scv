@@ -1347,7 +1347,7 @@ describe('World.entityStream()', () => {
     const uninitWorld = new World(worldPath, rawRepository);
 
     expect(() => Array.from(uninitWorld.entityStream(Task))).toThrow(
-      /uninitialized world/,
+      /uninitialized World/,
     );
   });
 

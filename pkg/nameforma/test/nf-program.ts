@@ -117,7 +117,7 @@ describe('NfProgram.resolveDotRef', () => {
   });
 });
 
-describe('NfProgram.registerPatchCommand', () => {
+describe('NfProgram.registerUpdateCommand', () => {
   let tempDirObj: any;
   let tempWorldPath: string;
   let world: World;
@@ -143,7 +143,7 @@ describe('NfProgram.registerPatchCommand', () => {
     expect(task).toBeTruthy();
     const oldName = task!.name;
 
-    // Call registerPatchCommand's action handler directly via mutate
+    // Call registerUpdateCommand's action handler directly via mutate
     const json = { id: task!.id.base64, name: 'Updated via Patch' };
     const { Mutator } = await import('../src/mutator.js');
     const mutator = Mutator.fromJson(json);

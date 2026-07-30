@@ -214,14 +214,6 @@ export class World extends Entity implements IEventBus {
     dbg && cc.ok1(msg, `total loaded ${totalLoaded} entities`);
   }
 
-  /** Must be called after construction */
-  async initialize(): Promise<void> {
-    if (!this._namespace) {
-      this._namespace = new FuzzyNamespace();
-      await this.#populateNamespace();
-    }
-  }
-
   /**
    * Resolve fuzzy ID using active names spaces in order:
    * 1. transient focus
@@ -379,6 +371,12 @@ export class World extends Entity implements IEventBus {
     dbg && cc.ok1(msg, `saved ${entityType}:${entity.id}`);
   }
 
+  /** Must be called after construction */
+  async initialize(): Promise<void> {
+    this.clearNamespace();
+    await this.#populateNamespace();
+  }
+
   /**
    * Save World state to world.json
    * Creates .nameforma/ directory if missing
@@ -394,7 +392,6 @@ export class World extends Entity implements IEventBus {
     this.#focusManager = FocusManager.fromJSON(
       that.#focusManager.toJSON(),
     );
-    this._namespace = new FuzzyNamespace(that._namespace);
   }
 
   /**
@@ -519,7 +516,7 @@ export class World extends Entity implements IEventBus {
   ): Generator<InstanceType<C>> {
     const msg = 'world.entityStream';
     const dbg = DBG.WORLD.ENTITY_STREAM;
-    const ns = this._namespace;
+    const ns = this.namespace;
     if (ns == null) throw new Error(`${msg} uninitialized world`);
     const rawEntities = [...ns.findByClass(targetClass, filter)];
     const entities = filter ? rawEntities.filter(filter) : rawEntities;

@@ -209,22 +209,22 @@ export class Forma
     const msg = 'Forma.patch';
     const { id } = this;
     const { name, summary } = update;
-    const changed: Record<string, any> = {};
+    const prior: Record<string, any> = {};
     if (typeof name === 'string' && this.name !== name) {
-      changed.name = this.name;
+      prior.name = this.name;
       this.name = name;
     }
     if (typeof summary === 'string' && this.summary !== summary) {
-      changed.summary = this.summary;
+      prior.summary = this.summary;
       this.summary = summary;
     }
 
-    if (Object.keys(changed).length > 0) {
-      changed.updateId = this.updateId;
+    if (Object.keys(prior).length > 0) {
+      prior.updateId = this.updateId;
       this.updateId = txId;
     }
 
-    return changed;
+    return prior;
   }
 
   protected _replaceFrom<T extends Forma>(that: T): void {

@@ -92,7 +92,7 @@ export class Task extends Entity {
    * Populate namespace with actions and references
    */
   #populateNamespace(): void {
-    this._namespace = this._namespace ?? new FuzzyNamespace();
+    this.clearNamespace();
     this.rawActions.forEach((action) => this.addToNamespace(action));
     this.rawReferences.forEach((ref) => this.addToNamespace(ref));
   }

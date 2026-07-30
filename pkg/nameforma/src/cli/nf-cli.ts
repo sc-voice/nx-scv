@@ -296,7 +296,8 @@ export class NfCLI extends NfProgram {
 
     // predefined commands
     this.registerInitCommand();
-    this.registerPatchCommand();
+    this.registerFindCommand();
+    this.registerUpdateCommand();
     this.registerAddCommand();
     program.configureOutput({
       writeOut: (str: string) => nfTui.log(str),
