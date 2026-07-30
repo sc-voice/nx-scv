@@ -131,44 +131,6 @@ describe('CLI: task command', () => {
     expect(output[1]).toMatch(/Task 1/);
   });
 
-  it('show task details', async () => {
-    // Create a task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Show Me',
-    ]);
-
-    // Extract task ID from output
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
-
-    expect(taskId).not.toBeNull();
-
-    output.length = 0;
-
-    // Show the task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'get',
-      '--',
-      taskId,
-    ]);
-
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/Task:/);
-    expect(output.join('\n')).toMatch(/name: Show Me/);
-  });
-
   describe('delete command', () => {
     it('delete task with partial fuzzy ID using --force', async () => {
       // Create a task
@@ -331,14 +293,13 @@ describe('CLI: task command', () => {
         cli.parseArgv([
           'node',
           'test',
-          'task',
+          'find',
           '-w',
           tempWorld.worldPath,
-          'get',
           '--',
           taskId,
         ]),
-      ).rejects.toThrow(/Task not found/);
+      ).rejects.toThrow(`Not found: ${taskId}`);
     });
 
     it('delete one of multiple tasks', async () => {
@@ -474,203 +435,6 @@ describe('CLI: task command', () => {
     });
   });
 
-  it('show non-existent task returns error', async () => {
-    await expect(
-      cli.parseArgv([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'get',
-        'nonexistent',
-      ]),
-    ).rejects.toThrow(/Task not found/);
-  });
-
-  it('show task displays references', async () => {
-    // Create a task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Task with References',
-    ]);
-
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
-
-    output.length = 0;
-
-    // Add references directly to the task
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = await world.loadFuzzy(Task, taskId);
-    expect(task).toBeTruthy();
-
-    task!.references(world).addItem(
-      new Reference({
-        name: 'Reference 1',
-        summary: 'First reference',
-        relevance: 0.9,
-        source: 'src/file.ts',
-      }),
-    );
-
-    task!.references(world).addItem(
-      new Reference({
-        name: 'Reference 2',
-        summary: 'Second reference',
-        relevance: 0.7,
-      }),
-    );
-
-    await world.save();
-
-    output.length = 0;
-
-    // Show the task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'get',
-      '--',
-      taskId,
-    ]);
-
-    const showOutput = output.join('\n');
-
-    // At verbosity 0, references are not displayed
-    expect(showOutput).not.toMatch(/references \(2\)/);
-    // But actions should be displayed
-    expect(showOutput).toMatch(/Task with References/);
-  });
-
-  it('show task with no references does not display references section', async () => {
-    // Create a task without references
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Task without References',
-    ]);
-
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
-
-    output.length = 0;
-
-    // Show the task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'get',
-      '--',
-      taskId,
-    ]);
-
-    const showOutput = output.join('\n');
-
-    // Verify references header shows but with no content
-    expect(showOutput).toMatch(/references\[0\]:/);
-  });
-
-  it('show task displays references sorted by relevance descending', async () => {
-    // Create a task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Task with Sorted References',
-    ]);
-
-    const createOutput = output.join('\n');
-    const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-    const taskId = idMatch ? idMatch[1] : null;
-
-    output.length = 0;
-
-    // Add references with different relevance in non-sorted order
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = await world.loadFuzzy(Task, taskId);
-    expect(task).toBeTruthy();
-
-    task!.references(world).addItem(
-      new Reference({
-        name: 'Low Relevance',
-        summary: 'Least relevant',
-        relevance: 0.3,
-      }),
-    );
-
-    task!.references(world).addItem(
-      new Reference({
-        name: 'High Relevance',
-        summary: 'Most relevant',
-        relevance: 0.9,
-      }),
-    );
-
-    task!.references(world).addItem(
-      new Reference({
-        name: 'Medium Relevance',
-        summary: 'Mid relevance',
-        relevance: 0.6,
-      }),
-    );
-
-    await world.save();
-
-    output.length = 0;
-
-    // Show the task with verbosity 1 to display references
-    await cli.parseArgv([
-      'node',
-      'test',
-      '-v',
-      '1',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'get',
-      '--',
-      taskId,
-    ]);
-
-    const showOutput = output.join('\n');
-    const lines = showOutput.split('\n');
-
-    // Find indices of each reference in output
-    const highIdx = lines.findIndex((l) => l.includes('High Relevance'));
-    const mediumIdx = lines.findIndex((l) =>
-      l.includes('Medium Relevance'),
-    );
-    const lowIdx = lines.findIndex((l) => l.includes('Low Relevance'));
-
-    // Verify they appear in descending relevance order
-    expect(highIdx).toBeLessThan(mediumIdx);
-    expect(mediumIdx).toBeLessThan(lowIdx);
-    expect(highIdx).toBeGreaterThan(-1);
-    expect(mediumIdx).toBeGreaterThan(-1);
-    expect(lowIdx).toBeGreaterThan(-1);
-  });
-
   it('delete non-existent task returns error', async () => {
     await expect(
       cli.parseArgv([
@@ -719,16 +483,16 @@ describe('CLI: task command', () => {
       await cli.parseArgv([
         'node',
         'test',
-        'task',
+        'find',
         '-w',
         tempWorld.worldPath,
-        'get',
+        'focus',
       ]);
 
       expect(output.length).toBeGreaterThan(0);
-      expect(output[0]).toMatch(/Task:/);
-      expect(output.join('\n')).toMatch(/name: Focused Task/);
-      expect(output.join('\n')).toMatch(/summary:/);
+      expect(output[0]).toMatch(/forma": "Task/);
+      expect(output.join('\n')).toMatch(/name": "Focused Task/);
+      expect(output.join('\n')).toMatch(/"summary":/);
     });
 
     it('show without ID returns error when no task focused', async () => {
@@ -736,12 +500,12 @@ describe('CLI: task command', () => {
         cli.parseArgv([
           'node',
           'test',
-          'task',
+          'find',
           '-w',
           tempWorld.worldPath,
-          'get',
+          'focus',
         ]),
-      ).rejects.toThrow(/No task focused|Task not found/);
+      ).rejects.toThrow(/Not found: focus|Task not found/);
     });
 
     it('show displays all actions in task', async () => {
@@ -783,70 +547,20 @@ describe('CLI: task command', () => {
       await cli.parseArgv([
         'node',
         'test',
-        'task',
+        'find',
         '-w',
         tempWorld.worldPath,
-        'get',
         '--',
         taskId,
       ]);
 
       const showOutput = output.join('\n');
-      expect(showOutput).toMatch(/Task:/);
-      expect(showOutput).toMatch(/name: Task With Actions/);
-      expect(showOutput).toMatch(/actions\[\d+\]:/);
-      expect(showOutput).toMatch(/\w+:.*req.*First action/);
+      expect(showOutput).toMatch(/forma": "Task/);
+      expect(showOutput).toMatch(/name": "Task With Actions/);
+      expect(showOutput).toMatch(/rawActions/);
+      expect(showOutput).toMatch(/"First action"/);
       expect(showOutput).toMatch(/Do this first/);
-      expect(showOutput).toMatch(/\w+:.*req.*Second action/);
-    });
-
-    it('show task displays progress line with percentage', async () => {
-      // Create task with actions
-      await cli.parseArgv([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'add',
-        'Progress Test Task',
-      ]);
-
-      const createOutput = output.join('\n');
-      const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
-      const taskId = idMatch ? idMatch[1] : null;
-      expect(taskId).not.toBeNull();
-
-      // Add mixed status actions
-      const world = await FileRepository.worldFromPath(
-        tempWorld.worldPath,
-      );
-      const task = await world.loadFuzzy(Task, taskId!);
-      task!
-        .actions(world)
-        .addItem(new Action({ name: 'Done action', status: 'done' }));
-      task!
-        .actions(world)
-        .addItem(new Action({ name: 'Work action', status: 'work' }));
-      await world.save();
-
-      output.length = 0;
-
-      // Show task - should display progress
-      await cli.parseArgv([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'get',
-        '--',
-        taskId,
-      ]);
-
-      const showOutput = output.join('\n');
-      // Progress line includes ANSI color codes, so use flexible regex
-      expect(showOutput).toMatch(/progress:[\s\x1b\[\d;m]*\d+%/);
+      expect(showOutput).toMatch(/"Second action"/);
     });
 
     it('list tasks displays progress percentage', async () => {

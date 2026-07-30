@@ -17,7 +17,6 @@ import { readFileSync, realpathSync } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import IdCommand from './cli-id.js';
-import GetCommand from './cli-get.js';
 import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
@@ -260,10 +259,6 @@ export class NfCLI extends NfProgram {
       program
         .command('id')
         .description('Generate/validate numeronym, UUIDv7, UUID64'),
-      this,
-    );
-    GetCommand.registerCommand(
-      program.command('get').description('Get a forma by fuzzy ID'),
       this,
     );
     ActionCommand.registerCommand(
