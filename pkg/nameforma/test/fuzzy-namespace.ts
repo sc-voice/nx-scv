@@ -119,6 +119,30 @@ describe('FuzzyNamespace', () => {
       expect(fuzzyId1Again).toBeDefined();
       expect(fuzzyId1).not.toEqual(fuzzyId1Again); // Cache invalidated, recomputed
     });
+
+    it('does not generate fuzzyIds starting with "-"', () => {
+      const forma1 = new Forma({
+        id: '0P-p-SXi002wdytaL0tJ7W',
+        name: 'Task with hyphen in ID',
+      });
+      const forma2 = new Forma({
+        id: '0P-R0F7700LSTauME2e0dW',
+        name: 'Another task with hyphen',
+      });
+      const forma3 = new Forma({
+        id: '0PxbexGd00dWFafUkPdttW',
+        name: 'Third task',
+      });
+      ns.addForma(forma1);
+      ns.addForma(forma2);
+      ns.addForma(forma3);
+      const fuzzyId1 = ns.fuzzyIdOf(forma1);
+      const fuzzyId2 = ns.fuzzyIdOf(forma2);
+      const fuzzyId3 = ns.fuzzyIdOf(forma3);
+      expect(fuzzyId1).toBe('p-SXi');
+      expect(fuzzyId2).toBe('R0F77');
+      expect(fuzzyId3).toBe('bexGd');
+    });
   });
 
   describe('iterator', () => {

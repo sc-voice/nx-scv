@@ -54,7 +54,7 @@ const operations = [
     'field',
     'value',
   ]),
-  new Operation('get', 'Get JSON for a Forma', ['fuzzy_id']),
+  new Operation('find', 'Get JSON for a Forma', ['fuzzy_id']),
 ];
 
 const opNames = [...operations.map((op) => op.name)];
@@ -214,8 +214,8 @@ export const nfTool = {
         cmd += ` set ${fuzzy_id}.${field}` + arg(value);
       } else if (operation === 'task') {
         cmd += ` task`;
-      } else if (operation === 'get') {
-        cmd += ` get ${fuzzy_id}`;
+      } else if (operation === 'find') {
+        cmd += ` find ${fuzzy_id}`;
       } else {
         throw new Error(`Unsupported operation params: ${params}`);
       }

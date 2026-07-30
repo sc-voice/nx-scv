@@ -233,6 +233,14 @@ export class FuzzyNamespace implements IMutableNamespace {
       }
     }
 
+    // Adjust prefix to avoid starting with "-" for any timeId
+    while (prefixLen < UUID64.TIME_SEQ_CHARS) {
+      if (timeIds.every((id) => id[prefixLen] !== '-')) {
+        break;
+      }
+      prefixLen += 1;
+    }
+
     this.#cachedPrefixLen = prefixLen;
     this.#cachedSuffixLen = suffixLen;
   }

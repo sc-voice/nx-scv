@@ -1,0 +1,37 @@
+{
+  "forma": "Task",
+  "id": "0P-p-SXi002wdytaL0tJ7W",
+  "name": "Support $push in mutate() and applyCommand()",
+  "summary": "Investigate and implement support for the $push operator in mutate() and applyCommand() to allow appending items to arrays within the system.",
+  "updateId": "0P-p-SXi002wdytaL0tJ7W",
+  "rawActions": [],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0P-q2zO0002wdytaL0tJ7W",
+      "name": "src/forma.ts investigation",
+      "summary": "Reference to the core implementation of applyCommand()",
+      "updateId": "0P-q2zO0002wdytaL0tJ7W",
+      "relevance": 0.9,
+      "source": "src/forma.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P-q2-7l002wdytaL0tJ7W",
+      "name": "src/world.ts investigation",
+      "summary": "Reference to the orchestration and mutation logic",
+      "updateId": "0P-q2-7l002wdytaL0tJ7W",
+      "relevance": 0.9,
+      "source": "src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P-q2-uy002wdytaL0tJ7W",
+      "name": "src/mutator.ts investigation",
+      "summary": "Reference to how commands are constructed for mutation",
+      "updateId": "0P-q2-uy002wdytaL0tJ7W",
+      "relevance": 0.9,
+      "source": "src/mutator.ts"
+    }
+  ]
+}
