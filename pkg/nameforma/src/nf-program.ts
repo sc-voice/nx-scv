@@ -347,6 +347,73 @@ export class NfProgram {
       .action((pathArg, options) => nfp.nfInit(pathArg, options));
   }
 
+  private applyProjection(
+    obj: any,
+    projection: Record<string, any>,
+  ): Record<string, any> {
+    if (typeof obj !== 'object' || obj === null) {
+      return obj;
+    }
+
+    if (!Object.keys(projection).length) {
+      return obj;
+    }
+
+    const globalOptIn = Object.values(projection).some((v) => v === 1);
+    const byRoot: Record<
+      string,
+      { flag?: 0 | 1; paths: Array<{ path: string; flag: 0 | 1 }> }
+    > = {};
+
+    for (const [path, flag] of Object.entries(projection)) {
+      const parts = path.split('.');
+      const root = parts[0];
+
+      if (!byRoot[root]) {
+        byRoot[root] = { paths: [] };
+      }
+
+      if (parts.length === 1) {
+        byRoot[root].flag = flag;
+      } else {
+        byRoot[root].paths.push({
+          path: parts.slice(1).join('.'),
+          flag,
+        });
+      }
+    }
+
+    const result: Record<string, any> = {};
+
+    for (const [k, v] of Object.entries(obj)) {
+      const rootProj = byRoot[k];
+
+      if (!rootProj && globalOptIn) {
+        continue;
+      } else if (rootProj?.flag === 0) {
+        continue;
+      } else if (rootProj?.flag === 1) {
+        result[k] = v;
+      } else if (rootProj && rootProj.paths.length > 0) {
+        const nestedProj: Record<string, any> = {};
+        for (const { path, flag } of rootProj.paths) {
+          nestedProj[path] = flag;
+        }
+        if (Array.isArray(v)) {
+          result[k] = v.map((item) =>
+            this.applyProjection(item, nestedProj),
+          );
+        } else {
+          result[k] = this.applyProjection(v, nestedProj);
+        }
+      } else {
+        result[k] = v;
+      }
+    }
+
+    return result;
+  }
+
   registerFindCommand(): void {
     const nfp = this;
     this.cmdDelegate
@@ -362,9 +429,9 @@ export class NfProgram {
         'after',
         `
 Examples:
-  nf find TASK_ID
   nf find focus name:1 summary:1
   nf find world summary:0
+  nf find TASK_ID id:1 name: 1 rawActions.name:1 
   nf find ACTION_ID`,
       )
       .action(
@@ -377,24 +444,21 @@ Examples:
               throw new Error(`Not found: ${fuzzyId}`);
             }
 
-            const hjsonStr = hjson.join(' ').trim();
             const projection = Object.assign(
               {},
               ...hjson.map((s) => Hjson.parse(s)),
             );
             const pv = Object.values(projection);
-            const optIn = !pv.some((v) => v === 0);
+            const optIn = pv.some((v) => v === 1);
+            const optOut = pv.some((v) => v === 0);
+            if (optIn && optOut) {
+              throw new Error(
+                `Mixed projection not supported: ${JSON.stringify(projection)}`,
+              );
+            }
 
             const { forma } = resolved;
-            const fkv = Object.entries(forma);
-
-            const output: Record<string, any> = {};
-
-            for (const [k, v] of Object.entries(forma)) {
-              if (projection[k] !== 0 || (optIn && projection[k] === 1)) {
-                output[k] = v;
-              }
-            }
+            const output = nfp.applyProjection(forma, projection);
             lines.push(JSON.stringify(output, null, 2));
 
             nfp.writeOut(lines.join('\n'));

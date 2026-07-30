@@ -193,6 +193,249 @@ describe('NfProgram.registerUpdateCommand', () => {
   });
 });
 
+describe('NfProgram.registerFindCommand', () => {
+  let tempDirObj: any;
+  let tempWorldPath: string;
+  let world: World;
+  let cmdDelegate: Command;
+  let program: NfProgram;
+  let output: string[];
+  let errors: string[];
+
+  beforeEach(async () => {
+    tempDirObj = createTempDir('nf-program-find-test');
+    const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
+    tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
+    fs.cpSync(samplePath, tempWorldPath, { recursive: true });
+    world = await FileRepository.worldFromPath(tempWorldPath);
+
+    output = [];
+    errors = [];
+
+    cmdDelegate = new Command();
+    program = new NfProgram(cmdDelegate);
+    program.initialize(world);
+
+    // Configure output to capture writes
+    program.cmdDelegate.configureOutput({
+      writeOut: (str: string) => output.push(str),
+      writeErr: (str: string) => errors.push(str),
+    });
+
+    program.registerFindCommand();
+  });
+
+  afterEach(() => {
+    tempDirObj.cleanup();
+  });
+
+  it('find without projection returns all fields', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync(['node', 'test', 'find', taskId]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.id).toBe(taskId);
+    expect(result.name).toBe('Task1-Name');
+    expect(result.summary).toBe('Task1-Summary');
+    expect(result.rawActions).toBeTruthy();
+    expect(result.rawReferences).toBeTruthy();
+  });
+
+  it('find with inclusion projection returns only selected fields', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{name:1,summary:1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.name).toBe('Task1-Name');
+    expect(result.summary).toBe('Task1-Summary');
+    expect(result.id).toBeUndefined();
+    expect(result.rawActions).toBeUndefined();
+  });
+
+  it('find with exclusion projection excludes selected fields', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{rawActions:0,rawReferences:0}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.id).toBe(taskId);
+    expect(result.name).toBe('Task1-Name');
+    expect(result.summary).toBe('Task1-Summary');
+    expect(result.rawActions).toBeUndefined();
+    expect(result.rawReferences).toBeUndefined();
+  });
+
+  it('find merges multiple projection arguments', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{name:1}',
+      '{summary:1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.name).toBe('Task1-Name');
+    expect(result.summary).toBe('Task1-Summary');
+    expect(result.id).toBeUndefined();
+    expect(result.rawActions).toBeUndefined();
+  });
+
+  it('find throws on invalid forma ID', async () => {
+    await expect(
+      program.cmdDelegate.parseAsync([
+        'node',
+        'test',
+        'find',
+        'nonexistent',
+      ]),
+    ).rejects.toThrow(/Not found: nonexistent/);
+  });
+
+  it('find throws on invalid HJSON projection', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await expect(
+      program.cmdDelegate.parseAsync([
+        'node',
+        'test',
+        'find',
+        taskId,
+        '{{{',
+      ]),
+    ).rejects.toThrow();
+  });
+
+  it('find rejects mixed inclusion/exclusion projection', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await expect(
+      program.cmdDelegate.parseAsync([
+        'node',
+        'test',
+        'find',
+        taskId,
+        '{name:1,summary:0}',
+      ]),
+    ).rejects.toThrow(/Mixed projection not supported/);
+  });
+
+  it('find with dotted inclusion projection includes nested fields', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{"name":1,"rawActions.name":1,"rawActions.status":1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.name).toBe('Task1-Name');
+    expect(result.summary).toBeUndefined();
+    expect(result.rawActions).toBeTruthy();
+    expect(Array.isArray(result.rawActions)).toBe(true);
+    expect(result.rawActions[0].name).toBe('Action1-name');
+    expect(result.rawActions[0].status).toBe('req');
+    expect(result.rawActions[0].summary).toBeUndefined();
+  });
+
+  it('find with dotted exclusion projection excludes nested fields', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{"rawActions.statusNote":0}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.name).toBe('Task1-Name');
+    expect(result.rawActions).toBeTruthy();
+    expect(result.rawActions[0].name).toBe('Action1-name');
+    expect(result.rawActions[0].status).toBe('req');
+    expect(
+      Object.prototype.hasOwnProperty.call(
+        result.rawActions[0],
+        'statusNote',
+      ),
+    ).toBe(false);
+  });
+
+  it('find with multiple dotted paths', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{"id":1,"rawActions.id":1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(result.id).toBe(taskId);
+    expect(result.name).toBeUndefined();
+    expect(result.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
+    expect(result.rawActions[0].name).toBeUndefined();
+  });
+
+  it('find with only dotted projection excludes other fields', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      '{"rawActions.id":1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const result = JSON.parse(output[0]);
+    expect(
+      Object.prototype.hasOwnProperty.call(result, 'rawActions'),
+    ).toBe(true);
+    expect(
+      Object.prototype.hasOwnProperty.call(result, 'rawReferences'),
+    ).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(result, 'name')).toBe(
+      false,
+    );
+    expect(result.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
+    expect(
+      Object.prototype.hasOwnProperty.call(result.rawActions[0], 'name'),
+    ).toBe(false);
+  });
+});
+
 describe('NfCLI patch command', () => {
   let cli: any;
   let output: string[];
