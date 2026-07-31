@@ -49,11 +49,11 @@ const operations = [
     'Set action status and statusNote values',
     ['fuzzy_id', 'actionStatus', 'statusNote'],
   ),
-  new Operation('set_field_value', 'Set a Forma field value', [
-    'fuzzy_id',
-    'field',
-    'value',
-  ]),
+  new Operation(
+    'update-forma',
+    'Apply MongoDB-style mutations to a Forma',
+    ['fuzzy_id', 'mutations'],
+  ),
   new Operation('find', 'Get JSON for a Forma', ['fuzzy_id']),
 ];
 
@@ -138,14 +138,10 @@ export const nfTool = {
           'identifier for a Forma (e.g., UUID64.base64 or namespace-unique substring thereof)',
       }),
     ),
-    field: Type.Optional(
-      Type.String({
-        description: 'Field name (for set_field_value)',
-      }),
-    ),
-    value: Type.Optional(
-      Type.String({
-        description: 'Field value (for set_field_value)',
+    mutations: Type.Optional(
+      Type.Record(Type.String(), Type.Any(), {
+        description:
+          'MongoDB-style mutations object: $set, $push, or plain field updates',
       }),
     ),
   }),
@@ -174,16 +170,15 @@ export const nfTool = {
       const {
         actionStatus,
         debug,
-        field,
         forma,
         fuzzy_id,
+        mutations,
         name,
         operation,
         relevance,
         statusNote,
         source,
         summary,
-        value,
       } = params;
 
       validateParams(operation, params);
@@ -210,8 +205,9 @@ export const nfTool = {
         cmd +=
           ` action set ${fuzzy_id}.status ${actionStatus} ` +
           arg(statusNote);
-      } else if (operation === 'set_field_value') {
-        cmd += ` set ${fuzzy_id}.${field}` + arg(value);
+      } else if (operation === 'update-forma') {
+        const hjson = JSON.stringify(mutations);
+        cmd += ` update ${fuzzy_id} '${hjson}'`;
       } else if (operation === 'task') {
         cmd += ` task`;
       } else if (operation === 'find') {
@@ -223,7 +219,6 @@ export const nfTool = {
       let output = execSync(cmd, { encoding: 'utf8' });
       if (debug) {
         output += `[DEBUG] cmd: ${cmd}\n`;
-        output += `[DEBUG] value: ${value} ${typeof value}\n`;
         output += `[DEBUG] opDescriptions: ${opDescriptions}\n`;
       }
 

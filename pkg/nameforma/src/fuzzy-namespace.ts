@@ -2,6 +2,8 @@ import { Forma, type Constructor } from './forma.js';
 import UUID64 from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 
+const MIN_FUZZY_ID = 5;
+
 /**
  * IReadOnlyNamespace - Read-only interface for UI and agent code.
  * Provides iteration and lookup of Forma within a namespace with masked FuzzyIds.
@@ -180,7 +182,9 @@ export class FuzzyNamespace implements IMutableNamespace {
 
   /**
    * Compute and cache prefix/suffix lengths across all forma timeIds.
-   * Ensures minimum FuzzyId length of 5 characters.
+   * Ensures minimum FuzzyId length of MIN_FUZZY_ID characters.
+   * Current implementation is limited to timeId(), but could
+   * be upgraded to use signature chars if necessary.
    */
   #computePrefixSuffixLengths(): void {
     const timeIds = this.#formas.map((forma) => forma.id.timeId());
@@ -193,7 +197,7 @@ export class FuzzyNamespace implements IMutableNamespace {
 
     if (timeIds.length === 1) {
       const suffixLen = 2;
-      const prefixLen = UUID64.TIME_SEQ_CHARS - 5 - suffixLen;
+      const prefixLen = UUID64.TIME_SEQ_CHARS - MIN_FUZZY_ID - suffixLen;
       this.#cachedPrefixLen = prefixLen;
       this.#cachedSuffixLen = suffixLen;
       return;
@@ -221,10 +225,10 @@ export class FuzzyNamespace implements IMutableNamespace {
       }
     }
 
-    // Ensure minimum FuzzyId length of 5
+    // Ensure minimum FuzzyId length of MIN_FUZZY_ID
     const resultLen = UUID64.TIME_SEQ_CHARS - prefixLen - suffixLen;
-    if (resultLen < 5) {
-      const needed = 5 - resultLen;
+    if (resultLen < MIN_FUZZY_ID) {
+      const needed = MIN_FUZZY_ID - resultLen;
       if (suffixLen >= needed) {
         suffixLen -= needed;
       } else {
