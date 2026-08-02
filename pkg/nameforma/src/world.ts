@@ -67,7 +67,6 @@ export class World extends Entity implements IEventBus {
   readonly repository: IEntityRepository;
   #worldPath: string;
   #gitCLI: GitCLI;
-  #entityRegistry: Map<string, IEntity> = new Map();
   #numeronym: Map<string, string> = new Map();
   #focusManager: FocusManager;
   #watermark: RGA64Watermark;
@@ -189,9 +188,12 @@ export class World extends Entity implements IEventBus {
       }
 
       let typeLoaded = 0;
-      for await (const instance of this.repository.findMany(IEntity, {
-        collection: entityTypeName,
-      })) {
+      for await (const instance of this.repository.findMany(
+        IEntity as any,
+        {
+          collection: entityTypeName,
+        },
+      )) {
         try {
           this.addToNamespace(instance);
           typeLoaded++;
@@ -324,12 +326,8 @@ export class World extends Entity implements IEventBus {
     const msg = 'world.registerEntity';
     const dbg = WORLD?.REGISTER;
 
-    // Validate entity class has required properties
-    validateEntity(EntityClass);
-
-    const collection = EntityClass.collection;
-    this.#entityRegistry.set(collection, EntityClass);
-    dbg && cc.ok1(msg, `registered collection: ${collection}`);
+    this.repository.entityRegistry.registerEntity(EntityClass);
+    dbg && cc.ok1(msg, `registered collection: ${EntityClass.collection}`);
   }
 
   /**
@@ -337,7 +335,7 @@ export class World extends Entity implements IEventBus {
    * @returns {string[]} - Array of entity names
    */
   getEntityNames(): string[] {
-    return Array.from(this.#entityRegistry.keys());
+    return this.repository.entityRegistry.getEntityNames();
   }
 
   /**
@@ -346,7 +344,7 @@ export class World extends Entity implements IEventBus {
    * @returns {IEntity|null} - Entity constructor or null if not registered
    */
   entityClassOfName(name: string): IEntity | null {
-    return this.#entityRegistry.get(name) || null;
+    return this.repository.entityRegistry.entityClassOfName(name);
   }
 
   /**

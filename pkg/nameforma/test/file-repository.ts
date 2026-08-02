@@ -9,7 +9,35 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { fileURLToPath } from 'url';
-import { FileRepository, Task, UUID64, World } from '@sc-voice/nameforma';
+import {
+  FileRepository,
+  Task,
+  UUID64,
+  World,
+  Entity,
+  Schema,
+} from '@sc-voice/nameforma';
+
+class Recipe extends Entity {
+  static collection = 'recipe';
+
+  static override get avroSchema(): Schema {
+    return new Schema({
+      name: 'Recipe',
+      namespace: this.AVRO_NAMESPACE,
+      type: 'record',
+      fields: [{ name: 'id', type: 'string' }],
+    });
+  }
+
+  static fromJson(data: any) {
+    return new Recipe(data);
+  }
+
+  constructor(cfg: any = {}) {
+    super(cfg);
+  }
+}
 
 describe('FileRepository', () => {
   let tempDir: string;
@@ -41,6 +69,8 @@ describe('FileRepository', () => {
     worldPath = path.join(tempDir, '.nameforma');
     fs.mkdirSync(worldPath, { recursive: true });
     repo = await FileRepository.create(worldPath);
+    repo.entityRegistry.registerEntity(Task);
+    repo.entityRegistry.registerEntity(Recipe);
   });
 
   afterEach(() => {
@@ -107,11 +137,6 @@ describe('FileRepository', () => {
     expect(results[0].name).toBe('task1');
   });
 
-  it('findMany throws on non-{} or {id} filter', async () => {
-    const iter = repo.findMany(Task, { name: 'foo' });
-    await expect(iter.next()).rejects.toThrow(/unsupported filter/);
-  });
-
   it('delete removes entity from disk', async () => {
     const task = await repo.upsertOne(Task, { name: 'task' });
     await repo.delete('task', task.id.toString());
@@ -141,6 +166,90 @@ describe('FileRepository', () => {
 
     const projectPath = fileURLToPath(projectUrl);
     expect(projectPath).toBe(tempDir);
+  });
+
+  describe('entityRegistry', () => {
+    it('returns EntityRegistry instance', () => {
+      expect(repo.entityRegistry).toBeDefined();
+      expect(typeof repo.entityRegistry.registerEntity).toBe('function');
+    });
+
+    it('can register and retrieve entity class', () => {
+      repo.entityRegistry.registerEntity(Task);
+      const retrieved = repo.entityRegistry.entityClassOfName('task');
+      expect(retrieved).toBe(Task);
+    });
+
+    it('returns null for unregistered entity', () => {
+      const retrieved = repo.entityRegistry.entityClassOfName('unknown');
+      expect(retrieved).toBeNull();
+    });
+  });
+
+  describe('findAll()', () => {
+    it('yields all entities when multiple types are registered', async () => {
+      repo.entityRegistry.registerEntity(Task);
+      repo.entityRegistry.registerEntity(Recipe);
+
+      const t1 = await repo.upsertOne(Task, { name: 'task1' });
+      const r1 = await repo.upsertOne(Recipe, { name: 'recipe1' });
+      const t2 = await repo.upsertOne(Task, { name: 'task2' });
+
+      const results: any[] = [];
+      for await (const entity of repo.findAll({})) {
+        results.push(entity);
+      }
+
+      expect(results).toHaveLength(3);
+      const names = results.map((e) => e.name).sort();
+      expect(names).toEqual(['recipe1', 'task1', 'task2']);
+    });
+
+    it('yields nothing when no entities are registered', async () => {
+      const results: any[] = [];
+      for await (const entity of repo.findAll({})) {
+        results.push(entity);
+      }
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('yields only matching entity with id filter', async () => {
+      repo.entityRegistry.registerEntity(Task);
+      repo.entityRegistry.registerEntity(Recipe);
+
+      const t1 = await repo.upsertOne(Task, { name: 'task1' });
+      const r1 = await repo.upsertOne(Recipe, { name: 'recipe1' });
+      const t2 = await repo.upsertOne(Task, { name: 'task2' });
+
+      const results: any[] = [];
+      for await (const entity of repo.findAll({ id: t1.id.toString() })) {
+        results.push(entity);
+      }
+
+      expect(results).toHaveLength(1);
+      expect(results[0].name).toBe('task1');
+    });
+
+    it('yields only tasks when filtered by collection', async () => {
+      repo.entityRegistry.registerEntity(Task);
+      repo.entityRegistry.registerEntity(Recipe);
+
+      const t1 = await repo.upsertOne(Task, { name: 'task1' });
+      const r1 = await repo.upsertOne(Recipe, { name: 'recipe1' });
+      const t2 = await repo.upsertOne(Task, { name: 'task2' });
+
+      const results: any[] = [];
+      for await (const entity of repo.findAll({ collection: 'task' })) {
+        results.push(entity);
+      }
+
+      expect(results).toHaveLength(2);
+      expect(results.map((e) => e.name).sort()).toEqual([
+        'task1',
+        'task2',
+      ]);
+    });
   });
 
   describe('distinct()', () => {

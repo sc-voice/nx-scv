@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import sift from 'sift';
 import { pathToFileURL } from 'url';
 import pino from 'pino';
 import { createStream } from 'rotating-file-stream';
@@ -10,7 +11,10 @@ import {
   TObject,
   type IEntity,
   IEntityRepository,
+  IEntityCursor,
+  Entity,
 } from './entity.js';
+import { EntityRegistry } from './entity-registry.js';
 import { World } from './world.js';
 import { DBG } from './defines.js';
 import { NfUrl } from './nf-url.js';
@@ -18,8 +22,77 @@ import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
+class FileEntityCursor<T extends IEntity> implements IEntityCursor<T> {
+  #asyncGen: AsyncGenerator<T>;
+  #limit?: number;
+  #projection?: Record<string, 0 | 1>;
+
+  constructor(asyncGen: AsyncGenerator<T>) {
+    this.#asyncGen = asyncGen;
+  }
+
+  [Symbol.asyncIterator]() {
+    return this.#iterate();
+  }
+
+  async *#iterate() {
+    let count = 0;
+    for await (const item of this.#asyncGen) {
+      if (this.#limit !== undefined && count >= this.#limit) break;
+      const result = this.#projection
+        ? this.#applyProjection(item, this.#projection)
+        : item;
+      yield result;
+      count++;
+    }
+  }
+
+  async toArray(): Promise<T[]> {
+    const results: T[] = [];
+    for await (const item of this) {
+      results.push(item);
+    }
+    return results;
+  }
+
+  limit(n: number): IEntityCursor<T> {
+    this.#limit = n;
+    return this;
+  }
+
+  project(projection: Record<string, 0 | 1>): IEntityCursor<T> {
+    this.#projection = projection;
+    return this;
+  }
+
+  #applyProjection(obj: any, projection: Record<string, 0 | 1>): any {
+    if (typeof obj !== 'object' || obj === null) {
+      return obj;
+    }
+
+    if (!Object.keys(projection).length) {
+      return obj;
+    }
+
+    const globalOptIn = Object.values(projection).some((v) => v === 1);
+    const result: any = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+      const projValue = projection[key];
+      if (globalOptIn) {
+        if (projValue === 1) result[key] = value;
+      } else {
+        if (projValue !== 0) result[key] = value;
+      }
+    }
+
+    return result;
+  }
+}
+
 export class FileRepository implements IEntityRepository {
   #worldPath: string;
+  #entityRegistry: EntityRegistry;
 
   constructor(worldPath: string) {
     const msg = 'FileRepository.ctor';
@@ -27,6 +100,11 @@ export class FileRepository implements IEntityRepository {
       throw new Error(`${msg} invalid worldPath: ${worldPath}`);
     }
     this.#worldPath = worldPath;
+    this.#entityRegistry = new EntityRegistry();
+  }
+
+  get entityRegistry(): EntityRegistry {
+    return this.#entityRegistry;
   }
 
   get projectUrl(): URL {
@@ -74,27 +152,50 @@ export class FileRepository implements IEntityRepository {
     return this.#load(EntityClass, filePath);
   }
 
-  async *findMany<T extends IEntity>(
+  findMany<T extends IEntity>(
     EntityClass: T,
-    filter: object,
-  ): AsyncGenerator<ReturnType<T['fromJson']>> {
-    const keys = Object.keys(filter);
-    const allowed = new Set(['id', 'collection', 'updatedAt']);
-    if (!keys.every((k) => allowed.has(k))) {
-      throw new Error(
-        `FileRepository.findMany: unsupported filter ${JSON.stringify(filter)}`,
-      );
+    filter: Filter<TObject>,
+  ): IEntityCursor<T> {
+    const collection = (EntityClass as any).collection;
+    const collectionFilter: Filter<TObject> = { ...filter, collection };
+    return new FileEntityCursor(this.#findAllGenerator(collectionFilter));
+  }
+
+  async *#findAllGenerator(filter: Filter<TObject>): AsyncGenerator<any> {
+    const f = filter as any;
+    const fc = f.collection;
+    const wp = this.#worldPath;
+    const collection = typeof fc === 'string' && fc;
+    const entityNames = fc ? [fc] : this.#entityRegistry.getEntityNames();
+    const sf = (sift as any)(filter);
+    const matchingFilesFilter = {
+      id: (f as any).id,
+      updatedAt: (f as any).updatedAt,
+    };
+    for (const name of entityNames) {
+      const EntityClass = this.#entityRegistry.entityClassOfName(name);
+      if (EntityClass) {
+        const entityDir = path.join(wp, (EntityClass as any).collection);
+        for await (const { filePath } of this.#matchingFiles(
+          entityDir,
+          matchingFilesFilter,
+        )) {
+          const entity = this.#load(EntityClass, filePath);
+          if (sf(entity)) {
+            yield entity;
+          }
+        }
+      }
     }
-    const entityDir = path.join(
-      this.#worldPath,
-      (EntityClass as any).collection,
-    );
-    for await (const { filePath } of this.#matchingFiles(
-      entityDir,
-      filter as any,
-    )) {
-      yield this.#load(EntityClass, filePath);
-    }
+  }
+
+  /**
+   * Query all entities across all collections.
+   * @param filter MongoDB-style filter object
+   * @returns Cursor for lazy iteration and composition
+   */
+  findAll(filter: Filter<TObject>): IEntityCursor<IEntity> {
+    return new FileEntityCursor(this.#findAllGenerator(filter));
   }
 
   async *#matchingFiles(
