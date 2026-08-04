@@ -2,6 +2,7 @@
   "forma": "Task",
   "id": "0P-R0F7700LSTauME2e0dW",
   "name": "",
+  "collection": "BOOM",
   "summary": "Implement `patch` command using `Mutator` and `IMutable.mutate()` to replace event-based updates.",
   "updateId": "0P-VBFK900KwckI_W4C2NW",
   "_namespace": {},

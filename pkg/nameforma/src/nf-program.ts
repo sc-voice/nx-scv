@@ -1,6 +1,7 @@
 import { FileRepository, logger } from './file-repository.js';
 import { World } from './world.js';
 import { Forma } from './forma.js';
+import { Entity, IEntity } from './entity.js';
 import type { FuzzyId } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Mutator } from './mutator.js';
@@ -361,28 +362,41 @@ export class NfProgram {
       .command('find')
       .alias('findOne')
       .description('Find a Forma')
-      .argument('<query>', 'Forma FUZZY_ID or HJSON sift filter to find')
+      .option(
+        '-p, --project <hjson>',
+        'Projection as HJSON string, e.g.: "name:1, summary:1"',
+      )
       .argument(
-        '[projection...]',
-        'Optional projection, e.g.: {name:1, summary:1}',
+        '<queries...>',
+        'One or more FUZZY_IDs or HJSON sift filters',
       )
       .addHelpText(
         'after',
         `
 Examples:
-  nf find focus name:1 summary:1
-  nf find world summary:0
-  nf find TASK_ID id:1 name: 1 rawActions.name:1
-  nf find ACTION_ID
-  nf find 'name:"foo"' name:1`,
+  nf find focus
+  nf find -p '{name:1, summary:1}' focus task
+  nf find -p '{summary:0}' world
+  nf find 'name:"foo"' -p '{name:1}'`,
       )
-      .action(
-        async (query: string, projection: string[] = [], options: any) => {
-          const ctx = 'NfProgram.registerFindCommand';
-          let lines: string[] = [];
-          try {
-            let forma: Forma | undefined;
+      .action(async (queries: string[], options: any) => {
+        const ctx = 'NfProgram.registerFindCommand';
+        let lines: string[] = [];
+        try {
+          const p8n = options.project ? Hjson.parse(options.project) : {};
+          const pv = Object.values(p8n);
+          const optIn = pv.some((v) => v === 1);
+          const optOut = pv.some((v) => v === 0);
+          if (optIn && optOut) {
+            throw new Error(
+              `Mixed projection not supported: ${JSON.stringify(p8n)}`,
+            );
+          }
 
+          const isProjected = Object.keys(p8n).length > 0;
+          const formas: any = [];
+          let nFuzzy = 0;
+          for (const query of queries) {
             // Try parsing as HJSON to detect if query is an object filter or fuzzyId string
             let parsed: any;
             try {
@@ -390,19 +404,6 @@ Examples:
             } catch {
               // If parsing fails, treat as fuzzyId
               parsed = query;
-            }
-
-            const p8n = Object.assign(
-              {},
-              ...projection.map((s) => Hjson.parse(s)),
-            );
-            const pv = Object.values(p8n);
-            const optIn = pv.some((v) => v === 1);
-            const optOut = pv.some((v) => v === 0);
-            if (optIn && optOut) {
-              throw new Error(
-                `Mixed projection not supported: ${JSON.stringify(p8n)}`,
-              );
             }
 
             if (
@@ -416,28 +417,35 @@ Examples:
                 cursor = cursor.project(p8n);
               }
               const results = await cursor.toArray();
-              lines.push(JSON.stringify(results, null, 2));
+              formas.push(...results);
             } else {
               // Query is a fuzzyId string — output single object
               const resolved = await nfp.world.resolveFuzzyId(query);
               if (!resolved) {
                 throw new Error(`Not found: ${query}`);
               }
-              const output = nfp.applyProjection(
-                resolved.forma,
-                p8n,
-              );
-              lines.push(JSON.stringify(output, null, 2));
+              const { entity, forma } = resolved;
+              formas.push(forma);
+              nFuzzy++;
             }
-
-            nfp.writeOut(lines.join('\n'));
-          } catch (err: any) {
-            logger.error({ ctx, err });
-            nfp.writeErr(`✗ ${ctx} Error: ${err.message}`);
-            throw err;
           }
-        },
-      );
+
+          const projected = formas.map((f3a) =>
+            nfp.applyProjection(f3a, p8n),
+          );
+          //if (nFuzzy === 1) {
+          //lines.push(JSON.stringify(projected[0], null, 2));
+          //} else {
+          lines.push(JSON.stringify(projected, null, 2));
+          //}
+
+          nfp.writeOut(lines.join('\n'));
+        } catch (err: any) {
+          logger.error({ ctx, err });
+          nfp.writeErr(`✗ ${ctx} Error: ${err.message}`);
+          throw err;
+        }
+      });
   } // registerFindCommand
 
   registerUpdateCommand(): void {
@@ -462,54 +470,65 @@ Examples:
   nf update ACTION_ID "$set: {status: 'work'}"
   nf update ACTION_ID "$push: {tags: 'urgent'}"`,
       )
-      .action(async (fuzzyId: string, mutation: string[], options: any) => {
-        let json;
-        let hjsonStr;
-        let lines: string[] = [];
-        try {
-          const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
-          if (!resolved) {
-            throw new Error(`Not found: ${fuzzyId}`);
-          }
+      .action(
+        async (fuzzyId: string, mutation: string[], options: any) => {
+          let json;
+          let hjsonStr;
+          let lines: string[] = [];
+          try {
+            const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
+            if (!resolved) {
+              throw new Error(`Not found: ${fuzzyId}`);
+            }
 
-          hjsonStr = mutation.join(' ').trim();
-          json = Object.assign({}, ...mutation.map((s) => Hjson.parse(s)));
-          json.id = resolved.forma.id.base64;
-
-          const mutator = Mutator.fromJson(json);
-          const { forma: oldForma } = resolved;
-          const oldSnapshot = JSON.parse(JSON.stringify(oldForma));
-
-          const delta = await nfp.world.mutate(fuzzyId, mutator.commands);
-          const updated = (await nfp.world.resolveFuzzyId(fuzzyId))?.forma;
-
-          if (json) {
-            lines.push(
-              theme.nfNote(
-                `requested patch: ${JSON.stringify(json, null, 2)}`,
-              ),
+            hjsonStr = mutation.join(' ').trim();
+            json = Object.assign(
+              {},
+              ...mutation.map((s) => Hjson.parse(s)),
             );
+            json.id = resolved.forma.id.base64;
+
+            const mutator = Mutator.fromJson(json);
+            const { forma: oldForma } = resolved;
+            const oldSnapshot = JSON.parse(JSON.stringify(oldForma));
+
+            const delta = await nfp.world.mutate(
+              fuzzyId,
+              mutator.commands,
+            );
+            const updated = (await nfp.world.resolveFuzzyId(fuzzyId))
+              ?.forma;
+
+            if (json) {
+              lines.push(
+                theme.nfNote(
+                  `requested patch: ${JSON.stringify(json, null, 2)}`,
+                ),
+              );
+            }
+            const formaId = theme.nfLink(oldForma.id.base64);
+            const formaType = oldForma.constructor.name;
+            lines.push(`${formaType} ${fuzzyId} ${formaId}`);
+            for (const [key, oldValue] of Object.entries(delta)) {
+              const newValue = (updated as any)?.[key];
+              const oldStr = JSON.stringify(oldValue);
+              const newStr = JSON.stringify(newValue);
+              lines.push(`- ${key}: ${theme.nfAttend(oldStr)}`);
+              lines.push(`+ ${key}: ${theme.nfNominal(newStr)}`);
+            }
+            nfp.writeOut(lines.join('\n'));
+          } catch (err: any) {
+            if (json) {
+              lines.push(
+                'requested patch:' + JSON.stringify(json, null, 2),
+              );
+            } else if (hjsonStr) {
+              lines.push('hjsonStr:' + hjsonStr);
+            }
+            nfp.writeErr(`${lines.join('\n')}\n✗ Error: ${err.message}`);
+            throw err;
           }
-          const formaId = theme.nfLink(oldForma.id.base64);
-          const formaType = oldForma.constructor.name;
-          lines.push(`${formaType} ${fuzzyId} ${formaId}`);
-          for (const [key, oldValue] of Object.entries(delta)) {
-            const newValue = (updated as any)?.[key];
-            const oldStr = JSON.stringify(oldValue);
-            const newStr = JSON.stringify(newValue);
-            lines.push(`- ${key}: ${theme.nfAttend(oldStr)}`);
-            lines.push(`+ ${key}: ${theme.nfNominal(newStr)}`);
-          }
-          nfp.writeOut(lines.join('\n'));
-        } catch (err: any) {
-          if (json) {
-            lines.push('requested patch:' + JSON.stringify(json, null, 2));
-          } else if (hjsonStr) {
-            lines.push('hjsonStr:' + hjsonStr);
-          }
-          nfp.writeErr(`${lines.join('\n')}\n✗ Error: ${err.message}`);
-          throw err;
-        }
-      });
+        },
+      );
   } // registerUpdateCommand
 }

@@ -131,6 +131,20 @@ export class FuzzyNamespace implements IMutableNamespace {
       return timeIdMatches[0];
     }
 
+    // Base64 substring match for partial IDs (e.g., "SXi002" in "0P-p-SXi002wdytaL0tJ7W")
+    const base64Matches = formas.filter((f) =>
+      f.id.base64.includes(fuzzyId),
+    );
+    if (base64Matches.length === 1) {
+      return base64Matches[0];
+    }
+    if (base64Matches.length > 1) {
+      const ids = base64Matches.map((m) => m.id.base64).join(', ');
+      throw new Error(
+        `getForma: ambiguous match for "${fuzzyId}": found ${base64Matches.length} matches [${ids}]`,
+      );
+    }
+
     // User generated fuzzyId may result in multiple matches
     const filter = Identifiable.idFilter(fuzzyId);
     const matches = this.#formas.filter((forma) =>

@@ -42,10 +42,14 @@ export abstract class Entity extends Forma implements IRegistry {
   constructor(cfg: any = {}) {
     const msg = 'entity.ctor';
     super(cfg);
-  }
-
-  get collection(): string {
-    return (this.constructor as any).collection;
+    // Make collection enumerable for projections and Object.entries().
+    // Setter is no-op: Object.assign() fails on read-only getters; this allows compatibility.
+    Object.defineProperty(this, 'collection', {
+      get: () => (this.constructor as any).collection,
+      set: () => {}, // Required for Object.assign(); collection is immutable
+      enumerable: true,
+      configurable: true,
+    });
   }
 
   clearNamespace() {

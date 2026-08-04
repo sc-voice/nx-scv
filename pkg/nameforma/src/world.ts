@@ -262,6 +262,9 @@ export class World extends Entity implements IEventBus {
     const nsSecondary = await this.namespace;
     forma = nsSecondary.getForma(fuzzyId);
     if (forma) {
+      if (!(forma instanceof Entity)) {
+        throw new Error(`Expected Entity: ${typeof forma}?`);
+      }
       dbg &&
         cc.ok1(msg, `world namespace: ${fuzzyId} => ${forma.id.base64}`);
       return { entity: forma, forma };

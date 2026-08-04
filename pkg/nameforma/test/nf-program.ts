@@ -235,12 +235,14 @@ describe('NfProgram.registerFindCommand', () => {
     await program.cmdDelegate.parseAsync(['node', 'test', 'find', taskId]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.id).toBe(taskId);
-    expect(result.name).toBe('Task1-Name');
-    expect(result.summary).toBe('Task1-Summary');
-    expect(result.rawActions).toBeTruthy();
-    expect(result.rawReferences).toBeTruthy();
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.id).toBe(taskId);
+    expect(r0.name).toBe('Task1-Name');
+    expect(r0.summary).toBe('Task1-Summary');
+    expect(r0.rawActions).toBeTruthy();
+    expect(r0.rawReferences).toBeTruthy();
   });
 
   it('find with inclusion projection returns only selected fields', async () => {
@@ -250,16 +252,19 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
-      taskId,
+      '-p',
       '{name:1,summary:1}',
+      taskId,
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.name).toBe('Task1-Name');
-    expect(result.summary).toBe('Task1-Summary');
-    expect(result.id).toBeUndefined();
-    expect(result.rawActions).toBeUndefined();
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.name).toBe('Task1-Name');
+    expect(r0.summary).toBe('Task1-Summary');
+    expect(r0.id).toBeUndefined();
+    expect(r0.rawActions).toBeUndefined();
   });
 
   it('find with exclusion projection excludes selected fields', async () => {
@@ -269,37 +274,42 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
-      taskId,
+      '-p',
       '{rawActions:0,rawReferences:0}',
+      taskId,
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.id).toBe(taskId);
-    expect(result.name).toBe('Task1-Name');
-    expect(result.summary).toBe('Task1-Summary');
-    expect(result.rawActions).toBeUndefined();
-    expect(result.rawReferences).toBeUndefined();
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.id).toBe(taskId);
+    expect(r0.name).toBe('Task1-Name');
+    expect(r0.summary).toBe('Task1-Summary');
+    expect(r0.rawActions).toBeUndefined();
+    expect(r0.rawReferences).toBeUndefined();
   });
 
-  it('find merges multiple projection arguments', async () => {
+  it('find with projection option supports HJSON field syntax', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await program.cmdDelegate.parseAsync([
       'node',
       'test',
       'find',
+      '-p',
+      '{name:1, summary:1}',
       taskId,
-      '{name:1}',
-      '{summary:1}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.name).toBe('Task1-Name');
-    expect(result.summary).toBe('Task1-Summary');
-    expect(result.id).toBeUndefined();
-    expect(result.rawActions).toBeUndefined();
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.name).toBe('Task1-Name');
+    expect(r0.summary).toBe('Task1-Summary');
+    expect(r0.id).toBeUndefined();
+    expect(r0.rawActions).toBeUndefined();
   });
 
   it('find throws on invalid forma ID', async () => {
@@ -321,8 +331,9 @@ describe('NfProgram.registerFindCommand', () => {
         'node',
         'test',
         'find',
-        taskId,
+        '-p',
         '{{{',
+        taskId,
       ]),
     ).rejects.toThrow();
   });
@@ -335,8 +346,9 @@ describe('NfProgram.registerFindCommand', () => {
         'node',
         'test',
         'find',
-        taskId,
+        '-p',
         '{name:1,summary:0}',
+        taskId,
       ]),
     ).rejects.toThrow(/Mixed projection not supported/);
   });
@@ -348,19 +360,22 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
+      '-p',
+      'name:1, rawActions.name:1, rawActions.status:1',
       taskId,
-      '{"name":1,"rawActions.name":1,"rawActions.status":1}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.name).toBe('Task1-Name');
-    expect(result.summary).toBeUndefined();
-    expect(result.rawActions).toBeTruthy();
-    expect(Array.isArray(result.rawActions)).toBe(true);
-    expect(result.rawActions[0].name).toBe('Action1-name');
-    expect(result.rawActions[0].status).toBe('req');
-    expect(result.rawActions[0].summary).toBeUndefined();
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.name).toBe('Task1-Name');
+    expect(r0.summary).toBeUndefined();
+    expect(r0.rawActions).toBeTruthy();
+    expect(Array.isArray(r0.rawActions)).toBe(true);
+    expect(r0.rawActions[0].name).toBe('Action1-name');
+    expect(r0.rawActions[0].status).toBe('req');
+    expect(r0.rawActions[0].summary).toBeUndefined();
   });
 
   it('find with dotted exclusion projection excludes nested fields', async () => {
@@ -370,21 +385,21 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
+      '-p',
+      'rawActions.statusNote:0',
       taskId,
-      '{"rawActions.statusNote":0}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.name).toBe('Task1-Name');
-    expect(result.rawActions).toBeTruthy();
-    expect(result.rawActions[0].name).toBe('Action1-name');
-    expect(result.rawActions[0].status).toBe('req');
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.name).toBe('Task1-Name');
+    expect(r0.rawActions).toBeTruthy();
+    expect(r0.rawActions[0].name).toBe('Action1-name');
+    expect(r0.rawActions[0].status).toBe('req');
     expect(
-      Object.prototype.hasOwnProperty.call(
-        result.rawActions[0],
-        'statusNote',
-      ),
+      Object.prototype.hasOwnProperty.call(r0.rawActions[0], 'statusNote'),
     ).toBe(false);
   });
 
@@ -395,16 +410,19 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
+      '-p',
+      'id:1, rawActions.id:1',
       taskId,
-      '{"id":1,"rawActions.id":1}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(result.id).toBe(taskId);
-    expect(result.name).toBeUndefined();
-    expect(result.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
-    expect(result.rawActions[0].name).toBeUndefined();
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(r0.id).toBe(taskId);
+    expect(r0.name).toBeUndefined();
+    expect(r0.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
+    expect(r0.rawActions[0].name).toBeUndefined();
   });
 
   it('find with only dotted projection excludes other fields', async () => {
@@ -414,24 +432,25 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
+      '-p',
+      'rawActions.id:1',
       taskId,
-      '{"rawActions.id":1}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
-    const result = JSON.parse(output[0]);
-    expect(
-      Object.prototype.hasOwnProperty.call(result, 'rawActions'),
-    ).toBe(true);
-    expect(
-      Object.prototype.hasOwnProperty.call(result, 'rawReferences'),
-    ).toBe(false);
-    expect(Object.prototype.hasOwnProperty.call(result, 'name')).toBe(
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    const r0 = results[0];
+    expect(Object.prototype.hasOwnProperty.call(r0, 'rawActions')).toBe(
+      true,
+    );
+    expect(Object.prototype.hasOwnProperty.call(r0, 'rawReferences')).toBe(
       false,
     );
-    expect(result.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
+    expect(Object.prototype.hasOwnProperty.call(r0, 'name')).toBe(false);
+    expect(r0.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
     expect(
-      Object.prototype.hasOwnProperty.call(result.rawActions[0], 'name'),
+      Object.prototype.hasOwnProperty.call(r0.rawActions[0], 'name'),
     ).toBe(false);
   });
 
@@ -472,8 +491,9 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
+      '-p',
+      '{name:1, summary:1}',
       '{name:"Task1-Name"}',
-      '{name:1,summary:1}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
@@ -507,8 +527,9 @@ describe('NfProgram.registerFindCommand', () => {
       'node',
       'test',
       'find',
+      '-p',
+      'rawActions.id:1',
       '{name:"Task1-Name"}',
-      '{"rawActions.id":1}',
     ]);
 
     expect(output.length).toBeGreaterThan(0);
