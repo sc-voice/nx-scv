@@ -199,7 +199,8 @@ export default class TaskCommand {
    * @param {World} world - World instance
    */
   static async listTasks(world: World): Promise<void> {
-    const items = [...world.entityStream(Task)];
+    const items: any = await world.repository.findMany(Task).toArray();
+    items.sort(world.entityComparator);
     if (items.length === 0) {
       nfTui.log('No tasks');
       return;

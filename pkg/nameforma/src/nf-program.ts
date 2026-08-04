@@ -4,6 +4,7 @@ import { Forma } from './forma.js';
 import type { FuzzyId } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Mutator } from './mutator.js';
+import { EntityCursor } from './entity-cursor.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
 import path from 'path';
@@ -351,67 +352,7 @@ export class NfProgram {
     obj: any,
     projection: Record<string, any>,
   ): Record<string, any> {
-    if (typeof obj !== 'object' || obj === null) {
-      return obj;
-    }
-
-    if (!Object.keys(projection).length) {
-      return obj;
-    }
-
-    const globalOptIn = Object.values(projection).some((v) => v === 1);
-    const byRoot: Record<
-      string,
-      { flag?: 0 | 1; paths: Array<{ path: string; flag: 0 | 1 }> }
-    > = {};
-
-    for (const [path, flag] of Object.entries(projection)) {
-      const parts = path.split('.');
-      const root = parts[0];
-
-      if (!byRoot[root]) {
-        byRoot[root] = { paths: [] };
-      }
-
-      if (parts.length === 1) {
-        byRoot[root].flag = flag;
-      } else {
-        byRoot[root].paths.push({
-          path: parts.slice(1).join('.'),
-          flag,
-        });
-      }
-    }
-
-    const result: Record<string, any> = {};
-
-    for (const [k, v] of Object.entries(obj)) {
-      const rootProj = byRoot[k];
-
-      if (!rootProj && globalOptIn) {
-        continue;
-      } else if (rootProj?.flag === 0) {
-        continue;
-      } else if (rootProj?.flag === 1) {
-        result[k] = v;
-      } else if (rootProj && rootProj.paths.length > 0) {
-        const nestedProj: Record<string, any> = {};
-        for (const { path, flag } of rootProj.paths) {
-          nestedProj[path] = flag;
-        }
-        if (Array.isArray(v)) {
-          result[k] = v.map((item) =>
-            this.applyProjection(item, nestedProj),
-          );
-        } else {
-          result[k] = this.applyProjection(v, nestedProj);
-        }
-      } else {
-        result[k] = v;
-      }
-    }
-
-    return result;
+    return EntityCursor.applyProjection(obj, projection);
   }
 
   registerFindCommand(): void {
@@ -420,9 +361,9 @@ export class NfProgram {
       .command('find')
       .alias('findOne')
       .description('Find a Forma')
-      .argument('<fuzzyId>', 'Forma FUZZY_ID to find')
+      .argument('<query>', 'Forma FUZZY_ID or HJSON sift filter to find')
       .argument(
-        '[hjson...]',
+        '[projection...]',
         'Optional projection, e.g.: {name:1, summary:1}',
       )
       .addHelpText(
@@ -431,35 +372,63 @@ export class NfProgram {
 Examples:
   nf find focus name:1 summary:1
   nf find world summary:0
-  nf find TASK_ID id:1 name: 1 rawActions.name:1 
-  nf find ACTION_ID`,
+  nf find TASK_ID id:1 name: 1 rawActions.name:1
+  nf find ACTION_ID
+  nf find 'name:"foo"' name:1`,
       )
       .action(
-        async (fuzzyId: string, hjson: string[] = [], options: any) => {
+        async (query: string, projection: string[] = [], options: any) => {
           const ctx = 'NfProgram.registerFindCommand';
           let lines: string[] = [];
           try {
-            const resolved = await nfp.world.resolveFuzzyId(fuzzyId);
-            if (!resolved) {
-              throw new Error(`Not found: ${fuzzyId}`);
+            let forma: Forma | undefined;
+
+            // Try parsing as HJSON to detect if query is an object filter or fuzzyId string
+            let parsed: any;
+            try {
+              parsed = Hjson.parse(query);
+            } catch {
+              // If parsing fails, treat as fuzzyId
+              parsed = query;
             }
 
-            const projection = Object.assign(
+            const p8n = Object.assign(
               {},
-              ...hjson.map((s) => Hjson.parse(s)),
+              ...projection.map((s) => Hjson.parse(s)),
             );
-            const pv = Object.values(projection);
+            const pv = Object.values(p8n);
             const optIn = pv.some((v) => v === 1);
             const optOut = pv.some((v) => v === 0);
             if (optIn && optOut) {
               throw new Error(
-                `Mixed projection not supported: ${JSON.stringify(projection)}`,
+                `Mixed projection not supported: ${JSON.stringify(p8n)}`,
               );
             }
 
-            const { forma } = resolved;
-            const output = nfp.applyProjection(forma, projection);
-            lines.push(JSON.stringify(output, null, 2));
+            if (
+              typeof parsed === 'object' &&
+              parsed !== null &&
+              !Array.isArray(parsed)
+            ) {
+              // Query is an HJSON sift filter object — output array
+              let cursor = nfp.world.repository.findAll(parsed);
+              if (Object.keys(p8n).length > 0) {
+                cursor = cursor.project(p8n);
+              }
+              const results = await cursor.toArray();
+              lines.push(JSON.stringify(results, null, 2));
+            } else {
+              // Query is a fuzzyId string — output single object
+              const resolved = await nfp.world.resolveFuzzyId(query);
+              if (!resolved) {
+                throw new Error(`Not found: ${query}`);
+              }
+              const output = nfp.applyProjection(
+                resolved.forma,
+                p8n,
+              );
+              lines.push(JSON.stringify(output, null, 2));
+            }
 
             nfp.writeOut(lines.join('\n'));
           } catch (err: any) {
@@ -481,7 +450,7 @@ Examples:
         'Apply mutations to a forma using operator-based commands',
       )
       .argument('<fuzzyId>', 'Forma FUZZY_ID to mutate')
-      .argument('<hjson...>', 'Mutation commands as HJSON')
+      .argument('<mutation...>', 'Mutation commands as HJSON')
       .addHelpText(
         'after',
         `
@@ -493,7 +462,7 @@ Examples:
   nf update ACTION_ID "$set: {status: 'work'}"
   nf update ACTION_ID "$push: {tags: 'urgent'}"`,
       )
-      .action(async (fuzzyId: string, hjson: string[], options: any) => {
+      .action(async (fuzzyId: string, mutation: string[], options: any) => {
         let json;
         let hjsonStr;
         let lines: string[] = [];
@@ -503,8 +472,8 @@ Examples:
             throw new Error(`Not found: ${fuzzyId}`);
           }
 
-          hjsonStr = hjson.join(' ').trim();
-          json = Object.assign({}, ...hjson.map((s) => Hjson.parse(s)));
+          hjsonStr = mutation.join(' ').trim();
+          json = Object.assign({}, ...mutation.map((s) => Hjson.parse(s)));
           json.id = resolved.forma.id.base64;
 
           const mutator = Mutator.fromJson(json);

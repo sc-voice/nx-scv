@@ -434,6 +434,105 @@ describe('NfProgram.registerFindCommand', () => {
       Object.prototype.hasOwnProperty.call(result.rawActions[0], 'name'),
     ).toBe(false);
   });
+
+  it('find with sift filter query returns array of matches', async () => {
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '{name:"Task1-Name"}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].name).toBe('Task1-Name');
+  });
+
+  it('find with sift filter query with no matches returns empty array', async () => {
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '{name:"NonexistentTask"}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBe(0);
+  });
+
+  it('find with sift filter query and projection applies projection', async () => {
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '{name:"Task1-Name"}',
+      '{name:1,summary:1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].name).toBe('Task1-Name');
+    expect(results[0].summary).toBe('Task1-Summary');
+    expect(results[0].id).toBeUndefined();
+  });
+
+  it('find with bare HJSON sift filter (no braces) returns array', async () => {
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      'name:"Task1-Name"',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0].name).toBe('Task1-Name');
+  });
+
+  it('find with sift filter query and dotted projection applies nested projection', async () => {
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '{name:"Task1-Name"}',
+      '{"rawActions.id":1}',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBeGreaterThan(0);
+    // Nested projection should include rawActions but exclude other fields
+    expect(
+      Object.prototype.hasOwnProperty.call(results[0], 'rawActions'),
+    ).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(results[0], 'name')).toBe(
+      false,
+    );
+    // rawActions should only have id field
+    if (results[0].rawActions.length > 0) {
+      expect(results[0].rawActions[0].id).toBeTruthy();
+      expect(
+        Object.prototype.hasOwnProperty.call(
+          results[0].rawActions[0],
+          'status',
+        ),
+      ).toBe(false);
+    }
+  });
 });
 
 describe('NfCLI patch command', () => {

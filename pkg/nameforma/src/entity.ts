@@ -96,10 +96,26 @@ export type TObject = Record<string, unknown>;
 
 export interface FilterOperators<TValue> {
   $eq?: TValue;
+  $ne?: TValue;
   $gt?: TValue;
   $gte?: TValue;
   $lt?: TValue;
   $lte?: TValue;
+  $in?: TValue[];
+  $nin?: TValue[];
+  $exists?: boolean;
+  $regex?: string;
+  $options?: string;
+  $mod?: [number, number];
+  $all?: TValue[];
+  $size?: number;
+  $type?: string;
+  $where?: (val: any) => boolean;
+  $elemMatch?: Record<string, any>;
+  $and?: Record<string, any>[];
+  $or?: Record<string, any>[];
+  $nor?: Record<string, any>[];
+  $not?: Record<string, any>;
 }
 
 export type Filter<T extends TObject> = {
@@ -192,12 +208,12 @@ export interface IEntityRepository {
   /**
    * Query entities of a specific type.
    * @param EntityClass Entity type to query
-   * @param filter MongoDB-style filter object
+   * @param filter Optional MongoDB-style filter (collection auto-derived from EntityClass)
    * @returns Cursor for lazy iteration and composition
    */
   findMany<T extends IEntity>(
     EntityClass: T,
-    filter: Filter<TObject>,
+    filter?: Omit<Filter<TObject>, 'collection'>,
   ): IEntityCursor<T>;
 
   /**

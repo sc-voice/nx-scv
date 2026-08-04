@@ -367,5 +367,39 @@ describe('FileRepository', () => {
       const names_lt = await repo.distinct<string>('name', query_lt);
       expect(names_lt).toEqual(['t1']);
     });
+
+    it('findAll with $regex operator case-insensitive', async () => {
+      const t1 = await repo.upsertOne(Task, { name: 'TaskA' });
+      const t2 = await repo.upsertOne(Task, { name: 'taskB' });
+
+      const results = await repo
+        .findAll({
+          name: { $regex: 'task', $options: 'i' },
+        })
+        .toArray();
+
+      expect(results.length).toBe(2);
+      expect(results.map((t: any) => t.name).sort()).toEqual([
+        'TaskA',
+        'taskB',
+      ]);
+    });
+
+    it('findAll with $regex on collection field', async () => {
+      const t1 = await repo.upsertOne(Task, { name: 'task1' });
+      const t2 = await repo.upsertOne(Task, { name: 'task2' });
+
+      const results = await repo
+        .findAll({
+          collection: { $regex: 'Task', $options: 'i' },
+        })
+        .toArray();
+
+      expect(results.length).toBe(2);
+      expect(results.map((t: any) => t.name).sort()).toEqual([
+        'task1',
+        'task2',
+      ]);
+    });
   });
 });

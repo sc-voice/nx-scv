@@ -190,9 +190,6 @@ export class World extends Entity implements IEventBus {
       let typeLoaded = 0;
       for await (const instance of this.repository.findMany(
         IEntity as any,
-        {
-          collection: entityTypeName,
-        },
       )) {
         try {
           this.addToNamespace(instance);
@@ -814,8 +811,8 @@ export class World extends Entity implements IEventBus {
     return world;
   }
 
-  get entityComparator(): (a: Forma, b: Forma) => number {
-    return (a: Forma, b: Forma): number => {
+  get entityComparator(): (a: Entity, b: Entity) => number {
+    return (a: Entity, b: Entity): number => {
       const fm = this.#focusManager;
       const cmp = fm.focusOrder(a.id) - fm.focusOrder(b.id);
       return cmp || b.id.compare(a.id);

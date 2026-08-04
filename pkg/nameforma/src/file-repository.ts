@@ -15,6 +15,7 @@ import {
   Entity,
 } from './entity.js';
 import { EntityRegistry } from './entity-registry.js';
+import { EntityCursor } from './entity-cursor.js';
 import { World } from './world.js';
 import { DBG } from './defines.js';
 import { NfUrl } from './nf-url.js';
@@ -22,12 +23,12 @@ import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
-class FileEntityCursor<T extends IEntity> implements IEntityCursor<T> {
+class FileEntityCursor<T extends IEntity> extends EntityCursor<T> {
   #asyncGen: AsyncGenerator<T>;
   #limit?: number;
-  #projection?: Record<string, 0 | 1>;
 
   constructor(asyncGen: AsyncGenerator<T>) {
+    super();
     this.#asyncGen = asyncGen;
   }
 
@@ -39,54 +40,17 @@ class FileEntityCursor<T extends IEntity> implements IEntityCursor<T> {
     let count = 0;
     for await (const item of this.#asyncGen) {
       if (this.#limit !== undefined && count >= this.#limit) break;
-      const result = this.#projection
-        ? this.#applyProjection(item, this.#projection)
+      const result = this.projection
+        ? EntityCursor.applyProjection(item, this.projection)
         : item;
       yield result;
       count++;
     }
   }
 
-  async toArray(): Promise<T[]> {
-    const results: T[] = [];
-    for await (const item of this) {
-      results.push(item);
-    }
-    return results;
-  }
-
-  limit(n: number): IEntityCursor<T> {
+  override limit(n: number): FileEntityCursor<T> {
     this.#limit = n;
     return this;
-  }
-
-  project(projection: Record<string, 0 | 1>): IEntityCursor<T> {
-    this.#projection = projection;
-    return this;
-  }
-
-  #applyProjection(obj: any, projection: Record<string, 0 | 1>): any {
-    if (typeof obj !== 'object' || obj === null) {
-      return obj;
-    }
-
-    if (!Object.keys(projection).length) {
-      return obj;
-    }
-
-    const globalOptIn = Object.values(projection).some((v) => v === 1);
-    const result: any = {};
-
-    for (const [key, value] of Object.entries(obj)) {
-      const projValue = projection[key];
-      if (globalOptIn) {
-        if (projValue === 1) result[key] = value;
-      } else {
-        if (projValue !== 0) result[key] = value;
-      }
-    }
-
-    return result;
   }
 }
 
@@ -154,7 +118,7 @@ export class FileRepository implements IEntityRepository {
 
   findMany<T extends IEntity>(
     EntityClass: T,
-    filter: Filter<TObject>,
+    filter?: Omit<Filter<TObject>, 'collection'>,
   ): IEntityCursor<T> {
     const collection = (EntityClass as any).collection;
     const collectionFilter: Filter<TObject> = { ...filter, collection };
@@ -165,8 +129,22 @@ export class FileRepository implements IEntityRepository {
     const f = filter as any;
     const fc = f.collection;
     const wp = this.#worldPath;
-    const collection = typeof fc === 'string' && fc;
-    const entityNames = fc ? [fc] : this.#entityRegistry.getEntityNames();
+    let entityNames: string[];
+
+    // Filter entityNames by collection if present in filter
+    if (typeof fc === 'string') {
+      entityNames = [fc];
+    } else if (fc !== undefined) {
+      // Collection is a sift operator object, filter entityNames through sift
+      const allNames = this.#entityRegistry.getEntityNames();
+      const collectionFilter = (sift as any)({ collection: fc });
+      entityNames = allNames.filter((name) =>
+        collectionFilter({ collection: name }),
+      );
+    } else {
+      entityNames = this.#entityRegistry.getEntityNames();
+    }
+
     const sf = (sift as any)(filter);
     const matchingFilesFilter = {
       id: (f as any).id,

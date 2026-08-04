@@ -4,7 +4,62 @@
   "name": "Support $push in mutate() and applyCommand()",
   "summary": "Investigate and implement support for the $push operator in mutate() and applyCommand() to allow appending items to arrays within the system.",
   "updateId": "0P-p-SXi002wdytaL0tJ7W",
-  "rawActions": [],
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0P_48Rdl002wdytaL0tJ7W",
+      "name": "Add bindNamespace() method to IEntityRepository",
+      "summary": "Define interface method to bind mutable namespace",
+      "updateId": "0P_48Rdl002wdytaL0tJ7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48SYD002wdytaL0tJ7W",
+      "name": "Implement bindNamespace() in FileRepository",
+      "summary": "Store optional IMutableNamespace reference",
+      "updateId": "0P_48SYD002wdytaL0tJ7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48TPU002wdytaL0tJ7W",
+      "name": "Update FileEntityCursor#iterate() to sync namespace",
+      "summary": "Call namespace.addForma(item) after each yield if bound",
+      "updateId": "0P_48TPU002wdytaL0tJ7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48UL-002wdytaL0tJ7W",
+      "name": "Refactor World.initialize() to accept optional Filter",
+      "summary": "Remove automatic #populateNamespace(); let user define working context via queries",
+      "updateId": "0P_48UL-002wdytaL0tJ7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48VK-002wdytaL0tJ7W",
+      "name": "Bind namespace in World constructor",
+      "summary": "Call repository.bindNamespace(mutableNamespace) during construction",
+      "updateId": "0P_48VK-002wdytaL0tJ7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48W7X002wdytaL0tJ7W",
+      "name": "Test namespace sync with findMany()",
+      "summary": "Verify namespace is populated incrementally as entities are loaded",
+      "updateId": "0P_48W7X002wdytaL0tJ7W",
+      "status": "req",
+      "statusNote": ""
+    }
+  ],
   "rawReferences": [
     {
       "forma": "Reference",
@@ -32,6 +87,33 @@
       "updateId": "0P-q2-uy002wdytaL0tJ7W",
       "relevance": 0.9,
       "source": "src/mutator.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_48OpT002wdytaL0tJ7W",
+      "name": "entity.ts",
+      "summary": "IEntityRepository interface definition",
+      "updateId": "0P_48OpT002wdytaL0tJ7W",
+      "relevance": 1,
+      "source": "nf:./src/entity.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_48PsQ002wdytaL0tJ7W",
+      "name": "file-repository.ts",
+      "summary": "FileRepository implementation and FileEntityCursor#iterate()",
+      "updateId": "0P_48PsQ002wdytaL0tJ7W",
+      "relevance": 1,
+      "source": "nf:./src/file-repository.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_48Qre002wdytaL0tJ7W",
+      "name": "world.ts",
+      "summary": "World.initialize() and namespace binding point",
+      "updateId": "0P_48Qre002wdytaL0tJ7W",
+      "relevance": 1,
+      "source": "nf:./src/world.ts"
     }
   ]
 }
