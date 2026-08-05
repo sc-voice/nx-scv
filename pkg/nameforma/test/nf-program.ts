@@ -554,6 +554,23 @@ describe('NfProgram.registerFindCommand', () => {
       ).toBe(false);
     }
   });
+
+  it('find deduplicates duplicate queries', async () => {
+    const taskId = '0PxVmryB00tGyAPrFKqetW';
+
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      taskId,
+      taskId,
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+    expect(results[0].id).toBe(taskId);
+  });
 });
 
 describe('NfCLI patch command', () => {

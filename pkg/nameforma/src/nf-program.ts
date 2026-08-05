@@ -356,6 +356,51 @@ export class NfProgram {
     return EntityCursor.applyProjection(obj, projection);
   }
 
+  /**
+   * Resolve a query string to an array of formas.
+   * Supports HJSON filters, entity collection names, and fuzzy IDs.
+   * @param query - HJSON filter, collection name, or fuzzy ID
+   * @returns Array of matching formas
+   * @throws Error if fuzzy ID not found
+   */
+  private async resolveQuery(query: string): Promise<any[]> {
+    let parsed: any;
+    try {
+      parsed = Hjson.parse(query);
+    } catch {
+      parsed = query;
+    }
+
+    // HJSON object filter
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
+      return await this.world.repository.findAll(parsed).toArray();
+    }
+
+    // String query: check if it's a registered entity collection (case-insensitive)
+    if (typeof parsed === 'string') {
+      const lowerQuery = parsed.toLowerCase();
+      const matchedEntity = this.world
+        .getEntityNames()
+        .find((name) => name.toLowerCase() === lowerQuery);
+      if (matchedEntity) {
+        return await this.world.repository
+          .findAll({ collection: matchedEntity })
+          .toArray();
+      }
+    }
+
+    // Treat as fuzzy ID
+    const resolved = await this.world.resolveFuzzyId(query);
+    if (!resolved) {
+      throw new Error(`Not found: ${query}`);
+    }
+    return [resolved.forma];
+  }
+
   registerFindCommand(): void {
     const nfp = this;
     this.cmdDelegate
@@ -368,13 +413,14 @@ export class NfProgram {
       )
       .argument(
         '<queries...>',
-        'One or more FUZZY_IDs or HJSON sift filters',
+        'Entity collection, FUZZY_ID, or HJSON sift filter',
       )
       .addHelpText(
         'after',
         `
 Examples:
   nf find focus
+  nf find task
   nf find -p '{name:1, summary:1}' focus task
   nf find -p '{summary:0}' world
   nf find 'name:"foo"' -p '{name:1}'`,
@@ -393,51 +439,22 @@ Examples:
             );
           }
 
-          const isProjected = Object.keys(p8n).length > 0;
           const formas: any = [];
-          let nFuzzy = 0;
+          const seenIds = new Set<string>();
           for (const query of queries) {
-            // Try parsing as HJSON to detect if query is an object filter or fuzzyId string
-            let parsed: any;
-            try {
-              parsed = Hjson.parse(query);
-            } catch {
-              // If parsing fails, treat as fuzzyId
-              parsed = query;
-            }
-
-            if (
-              typeof parsed === 'object' &&
-              parsed !== null &&
-              !Array.isArray(parsed)
-            ) {
-              // Query is an HJSON sift filter object — output array
-              let cursor = nfp.world.repository.findAll(parsed);
-              if (Object.keys(p8n).length > 0) {
-                cursor = cursor.project(p8n);
+            for (const forma of await nfp.resolveQuery(query)) {
+              const id = (forma as any)?.id?.base64 || (forma as any)?.id;
+              if (!seenIds.has(id)) {
+                seenIds.add(id);
+                formas.push(forma);
               }
-              const results = await cursor.toArray();
-              formas.push(...results);
-            } else {
-              // Query is a fuzzyId string — output single object
-              const resolved = await nfp.world.resolveFuzzyId(query);
-              if (!resolved) {
-                throw new Error(`Not found: ${query}`);
-              }
-              const { entity, forma } = resolved;
-              formas.push(forma);
-              nFuzzy++;
             }
           }
 
           const projected = formas.map((f3a) =>
             nfp.applyProjection(f3a, p8n),
           );
-          //if (nFuzzy === 1) {
-          //lines.push(JSON.stringify(projected[0], null, 2));
-          //} else {
           lines.push(JSON.stringify(projected, null, 2));
-          //}
 
           nfp.writeOut(lines.join('\n'));
         } catch (err: any) {
