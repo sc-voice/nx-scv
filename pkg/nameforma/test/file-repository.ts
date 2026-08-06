@@ -17,6 +17,7 @@ import {
   Entity,
   Schema,
 } from '@sc-voice/nameforma';
+import { defineRepositoryContractTests } from './repository.helpers.js';
 
 class Recipe extends Entity {
   static collection = 'recipe';
@@ -403,3 +404,21 @@ describe('FileRepository', () => {
     });
   });
 });
+
+/**
+ * Repository contract test suite for FileRepository.
+ * Verifies that findAll() and findMany() return results in global descending ID order.
+ *
+ * This test is defined at the top level and should be replicated for all new
+ * repository implementations (MongoRepository, SQLRepository, etc) by calling
+ * defineRepositoryContractTests() with the implementation's factory function.
+ *
+ * @see test/repository-contract.ts — defineRepositoryContractTests()
+ */
+defineRepositoryContractTests(
+  'FileRepository',
+  async (worldPath: string) => {
+    fs.mkdirSync(worldPath, { recursive: true });
+    return FileRepository.create(worldPath);
+  },
+);

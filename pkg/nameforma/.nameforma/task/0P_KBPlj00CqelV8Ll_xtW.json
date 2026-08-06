@@ -1,0 +1,48 @@
+{
+  "forma": "Task",
+  "id": "0P_KBPlj00CqelV8Ll_xtW",
+  "name": "FileRepository sorting",
+  "summary": "findAll() must guarantee GLOBAL descending ID order across all collections (merged, not per-collection). FileRepository: merge-sort filenames (order-preserving UUID64 encoding) before per-entity filter/load; still lazy per-entity. Mongo/SQL repos (not yet implemented) would use native sort (ORDER BY id DESC), so contract must be tested via observable findAll() output only, not FileRepository internals.",
+  "updateId": "0P_KEnkl00Xzjl6THWwntW",
+  "collection": "task",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0P_KBfSH00CqelV8Ll_xtW",
+      "name": "Create repository contract test suite",
+      "summary": "Write implementation-agnostic contract suite (runRepositoryContractTests(makeRepo) style) asserting only on findAll() output order (global descending ID across all collections). Only FileRepository plugs in today; suite must not depend on FileRepository internals (filename-sort mechanism) since future Mongo/SQL repos would satisfy the contract via native query-level sort instead. findMany() is in scope: it shares #findAllGenerator with findAll(), so the same ordering contract applies to both.",
+      "updateId": "0P_KH70V00KDNKoH6rVh7W",
+      "status": "req",
+      "statusNote": ""
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0P_KBrab00CqelV8Ll_xtW",
+      "name": "entity.ts",
+      "summary": "IEntityRepository interface - add sorting contract to JSDoc",
+      "updateId": "0P_KBrab00CqelV8Ll_xtW",
+      "relevance": 0.5,
+      "source": "nf:./src/entity.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_KBtqt00CqelV8Ll_xtW",
+      "name": "file-repository.ts",
+      "summary": "Add sorting verification tests",
+      "updateId": "0P_KBtqt00CqelV8Ll_xtW",
+      "relevance": 0.5,
+      "source": "nf:./test/file-repository.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_KBuak00CqelV8Ll_xtW",
+      "name": "test",
+      "summary": "Repository contract test suite directory",
+      "updateId": "0P_KBuak00CqelV8Ll_xtW",
+      "relevance": 0.5,
+      "source": "nf:./test/"
+    }
+  ]
+}

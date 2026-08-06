@@ -4,6 +4,7 @@
   "name": "Add bindNamespace() to IEntityRepository",
   "summary": "Keep namespace in sync with repository for scalable working sets",
   "updateId": "0P_48Nru00l9bnpQmdmx7W",
+  "collection": "task",
   "rawActions": [
     {
       "forma": "Action",
@@ -58,6 +59,15 @@
       "updateId": "0P_48mRE00l9bnpQmdmx7W",
       "status": "req",
       "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_KBQrZ00l9bnpQmdmx7W",
+      "name": "Sort filenames in findAll",
+      "summary": "Modify #findAllGenerator to sort filenames before iterating, ensuring results are in descending ID order (newest first)",
+      "updateId": "0P_KBQrZ00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
     }
   ],
   "rawReferences": [
@@ -87,6 +97,15 @@
       "updateId": "0P_48oYa00l9bnpQmdmx7W",
       "relevance": 1,
       "source": "nf:./src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_KBRz400l9bnpQmdmx7W",
+      "name": "file-repository.ts",
+      "summary": "FileRepository findAll implementation",
+      "updateId": "0P_KBRz400l9bnpQmdmx7W",
+      "relevance": 0.5,
+      "source": "nf:./src/file-repository.ts"
     }
   ]
 }

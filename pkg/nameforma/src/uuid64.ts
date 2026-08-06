@@ -907,6 +907,25 @@ class UUID64 {
   }
 
   /**
+   * Compare two OPB64 base64 strings by lexicographic order.
+   * OPB64 encoding preserves order: string comparison reflects numeric/temporal order.
+   * Caller must ensure both arguments are OPB64 base64 strings (no runtime type check).
+   *
+   * Note: this is byte-order (C-locale) comparison, equivalent to `LC_ALL=C sort`.
+   * The shell's default `sort` uses locale-aware collation, which orders `-` and `_`
+   * differently and will NOT match this order — use `LC_ALL=C sort` to compare.
+   *
+   * @param a First OPB64 base64 string
+   * @param b Second OPB64 base64 string
+   * @returns -1 if a < b, 0 if a === b, 1 if a > b
+   */
+  static compareBase64(a: string, b: string): number {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  }
+
+  /**
    * Extract the 60-bit time/sequence value from bytes 0-7 of a UUID buffer.
    *
    * @param buffer UUID buffer

@@ -150,19 +150,37 @@ export class FileRepository implements IEntityRepository {
       id: (f as any).id,
       updatedAt: (f as any).updatedAt,
     };
+
+    // Collect all matching file paths across collections, then sort by ID
+    const filePathsWithIds: Array<{
+      filePath: string;
+      EntityClass: any;
+      idStr: string;
+    }> = [];
     for (const name of entityNames) {
       const EntityClass = this.#entityRegistry.entityClassOfName(name);
       if (EntityClass) {
         const entityDir = path.join(wp, (EntityClass as any).collection);
-        for await (const { filePath } of this.#matchingFiles(
+        for await (const { filePath, file } of this.#matchingFiles(
           entityDir,
           matchingFilesFilter,
         )) {
-          const entity = this.#load(EntityClass, filePath);
-          if (sf(entity)) {
-            yield entity;
-          }
+          const idStr = file.slice(0, -5); // remove .json extension
+          filePathsWithIds.push({ filePath, EntityClass, idStr });
         }
+      }
+    }
+
+    // Sort file paths by ID in descending order (newest-first)
+    filePathsWithIds.sort(
+      (a, b) => -UUID64.compareBase64(a.idStr, b.idStr),
+    );
+
+    // Load entities in sorted order and apply filter
+    for (const { filePath, EntityClass } of filePathsWithIds) {
+      const entity = this.#load(EntityClass, filePath);
+      if (sf(entity)) {
+        yield entity;
       }
     }
   }

@@ -856,3 +856,61 @@ describe('UUID64.create()', () => {
     expect(u1.isLessThan(u2)).toBe(true);
   });
 });
+
+// ============================================================================
+// compareBase64 Tests
+// ============================================================================
+
+describe('UUID64.compareBase64', () => {
+  it('compareBase64 matches LC_ALL=C sort order on real task IDs', () => {
+    const ids = [
+      '0PtPDKf100zPojsXwIY07W',
+      '0PtAH7pD00U9iyH7iE1QtW',
+      '0P_KBPlj00CqelV8Ll_xtW',
+      '0P_48Nru00l9bnpQmdmx7W',
+      '0P-p-SXi002wdytaL0tJ7W',
+      '0P-R0F7700LSTauME2e0dW',
+    ];
+
+    const expected = [
+      '0P-R0F7700LSTauME2e0dW',
+      '0P-p-SXi002wdytaL0tJ7W',
+      '0P_48Nru00l9bnpQmdmx7W',
+      '0P_KBPlj00CqelV8Ll_xtW',
+      '0PtAH7pD00U9iyH7iE1QtW',
+      '0PtPDKf100zPojsXwIY07W',
+    ];
+
+    const sorted = [...ids].sort(UUID64.compareBase64);
+    expect(sorted).toEqual(expected);
+  });
+
+  it('LC_ALL=C bash sort matches compareBase64 order', async () => {
+    const ids = [
+      '0PtPDKf100zPojsXwIY07W',
+      '0PtAH7pD00U9iyH7iE1QtW',
+      '0P_KBPlj00CqelV8Ll_xtW',
+      '0P_48Nru00l9bnpQmdmx7W',
+      '0P-p-SXi002wdytaL0tJ7W',
+      '0P-R0F7700LSTauME2e0dW',
+    ];
+
+    const expected = [
+      '0P-R0F7700LSTauME2e0dW',
+      '0P-p-SXi002wdytaL0tJ7W',
+      '0P_48Nru00l9bnpQmdmx7W',
+      '0P_KBPlj00CqelV8Ll_xtW',
+      '0PtAH7pD00U9iyH7iE1QtW',
+      '0PtPDKf100zPojsXwIY07W',
+    ];
+
+    const { execSync } = await import('child_process');
+    const input = ids.join('\n');
+    const sorted = execSync('LC_ALL=C sort', { input })
+      .toString()
+      .trim()
+      .split('\n');
+
+    expect(sorted).toEqual(expected);
+  });
+});
