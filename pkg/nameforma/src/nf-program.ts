@@ -386,6 +386,20 @@ export class NfProgram {
       return await cursor.toArray();
     }
 
+    // String query: check for special "focused" keyword
+    if (typeof parsed === 'string' && parsed.toLowerCase() === 'focused') {
+      const focusedIds = this.world.focusManager.ids();
+      const formas: any[] = [];
+      for (const id of focusedIds) {
+        const resolved = await this.world.resolveFuzzyId(id.base64);
+        if (resolved) {
+          formas.push(resolved.forma);
+          if (limit !== undefined && formas.length >= limit) break;
+        }
+      }
+      return formas;
+    }
+
     // String query: check if it's a registered entity collection (case-insensitive)
     if (typeof parsed === 'string') {
       const lowerQuery = parsed.toLowerCase();

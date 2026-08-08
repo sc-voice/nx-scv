@@ -601,6 +601,80 @@ describe('NfProgram.registerFindCommand', () => {
     const results = JSON.parse(output[0]);
     expect(results.length).toBeLessThanOrEqual(2);
   });
+
+  it('find focused returns focused entities in stack order (most recent first)', async () => {
+    const task1Id = '0PxVmryB00tGyAPrFKqetW';
+    const task1 = await world.loadFuzzy(Task, task1Id);
+    const task2 = await world.upsertOne(Task, { name: 'Task-2' });
+    const task3 = await world.upsertOne(Task, { name: 'Task-3' });
+
+    world.focusManager.focus(task1!.id);
+    world.focusManager.focus(task2.id);
+    world.focusManager.focus(task3.id);
+
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      'focused',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toBe(3);
+    expect(results[0].id).toBe(task3.id.base64);
+    expect(results[1].id).toBe(task2.id.base64);
+    expect(results[2].id).toBe(task1Id);
+  });
+
+  it('find focused with limit respects limit and stack order', async () => {
+    const task1Id = '0PxVmryB00tGyAPrFKqetW';
+    const task1 = await world.loadFuzzy(Task, task1Id);
+    const task2 = await world.upsertOne(Task, { name: 'Task-Limit-2' });
+    const task3 = await world.upsertOne(Task, { name: 'Task-Limit-3' });
+
+    world.focusManager.focus(task1!.id);
+    world.focusManager.focus(task2.id);
+    world.focusManager.focus(task3.id);
+
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '--limit',
+      '2',
+      'focused',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(2);
+    expect(results[0].id).toBe(task3.id.base64);
+    expect(results[1].id).toBe(task2.id.base64);
+  });
+
+  it('find focused returns empty when nothing focused', async () => {
+    // Ensure focus stack is empty
+    while (world.focusManager.peek() !== null) {
+      world.focusManager.unfocus();
+    }
+
+    output = [];
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      'focused',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.length).toEqual(0);
+  });
 });
 
 describe('NfCLI patch command', () => {
