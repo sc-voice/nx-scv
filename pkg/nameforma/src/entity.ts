@@ -95,13 +95,21 @@ export abstract class Entity extends Forma implements IRegistry, IEntity {
   }
 }
 
+/**
+ * Contract for entity types with persistence support.
+ */
 export interface IEntity {
   collection: string;
   fromJson(data: any): Entity;
 }
 
+/** Generic object type for untyped data. */
 export type TObject = Record<string, unknown>;
 
+/**
+ * MongoDB-style query operators for filtering entities.
+ * @template TValue Type of values being compared
+ */
 export interface FilterOperators<TValue> {
   $eq?: TValue;
   $ne?: TValue;
@@ -126,6 +134,10 @@ export interface FilterOperators<TValue> {
   $not?: Record<string, any>;
 }
 
+/**
+ * MongoDB-style filter for querying entities.
+ * @template T Object type being filtered
+ */
 export type Filter<T extends TObject> = {
   id?: string | FilterOperators<string>;
   collection?: string | FilterOperators<string>;
@@ -134,41 +146,47 @@ export type Filter<T extends TObject> = {
 };
 
 /**
- * Entities are stored in a repository for a World
- */
-/**
  * Async iterable cursor for querying entities from a repository.
  * Follows MongoDB Cursor API for consistency across File and MongoDB backends.
  * Supports method chaining for query composition.
  *
  * @example
  * // Iterate with limiting
- * for await (const task of repo.findAll({}).limit(10)) {
- *   console.log(task.name);
+ * for await (const item of cursor.limit(10)) {
+ *   console.log(item);
  * }
  *
  * @example
- * // Fetch all with projection
- * const tasks = await repo.findAll({collection:'task'})
- *   .project({ id: 1, name: 1, "actions.status": 1 })
- *   .toArray();
+ * // Fetch all results
+ * const items = await cursor.toArray();
  *
  * @template T - Entity type this cursor iterates over
  */
-export interface IEntityCursor<T extends IEntity>
-  extends AsyncIterable<T> {
+export interface ICursor<T> extends AsyncIterable<T> {
   /**
-   * Materialize all results into an array.
-   * @returns Promise resolving to array of all matching entities
+   * Materialize all results into an array. Do not use
+   * with unlimited streams.
+   * @returns Promise resolving to array of all results
    */
   toArray(): Promise<T[]>;
 
   /**
-   * Limit results to first N entities.
-   * @param n Maximum number of entities to return
+   * Limit results to first N items.
+   * @param n Maximum number of items to return
    * @returns New cursor with limit applied (chainable)
    */
-  limit(n: number): IEntityCursor<T>;
+  limit(n: number): ICursor<T>;
+}
+
+/**
+ * Entity-specific cursor extending base cursor with projection support.
+ * @template ET Entity type this cursor iterates over
+ */
+export interface IEntityCursor<ET extends IEntity> extends ICursor<ET> {
+  /**
+   * Limit results to first N entities (chainable).
+   */
+  limit(n: number): IEntityCursor<ET>;
 
   /**
    * Project fields to include/exclude from results.
@@ -180,7 +198,7 @@ export interface IEntityCursor<T extends IEntity>
    * .project({ summary: 0 })       // exclude summary
    * .project({ "actions.status": 1, name: 1 })  // nested paths
    */
-  project(projection: Record<string, 0 | 1>): IEntityCursor<T>;
+  project(projection: Record<string, 0 | 1>): ICursor<any>;
 }
 
 /**

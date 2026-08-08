@@ -1,4 +1,4 @@
-import type { IEntityCursor, IEntity } from './entity.js';
+import type { ICursor, IEntityCursor, IEntity } from './entity.js';
 
 /**
  * Base class for entity cursors with shared projection logic.
@@ -46,21 +46,15 @@ export abstract class EntityCursor<T extends IEntity>
     return this;
   }
 
-  /** Template method: enforces invariant, delegates to subclass */
-  project(projection: Record<string, 0 | 1>): IEntityCursor<T> {
+  /** Enforce projection before iteration starts */
+  project(projection: Record<string, 0 | 1>): ProjectionCursor<any> {
     if (this._nYield > 0) {
       throw new Error(
         `project() must be called before iteration (${this._nYield} items already yielded)`,
       );
     }
-    this._projection = projection;
-    return this.rawProject(projection);
+    return new ProjectionCursor(this, projection);
   }
-
-  /** Subclasses implement projection logic */
-  protected abstract rawProject(
-    projection: Record<string, 0 | 1>,
-  ): IEntityCursor<T>;
 
   /**
    * Apply MongoDB-style projection to an object, supporting dotted paths.
@@ -134,6 +128,35 @@ export abstract class EntityCursor<T extends IEntity>
   }
 }
 
+/** Wrapper cursor that applies projection to items from inner cursor */
+export class ProjectionCursor<T> implements ICursor<T> {
+  #inner: ICursor<any>;
+  #projection: Record<string, 0 | 1>;
+
+  constructor(inner: ICursor<any>, projection: Record<string, 0 | 1>) {
+    this.#inner = inner;
+    this.#projection = projection;
+  }
+
+  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
+    for await (const item of this.#inner) {
+      yield EntityCursor.applyProjection(item, this.#projection) as T;
+    }
+  }
+
+  async toArray(): Promise<T[]> {
+    const results: T[] = [];
+    for await (const item of this) {
+      results.push(item);
+    }
+    return results;
+  }
+
+  limit(n: number): ProjectionCursor<T> {
+    return new ProjectionCursor(this.#inner.limit(n), this.#projection);
+  }
+}
+
 /** Utility class for testing may also be useful elsewhere */
 export class ArrayEntityCursor<T extends IEntity>
   extends EntityCursor<T>
@@ -148,16 +171,7 @@ export class ArrayEntityCursor<T extends IEntity>
 
   protected async *rawIterator(): AsyncGenerator<T> {
     for (const item of this.items) {
-      const result = this.projection
-        ? EntityCursor.applyProjection(item, this.projection)
-        : item;
-      yield result;
+      yield item;
     }
-  }
-
-  protected rawProject(
-    projection: Record<string, 0 | 1>,
-  ): IEntityCursor<T> {
-    return this;
   }
 }

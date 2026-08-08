@@ -33,17 +33,8 @@ class FileEntityCursor<T extends IEntity> extends EntityCursor<T> {
 
   protected async *rawIterator(): AsyncGenerator<T> {
     for await (const item of this.#asyncGen) {
-      const result = this.projection
-        ? EntityCursor.applyProjection(item, this.projection)
-        : item;
-      yield result;
+      yield item;
     }
-  }
-
-  protected rawProject(
-    projection: Record<string, 0 | 1>,
-  ): FileEntityCursor<T> {
-    return this;
   }
 }
 
