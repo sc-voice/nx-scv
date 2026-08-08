@@ -12,7 +12,8 @@ import { EntityRegistry } from './entity-registry.js';
  * Entity - Abstract base class for persistent entities in World
  * Extends Forma with namespace management for child Forma objects (actions, references, etc.)
  */
-export abstract class Entity extends Forma implements IRegistry {
+export abstract class Entity extends Forma implements IRegistry, IEntity {
+  declare collection: string;
   #namespace?: FuzzyNamespace;
 
   /**
@@ -88,11 +89,14 @@ export abstract class Entity extends Forma implements IRegistry {
   protected addToNamespace(forma: Forma): void {
     this.mutableNamespace.addForma(forma);
   }
+
+  fromJson(data: any): Entity {
+    return (this.constructor as any).fromJson(data);
+  }
 }
 
 export interface IEntity {
   collection: string;
-  avroSchema: any;
   fromJson(data: any): Entity;
 }
 

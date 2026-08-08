@@ -25,31 +25,24 @@ const { cc } = ColorConsole;
 
 class FileEntityCursor<T extends IEntity> extends EntityCursor<T> {
   #asyncGen: AsyncGenerator<T>;
-  #limit?: number;
 
   constructor(asyncGen: AsyncGenerator<T>) {
     super();
     this.#asyncGen = asyncGen;
   }
 
-  [Symbol.asyncIterator]() {
-    return this.#iterate();
-  }
-
-  async *#iterate() {
-    let count = 0;
+  protected async *rawIterator(): AsyncGenerator<T> {
     for await (const item of this.#asyncGen) {
-      if (this.#limit !== undefined && count >= this.#limit) break;
       const result = this.projection
         ? EntityCursor.applyProjection(item, this.projection)
         : item;
       yield result;
-      count++;
     }
   }
 
-  override limit(n: number): FileEntityCursor<T> {
-    this.#limit = n;
+  protected rawProject(
+    projection: Record<string, 0 | 1>,
+  ): FileEntityCursor<T> {
     return this;
   }
 }

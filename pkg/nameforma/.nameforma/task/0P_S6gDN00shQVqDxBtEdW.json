@@ -1,0 +1,10 @@
+{
+  "forma": "Task",
+  "id": "0P_S6gDN00shQVqDxBtEdW",
+  "name": "Investigate IEntity and findAll",
+  "summary": "Analyze the definition of `IEntity` and the implementation of `findAll` within the `pkg/nameforma` package to understand the domain model and data access patterns.",
+  "updateId": "0P_S6gDN00shQVqDxBtEdW",
+  "collection": "task",
+  "rawActions": [],
+  "rawReferences": []
+}

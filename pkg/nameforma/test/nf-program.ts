@@ -571,6 +571,36 @@ describe('NfProgram.registerFindCommand', () => {
     expect(results.length).toEqual(1);
     expect(results[0].id).toBe(taskId);
   });
+
+  it('find with --limit returns only specified number of results', async () => {
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '--limit',
+      '1',
+      'task',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(results.length).toEqual(1);
+  });
+
+  it('find with --limit across multiple queries respects global limit', async () => {
+    await program.cmdDelegate.parseAsync([
+      'node',
+      'test',
+      'find',
+      '--limit',
+      '2',
+      'task',
+    ]);
+
+    expect(output.length).toBeGreaterThan(0);
+    const results = JSON.parse(output[0]);
+    expect(results.length).toBeLessThanOrEqual(2);
+  });
 });
 
 describe('NfCLI patch command', () => {

@@ -360,10 +360,14 @@ export class NfProgram {
    * Resolve a query string to an array of formas.
    * Supports HJSON filters, entity collection names, and fuzzy IDs.
    * @param query - HJSON filter, collection name, or fuzzy ID
+   * @param limit - Optional limit on number of results
    * @returns Array of matching formas
    * @throws Error if fuzzy ID not found
    */
-  private async resolveQuery(query: string): Promise<any[]> {
+  private async resolveQuery(
+    query: string,
+    limit?: number,
+  ): Promise<any[]> {
     let parsed: any;
     try {
       parsed = Hjson.parse(query);
@@ -377,7 +381,9 @@ export class NfProgram {
       parsed !== null &&
       !Array.isArray(parsed)
     ) {
-      return await this.world.repository.findAll(parsed).toArray();
+      let cursor = this.world.repository.findAll(parsed);
+      if (limit !== undefined) cursor = cursor.limit(limit);
+      return await cursor.toArray();
     }
 
     // String query: check if it's a registered entity collection (case-insensitive)
@@ -387,9 +393,11 @@ export class NfProgram {
         .getEntityNames()
         .find((name) => name.toLowerCase() === lowerQuery);
       if (matchedEntity) {
-        return await this.world.repository
-          .findAll({ collection: matchedEntity })
-          .toArray();
+        let cursor = this.world.repository.findAll({
+          collection: matchedEntity,
+        });
+        if (limit !== undefined) cursor = cursor.limit(limit);
+        return await cursor.toArray();
       }
     }
 
@@ -411,6 +419,7 @@ export class NfProgram {
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
       )
+      .option('-l, --limit <number>', 'Limit number of results')
       .argument(
         '<queries...>',
         'Entity collection, FUZZY_ID, or HJSON sift filter',
@@ -423,7 +432,8 @@ Examples:
   nf find task
   nf find -p '{name:1, summary:1}' focus task
   nf find -p '{summary:0}' world
-  nf find 'name:"foo"' -p '{name:1}'`,
+  nf find 'name:"foo"' -p '{name:1}'
+  nf find --limit 10 task`,
       )
       .action(async (queries: string[], options: any) => {
         const ctx = 'NfProgram.registerFindCommand';
@@ -439,14 +449,29 @@ Examples:
             );
           }
 
+          const limit = options.limit
+            ? parseInt(options.limit, 10)
+            : undefined;
+          if (limit !== undefined && isNaN(limit)) {
+            throw new Error(`Invalid limit: ${options.limit}`);
+          }
+
           const formas: any = [];
           const seenIds = new Set<string>();
+          let remaining = limit;
           for (const query of queries) {
-            for (const forma of await nfp.resolveQuery(query)) {
+            if (remaining !== undefined && remaining <= 0) break;
+            const queryLimit = remaining;
+            for (const forma of await nfp.resolveQuery(
+              query,
+              queryLimit,
+            )) {
               const id = (forma as any)?.id?.base64 || (forma as any)?.id;
               if (!seenIds.has(id)) {
                 seenIds.add(id);
                 formas.push(forma);
+                if (remaining !== undefined) remaining--;
+                if (remaining !== undefined && remaining <= 0) break;
               }
             }
           }

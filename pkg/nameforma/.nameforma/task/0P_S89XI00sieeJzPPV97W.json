@@ -1,0 +1,10 @@
+{
+  "forma": "Task",
+  "id": "0P_S89XI00sieeJzPPV97W",
+  "name": "Implement EntityScope",
+  "summary": "Implement the EntityScope class to provide a synchronous \"head view\" of an IEntity collection derived from a query.",
+  "updateId": "0P_S89XI00sieeJzPPV97W",
+  "collection": "task",
+  "rawActions": [],
+  "rawReferences": []
+}
