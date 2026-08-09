@@ -177,7 +177,7 @@ export class NfCLI extends NfProgram {
   }
 
   private createProgram(): void {
-    const program = this.cmdDelegate;
+    const program = this.rootCmd;
     const helpText = [
       'Examples:',
       '  $ nameforma --help',
@@ -367,7 +367,7 @@ export class NfCLI extends NfProgram {
    * console.log(program.version());
    */
   getProgram(): Command {
-    return this.cmdDelegate as Command;
+    return this.rootCmd as Command;
   }
 }
 

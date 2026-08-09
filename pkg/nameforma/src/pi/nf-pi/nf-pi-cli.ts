@@ -23,7 +23,7 @@ export class NfExtensionCommand extends NfProgram {
   }
 
   private createProgram(): void {
-    const program = this.cmdDelegate as any;
+    const program = this.rootCmd as any;
     const dbg = DBG.NF_PROGRAM.NF_PI_CLI;
 
     if (!this.ctx.hasUI) {
@@ -83,7 +83,7 @@ export class NfExtensionCommand extends NfProgram {
     const session = NfSession.shared;
     const { view } = session;
 
-    this.cmdDelegate
+    this.rootCmd
       .command('watch')
       .option('-l, --lines <val>', '<MAX_LINES(7)>[@DETAIL]')
       .option('-q, --quit', 'Close NfWatch')
@@ -95,13 +95,13 @@ export class NfExtensionCommand extends NfProgram {
           const lines = parseInt(sLines);
           const detail = (sDetail && parseFloat(sDetail)) ?? view.detail;
           if (Number.isNaN(lines) || lines <= 0) {
-            nfExt.cmdDelegate.error(`--lines:${options.lines}?`);
+            nfExt.rootCmd.error(`--lines:${options.lines}?`);
             return;
           }
           view.setMaxLines(lines);
           if (sLines && typeof detail === 'number') {
             if (Number.isNaN(detail) || detail < 0 || 1 < detail) {
-              nfExt.cmdDelegate.error(
+              nfExt.rootCmd.error(
                 `line detail must be between 0 and 1: ${sDetail}?`,
               );
               return;
@@ -137,7 +137,7 @@ export class NfExtensionCommand extends NfProgram {
   private registerPiTestCommand(): void {
     const nfExt = this;
 
-    this.cmdDelegate
+    this.rootCmd
       .command('test <value>')
       .description('A self-diagnostic')
       .action(async (value?: string) => {
@@ -180,7 +180,7 @@ export class NfExtensionCommand extends NfProgram {
     } catch (err: any) {
       console.log(msg, 'caught', err?.message);
     } finally {
-      return result ?? this.cmdDelegate;
+      return result ?? this.rootCmd;
     }
   }
 } // NfExtensionCommand

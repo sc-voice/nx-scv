@@ -6,6 +6,7 @@ import type { FuzzyId } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Mutator } from './mutator.js';
 import { EntityCursor } from './entity-cursor.js';
+import { NfFindCommand } from './nf-find-command.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
 import path from 'path';
@@ -158,8 +159,8 @@ export class NfProgram {
     return await FileRepository.loadWorld(resolvedPath);
   }
 
-  constructor(protected readonly cmdDelegate: ICommand) {
-    let program = this.cmdDelegate;
+  constructor(protected readonly rootCmd: ICommand) {
+    let program = this.rootCmd;
 
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const pkgJson = JSON.parse(
@@ -207,7 +208,7 @@ export class NfProgram {
     const dbg = DBG.NF_PROGRAM.ANY;
     try {
       dbg && logger.debug({ ctx, args });
-      return this.cmdDelegate.parseAsync(args);
+      return this.rootCmd.parseAsync(args);
     } catch (err) {
       logger.error({ ctx, err });
       throw err;
@@ -242,7 +243,7 @@ export class NfProgram {
 
   /** @returns current output configuration */
   get output(): IOutputConfiguration {
-    return this.cmdDelegate.configureOutput();
+    return this.rootCmd.configureOutput();
   }
 
   /** Pass through to configuredOutput.writeOut()
@@ -286,7 +287,7 @@ export class NfProgram {
   registerAddCommand(): void {
     const msg = 'n7m.registerAddCommand';
     const nfp = this;
-    this.cmdDelegate
+    this.rootCmd
       .command('add')
       .description('Add a new unfocused `typeName` Entity')
       .argument('<typeName>', 'Entity type: Plan, ... (required)')
@@ -339,7 +340,7 @@ export class NfProgram {
 
   registerInitCommand(): void {
     const nfp = this;
-    this.cmdDelegate
+    this.rootCmd
       .command('init')
       .description('Initialize NameForma environment')
       .argument(
@@ -349,164 +350,16 @@ export class NfProgram {
       .action((pathArg, options) => nfp.nfInit(pathArg, options));
   }
 
-  private applyProjection(
+  applyProjection(
     obj: any,
     projection: Record<string, any>,
   ): Record<string, any> {
     return EntityCursor.applyProjection(obj, projection);
   }
 
-  /**
-   * Resolve a query string to an array of formas.
-   * Supports HJSON filters, entity collection names, and fuzzy IDs.
-   * @param query - HJSON filter, collection name, or fuzzy ID
-   * @param limit - Optional limit on number of results
-   * @returns Array of matching formas
-   * @throws Error if fuzzy ID not found
-   */
-  private async resolveQuery(
-    query: string,
-    limit?: number,
-  ): Promise<any[]> {
-    let parsed: any;
-    try {
-      parsed = Hjson.parse(query);
-    } catch {
-      parsed = query;
-    }
-
-    // HJSON object filter
-    if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-    ) {
-      let cursor = this.world.repository.findAll(parsed);
-      if (limit !== undefined) cursor = cursor.limit(limit);
-      return await cursor.toArray();
-    }
-
-    // String query: check for special "focused" keyword
-    if (typeof parsed === 'string' && parsed.toLowerCase() === 'focused') {
-      const focusedIds = this.world.focusManager.ids();
-      const formas: any[] = [];
-      for (const id of focusedIds) {
-        const resolved = await this.world.resolveFuzzyId(id.base64);
-        if (resolved) {
-          formas.push(resolved.forma);
-          if (limit !== undefined && formas.length >= limit) break;
-        }
-      }
-      return formas;
-    }
-
-    // String query: check if it's a registered entity collection (case-insensitive)
-    if (typeof parsed === 'string') {
-      const lowerQuery = parsed.toLowerCase();
-      const matchedEntity = this.world
-        .getEntityNames()
-        .find((name) => name.toLowerCase() === lowerQuery);
-      if (matchedEntity) {
-        let cursor = this.world.repository.findAll({
-          collection: matchedEntity,
-        });
-        if (limit !== undefined) cursor = cursor.limit(limit);
-        return await cursor.toArray();
-      }
-    }
-
-    // Treat as fuzzy ID
-    const resolved = await this.world.resolveFuzzyId(query);
-    if (!resolved) {
-      throw new Error(`Not found: ${query}`);
-    }
-    return [resolved.forma];
-  }
-
-  registerFindCommand(): void {
-    const nfp = this;
-    this.cmdDelegate
-      .command('find')
-      .alias('findOne')
-      .description('Find a Forma')
-      .option(
-        '-p, --project <hjson>',
-        'Projection as HJSON string, e.g.: "name:1, summary:1"',
-      )
-      .option('-l, --limit <number>', 'Limit number of results')
-      .argument(
-        '<queries...>',
-        'Entity collection, FUZZY_ID, or HJSON sift filter',
-      )
-      .addHelpText(
-        'after',
-        `
-Examples:
-  nf find focus
-  nf find task
-  nf find -p '{name:1, summary:1}' focus task
-  nf find -p '{summary:0}' world
-  nf find 'name:"foo"' -p '{name:1}'
-  nf find --limit 10 task`,
-      )
-      .action(async (queries: string[], options: any) => {
-        const ctx = 'NfProgram.registerFindCommand';
-        let lines: string[] = [];
-        try {
-          const p8n = options.project ? Hjson.parse(options.project) : {};
-          const pv = Object.values(p8n);
-          const optIn = pv.some((v) => v === 1);
-          const optOut = pv.some((v) => v === 0);
-          if (optIn && optOut) {
-            throw new Error(
-              `Mixed projection not supported: ${JSON.stringify(p8n)}`,
-            );
-          }
-
-          const limit = options.limit
-            ? parseInt(options.limit, 10)
-            : undefined;
-          if (limit !== undefined && isNaN(limit)) {
-            throw new Error(`Invalid limit: ${options.limit}`);
-          }
-
-          const formas: any = [];
-          const seenIds = new Set<string>();
-          let remaining = limit;
-          for (const query of queries) {
-            if (remaining !== undefined && remaining <= 0) break;
-            const queryLimit = remaining;
-            for (const forma of await nfp.resolveQuery(
-              query,
-              queryLimit,
-            )) {
-              const id = (forma as any)?.id?.base64 || (forma as any)?.id;
-              if (!seenIds.has(id)) {
-                seenIds.add(id);
-                formas.push(forma);
-                if (remaining !== undefined) remaining--;
-                if (remaining !== undefined && remaining <= 0) break;
-              }
-            }
-          }
-
-          const projected = formas.map((f3a) =>
-            nfp.applyProjection(f3a, p8n),
-          );
-          lines.push(JSON.stringify(projected, null, 2));
-
-          nfp.writeOut(lines.join('\n'));
-        } catch (err: any) {
-          logger.error({ ctx, err });
-          nfp.writeErr(`✗ ${ctx} Error: ${err.message}`);
-          throw err;
-        }
-      });
-  } // registerFindCommand
-
   registerUpdateCommand(): void {
     const nfp = this;
-    this.cmdDelegate
+    this.rootCmd
       .command('update')
       .alias('updateOne')
       .alias('patch')
@@ -587,4 +440,8 @@ Examples:
         },
       );
   } // registerUpdateCommand
+
+  registerFindCommand(): void {
+    NfFindCommand.fromRootCommand(this.rootCmd, this);
+  }
 }

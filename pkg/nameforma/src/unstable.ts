@@ -21,7 +21,7 @@ export { CliRenderer, nfTui } from './cli/nf-tui.js';
 export { TuiList } from './cli/tui-list.js';
 export {
   default as MonoTable,
-  BaseTable,
+  TableDefaults,
   type Header,
   type Row,
   type TableOptions,

@@ -1,8 +1,13 @@
 import { describe, it, expect } from '@sc-voice/vitest';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import UUID64 from '../src/uuid64.js';
 import { User } from '../src/user.js';
 import RGA64Stack from '../src/rga64-stack.js';
 import RGA64Node from '../src/rga64-node.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe('RGA64Stack', () => {
   const alice = new User(undefined, 'Alice');
@@ -360,5 +365,21 @@ describe('RGA64Stack', () => {
       stack.compact(Date.now());
     }).not.toThrow();
     expect(stack.nodes()).toHaveLength(0);
+  });
+
+  it('peek() agrees with values()[0] (reproduces real-world focus-stack divergence)', () => {
+    const worldJsonPath = path.join(
+      __dirname,
+      'data/single-focus/.nameforma/world.json',
+    );
+    const worldJson = JSON.parse(fs.readFileSync(worldJsonPath, 'utf-8'));
+    const stack = RGA64Stack.fromJSON(
+      worldJson.focusManager.rgaFocusStack,
+    );
+
+    const peeked = stack.peek();
+    const topValue = stack.values()[0];
+
+    expect(peeked?.value.base64).toBe(topValue?.base64);
   });
 });

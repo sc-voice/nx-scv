@@ -1,6 +1,11 @@
 /**
- * A table utility designed for generating perfectly aligned, monospaced text representations.
- * It operates on a grid-based model, ensuring columns line up by calculating character widths.
+ * MonoTable converts an array of Plain Old Javascript Objects (POJOs)
+ * into a manipulable relation that can be formatted as a
+ * monospaced table.
+ * - automatically calculates column widths from data
+ * - sort() rearranges rows in place
+ * - groupBy() returns a new aggregated MonoTable
+ * - filter() returns a new MonoTable with selected rows
  */
 
 /** A single column definition. */
@@ -23,13 +28,16 @@ export interface Header {
   aggFun?: Function;
 }
 
-/** A single row of table data, keyed by header id. */
+/**
+ * A single row of table data, keyed by header id.
+ * A Row is just a generic Plain Old Java Object (POJO).
+ */
 export type Row = Record<string, unknown>;
 
 /** Configuration options for a {@link MonoTable}. */
 export interface TableOptions {
-  /** A caption to display at the end of the table. */
-  caption?: string;
+  /** A summary to display at the end of the table. */
+  summary?: string;
   /** Character used for overflowing text. */
   cellOverflow?: string;
   /** Character/string separating columns. */
@@ -50,9 +58,9 @@ export interface TableOptions {
   locales?: string[];
   /** Array of row objects. */
   rows?: Row[];
-  /** A title to display at the start of the table. */
-  title?: string;
-  /** Function to transform an ID into a title. */
+  /** A name to display at the start of the table. */
+  name?: string;
+  /** Function to transform an ID into a name. */
   titleOfId?: (id: string) => string;
   /** Type identifier. */
   type?: string;
@@ -64,8 +72,8 @@ export interface TableOptions {
  * Plain data container for a table's fields. Holds no formatting/query
  * behavior — see {@link MonoTable} for that.
  */
-export class BaseTable implements TableOptions {
-  caption?: string;
+export class TableDefaults implements TableOptions {
+  summary?: string;
   cellOverflow!: string;
   columnSeparator!: string;
   cellValue?: (value: unknown, id: string) => string;
@@ -76,17 +84,17 @@ export class BaseTable implements TableOptions {
   localeOptions?: object;
   locales?: string[];
   rows!: Row[];
-  title?: string;
+  name?: string;
   titleOfId!: (id: string) => string;
   type!: string;
   version!: string;
 
   /**
-   * Creates an instance of BaseTable, applying option defaults.
+   * Creates an instance of TableDefaults, applying option defaults.
    * @param opts - Configuration options.
    */
   constructor(opts: TableOptions) {
-    Object.assign(this, BaseTable.options(opts));
+    Object.assign(this, TableDefaults.options(opts));
   }
 
   /**
@@ -96,7 +104,7 @@ export class BaseTable implements TableOptions {
    */
   static options(opts: Partial<TableOptions> = {}): TableOptions {
     const {
-      caption = undefined,
+      summary = undefined,
       cellOverflow = '…',
       columnSeparator = ' ',
       cellValue = undefined,
@@ -107,7 +115,7 @@ export class BaseTable implements TableOptions {
       localeOptions = undefined,
       locales = undefined,
       rows = [],
-      title = undefined,
+      name = undefined,
       titleOfId = MonoTable.titleOfId,
       type = 'MonoTable',
       version = '1.0.0',
@@ -121,7 +129,7 @@ export class BaseTable implements TableOptions {
     }
 
     return {
-      caption,
+      summary,
       cellOverflow,
       columnSeparator,
       cellValue,
@@ -132,7 +140,7 @@ export class BaseTable implements TableOptions {
       localeOptions,
       locales,
       rows,
-      title,
+      name,
       titleOfId,
       type,
       version,
@@ -140,7 +148,12 @@ export class BaseTable implements TableOptions {
   }
 }
 
-export default class MonoTable extends BaseTable {
+/**
+ * A table utility for generating perfectly aligned monospaced text representations.
+ * Provides methods for filtering, sorting, grouping, and formatting tabular data.
+ * Rows are keyed by column IDs; columns are automatically sized based on content.
+ */
+export default class MonoTable extends TableDefaults {
   /**
    * Creates an instance of MonoTable.
    * @param opts - Configuration options.
@@ -161,16 +174,6 @@ export default class MonoTable extends BaseTable {
     // Each row is owned by client, but the collection is owned by table
     rows = (rows && [...rows]) || [];
     let row0: unknown = rows[0];
-
-    if (row0 instanceof Array) {
-      // toJSON() format (array of arrays)
-      rows = rows.map((row: any) =>
-        headers.reduce((a: Row, h, i) => {
-          a[h.id] = row[i];
-          return a;
-        }, {}),
-      );
-    }
 
     if (headers.length === 0) {
       let rowType = typeof row0;
@@ -194,6 +197,22 @@ export default class MonoTable extends BaseTable {
     });
 
     Object.assign(this, { headers, rows });
+  }
+
+  /**
+   * Creates a MonoTable from serialized JSON (toJSON() format).
+   * @param json - Serialized table data (with array rows).
+   * @returns A new MonoTable instance.
+   */
+  static fromJSON(json: any): MonoTable {
+    const { headers = [], rows = [] } = json;
+    const normalizedRows: Row[] = rows.map((row: any) =>
+      headers.reduce((a: Row, h: Header, i: number) => {
+        a[h.id] = row[i];
+        return a;
+      }, {}),
+    );
+    return new MonoTable({ ...json, headers, rows: normalizedRows });
   }
 
   /**
@@ -230,7 +249,7 @@ export default class MonoTable extends BaseTable {
   }
 
   /**
-   * Creates a MonoTable from an array of rows.
+   * Creates a MonoTable from an array of Plain Old Javascript Objects (POJOs).
    * @param rows - Array of row objects.
    * @param opts - Configuration options.
    * @returns A new MonoTable instance.
@@ -419,10 +438,10 @@ export default class MonoTable extends BaseTable {
    * @param rawOpts - Formatting options.
    * @returns Array of strings, each representing a row.
    */
-  asColumns(rawOpts?: Partial<TableOptions>): string[] {
+  asLines(rawOpts?: Partial<TableOptions>): string[] {
     let opts = MonoTable.options(Object.assign({}, this, rawOpts));
     let {
-      title,
+      name,
       titleOfId,
       columnSeparator,
       cellValue,
@@ -430,13 +449,13 @@ export default class MonoTable extends BaseTable {
       rows = [],
       locales,
       localeOptions,
-      caption,
+      summary,
     } = opts;
 
     this.#updateHeaders(opts);
 
     let lines: string[] = [];
-    title && lines.push(title);
+    name && lines.push(name);
 
     if (headers.length) {
       let colTitles = headers.map((h) => {
@@ -465,7 +484,7 @@ export default class MonoTable extends BaseTable {
       lines.push(data.join(columnSeparator));
     }
 
-    caption && lines.push(caption);
+    summary && lines.push(summary);
 
     return lines;
   }
@@ -543,7 +562,7 @@ export default class MonoTable extends BaseTable {
    */
   format(opts?: Partial<TableOptions>): string {
     let mergedOpts = this.options(opts);
-    let lines = this.asColumns(mergedOpts);
+    let lines = this.asLines(mergedOpts);
     return lines.join(mergedOpts.lineSeparator!);
   }
 
@@ -783,4 +802,4 @@ export default class MonoTable extends BaseTable {
     let dstHdrs = [...grpHdrs, ...aggHdrs];
     return { grpHdrs, aggHdrs, dstHdrs };
   }
-}
+} // MonoTable

@@ -1,0 +1,111 @@
+{
+  "forma": "Task",
+  "id": "0P_48Nru00l9bnpQmdmx7W",
+  "name": "Add bindNamespace() to IEntityRepository",
+  "summary": "Keep namespace in sync with repository for scalable working sets",
+  "updateId": "0P_48Nru00l9bnpQmdmx7W",
+  "collection": "task",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0P_48lwW00l9bnpQmdmx7W",
+      "name": "Add bindNamespace() to IEntityRepository",
+      "summary": "Define interface method to bind mutable namespace",
+      "updateId": "0P_48lwW00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48m0_00l9bnpQmdmx7W",
+      "name": "Implement bindNamespace() in FileRepository",
+      "summary": "Store optional IMutableNamespace reference",
+      "updateId": "0P_48m0_00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48m7d00l9bnpQmdmx7W",
+      "name": "Update FileEntityCursor#iterate() to sync",
+      "summary": "Call namespace.addForma(item) after each yield if bound",
+      "updateId": "0P_48m7d00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48mE200l9bnpQmdmx7W",
+      "name": "Refactor World.initialize()",
+      "summary": "Accept optional Filter; remove auto-populate",
+      "updateId": "0P_48mE200l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48mKg00l9bnpQmdmx7W",
+      "name": "Bind namespace in World constructor",
+      "summary": "Call repository.bindNamespace(mutableNamespace)",
+      "updateId": "0P_48mKg00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_48mRE00l9bnpQmdmx7W",
+      "name": "Test namespace sync",
+      "summary": "Verify namespace populates as entities load",
+      "updateId": "0P_48mRE00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    },
+    {
+      "forma": "Action",
+      "id": "0P_KBQrZ00l9bnpQmdmx7W",
+      "name": "Sort filenames in findAll",
+      "summary": "Modify #findAllGenerator to sort filenames before iterating, ensuring results are in descending ID order (newest first)",
+      "updateId": "0P_KBQrZ00l9bnpQmdmx7W",
+      "status": "req",
+      "statusNote": ""
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0P_48oLh00l9bnpQmdmx7W",
+      "name": "entity.ts",
+      "summary": "IEntityRepository interface",
+      "updateId": "0P_48oLh00l9bnpQmdmx7W",
+      "relevance": 1,
+      "source": "nf:./src/entity.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_48oSD00l9bnpQmdmx7W",
+      "name": "file-repository.ts",
+      "summary": "FileRepository & FileEntityCursor",
+      "updateId": "0P_48oSD00l9bnpQmdmx7W",
+      "relevance": 1,
+      "source": "nf:./src/file-repository.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_48oYa00l9bnpQmdmx7W",
+      "name": "world.ts",
+      "summary": "World.initialize() & constructor",
+      "updateId": "0P_48oYa00l9bnpQmdmx7W",
+      "relevance": 1,
+      "source": "nf:./src/world.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0P_KBRz400l9bnpQmdmx7W",
+      "name": "file-repository.ts",
+      "summary": "FileRepository findAll implementation",
+      "updateId": "0P_KBRz400l9bnpQmdmx7W",
+      "relevance": 0.5,
+      "source": "nf:./src/file-repository.ts"
+    }
+  ]
+}

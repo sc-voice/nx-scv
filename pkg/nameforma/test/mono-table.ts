@@ -36,7 +36,7 @@ describe('mono-table', () => {
     let tbl = new MonoTable({});
     expect(tbl.headers).toEqual([]);
     expect(tbl.rows).toEqual([]);
-    expect(tbl.asColumns()).toEqual([]);
+    expect(tbl.asLines()).toEqual([]);
     expect(tbl.titleOfId).toBe(MonoTable.titleOfId);
     expect(tbl).toMatchObject({
       type: 'MonoTable',
@@ -52,22 +52,22 @@ describe('mono-table', () => {
       { color: 'purple', size: 10 },
       { color: 'red', size: 5 },
     ];
-    let title = 'test-title';
-    let caption = 'test-caption';
-    let opts = { title, caption };
+    let name = 'test-name';
+    let summary = 'test-summary';
+    let opts = { name, summary };
 
     let tbl = MonoTable.fromRows(rows, opts);
 
-    expect(tbl.title).toBe(title);
-    expect(tbl.caption).toBe(caption);
+    expect(tbl.name).toBe(name);
+    expect(tbl.summary).toBe(summary);
     expect(tbl.headers.map((h) => h.id)).toEqual(['color', 'size']);
     expect(tbl.rows.length).toBe(2);
     expect(tbl.rows).toEqual(rows);
     expect(tbl.rows).not.toBe(rows);
 
     let tbl2 = MonoTable.fromRows(rows, {
-      title,
-      caption,
+      name,
+      summary,
       headers: tbl.headers,
     });
     expect(tbl2.headers).not.toBe(tbl.headers);
@@ -78,20 +78,20 @@ describe('mono-table', () => {
       { color: 'purple', size: 10 },
       { color: 'red', size: 5 },
     ];
-    let title = 'test-title';
-    let caption = 'test-caption';
-    let opts = { title, caption };
+    let name = 'test-name';
+    let summary = 'test-summary';
+    let opts = { name, summary };
 
     let tbl = MonoTable.fromRows(rows, opts);
     let json = JSON.stringify(tbl);
-    let tbl2 = new MonoTable(JSON.parse(json));
+    let tbl2 = MonoTable.fromJSON(JSON.parse(json));
     expect(tbl2.options()).toEqual(tbl.options());
   });
   it('fromArray2()', () => {
     let data = [['color', 'size'], ['purple', 10], ['red', 5], ['blue']];
-    let title = 'test-title';
-    let caption = 'test-caption';
-    let opts = { title, caption };
+    let name = 'test-name';
+    let summary = 'test-summary';
+    let opts = { name, summary };
 
     let tbl = MonoTable.fromArray2(data, opts);
 
@@ -104,32 +104,32 @@ describe('mono-table', () => {
     expect(tbl.rows[1]).toEqual(expected[1]);
     expect(tbl.rows.length).toBe(3);
   });
-  it('asColumns()', () => {
+  it('asLines()', () => {
     let data = TEST_ARRAY;
-    let title = 'test-title';
-    let caption = 'test-caption';
-    let opts = { title, caption };
+    let name = 'test-name';
+    let summary = 'test-summary';
+    let opts = { name, summary };
 
     let tbl = MonoTable.fromArray2(data, opts);
-    let lines = tbl.asColumns();
-    expect(lines[0]).toBe(title);
+    let lines = tbl.asLines();
+    expect(lines[0]).toBe(name);
     expect(lines[1]).toMatch(/Color *Size/i);
     expect(lines[2]).toMatch(/purple *10/);
     expect(lines[3]).toMatch(/red *5/);
     expect(lines[4]).toMatch(/blue *⌿/);
-    expect(lines.at(-1)).toBe(caption);
+    expect(lines.at(-1)).toBe(summary);
   });
   it('filter()', () => {
-    let title = 'test-title';
-    let caption = 'test-caption';
-    let opts = { title, caption };
+    let name = 'test-name';
+    let summary = 'test-summary';
+    let opts = { name, summary };
     let tbl = MonoTable.fromArray2(TEST_ARRAY, opts);
     let rowFilter = (row: any) => row.size;
 
     let tbl2 = tbl.filter(rowFilter);
 
-    expect(tbl2.title).toBe(tbl.title);
-    expect(tbl2.caption).toBe(tbl.caption);
+    expect(tbl2.name).toBe(tbl.name);
+    expect(tbl2.summary).toBe(tbl.summary);
     expect(tbl2.rows).toEqual(tbl.rows.filter(rowFilter));
   });
   it('sort()', () => {
@@ -204,7 +204,7 @@ describe('mono-table', () => {
   });
   it('findHeader', () => {
     let tbl = MonoTable.fromArray2(TEST_GROUP, {
-      title: '---findHeader---',
+      name: '---findHeader---',
     });
     let { headers: hdrs } = tbl;
     expect(MonoTable.findHeader(hdrs, -1)).toBe(undefined);
@@ -222,7 +222,7 @@ describe('mono-table', () => {
   });
   it('groupBy() count', () => {
     let tbl = MonoTable.fromArray2(TEST_GROUP, {
-      title: '---groupBy---',
+      name: '---groupBy---',
     });
     let aggTbl = tbl.groupBy(
       ['color', 'city'],
@@ -259,7 +259,7 @@ describe('mono-table', () => {
   });
   it('groupBy() min, max', () => {
     let tbl = MonoTable.fromArray2(TEST_GROUP, {
-      title: '---groupBy---',
+      name: '---groupBy---',
     });
     let aggTbl = tbl.groupBy(
       ['color', 'city'],
@@ -292,7 +292,7 @@ describe('mono-table', () => {
   });
   it('groupBy() distinct/like', () => {
     let tbl = MonoTable.fromArray2(TEST_GROUP, {
-      title: '---groupBy---',
+      name: '---groupBy---',
     });
     let aggTbl = tbl.groupBy(
       ['color', 'city'],
@@ -324,7 +324,7 @@ describe('mono-table', () => {
   });
   it('groupBy() sum,avg', () => {
     let tbl = MonoTable.fromArray2(TEST_GROUP, {
-      title: '---groupBy---',
+      name: '---groupBy---',
     });
     let aggTbl = tbl.groupBy(
       ['color', 'city'],

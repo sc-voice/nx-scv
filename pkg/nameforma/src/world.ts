@@ -373,6 +373,10 @@ export class World extends Entity implements IEventBus {
   async initialize(): Promise<void> {
     this.clearNamespace();
     await this.#populateNamespace();
+    const isValid = await this.syncFocusManager();
+    if (!isValid) {
+      await this.save();
+    }
   }
 
   /**
