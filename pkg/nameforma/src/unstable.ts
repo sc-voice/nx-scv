@@ -20,9 +20,10 @@ export { NfCLI, type GlobalOpts } from './cli/nf-cli.js';
 export { CliRenderer, nfTui } from './cli/nf-tui.js';
 export { TuiList } from './cli/tui-list.js';
 export {
-  default as MonoTable,
+  MonoTable,
   TableDefaults,
   type Header,
   type Row,
   type TableOptions,
 } from './mono-table.js';
+export type { INameFormaTheme } from './navigable-view.js';

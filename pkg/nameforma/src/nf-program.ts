@@ -7,6 +7,7 @@ import { NameFormaTheme } from './nameforma-theme.js';
 import { Mutator } from './mutator.js';
 import { EntityCursor } from './entity-cursor.js';
 import { NfFindCommand } from './nf-find-command.js';
+import { NfThemeCommand } from './nf-theme-command.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
 import path from 'path';
@@ -139,6 +140,8 @@ export class NfProgram {
   testRunner: boolean = false;
   debug: boolean = false;
   isAgent: boolean = false;
+  findCommand: NfFindCommand;
+  themeCommand: NfThemeCommand;
 
   /**
    * Resolve a World by path. Auto-discovers if no path given.
@@ -160,15 +163,16 @@ export class NfProgram {
   }
 
   constructor(protected readonly rootCmd: ICommand) {
-    let program = this.rootCmd;
-
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const pkgJson = JSON.parse(
       readFileSync(join(__dirname, '../package.json'), 'utf-8'),
     );
+    this.rootCmd = rootCmd;
     const version = pkgJson.version;
+    this.findCommand = new NfFindCommand(this);
+    this.themeCommand = new NfThemeCommand(this);
 
-    program
+    this.rootCmd
       .name('nf')
       .version(version)
       .description(
@@ -441,7 +445,10 @@ Examples:
       );
   } // registerUpdateCommand
 
+  registerThemeCommand(): void {
+    this.themeCommand.register(this.rootCmd);
+  }
   registerFindCommand(): void {
-    NfFindCommand.fromRootCommand(this.rootCmd, this);
+    this.findCommand.register(this.rootCmd);
   }
 }

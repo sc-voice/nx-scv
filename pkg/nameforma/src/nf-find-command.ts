@@ -1,4 +1,6 @@
 import { logger } from './file-repository.js';
+import { MonoTable } from './mono-table.js';
+import { NameFormaTheme } from './nameforma-theme.js';
 import type { NfProgram, ICommand } from './nf-program.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
@@ -10,6 +12,12 @@ const Hjson = HJSON_CJS as any;
  * Supports entity collections, fuzzy IDs, and HJSON sift filters.
  */
 export class NfFindCommand {
+  nfProgram: NfProgram;
+
+  constructor(nfProgram: NfProgram) {
+    this.nfProgram = nfProgram;
+  }
+
   /**
    * Resolve a query string to an array of formas.
    * Supports HJSON filters, entity collections, "focused" keyword, and fuzzy IDs.
@@ -19,11 +27,8 @@ export class NfFindCommand {
    * @returns Array of matching formas
    * @throws Error if fuzzy ID not found
    */
-  static async resolveQuery(
-    nfProgram: NfProgram,
-    query: string,
-    limit?: number,
-  ): Promise<any[]> {
+  async resolveQuery(query: string, limit?: number): Promise<any[]> {
+    let { nfProgram } = this;
     let parsed: any;
     try {
       parsed = Hjson.parse(query);
@@ -79,19 +84,81 @@ export class NfFindCommand {
     return [resolved.forma];
   }
 
-  static fromRootCommand(
-    rootCmd: ICommand,
-    nfProgram: NfProgram,
-  ): ICommand {
-    const findCmd = rootCmd.command('find');
-    findCmd
+  async action(queries: string[], options: any) {
+    const ctx = 'NfFindCommand.action';
+    const { nfProgram } = this;
+    let lines: string[] = [];
+    try {
+      const p8n = options.project ? Hjson.parse(options.project) : {};
+      const pv = Object.values(p8n);
+      const optIn = pv.some((v) => v === 1);
+      const optOut = pv.some((v) => v === 0);
+      if (optIn && optOut) {
+        throw new Error(
+          `Mixed projection not supported: ${JSON.stringify(p8n)}`,
+        );
+      }
+
+      const limit = options.limit
+        ? parseInt(options.limit, 10)
+        : undefined;
+      if (limit !== undefined && isNaN(limit)) {
+        throw new Error(`Invalid limit: ${options.limit}`);
+      }
+
+      const formas: any = [];
+      const seenIds = new Set<string>();
+      let remaining = limit;
+      for (const query of queries) {
+        if (remaining !== undefined && remaining <= 0) break;
+        const queryLimit = remaining;
+        const results = await this.resolveQuery(query, queryLimit);
+        for (const forma of results) {
+          const id = (forma as any)?.id?.base64 || (forma as any)?.id;
+          if (!seenIds.has(id)) {
+            seenIds.add(id);
+            formas.push(forma);
+            if (remaining !== undefined) remaining--;
+            if (remaining !== undefined && remaining <= 0) break;
+          }
+        }
+      }
+
+      const projected = formas.map((f3a) =>
+        nfProgram.applyProjection(f3a, p8n),
+      );
+      const theme = NameFormaTheme.shared;
+      const { columnSeparator } = theme;
+      const mt = new MonoTable({
+        columnSeparator,
+        headerCase: 'none',
+        rows: projected,
+      });
+      if (options.tui) {
+        lines.push(mt.format());
+      } else {
+        // options.json is default
+        lines.push(JSON.stringify(projected, null, 2));
+      }
+
+      nfProgram.writeOut(lines.join('\n'));
+    } catch (err: any) {
+      logger.error({ ctx, err });
+      nfProgram.writeErr(`✗ ${ctx} Error: ${err.message}`);
+      throw err;
+    }
+  }
+
+  register(rootCmd: ICommand): ICommand {
+    const { nfProgram } = this;
+    const subCmd = rootCmd.command('find');
+    subCmd
       .description('Find Formas that match given queries')
       .option(
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
       )
       .option('-l, --limit <number>', 'Limit number of results')
-      .option('-j, --json', 'output results as JSON')
       .argument(
         '<queries...>',
         'Entity collection, FUZZY_ID, or HJSON sift filter',
@@ -105,62 +172,12 @@ Examples:
   nf find -p '{name:1, summary:1}' focus task
   nf find -p '{summary:0}' world
   nf find 'name:"foo"' -p '{name:1}'
-  nf find --limit 10 task`,
+  nf find --table --limit 10 task`,
       )
-      .action(async (queries: string[], options: any) => {
-        const ctx = 'NfFindCommand.registerCommand';
-        let lines: string[] = [];
-        try {
-          const p8n = options.project ? Hjson.parse(options.project) : {};
-          const pv = Object.values(p8n);
-          const optIn = pv.some((v) => v === 1);
-          const optOut = pv.some((v) => v === 0);
-          if (optIn && optOut) {
-            throw new Error(
-              `Mixed projection not supported: ${JSON.stringify(p8n)}`,
-            );
-          }
-
-          const limit = options.limit
-            ? parseInt(options.limit, 10)
-            : undefined;
-          if (limit !== undefined && isNaN(limit)) {
-            throw new Error(`Invalid limit: ${options.limit}`);
-          }
-
-          const formas: any = [];
-          const seenIds = new Set<string>();
-          let remaining = limit;
-          for (const query of queries) {
-            if (remaining !== undefined && remaining <= 0) break;
-            const queryLimit = remaining;
-            for (const forma of await NfFindCommand.resolveQuery(
-              nfProgram,
-              query,
-              queryLimit,
-            )) {
-              const id = (forma as any)?.id?.base64 || (forma as any)?.id;
-              if (!seenIds.has(id)) {
-                seenIds.add(id);
-                formas.push(forma);
-                if (remaining !== undefined) remaining--;
-                if (remaining !== undefined && remaining <= 0) break;
-              }
-            }
-          }
-
-          const projected = formas.map((f3a) =>
-            nfProgram.applyProjection(f3a, p8n),
-          );
-          lines.push(JSON.stringify(projected, null, 2));
-
-          nfProgram.writeOut(lines.join('\n'));
-        } catch (err: any) {
-          logger.error({ ctx, err });
-          nfProgram.writeErr(`✗ ${ctx} Error: ${err.message}`);
-          throw err;
-        }
+      .action(async (queries: string[], options: any, command: any) => {
+        const opts = command.optsWithGlobals();
+        return this.action(queries, opts);
       });
-    return findCmd;
-  }
+    return subCmd;
+  } // register
 }

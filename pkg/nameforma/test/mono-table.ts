@@ -1,5 +1,18 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { MonoTable } from '@sc-voice/nameforma/unstable';
+import type { INameFormaTheme } from '@sc-voice/nameforma/unstable';
+
+const PLAIN_THEME: INameFormaTheme = {
+  nfText: (t) => t,
+  nfNote: (t) => t,
+  nfLabel: (t) => t,
+  nfBoundary: (t) => t,
+  nfLink: (t) => t,
+  nfNominal: (t) => t,
+  nfWarn: (t) => t,
+  nfAttend: (t) => t,
+  nfAway: (t) => t,
+};
 
 const TEST_ARRAY = [
   ['color', 'size', 'date'],
@@ -80,12 +93,19 @@ describe('mono-table', () => {
     ];
     let name = 'test-name';
     let summary = 'test-summary';
-    let opts = { name, summary };
+    let opts = { name, summary, theme: PLAIN_THEME };
 
     let tbl = MonoTable.fromRows(rows, opts);
     let json = JSON.stringify(tbl);
     let tbl2 = MonoTable.fromJSON(JSON.parse(json));
-    expect(tbl2.options()).toEqual(tbl.options());
+    const opt1 = tbl.options();
+    const opt2 = tbl2.options();
+    expect(opt2.name).toEqual(opt1.name);
+    expect(opt2.summary).toEqual(opt1.summary);
+    expect(opt2.rows).toEqual(opt1.rows);
+    expect(opt2.headers!.map((h) => h.id)).toEqual(
+      opt1.headers!.map((h) => h.id),
+    );
   });
   it('fromArray2()', () => {
     let data = [['color', 'size'], ['purple', 10], ['red', 5], ['blue']];
@@ -108,12 +128,12 @@ describe('mono-table', () => {
     let data = TEST_ARRAY;
     let name = 'test-name';
     let summary = 'test-summary';
-    let opts = { name, summary };
+    let opts = { name, summary, theme: PLAIN_THEME };
 
     let tbl = MonoTable.fromArray2(data, opts);
     let lines = tbl.asLines();
     expect(lines[0]).toBe(name);
-    expect(lines[1]).toMatch(/Color *Size/i);
+    expect(lines[1]).toMatch(/Color +Size/i);
     expect(lines[2]).toMatch(/purple *10/);
     expect(lines[3]).toMatch(/red *5/);
     expect(lines[4]).toMatch(/blue *⌿/);
@@ -152,11 +172,16 @@ describe('mono-table', () => {
       cellValue,
       locales: ['en'],
       localeOptions,
+      theme: PLAIN_THEME,
     });
     expect(tblEN.split('\n')[0]).toMatch(/Color +Size +Date/i);
     expect(tblEN.split('\n')[1]).toMatch(/purple-color +10 +2.1.00/);
 
-    let tblFR = tbl.format({ locales: ['fr'], localeOptions });
+    let tblFR = tbl.format({
+      locales: ['fr'],
+      localeOptions,
+      theme: PLAIN_THEME,
+    });
     let frLines = tblFR.split('\n');
     expect(frLines[0]).toMatch(/Color {2}Size Date/i);
     expect(frLines[1]).toMatch(/purple {3}10 01.02.2000/);
@@ -354,5 +379,95 @@ describe('mono-table', () => {
     expect(aggTbl.at(4, 1)).toBe('sf');
     expect(aggTbl.at(4, 2)).toBe(2);
     expect(aggTbl.at(4, 3)).toBe(1);
+  });
+
+  it('stripAnsi() removes ANSI escape sequences', () => {
+    const colored = '\x1b[31mred\x1b[39m';
+    expect(MonoTable.stripAnsi(colored)).toBe('red');
+    expect(MonoTable.stripAnsi('plain')).toBe('plain');
+    expect(MonoTable.stripAnsi('\x1b[38;2;170;170;170mgray\x1b[39m')).toBe(
+      'gray',
+    );
+  });
+
+  it('stripAnsi() does not strip literal brackets without ESC', () => {
+    const literal = '[39m text';
+    expect(MonoTable.stripAnsi(literal)).toBe(literal);
+  });
+
+  it('padVisible() pads by visible width, not raw width', () => {
+    const colored = '\x1b[31mX\x1b[39m';
+    expect(MonoTable.padVisible(colored, 5)).toBe(colored + '    ');
+    expect(MonoTable.padVisible(colored, 5, true)).toBe('    ' + colored);
+    const plain = 'X';
+    expect(MonoTable.padVisible(plain, 5)).toBe('X    ');
+    expect(MonoTable.padVisible(plain, 5, true)).toBe('    X');
+  });
+
+  it('asLines() aligns columns when cells contain ANSI codes', () => {
+    const rows = [
+      { name: '\x1b[31mred\x1b[39m', value: '10' },
+      { name: 'green', value: '5' },
+    ];
+    const tbl = MonoTable.fromRows(rows);
+    const lines = tbl.asLines();
+
+    // All rows should have same visual length after stripping ANSI
+    const visLines = lines
+      .slice(1)
+      .map((line) => MonoTable.stripAnsi(line));
+    const lengths = visLines.map((line) => line.length);
+    expect(lengths[0]).toBe(lengths[1]);
+  });
+
+  it('applyHeaderCase() applies CSS text-transform transformations', () => {
+    expect(MonoTable.applyHeaderCase('hello world', 'capitalize')).toBe(
+      'Hello World',
+    );
+    expect(MonoTable.applyHeaderCase('hello world', 'uppercase')).toBe(
+      'HELLO WORLD',
+    );
+    expect(MonoTable.applyHeaderCase('hello world', 'lowercase')).toBe(
+      'hello world',
+    );
+    expect(MonoTable.applyHeaderCase('hello world', 'none')).toBe(
+      'hello world',
+    );
+    expect(MonoTable.applyHeaderCase('helloWorld', 'capitalize')).toBe(
+      'Helloworld',
+    );
+  });
+
+  it('headerCase option transforms table headers', () => {
+    const rows = [{ userId: 'john', firstName: 'John' }];
+    const tbl = MonoTable.fromRows(rows, {
+      headerCase: 'uppercase',
+      theme: PLAIN_THEME,
+    });
+    const lines = tbl.asLines();
+
+    expect(lines[0]).toContain('USERID');
+    expect(lines[0]).toContain('FIRSTNAME');
+  });
+
+  it('headerCase default is capitalize', () => {
+    const rows = [{ userId: 'john', firstName: 'John' }];
+    const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
+    const lines = tbl.asLines();
+
+    expect(lines[0]).toContain('Userid');
+    expect(lines[0]).toContain('Firstname');
+  });
+
+  it('headerCase none skips titleOfId transformation', () => {
+    const rows = [{ userId: 'john', firstName: 'John' }];
+    const tbl = MonoTable.fromRows(rows, {
+      headerCase: 'none',
+      theme: PLAIN_THEME,
+    });
+    const lines = tbl.asLines();
+
+    expect(lines[0]).toContain('userId');
+    expect(lines[0]).toContain('firstName');
   });
 });

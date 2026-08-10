@@ -18,7 +18,8 @@ const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
  * Installed theme: ~/.pi/themes/nameforma.json
  */
 export class NameFormaTheme implements INameFormaTheme {
-  private static _shared: INameFormaTheme | null = null;
+  private static _shared: NameFormaTheme | null = null;
+  columnSeparator: string = '│';
 
   constructor(private theme: Theme) {}
 
@@ -26,11 +27,11 @@ export class NameFormaTheme implements INameFormaTheme {
    * Cached singleton instance of the nameforma theme.
    * @returns INameFormaTheme instance with nameforma colors
    */
-  static get shared(): INameFormaTheme {
+  static get shared(): NameFormaTheme {
     if (!this._shared) {
       this._shared = this.load();
     }
-    return this._shared;
+    return this._shared!;
   }
 
   /**
@@ -38,7 +39,7 @@ export class NameFormaTheme implements INameFormaTheme {
    * @param themeName - Theme name to load (default: 'nameforma')
    * @returns INameFormaTheme instance with nameforma colors
    */
-  static load(themeName: string = 'nameforma'): INameFormaTheme {
+  static load(themeName: string = 'nameforma'): NameFormaTheme {
     const msg = 'NameFormaTheme.load';
     const dbg = 0;
 
@@ -149,4 +150,59 @@ export class NameFormaTheme implements INameFormaTheme {
   nfLabel(text: string, suffix: string = ':'): string {
     return text ? this.theme.fg('customMessageLabel', text + suffix) : '';
   }
-}
+
+  documentation(): Record<string, any> {
+    return {
+      name: 'NameFormaTheme',
+      summary:
+        'Extends pi-coding-agent Theme with string formatting methods',
+      rows: [
+        {
+          type: 'static',
+          method: this.nfText('nfText'),
+          notes: 'default foreground',
+        },
+        {
+          type: 'static',
+          method: this.nfNote('nfNote'),
+          notes: 'annotation',
+        },
+        {
+          type: 'static',
+          method: this.nfBoundary('nfBoundary'),
+          notes: 'borders, landmarks, titles',
+        },
+        {
+          type: 'static',
+          method: this.nfLink('nfLink'),
+          notes: 'URL, fuzzyId',
+        },
+        {
+          type: 'static',
+          method: this.nfLabel('nfLabel'),
+          notes: 'boundary text',
+        },
+        {
+          type: 'dynamic',
+          method: this.nfNominal('nfNominal'),
+          notes: 'value within expectations',
+        },
+        {
+          type: 'dynamic',
+          method: this.nfWarn('nfWarn'),
+          notes: 'divergent value',
+        },
+        {
+          type: 'dynamic',
+          method: this.nfAttend('nfAttend'),
+          notes: 'requires immediate attention',
+        },
+        {
+          type: 'dynamic',
+          method: this.nfAway('nfAway'),
+          notes: 'vanishing significance',
+        },
+      ],
+    };
+  }
+} // NameFormaTheme

@@ -8,6 +8,9 @@
  * - filter() returns a new MonoTable with selected rows
  */
 
+import type { INameFormaTheme } from './navigable-view.js';
+import { NameFormaTheme } from './nameforma-theme.js';
+
 /** A single column definition. */
 export interface Header {
   /** The unique identifier for the column. */
@@ -36,6 +39,8 @@ export type Row = Record<string, unknown>;
 
 /** Configuration options for a {@link MonoTable}. */
 export interface TableOptions {
+  /** A name to display at the start of the table. */
+  name?: string;
   /** A summary to display at the end of the table. */
   summary?: string;
   /** Character used for overflowing text. */
@@ -50,6 +55,8 @@ export interface TableOptions {
   emptyRow?: Row;
   /** Array of header definitions. */
   headers?: Header[];
+  /** CSS text-transform case: 'none', 'uppercase', 'lowercase', 'capitalize'. */
+  headerCase?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   /** Character/string separating lines. */
   lineSeparator?: string;
   /** Options passed to toLocaleString. */
@@ -58,14 +65,14 @@ export interface TableOptions {
   locales?: string[];
   /** Array of row objects. */
   rows?: Row[];
-  /** A name to display at the start of the table. */
-  name?: string;
   /** Function to transform an ID into a name. */
   titleOfId?: (id: string) => string;
   /** Type identifier. */
   type?: string;
   /** Version identifier. */
   version?: string;
+  /** Theme used to color table name, headers, and non-space separators. */
+  theme?: INameFormaTheme;
 }
 
 /**
@@ -80,6 +87,7 @@ export class TableDefaults implements TableOptions {
   emptyCell!: string;
   emptyRow!: Row;
   headers!: Header[];
+  headerCase!: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   lineSeparator!: string;
   localeOptions?: object;
   locales?: string[];
@@ -88,6 +96,7 @@ export class TableDefaults implements TableOptions {
   titleOfId!: (id: string) => string;
   type!: string;
   version!: string;
+  theme!: INameFormaTheme;
 
   /**
    * Creates an instance of TableDefaults, applying option defaults.
@@ -111,6 +120,7 @@ export class TableDefaults implements TableOptions {
       emptyCell = '⌿',
       emptyRow = {},
       headers = undefined,
+      headerCase = 'capitalize',
       lineSeparator = '\n',
       localeOptions = undefined,
       locales = undefined,
@@ -119,6 +129,7 @@ export class TableDefaults implements TableOptions {
       titleOfId = MonoTable.titleOfId,
       type = 'MonoTable',
       version = '1.0.0',
+      theme = NameFormaTheme.shared,
     } = opts;
 
     if (headers && !(headers instanceof Array)) {
@@ -136,6 +147,7 @@ export class TableDefaults implements TableOptions {
       emptyCell,
       emptyRow,
       headers,
+      headerCase,
       lineSeparator,
       localeOptions,
       locales,
@@ -144,6 +156,7 @@ export class TableDefaults implements TableOptions {
       titleOfId,
       type,
       version,
+      theme,
     };
   }
 }
@@ -153,7 +166,7 @@ export class TableDefaults implements TableOptions {
  * Provides methods for filtering, sorting, grouping, and formatting tabular data.
  * Rows are keyed by column IDs; columns are automatically sized based on content.
  */
-export default class MonoTable extends TableDefaults {
+export class MonoTable extends TableDefaults {
   /**
    * Creates an instance of MonoTable.
    * @param opts - Configuration options.
@@ -238,6 +251,28 @@ export default class MonoTable extends TableDefaults {
   }
 
   /**
+   * Strips ANSI escape sequences from a string to get display width.
+   * @param str - The string to strip.
+   * @returns The string with ANSI codes removed.
+   */
+  static stripAnsi(str: string): string {
+    return str.replace(/\[[0-9;]*m/g, '');
+  }
+
+  /**
+   * Pads a string by visible width (ignoring ANSI codes).
+   * @param str - The string to pad.
+   * @param width - The desired visible width.
+   * @param start - If true, pad at the start; otherwise pad at the end.
+   * @returns The padded string.
+   */
+  static padVisible(str: string, width: number, start = false): string {
+    let visLen = MonoTable.stripAnsi(str).length;
+    let fill = ' '.repeat(Math.max(0, width - visLen));
+    return start ? fill + str : str + fill;
+  }
+
+  /**
    * Transforms an ID into a Title (capitalizes first letter).
    * @param id - The ID to transform.
    * @returns The transformed title.
@@ -246,6 +281,40 @@ export default class MonoTable extends TableDefaults {
     return id && id.length
       ? id.replace(/^./, id.at(0)!.toUpperCase())
       : id || '';
+  }
+
+  /**
+   * Applies CSS text-transform case transformation to text.
+   * @param text - The text to transform.
+   * @param headerCase - The case style: 'none', 'uppercase', 'lowercase', 'capitalize'.
+   * @returns The transformed text.
+   */
+  static applyHeaderCase(
+    text: string,
+    headerCase:
+      | 'none'
+      | 'uppercase'
+      | 'lowercase'
+      | 'capitalize' = 'capitalize',
+  ): string {
+    switch (headerCase) {
+      case 'uppercase':
+        return text.toUpperCase();
+      case 'lowercase':
+        return text.toLowerCase();
+      case 'capitalize':
+        return text
+          .split(/\s+/)
+          .map((word) =>
+            word.length > 0
+              ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              : word,
+          )
+          .join(' ');
+      case 'none':
+      default:
+        return text;
+    }
   }
 
   /**
@@ -420,7 +489,7 @@ export default class MonoTable extends TableDefaults {
     for (let i = 0; i < headers.length; i++) {
       let h = headers[i];
       let title = h.title || titleOfId(h.id) || emptyCell;
-      h.width = title.length;
+      h.width = MonoTable.stripAnsi(title).length;
       h.index = i;
     }
 
@@ -428,7 +497,10 @@ export default class MonoTable extends TableDefaults {
       for (let i = 0; i < headers.length; i++) {
         let h = headers[i];
         let datum = this.stringAt(iRow, h.id, opts) ?? '';
-        h.width = Math.max(h.width ?? 0, datum.length);
+        h.width = Math.max(
+          h.width ?? 0,
+          MonoTable.stripAnsi(datum).length,
+        );
       }
     }
   }
@@ -443,26 +515,36 @@ export default class MonoTable extends TableDefaults {
     let {
       name,
       titleOfId,
-      columnSeparator,
+      columnSeparator = ' ',
       cellValue,
       headers = [],
+      headerCase = 'capitalize',
       rows = [],
       locales,
       localeOptions,
       summary,
+      theme = NameFormaTheme.shared,
     } = opts;
 
     this.#updateHeaders(opts);
 
     let lines: string[] = [];
-    name && lines.push(name);
+    if (name) {
+      lines.push(theme.nfBoundary(name));
+    }
 
     if (headers.length) {
       let colTitles = headers.map((h) => {
-        let datum = h.title || titleOfId!(h.id);
-        return datum.padEnd(h.width ?? 0);
+        let datum =
+          h.title || (headerCase === 'none' ? h.id : titleOfId!(h.id));
+        datum = MonoTable.applyHeaderCase(datum, headerCase);
+        let styledDatum = theme.nfBoundary(datum);
+        return MonoTable.padVisible(styledDatum, h.width ?? 0);
       });
-      lines.push(colTitles.join(columnSeparator));
+      let sep = columnSeparator.trim()
+        ? theme.nfBoundary(columnSeparator)
+        : columnSeparator;
+      lines.push(colTitles.join(sep));
     }
 
     for (let iRow = 0; iRow < rows.length; iRow++) {
@@ -476,15 +558,18 @@ export default class MonoTable extends TableDefaults {
             localeOptions,
           }) ?? '';
         if (typeof row[h.id] === 'number') {
-          data.push(text.padStart(h.width ?? 0));
+          data.push(MonoTable.padVisible(text, h.width ?? 0, true));
         } else {
-          data.push(text.padEnd(h.width ?? 0));
+          data.push(MonoTable.padVisible(text, h.width ?? 0));
         }
       });
-      lines.push(data.join(columnSeparator));
+      let sep = columnSeparator.trim()
+        ? theme.nfBoundary(columnSeparator)
+        : columnSeparator;
+      lines.push(data.join(sep));
     }
 
-    summary && lines.push(summary);
+    summary && lines.push(theme.nfNote(summary));
 
     return lines;
   }

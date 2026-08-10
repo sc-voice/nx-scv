@@ -9,7 +9,7 @@ import { NfProgram } from '../src/nf-program.js';
 import { NfFindCommand } from '../src/nf-find-command.js';
 import { createTempDir } from './cli/helpers.js';
 
-describe('NfFindCommand.registerCommand', () => {
+describe('NfFindCommand.register', () => {
   let tempDirObj: any;
   let tempWorldPath: string;
   let world: World;
