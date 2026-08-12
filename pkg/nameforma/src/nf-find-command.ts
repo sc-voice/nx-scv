@@ -129,12 +129,12 @@ export class NfFindCommand {
       );
       const theme = NameFormaTheme.shared;
       const { columnSeparator } = theme;
-      const mt = new MonoTable({
-        columnSeparator,
-        headerCase: 'none',
-        rows: projected,
-      });
       if (options.tui) {
+        const mt = new MonoTable({
+          columnSeparator,
+          headerCase: 'none',
+          rows: projected,
+        });
         lines.push(mt.format());
       } else {
         // options.json is default

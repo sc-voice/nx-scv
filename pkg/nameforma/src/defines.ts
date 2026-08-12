@@ -183,6 +183,7 @@ export const DBG = {
   PATCH,
   PATCH_DEPRECATED,
   PATCHABLE,
+  PINO: 1,
   PLAN,
   RATIONAL,
   REFERENCE,

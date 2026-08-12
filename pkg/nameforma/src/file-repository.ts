@@ -509,6 +509,17 @@ export class FileRepository implements IEntityRepository {
 }
 
 export const logger = (() => {
+  if (!DBG.PINO) {
+    return {
+      info: () => {},
+      error: () => {},
+      debug: () => {},
+      warn: () => {},
+      fatal: () => {},
+      trace: () => {},
+    };
+  }
+
   const worldPath = FileRepository.findWorld() || process.cwd();
   const logDir = worldPath;
 
@@ -518,8 +529,13 @@ export const logger = (() => {
   }
 
   const stream = createStream(
-    (time, index) => {
-      return path.join(logDir, 'nf.log');
+    (time) => {
+      const dt =
+        time instanceof Date ? time : new Date(time || Date.now());
+      const year = String(dt.getFullYear()).slice(-2);
+      const month = String(dt.getMonth() + 1).padStart(2, '0');
+      const day = String(dt.getDate()).padStart(2, '0');
+      return path.join(logDir, `nf.${year}${month}${day}.log`);
     },
     {
       size: '10M',

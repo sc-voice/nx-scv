@@ -64,7 +64,7 @@ const theme = NameFormaTheme.shared;
 export class World extends Entity implements IEventBus {
   static #lastWorld: World | undefined;
 
-  readonly repository: IEntityRepository;
+  #repository: IEntityRepository;
   #worldPath: string;
   #gitCLI: GitCLI;
   #numeronym: Map<string, string> = new Map();
@@ -95,9 +95,9 @@ export class World extends Entity implements IEventBus {
     super({ id, name, summary });
     const dbg = WORLD?.CTOR;
 
-    this.repository = repository;
+    this.#repository = repository;
     this.#worldPath = worldPath;
-    this.#gitCLI = GitCLI.fromUrl(this.repository.projectUrl);
+    this.#gitCLI = GitCLI.fromUrl(this.#repository.projectUrl);
     this.#watermark = new RGA64Watermark();
     this.#focusManager = new FocusManager();
     this.#bus = new EventEmitter();
@@ -188,7 +188,7 @@ export class World extends Entity implements IEventBus {
       }
 
       let typeLoaded = 0;
-      for await (const instance of this.repository.findMany(
+      for await (const instance of this.#repository.findMany(
         IEntity as any,
       )) {
         try {
@@ -326,7 +326,7 @@ export class World extends Entity implements IEventBus {
     const msg = 'world.registerEntity';
     const dbg = WORLD?.REGISTER;
 
-    this.repository.entityRegistry.registerEntity(EntityClass);
+    this.#repository.entityRegistry.registerEntity(EntityClass);
     dbg && cc.ok1(msg, `registered collection: ${EntityClass.collection}`);
   }
 
@@ -335,7 +335,7 @@ export class World extends Entity implements IEventBus {
    * @returns {string[]} - Array of entity names
    */
   getEntityNames(): string[] {
-    return this.repository.entityRegistry.getEntityNames();
+    return this.#repository.entityRegistry.getEntityNames();
   }
 
   /**
@@ -344,7 +344,7 @@ export class World extends Entity implements IEventBus {
    * @returns {IEntity|null} - Entity constructor or null if not registered
    */
   entityClassOfName(name: string): IEntity | null {
-    return this.repository.entityRegistry.entityClassOfName(name);
+    return this.#repository.entityRegistry.entityClassOfName(name);
   }
 
   /**
@@ -365,7 +365,7 @@ export class World extends Entity implements IEventBus {
       throw new Error(`${msg}: ${entityType} not registered`);
     }
 
-    await this.repository.upsertOne(EntityClass, entity);
+    await this.#repository.upsertOne(EntityClass, entity);
     dbg && cc.ok1(msg, `saved ${entityType}:${entity.id}`);
   }
 
@@ -384,7 +384,7 @@ export class World extends Entity implements IEventBus {
    * Creates .nameforma/ directory if missing
    */
   async save(): Promise<void> {
-    await this.repository.saveWorld(this);
+    await this.#repository.saveWorld(this);
   }
 
   override copyFrom(that: World): void {
@@ -397,13 +397,13 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
-   * Synchronize world with repository
+   * Synchronize world with #repository
    *
    * Intended for polling scenarios (e.g., nf-watch) where a long-lived World
    * instance needs to stay current with external writes.
    */
   async syncRepository(): Promise<void> {
-    let freshWorld = (await this.repository.loadWorld()) as World;
+    let freshWorld = (await this.#repository.loadWorld()) as World;
     this.copyFrom(freshWorld);
   }
 
@@ -420,7 +420,7 @@ export class World extends Entity implements IEventBus {
     id: UUID64 | string,
   ): Promise<ReturnType<T['fromJson']> | null> {
     const idStr = typeof id === 'string' ? id : id.toString();
-    return await this.repository.findOne(EntityClass, { id: idStr });
+    return await this.#repository.findOne(EntityClass, { id: idStr });
   }
 
   /**
@@ -467,7 +467,7 @@ export class World extends Entity implements IEventBus {
     const dbg = WORLD?.LOAD;
 
     const entityType = EntityClass.collection;
-    const ids = await this.repository.distinct<string>('id', {
+    const ids = await this.#repository.distinct<string>('id', {
       collection: entityType,
     });
 
@@ -493,7 +493,7 @@ export class World extends Entity implements IEventBus {
 
     // Load the matching entity via repository
     const id = matchingIds[0];
-    const typedEntity = await this.repository.findOne(EntityClass, { id });
+    const typedEntity = await this.#repository.findOne(EntityClass, { id });
     if (!typedEntity) {
       throw new Error(`${msg}: entity ${entityType}/${id} not found`);
     }
@@ -567,7 +567,7 @@ export class World extends Entity implements IEventBus {
     EntityClass: T,
     cfg: any = {},
   ): Promise<ReturnType<T['fromJson']>> {
-    const instance = await this.repository.upsertOne(EntityClass, cfg);
+    const instance = await this.#repository.upsertOne(EntityClass, cfg);
     this.addToNamespace(instance);
     return instance;
   }
@@ -588,7 +588,7 @@ export class World extends Entity implements IEventBus {
       // Invalid UUID64 format; entity was not in focus
     }
 
-    await this.repository.delete(entityType, id);
+    await this.#repository.delete(entityType, id);
   }
 
   /**
@@ -635,6 +635,13 @@ export class World extends Entity implements IEventBus {
   }
 
   /**
+   * Get the repository used to serialize the world
+   * @returns {IEntityRepository}
+   */
+  get repository(): IEntityRepository {
+    return this.#repository;
+  }
+  /**
    * Get focused forma of a given type (most recent).
    * Uses entity registry to validate type and namespace to resolve current entity state.
    * @param {string} formaType - Registered entity type name (e.g., 'task')
@@ -664,7 +671,7 @@ export class World extends Entity implements IEventBus {
 
     const validIds = new Set<string>();
     for (const entityType of this.getEntityNames()) {
-      const ids = await this.repository.distinct<string>('id', {
+      const ids = await this.#repository.distinct<string>('id', {
         collection: entityType,
       });
       ids.forEach((id) => validIds.add(id));
@@ -760,11 +767,9 @@ export class World extends Entity implements IEventBus {
    * Only stores enumerable fields
    * @returns {object} - JSON representation
    */
-  toJSON(): any {
+  override toJSON(): any {
     return {
-      id: this.id,
-      name: this.name,
-      summary: this.summary,
+      ...super.toJSON(),
       focusManager: this.#focusManager.toJSON(),
       numeronym: Object.fromEntries(this.#numeronym),
       watermark: this.#watermark.toJSON(),

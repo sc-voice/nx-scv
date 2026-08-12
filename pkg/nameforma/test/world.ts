@@ -27,6 +27,16 @@ import { RGA64Node } from '@sc-voice/nameforma/unstable';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
 const { cc } = ColorConsole;
+const WORLD_JSON_KEYS = [
+  'focusManager',
+  'forma',
+  'id',
+  'name',
+  'numeronym',
+  'summary',
+  'updateId',
+  'watermark',
+]
 
 // THIS MUST BE THE FIRST TEST BECAUSE OF THROTTLING
 describe('World — watermark persistence', () => {
@@ -587,14 +597,7 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.numeronym).toBeDefined();
       expect(json.focusManager).toBeDefined();
       expect(json.watermark).toBeDefined();
-      expect(Object.keys(json).sort()).toEqual([
-        'focusManager',
-        'id',
-        'name',
-        'numeronym',
-        'summary',
-        'watermark',
-      ]);
+      expect(Object.keys(json).sort()).toEqual(WORLD_JSON_KEYS);
     });
 
     it('should preserve World id across save', async () => {
@@ -721,10 +724,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.watermark).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusManager',
+        'forma',
         'id',
         'name',
         'numeronym',
         'summary',
+        'updateId',
         'watermark',
       ]);
     });
@@ -761,10 +766,12 @@ describe('World Serialization - save()/load() methods', () => {
       expect(json.watermark).toBeDefined();
       expect(Object.keys(json).sort()).toEqual([
         'focusManager',
+        'forma',
         'id',
         'name',
         'numeronym',
         'summary',
+        'updateId',
         'watermark',
       ]);
     });

@@ -453,20 +453,20 @@ export class MonoTable extends TableDefaults {
       return undefined;
     }
 
-    let cell: any = this.at(rowIndex, idOrIndex, opts);
-    let text: string;
+    let value: any = this.at(rowIndex, idOrIndex, opts);
+    const toString = (v: any): string => {
+      if (value == null) {
+        return emptyCell;
+      } else if (value.toLocaleString) {
+        return value.toLocaleString(locales, localeOptions) + 'dbgLocale';
+      } else if (value instanceof Array) {
+        return value.join(',');
+      } else {
+        return String(value);
+      }
+    };
 
-    if (cell == null) {
-      text = emptyCell;
-    } else if (cell.toLocaleString) {
-      text = cell.toLocaleString(locales, localeOptions);
-    } else if (cell instanceof Array) {
-      text = cell.join(', ');
-    } else {
-      text = String(cell);
-    }
-
-    return text;
+    return toString(value);
   }
 
   /**

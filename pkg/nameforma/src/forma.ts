@@ -76,6 +76,11 @@ export class Forma
     this.updateId = that.updateId;
   }
 
+  toJSON(): object {
+    const id: any = this.id.toJSON?.() ?? this.id.toString();
+    return Object.assign({}, this, { id });
+  }
+
   /**
    * Register this class's avroSchema into the avro registry and return AvroType.
    *
