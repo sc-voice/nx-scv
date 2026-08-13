@@ -493,7 +493,9 @@ export class World extends Entity implements IEventBus {
 
     // Load the matching entity via repository
     const id = matchingIds[0];
-    const typedEntity = await this.#repository.findOne(EntityClass, { id });
+    const typedEntity = await this.#repository.findOne(EntityClass, {
+      id,
+    });
     if (!typedEntity) {
       throw new Error(`${msg}: entity ${entityType}/${id} not found`);
     }

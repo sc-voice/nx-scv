@@ -90,6 +90,7 @@ export class NfFindCommand {
     let lines: string[] = [];
     try {
       const p8n = options.project ? Hjson.parse(options.project) : {};
+      const fuzzyColumn = options.fuzzyId;
       const pv = Object.values(p8n);
       const optIn = pv.some((v) => v === 1);
       const optOut = pv.some((v) => v === 0);
@@ -97,6 +98,16 @@ export class NfFindCommand {
         throw new Error(
           `Mixed projection not supported: ${JSON.stringify(p8n)}`,
         );
+      }
+      logger.info({ ctx, fuzzyColumn });
+
+      if (!queries || queries.length === 0) {
+        if (fuzzyColumn) {
+          throw new Error(
+            `A query is required: is '${fuzzyColumn}' a column or a query?`,
+          );
+        }
+        throw new Error('At least one query is required');
       }
 
       const limit = options.limit
@@ -129,11 +140,27 @@ export class NfFindCommand {
       );
       const theme = NameFormaTheme.shared;
       const { columnSeparator } = theme;
+      const ns = nfProgram.world.mutableNamespace;
+      if (fuzzyColumn && projected.length > 0) {
+        const headerIds = Object.keys(projected[0]);
+        if (!headerIds.includes(fuzzyColumn)) {
+          throw new Error(
+            `fuzzyColumn "${fuzzyColumn}" not found in projected headers: ${headerIds.join(', ')}`,
+          );
+        }
+      }
+      const cellValue = fuzzyColumn
+        ? (val: unknown, id: string): string =>
+            id === fuzzyColumn
+              ? theme.nfLink(ns.fuzzyIdOf(val as any))
+              : String(val ?? '')
+        : undefined;
       if (options.tui) {
         const mt = new MonoTable({
           columnSeparator,
           headerCase: 'none',
           rows: projected,
+          cellValue,
         });
         lines.push(mt.format());
       } else {
@@ -159,8 +186,12 @@ export class NfFindCommand {
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
       )
       .option('-l, --limit <number>', 'Limit number of results')
+      .option(
+        '--fuzzy-id <string>',
+        'Replace value of named column with its namespace fuzzyId',
+      )
       .argument(
-        '<queries...>',
+        '[queries...]',
         'Entity collection, FUZZY_ID, or HJSON sift filter',
       )
       .addHelpText(
@@ -172,6 +203,7 @@ Examples:
   nf find -p '{name:1, summary:1}' focus task
   nf find -p '{summary:0}' world
   nf find 'name:"foo"' -p '{name:1}'
+  nf find --fuzzy-id id task -p id:1,name:1
   nf find --table --limit 10 task`,
       )
       .action(async (queries: string[], options: any, command: any) => {

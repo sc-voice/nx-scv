@@ -36,7 +36,7 @@ const WORLD_JSON_KEYS = [
   'summary',
   'updateId',
   'watermark',
-]
+];
 
 // THIS MUST BE THE FIRST TEST BECAUSE OF THROTTLING
 describe('World — watermark persistence', () => {
@@ -923,10 +923,10 @@ describe('World — namespace', () => {
         world2.id.base64,
       );
 
-      const fz1 = ns.fuzzyIdOf(task1);
+      const fz1 = ns.fuzzyIdOf(task1.id);
       expect(ns.getForma(fz1)?.id.base64).toBe(task1.id.base64);
 
-      const fz2 = ns.fuzzyIdOf(task2);
+      const fz2 = ns.fuzzyIdOf(task2.id);
       expect(ns.getForma(fz2)?.id.base64).toBe(task2.id.base64);
     });
 
@@ -938,7 +938,7 @@ describe('World — namespace', () => {
 
       const task = await world.upsertOne(Task, { name: 'new-task' });
 
-      const fz = ns.fuzzyIdOf(task);
+      const fz = ns.fuzzyIdOf(task.id);
       expect(ns.getForma(fz)?.id.base64).toBe(task.id.base64);
     });
 
@@ -946,7 +946,7 @@ describe('World — namespace', () => {
       const task = await world.upsertOne(Task, { name: 'original' });
 
       const ns = await world.namespace;
-      const fz = ns.fuzzyIdOf(task);
+      const fz = ns.fuzzyIdOf(task.id);
       expect(ns.getForma(fz)?.name).toBe('original');
 
       // Patch the task
@@ -968,8 +968,8 @@ describe('World — namespace', () => {
         world.id.base64,
       );
 
-      const fz1 = ns.fuzzyIdOf(task1);
-      const fz2 = ns.fuzzyIdOf(task2);
+      const fz1 = ns.fuzzyIdOf(task1.id);
+      const fz2 = ns.fuzzyIdOf(task2.id);
 
       // Delete one task
       const list = world.entityList(Task);
@@ -994,7 +994,7 @@ describe('World — namespace', () => {
       const task = await world.upsertOne(Task, { name: 'test' });
 
       const ns = await world.namespace;
-      const fz = ns.fuzzyIdOf(task);
+      const fz = ns.fuzzyIdOf(task.id);
       const found = ns.getForma(fz);
 
       expect(found).toBeDefined();
@@ -1020,12 +1020,12 @@ describe('World — namespace', () => {
         world.id.base64,
       );
 
-      const fz1 = ns.fuzzyIdOf(task1);
+      const fz1 = ns.fuzzyIdOf(task1.id);
       expect(typeof fz1).toBe('string');
       expect(fz1.length).toBeGreaterThanOrEqual(5);
       expect(ns.getForma(fz1)?.id.base64).toBe(task1.id.base64);
 
-      const fz2 = ns.fuzzyIdOf(task2);
+      const fz2 = ns.fuzzyIdOf(task2.id);
       expect(typeof fz2).toBe('string');
       expect(fz2.length).toBeGreaterThanOrEqual(5);
       expect(ns.getForma(fz2)?.id.base64).toBe(task2.id.base64);

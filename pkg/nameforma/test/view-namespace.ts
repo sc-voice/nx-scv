@@ -102,8 +102,8 @@ describe('ViewNamespace', () => {
     it('returns fuzzyId for forma in anchor namespace', () => {
       anchorNs.addForma(forma1);
       pivotNs.addForma(forma2);
-      const fuzzy1 = viewNs.fuzzyIdOf(forma1);
-      const fuzzy2 = viewNs.fuzzyIdOf(forma2);
+      const fuzzy1 = viewNs.fuzzyIdOf(forma1.id);
+      const fuzzy2 = viewNs.fuzzyIdOf(forma2.id);
       const found1 = viewNs.getForma(fuzzy1);
       expect(found1).toBe(forma1);
       const found2 = viewNs.getForma(fuzzy2);

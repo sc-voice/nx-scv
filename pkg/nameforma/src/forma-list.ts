@@ -377,7 +377,7 @@ export class FormaList<T extends Forma> {
    */
   itemListId(item: T): string {
     if (this._namespace) {
-      return this._namespace.fuzzyIdOf(item);
+      return this._namespace.fuzzyIdOf((item as any).id);
     }
     return ((item as any)[this.keyField] as UUID64).timeId();
   }

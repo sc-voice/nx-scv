@@ -105,10 +105,10 @@ export class NfWatch {
     const header = [
       theme.nfBoundary(`${timeStr} NfWatch`),
       theme.nfLabel(`anchor`),
-      theme.nfLink(ns.fuzzyIdOf(anchor)),
+      theme.nfLink(ns.fuzzyIdOf(anchor.id)),
       w3d == null ? 'null' : w3d.id.base64 === world.id.base64,
       theme.nfLabel(`pivot`),
-      (pivot && ns.fuzzyIdOf(pivot)) ?? theme.nfNote('null'),
+      (pivot && ns.fuzzyIdOf(pivot.id)) ?? theme.nfNote('null'),
       theme.nfLabel('lines'),
       `${maxLines}@${detail}`,
       theme.nfNote(zenoStr),

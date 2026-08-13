@@ -540,10 +540,10 @@ describe('task', () => {
 
     // Get fuzzy IDs and verify retrieval
     const ns = t2k.namespace;
-    const fuzzyId1 = ns.fuzzyIdOf(action1);
-    const fuzzyId2 = ns.fuzzyIdOf(action2);
-    const fuzzyIdRef1 = ns.fuzzyIdOf(ref1);
-    const fuzzyIdRef2 = ns.fuzzyIdOf(ref2);
+    const fuzzyId1 = ns.fuzzyIdOf(action1.id);
+    const fuzzyId2 = ns.fuzzyIdOf(action2.id);
+    const fuzzyIdRef1 = ns.fuzzyIdOf(ref1.id);
+    const fuzzyIdRef2 = ns.fuzzyIdOf(ref2.id);
 
     expect(fuzzyId1).toBeDefined();
     expect(fuzzyId2).toBeDefined();
@@ -593,8 +593,8 @@ describe('task', () => {
     const ref1 = refsList.addItem(new Reference({ name: 'ref1' }));
 
     const ns = t2k.namespace;
-    const fuzzyId1 = ns.fuzzyIdOf(action1);
-    const fuzzyIdRef1 = ns.fuzzyIdOf(ref1);
+    const fuzzyId1 = ns.fuzzyIdOf(action1.id);
+    const fuzzyIdRef1 = ns.fuzzyIdOf(ref1.id);
 
     // Verify items exist by fuzzy ID
     expect(ns.getForma(fuzzyId1)).toBe(action1);
@@ -609,7 +609,7 @@ describe('task', () => {
     expect(ns.getForma(fuzzyIdRef1)).toBeUndefined();
 
     // Verify remaining action2 still accessible
-    const fuzzyId2 = ns.fuzzyIdOf(action2);
+    const fuzzyId2 = ns.fuzzyIdOf(action2.id);
     expect(ns.getForma(fuzzyId2)).toBe(action2);
 
     dbg &&

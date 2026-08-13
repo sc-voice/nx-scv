@@ -22,11 +22,11 @@ export interface IReadOnlyNamespace {
   getForma(fuzzyId: FuzzyId): Forma | undefined;
 
   /**
-   * Generate the masked FuzzyId for a Forma in this namespace.
-   * @param forma - The Forma instance
-   * @returns The computed FuzzyId
+   * Generate the masked FuzzyId for an ID in this namespace.
+   * @param idInput - UUID64 instance or base64 string
+   * @returns The computed FuzzyId, or the input if not in namespace
    */
-  fuzzyIdOf(forma: Forma): FuzzyId;
+  fuzzyIdOf(idInput: UUID64 | string): FuzzyId;
 
   findByClass<T extends Forma, C extends Constructor<T>>(
     targetClass: C,
@@ -161,12 +161,17 @@ export class FuzzyNamespace implements IMutableNamespace {
   }
 
   /**
-   * Generate the masked FuzzyId for a Forma in this namespace.
-   * @param forma - The Forma instance
-   * @returns The computed FuzzyId
+   * Generate the masked FuzzyId for an ID in this namespace.
+   * @param idInput - UUID64 instance or base64 string
+   * @returns The computed FuzzyId, or the input if not in namespace
    */
-  fuzzyIdOf(forma: Forma): FuzzyId {
-    const idStr = forma.id.base64;
+  fuzzyIdOf(idInput: UUID64 | string): FuzzyId {
+    const idStr = typeof idInput === 'string' ? idInput : idInput.base64;
+
+    // Return unchanged if not in this namespace
+    const exists = this.#formas.some((f) => f.id.base64 === idStr);
+    if (!exists) return idStr;
+
     if (this.#fuzzyIdCache.has(idStr)) {
       return this.#fuzzyIdCache.get(idStr)!;
     }
@@ -177,7 +182,7 @@ export class FuzzyNamespace implements IMutableNamespace {
     }
 
     // Mask the FuzzyId
-    const timeId = forma.id.timeId();
+    const timeId = idStr.substring(0, UUID64.TIME_SEQ_CHARS);
     const endIndex = timeId.length - this.#cachedSuffixLen!;
     const masked = timeId.substring(this.#cachedPrefixLen!, endIndex);
 
@@ -287,7 +292,7 @@ export class FuzzyNamespace implements IMutableNamespace {
         if (index < formas.length) {
           const forma = formas[index++];
           return {
-            value: [self.fuzzyIdOf(forma), forma],
+            value: [self.fuzzyIdOf(forma.id), forma],
             done: false,
           };
         }

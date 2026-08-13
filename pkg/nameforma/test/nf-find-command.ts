@@ -463,6 +463,57 @@ describe('NfFindCommand.register', () => {
     expect(Array.isArray(results)).toBe(true);
     expect(results.length).toEqual(0);
   });
+
+  it('find with --fuzzy-id applies cellValue to transform id column', async () => {
+    const task1Id = '0PxVmryB00tGyAPrFKqetW';
+    await world.upsertOne(Task, { name: 'Task-FuzzyId-Test' });
+
+    const findCmd = program.findCommand;
+    output = [];
+    await findCmd.action([task1Id], {
+      project: '{id:1,name:1}',
+      fuzzyId: 'id',
+      tui: true,
+      json: false,
+    });
+
+    expect(output.length).toBeGreaterThan(0);
+    const formatted = output[0];
+    expect(formatted).toBeTruthy();
+    expect(formatted).toMatch(/[iI]d/);
+    expect(formatted).toMatch(/[nN]ame/);
+    const fuzzyId = world.mutableNamespace.fuzzyIdOf(task1Id);
+    expect(formatted).toContain(fuzzyId);
+    expect(formatted).not.toContain(task1Id);
+  });
+
+  it('find throws if --fuzzy-id column does not exist in projection', async () => {
+    const task1Id = '0PxVmryB00tGyAPrFKqetW';
+
+    const findCmd = program.findCommand;
+    expect(
+      findCmd.action([task1Id], {
+        project: '{id:1,name:1}',
+        fuzzyId: 'task',
+        tui: true,
+        json: false,
+      }),
+    ).rejects.toThrow(/fuzzyColumn "task" not found/);
+  });
+
+  it('find throws helpful error if no queries provided with fuzzy-id', async () => {
+    const findCmd = program.findCommand;
+    expect(
+      findCmd.action([], {
+        fuzzyId: 'task',
+        project: '{id:1,name:1}',
+        tui: true,
+        json: false,
+      }),
+    ).rejects.toThrow(
+      /A query is required: is 'task' a column or a query\?/,
+    );
+  });
 });
 
 describe('NfFindCommand.registerCommand with single-focus fixture', () => {

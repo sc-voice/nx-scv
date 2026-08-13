@@ -1,6 +1,7 @@
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { Entity } from './entity.js';
+import UUID64 from './uuid64.js';
 import {
   FuzzyNamespace,
   type IMutableNamespace,
@@ -106,12 +107,13 @@ export class ViewNamespace implements IMutableNamespace {
     );
   }
 
-  fuzzyIdOf(forma: Forma): string {
+  fuzzyIdOf(idInput: UUID64 | string): string {
+    const id = UUID64.fromAny(idInput);
     const msg = 'N11w.fuzzyIdOf';
     const { anchorNs, pivotNs } = this;
-    const base64 = forma.id.base64;
+    const base64 = id.base64;
     const inA = anchorNs.getForma(base64);
-    const fzA = anchorNs.fuzzyIdOf(forma);
+    const fzA = anchorNs.fuzzyIdOf(id);
     const dbg = 0;
 
     // unique fuzzy ids
@@ -120,7 +122,7 @@ export class ViewNamespace implements IMutableNamespace {
       return fzA;
     }
     const inP = pivotNs.getForma(base64);
-    const fzP = pivotNs.fuzzyIdOf(forma);
+    const fzP = pivotNs.fuzzyIdOf(id);
     if (inP && anchorNs.getForma(fzP) == null) {
       dbg && console.log(msg, { base64, fzP });
       return fzP;
@@ -140,7 +142,7 @@ export class ViewNamespace implements IMutableNamespace {
 
     dbg && console.log(msg, { base64, inA: !!inA, inP: !!inP, fzA, fzP });
 
-    const timeId = forma.id.timeId();
+    const timeId = id.timeId();
     const tid = timeId.substring(timeId.indexOf(fzA));
     const tidA = anchorNs.getForma(tid);
     const tidP = pivotNs.getForma(tid);

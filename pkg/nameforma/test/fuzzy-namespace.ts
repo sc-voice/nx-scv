@@ -45,7 +45,7 @@ describe('FuzzyNamespace', () => {
     });
 
     it('removes forma by fuzzy ID', () => {
-      const fuzzyId = ns.fuzzyIdOf(forma1);
+      const fuzzyId = ns.fuzzyIdOf(forma1.id);
       const removed = ns.removeForma(fuzzyId);
       expect(removed).toBe(forma1);
       expect(ns.getForma(forma1.id.base64)).toBeUndefined();
@@ -57,10 +57,10 @@ describe('FuzzyNamespace', () => {
     });
 
     it('invalidates cache after removal', () => {
-      const fuzzyId1Before = ns.fuzzyIdOf(forma1);
+      const fuzzyId1Before = ns.fuzzyIdOf(forma1.id);
       ns.removeForma(fuzzyId1Before);
       // After removal, the masked IDs may change because prefix/suffix computation changes
-      const fuzzyId2After = ns.fuzzyIdOf(forma2);
+      const fuzzyId2After = ns.fuzzyIdOf(forma2.id);
       expect(fuzzyId2After).toBeDefined();
     });
   });
@@ -77,7 +77,7 @@ describe('FuzzyNamespace', () => {
     });
 
     it('retrieves forma by fuzzy ID', () => {
-      const fuzzyId = ns.fuzzyIdOf(forma1);
+      const fuzzyId = ns.fuzzyIdOf(forma1.id);
       const found = ns.getForma(fuzzyId);
       expect(found).toBe(forma1);
     });
@@ -96,7 +96,7 @@ describe('FuzzyNamespace', () => {
   describe('fuzzyIdOf', () => {
     it('returns masked FuzzyId for single forma', () => {
       ns.addForma(forma1);
-      const fuzzyId = ns.fuzzyIdOf(forma1);
+      const fuzzyId = ns.fuzzyIdOf(forma1.id);
       expect(fuzzyId).toBeDefined();
       expect(fuzzyId.length).toBeGreaterThanOrEqual(5);
       expect(fuzzyId.length).toBeLessThanOrEqual(10);
@@ -104,16 +104,16 @@ describe('FuzzyNamespace', () => {
 
     it('caches computed FuzzyIds', () => {
       ns.addForma(forma1);
-      const id1 = ns.fuzzyIdOf(forma1);
-      const id2 = ns.fuzzyIdOf(forma1);
+      const id1 = ns.fuzzyIdOf(forma1.id);
+      const id2 = ns.fuzzyIdOf(forma1.id);
       expect(id1).toBe(id2);
     });
 
     it('returns consistent IDs after operations', () => {
       ns.addForma(forma1);
-      const fuzzyId1 = ns.fuzzyIdOf(forma1);
+      const fuzzyId1 = ns.fuzzyIdOf(forma1.id);
       ns.addForma(forma2);
-      const fuzzyId1Again = ns.fuzzyIdOf(forma1);
+      const fuzzyId1Again = ns.fuzzyIdOf(forma1.id);
       // Both IDs should be >=5 chars and unique
       expect(fuzzyId1).toBeDefined();
       expect(fuzzyId1Again).toBeDefined();
@@ -121,24 +121,24 @@ describe('FuzzyNamespace', () => {
     });
 
     it('does not generate fuzzyIds starting with "-"', () => {
-      const forma1 = new Forma({
+      const testForma1 = new Forma({
         id: '0P-p-SXi002wdytaL0tJ7W',
         name: 'Task with hyphen in ID',
       });
-      const forma2 = new Forma({
+      const testForma2 = new Forma({
         id: '0P-R0F7700LSTauME2e0dW',
         name: 'Another task with hyphen',
       });
-      const forma3 = new Forma({
+      const testForma3 = new Forma({
         id: '0PxbexGd00dWFafUkPdttW',
         name: 'Third task',
       });
-      ns.addForma(forma1);
-      ns.addForma(forma2);
-      ns.addForma(forma3);
-      const fuzzyId1 = ns.fuzzyIdOf(forma1);
-      const fuzzyId2 = ns.fuzzyIdOf(forma2);
-      const fuzzyId3 = ns.fuzzyIdOf(forma3);
+      ns.addForma(testForma1);
+      ns.addForma(testForma2);
+      ns.addForma(testForma3);
+      const fuzzyId1 = ns.fuzzyIdOf(testForma1.id);
+      const fuzzyId2 = ns.fuzzyIdOf(testForma2.id);
+      const fuzzyId3 = ns.fuzzyIdOf(testForma3.id);
       expect(fuzzyId1).toBe('p-SXi');
       expect(fuzzyId2).toBe('R0F77');
       expect(fuzzyId3).toBe('bexGd');
@@ -185,7 +185,7 @@ describe('FuzzyNamespace', () => {
       ns.addForma(forma2);
       ns.addForma(forma3);
       for (const [fuzzyId, forma] of ns) {
-        expect(fuzzyId).toBe(ns.fuzzyIdOf(forma));
+        expect(fuzzyId).toBe(ns.fuzzyIdOf(forma.id));
       }
     });
   });
@@ -195,9 +195,9 @@ describe('FuzzyNamespace', () => {
       ns.addForma(forma1);
       ns.addForma(forma2);
       ns.addForma(forma3);
-      const id1 = ns.fuzzyIdOf(forma1);
-      const id2 = ns.fuzzyIdOf(forma2);
-      const id3 = ns.fuzzyIdOf(forma3);
+      const id1 = ns.fuzzyIdOf(forma1.id);
+      const id2 = ns.fuzzyIdOf(forma2.id);
+      const id3 = ns.fuzzyIdOf(forma3.id);
       expect(id1).not.toEqual(id2);
       expect(id2).not.toEqual(id3);
       expect(id1).not.toEqual(id3);
@@ -208,8 +208,8 @@ describe('FuzzyNamespace', () => {
     it('produces FuzzyId length of exactly 5 for small namespaces', () => {
       ns.addForma(forma1);
       ns.addForma(forma2);
-      const id1 = ns.fuzzyIdOf(forma1);
-      const id2 = ns.fuzzyIdOf(forma2);
+      const id1 = ns.fuzzyIdOf(forma1.id);
+      const id2 = ns.fuzzyIdOf(forma2.id);
       expect(id1.length).toBe(5);
       expect(id2.length).toBe(5);
     });
@@ -219,9 +219,9 @@ describe('FuzzyNamespace', () => {
       ns.addForma(forma1);
       ns.addForma(forma2);
       ns.addForma(forma3);
-      const id1 = ns.fuzzyIdOf(forma1);
-      const id2 = ns.fuzzyIdOf(forma2);
-      const id3 = ns.fuzzyIdOf(forma3);
+      const id1 = ns.fuzzyIdOf(forma1.id);
+      const id2 = ns.fuzzyIdOf(forma2.id);
+      const id3 = ns.fuzzyIdOf(forma3.id);
       expect(id1.length).toBeLessThanOrEqual(8);
       expect(id2.length).toBeLessThanOrEqual(8);
       expect(id3.length).toBeLessThanOrEqual(8);
@@ -233,9 +233,9 @@ describe('FuzzyNamespace', () => {
   describe('cache invalidation', () => {
     it('invalidates cache on addForma', () => {
       ns.addForma(forma1);
-      const id1 = ns.fuzzyIdOf(forma1);
+      const id1 = ns.fuzzyIdOf(forma1.id);
       ns.addForma(forma2);
-      const id1After = ns.fuzzyIdOf(forma1);
+      const id1After = ns.fuzzyIdOf(forma1.id);
       // IDs may differ due to prefix/suffix recomputation
       expect(id1).toBeDefined();
       expect(id1After).toBeDefined();
@@ -244,9 +244,9 @@ describe('FuzzyNamespace', () => {
     it('invalidates cache on removeForma', () => {
       ns.addForma(forma1);
       ns.addForma(forma2);
-      const id2 = ns.fuzzyIdOf(forma2);
-      ns.removeForma(ns.fuzzyIdOf(forma1));
-      const id2After = ns.fuzzyIdOf(forma2);
+      const id2 = ns.fuzzyIdOf(forma2.id);
+      ns.removeForma(ns.fuzzyIdOf(forma1.id));
+      const id2After = ns.fuzzyIdOf(forma2.id);
       expect(id2).toBeDefined();
       expect(id2After).toBeDefined();
     });

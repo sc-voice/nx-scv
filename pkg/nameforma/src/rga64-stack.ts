@@ -255,8 +255,8 @@ export class RGA64Stack extends Forma {
    * Serialize nodes to array of strings for JSON/Git storage.
    */
   override toJSON(): any {
-    return { 
-      ...super.toJSON(), 
+    return {
+      ...super.toJSON(),
       nodes: this.#nodes.map((n) => n.toJSON()),
     };
   }

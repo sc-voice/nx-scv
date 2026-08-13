@@ -192,7 +192,10 @@ class UUID64 {
    * @returns UUID64 instance with new timestamp and provided signature
    */
   static forSignature(signature: string): UUID64 {
-    const timeStr = new UUID64().base64.substring(0, 10);
+    const timeStr = new UUID64().base64.substring(
+      0,
+      UUID64.TIME_SEQ_CHARS,
+    );
     return UUID64.fromString(timeStr + signature);
   }
 
@@ -224,7 +227,7 @@ class UUID64 {
       const out = cli
         .log(`-1 ${commitToUse} --format=%at%n%H`)
         .split('\n');
-      const timestampMs = parseInt(out[0], 10) * 1000;
+      const timestampMs = parseInt(out[0], UUID64.TIME_SEQ_CHARS) * 1000;
       const commitHash = out[1];
 
       const uuidv7 = Buffer.alloc(16);
@@ -615,7 +618,7 @@ class UUID64 {
    * @param start index of first character (default 0)
    * @param end index of last character + 1 (default 10, use UUID64.TIME_SEQ_CHARS)
    */
-  timeId(start: number = 0, end: number = 10): string {
+  timeId(start: number = 0, end: number = UUID64.TIME_SEQ_CHARS): string {
     return this.base64.substring(start, end);
   }
 

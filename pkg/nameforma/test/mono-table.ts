@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { MonoTable } from '@sc-voice/nameforma/unstable';
+import { MonoTable, TableDefaults } from '@sc-voice/nameforma/unstable';
 import type { INameFormaTheme } from '@sc-voice/nameforma/unstable';
 
 const PLAIN_THEME: INameFormaTheme = {
@@ -469,5 +469,79 @@ describe('mono-table', () => {
 
     expect(lines[0]).toContain('userId');
     expect(lines[0]).toContain('firstName');
+  });
+
+  describe('TableDefaults', () => {
+    it('static options() provides defaults', () => {
+      const opts = TableDefaults.options({});
+      expect(opts).toMatchObject({
+        type: 'MonoTable',
+        version: '1.0.0',
+        columnSeparator: ' ',
+        lineSeparator: '\n',
+        cellOverflow: '…',
+        emptyCell: '⌿',
+        headerCase: 'capitalize',
+        rows: [],
+      });
+      expect(opts.titleOfId).toBe(MonoTable.titleOfId);
+      expect(opts.headers).toBeUndefined();
+      expect(opts.name).toBeUndefined();
+      expect(opts.summary).toBeUndefined();
+    });
+
+    it('static options() overrides defaults', () => {
+      const opts = TableDefaults.options({
+        name: 'test-table',
+        columnSeparator: '|',
+        emptyCell: '-',
+        headerCase: 'uppercase',
+        rows: [{ id: 1 }],
+      });
+      expect(opts.name).toBe('test-table');
+      expect(opts.columnSeparator).toBe('|');
+      expect(opts.emptyCell).toBe('-');
+      expect(opts.headerCase).toBe('uppercase');
+      expect(opts.rows).toEqual([{ id: 1 }]);
+    });
+
+    it('constructor applies defaults', () => {
+      const defaults = new TableDefaults({});
+      expect(defaults).toMatchObject({
+        type: 'MonoTable',
+        version: '1.0.0',
+        columnSeparator: ' ',
+        lineSeparator: '\n',
+        cellOverflow: '…',
+        emptyCell: '⌿',
+        headerCase: 'capitalize',
+        rows: [],
+      });
+    });
+
+    it('constructor applies provided options', () => {
+      const defaults = new TableDefaults({
+        name: 'my-table',
+        columnSeparator: '→',
+        summary: 'test summary',
+      });
+      expect(defaults.name).toBe('my-table');
+      expect(defaults.columnSeparator).toBe('→');
+      expect(defaults.summary).toBe('test summary');
+      expect(defaults.type).toBe('MonoTable');
+      expect(defaults.emptyCell).toBe('⌿');
+    });
+
+    it('validates headers must be an Array', () => {
+      expect(() => {
+        TableDefaults.options({ headers: 'invalid' as any });
+      }).toThrow('headers must be an Array');
+    });
+
+    it('validates rows must be an Array', () => {
+      expect(() => {
+        TableDefaults.options({ rows: 'invalid' as any });
+      }).toThrow('rows must be an Array');
+    });
   });
 });

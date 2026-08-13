@@ -9,6 +9,7 @@
  */
 
 import type { INameFormaTheme } from './navigable-view.js';
+import type { IReadOnlyNamespace } from './fuzzy-namespace.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 
 /** A single column definition. */
@@ -458,7 +459,7 @@ export class MonoTable extends TableDefaults {
       if (value == null) {
         return emptyCell;
       } else if (value.toLocaleString) {
-        return value.toLocaleString(locales, localeOptions) + 'dbgLocale';
+        return value.toLocaleString(locales, localeOptions);
       } else if (value instanceof Array) {
         return value.join(',');
       } else {
@@ -544,7 +545,7 @@ export class MonoTable extends TableDefaults {
       let sep = columnSeparator.trim()
         ? theme.nfBoundary(columnSeparator)
         : columnSeparator;
-      lines.push(colTitles.join(sep));
+      lines.push(sep + colTitles.join(sep));
     }
 
     for (let iRow = 0; iRow < rows.length; iRow++) {
@@ -566,7 +567,7 @@ export class MonoTable extends TableDefaults {
       let sep = columnSeparator.trim()
         ? theme.nfBoundary(columnSeparator)
         : columnSeparator;
-      lines.push(data.join(sep));
+      lines.push(sep + data.join(sep));
     }
 
     summary && lines.push(theme.nfNote(summary));

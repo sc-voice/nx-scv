@@ -297,7 +297,7 @@ export class Forma
     const cls = this.constructor.name;
     const { anchor } = view;
     const ns = view.namespace;
-    const shortId = theme.nfLink(ns.fuzzyIdOf(this));
+    const shortId = theme.nfLink(ns.fuzzyIdOf(this.id));
     const indent = view.bodyIndent;
     const sep = theme.nfBoundary('|');
 
