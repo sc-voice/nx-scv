@@ -1,0 +1,66 @@
+{
+  "forma": "Task",
+  "id": "0Q006vS100LFxtCBIvytNW",
+  "name": "Implement maxRowWidth logic in MonoTable",
+  "summary": "Implement the maxRowWidth property logic in MonoTable to handle narrow viewports by switching from a standard horizontal layout to a hybrid layout (standard fit row followed by labeled, wrapped overflow lines for remaining columns). This includes ensuring the columnSeparator prefixes every line, including wrapped lines.",
+  "updateId": "0Q006vS100LFxtCBIvytNW",
+  "collection": "task",
+  "rawActions": [
+    {
+      "forma": "Action",
+      "id": "0Q009DYm00LFxtCBIvytNW",
+      "name": "Refactor #updateHeaders to calculateLayout",
+      "summary": "Rename #updateHeaders to calculateLayout and expand its responsibility to determine the \"fitCount\" (the number of columns that fit within maxRowWidth) in addition to calculating intrinsic column widths.",
+      "updateId": "0Q009DYm00LFxtCBIvytNW",
+      "status": "manage",
+      "statusNote": "ready for review"
+    },
+    {
+      "forma": "Action",
+      "id": "0Q00BR_x00LFxtCBIvytNW",
+      "name": "Implement renderOverflowCell(header, value) in MonoTable",
+      "summary": "Implement a method in MonoTable that renders an overflow column by combining the header label and cell value, wrapping the result to maxRowWidth, and prefixing every line with the styled columnSeparator, following the logic of LineRenderer.wordWrapCell.",
+      "updateId": "0Q00BR_x00LFxtCBIvytNW",
+      "status": "manage",
+      "statusNote": "ready for review"
+    },
+    {
+      "forma": "Action",
+      "id": "0Q00SRCe00LFxtCBIvytNW",
+      "name": "Refactor asLines to use calculateLayout and renderOverflowCell",
+      "summary": "Refactor the asLines method to use the new calculateLayout method to determine the \"fitCount\" and then use both the standard row rendering (for columns up to fitCount) and the renderOverflowCell method (for all columns beyond fitCount).",
+      "updateId": "0Q00SRCe00LFxtCBIvytNW",
+      "status": "manage",
+      "statusNote": "ready for review, createRowSeparator is public for user opt-in"
+    },
+    {
+      "forma": "Action",
+      "id": "0Q00SbCb00LFxtCBIvytNW",
+      "name": "Verify implementation with Vitest",
+      "summary": "Create or update tests in test/mono-table.ts to verify the maxRowWidth implementation. Test cases must include: Full Fit, Partial Fit (hybrid layout), Zero Fit, and edge cases like extremely long strings without whitespace or very narrow maxRowWidth. Ensure correct application of columnSeparator and theme.nfLabel.",
+      "updateId": "0Q00SbCb00LFxtCBIvytNW",
+      "status": "manage",
+      "statusNote": "ready for review"
+    }
+  ],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0Q0075rd00LFxtCBIvytNW",
+      "name": "src/mono-table.ts",
+      "summary": "The primary file where the implementation of maxRowWidth and the changes to asLines() will occur.",
+      "updateId": "0Q0075rd00LFxtCBIvytNW",
+      "relevance": 1,
+      "source": "src/mono-table.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Q0076rC00LFxtCBIvytNW",
+      "name": "doc/maxRowWidth.md",
+      "summary": "The specification document defining the desired behavior for maxRowWidth.",
+      "updateId": "0Q0076rC00LFxtCBIvytNW",
+      "relevance": 1,
+      "source": "doc/maxRowWidth.md"
+    }
+  ]
+}

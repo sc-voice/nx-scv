@@ -50,8 +50,8 @@ const operations = [
     ['fuzzy_id', 'actionStatus', 'statusNote'],
   ),
   new Operation(
-    'update-forma',
-    'Apply MongoDB-style mutations to a Forma',
+    'update',
+    'Apply MongoDB-style mutations to a primary domain object (e.g., Forma subclass)',
     ['fuzzy_id', 'mutations'],
   ),
   new Operation('find', 'Get JSON for a Forma', ['fuzzy_id']),
@@ -205,7 +205,7 @@ export const nfTool = {
         cmd +=
           ` action set ${fuzzy_id}.status ${actionStatus} ` +
           arg(statusNote);
-      } else if (operation === 'update-forma') {
+      } else if (operation === 'update') {
         const hjson = JSON.stringify(mutations);
         cmd += ` update ${fuzzy_id} '${hjson}'`;
       } else if (operation === 'task') {

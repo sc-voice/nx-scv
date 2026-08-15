@@ -70,6 +70,7 @@ function trackMouseClicks(pi: ExtensionAPI) {
   });
 } // trackMouseClicks
 
+/** pi-coding-agent nf extension entry-point */
 export default async function (pi: ExtensionAPI) {
   await NfSession.init();
 
@@ -80,6 +81,7 @@ export default async function (pi: ExtensionAPI) {
 
   //trackMouseClicks(pi);
 
+  console.log('cols:', process.stdout.columns);
   // NameForma CLI within Pi coding agent
   pi.registerCommand('nf', {
     description: 'NameForma CLI for Pi: /nf help',
@@ -89,4 +91,4 @@ export default async function (pi: ExtensionAPI) {
   });
 
   pi.registerTool(nfTool);
-}
+} // extension entry point

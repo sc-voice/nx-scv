@@ -1,8 +1,8 @@
 # Nameforma Architecture
 
-NameForma is world model for human/agentic use based on Kafka.
+NameForma is world model for human/agentic use as a planning tool
 
-## Key Components
+## Primary Domain Components
 
 ### Identifiable
 - Base class providing UUID64 generation and validation. 
@@ -12,21 +12,6 @@ NameForma is world model for human/agentic use based on Kafka.
 
 ### Task
 - Extends Forma for tracking task progress and duration. See [task.md](task.md)
-
-### Rational
-- Represents fractional values with units. See [rational.md](rational.md)
-
-### Clock
-- Async generator-based timing control for scheduling and polling. 
-
-### Schema
-- Avro schema registry and management. 
-
-### Kafka1 (Mock Kafka)
-- In-memory Kafka implementation compatible with kafkajs API. See [kafka1.md](kafka1.md)
-
-### Tansu (Local Kafka)
-- Lightweight SQLite-based Kafka broker for local development and integration testing. See [doc/tansu.md](doc/tansu.md)
 
 ## Dependencies
 

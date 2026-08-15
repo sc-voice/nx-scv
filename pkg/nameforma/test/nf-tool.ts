@@ -7,37 +7,37 @@ import { FileRepository } from '../src/file-repository.js';
 import { Task } from '../src/task.js';
 
 describe('validateParams', () => {
-  it('throws error when fuzzy_id is null for update-forma', () => {
+  it('throws error when fuzzy_id is null for update', () => {
     expect(() => {
-      validateParams('update-forma', {
+      validateParams('update', {
         fuzzy_id: null,
         mutations: { status: 'work' },
       });
-    }).toThrow('Missing required parameters for update-forma: fuzzy_id');
+    }).toThrow('Missing required parameters for update: fuzzy_id');
   });
 
-  it('throws error when mutations is undefined for update-forma', () => {
+  it('throws error when mutations is undefined for update', () => {
     expect(() => {
-      validateParams('update-forma', {
+      validateParams('update', {
         fuzzy_id: 'abc123',
       });
-    }).toThrow('Missing required parameters for update-forma: mutations');
+    }).toThrow('Missing required parameters for update: mutations');
   });
 
   it('throws error when multiple params are missing', () => {
     expect(() => {
-      validateParams('update-forma', {
+      validateParams('update', {
         fuzzy_id: null,
         mutations: null,
       });
     }).toThrow(
-      'Missing required parameters for update-forma: fuzzy_id, mutations',
+      'Missing required parameters for update: fuzzy_id, mutations',
     );
   });
 
   it('passes when all required params are provided', () => {
     expect(() => {
-      validateParams('update-forma', {
+      validateParams('update', {
         fuzzy_id: 'abc123',
         mutations: { status: 'work' },
       });
@@ -52,11 +52,11 @@ describe('validateParams', () => {
 
   it('throws error when fuzzy_id is string "null"', () => {
     expect(() => {
-      validateParams('update-forma', {
+      validateParams('update', {
         fuzzy_id: 'null',
         mutations: { status: 'work' },
       });
-    }).toThrow('Missing required parameters for update-forma: fuzzy_id');
+    }).toThrow('Missing required parameters for update: fuzzy_id');
   });
 });
 
@@ -100,7 +100,7 @@ describe('arg() shell escaping', () => {
   });
 });
 
-describe('update-forma mutations apply correctly', () => {
+describe('update mutations apply correctly', () => {
   let tmpDir: string;
   let worldPath: string;
   let world: any;
@@ -117,7 +117,7 @@ describe('update-forma mutations apply correctly', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('update-forma with simple mutations persists changes', async () => {
+  it('update with simple mutations persists changes', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
     const task = await world.loadFuzzy(Task, taskId);
     const originalName = task!.name;
@@ -140,7 +140,7 @@ describe('update-forma mutations apply correctly', () => {
     expect(fromDisk?.summary).toBe('UpdatedSummary');
   });
 
-  it('update-forma with MongoDB $set operator', async () => {
+  it('update with MongoDB $set operator', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
     const task = await world.loadFuzzy(Task, taskId);
     const originalSummary = task!.summary;
@@ -160,7 +160,7 @@ describe('update-forma mutations apply correctly', () => {
     expect(fromDisk?.name).toBe('SetOperatorName');
   });
 
-  it('update-forma persists multiple field mutations', async () => {
+  it('update persists multiple field mutations', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     const { Mutator } = await import('../src/mutator.js');

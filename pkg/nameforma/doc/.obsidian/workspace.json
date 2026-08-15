@@ -37,7 +37,9 @@
               "type": "file-explorer",
               "state": {
                 "sortOrder": "alphabetical",
-                "autoReveal": false
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
               },
               "icon": "lucide-folder-closed",
               "title": "Files"
@@ -178,6 +180,7 @@
   },
   "active": "912ebab1507dd797",
   "lastOpenFiles": [
+    "maxRowWidth.md",
     "entity-cursor-tui-table.md",
     "navigable.md",
     "nf/nf-ref.md~",

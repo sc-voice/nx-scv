@@ -1,12 +1,16 @@
 {
+  "forma": "World",
   "id": "0Pqx0UOp00jfar8gojBAdW",
   "name": "@sc-voice/nameforma",
   "summary": "Personal Reality Manager (PRM) framework for Human/Agentic cooperation",
+  "updateId": "0Pqx0UOp00jfar8gojBAdW",
   "focusManager": {
     "rgaFocusStack": {
+      "forma": "RGA64Stack",
       "id": "0Pvuk3Ux00Rt9XDAtOFG7W",
       "name": "Focus Stack",
       "summary": "",
+      "updateId": "0Pvuk3Ux00Rt9XDAtOFG7W",
       "nodes": [
         "0Pvuk3Ux01cKIZG76UNKNW.0PurmuK-00bvTa7C9N4cdW.^.-",
         "0Pvuk3Ux02cKIZG76UNKNW.0Pv2ju5Z00yXwUmtzsZytW.0Pvuk3Ux01cKIZG76UNKNW.-",
@@ -51,7 +55,8 @@
         "0P_48j-C0020n1YZVkrlNW.0P_48Nru00l9bnpQmdmx7W.0P-p-Xxu0020n1YZVkrlNW.@",
         "0P_KBYa20020n1YZVkrlNW.0P_KBPlj00CqelV8Ll_xtW.0P_48j-C0020n1YZVkrlNW.-",
         "0P_KOTx-0020n1YZVkrlNW.0P-p-SXi002wdytaL0tJ7W.0P_KBYa20020n1YZVkrlNW.-",
-        "0P_dr_Qv0020n1YZVkrlNW.0P-p-SXi002wdytaL0tJ7W.0P_KBYa20020n1YZVkrlNW.-"
+        "0P_dr_Qv0020n1YZVkrlNW.0P-p-SXi002wdytaL0tJ7W.0P_KBYa20020n1YZVkrlNW.-",
+        "0Q006zDD0020n1YZVkrlNW.0Q006vS100LFxtCBIvytNW.0P_48j-C0020n1YZVkrlNW.@"
       ]
     }
   },
