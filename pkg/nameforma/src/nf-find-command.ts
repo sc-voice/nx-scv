@@ -1,11 +1,29 @@
 import { logger } from './file-repository.js';
 import { MonoTable } from './mono-table.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { zidify } from './fuzzy-namespace.js';
 import type { NfProgram, ICommand } from './nf-program.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
 
 const Hjson = HJSON_CJS as any;
+
+const CLI_DEFAULT_LIMIT = 10;
+
+interface ParsedOptions {
+  /** Projection object with 0/1 values (validated for non-mixed) */
+  projection: Record<string, 0 | 1>;
+  /** Column name to replace with fuzzyId, or undefined if not set */
+  fuzzyColumn: string | undefined;
+  /** Whether to add zid field (if true, fuzzyColumn is forced to 'id') */
+  addZid: boolean;
+  /** Max lines for output display */
+  lines: number;
+  /** Detail level for lines output (0-1), defaults to 0 */
+  linesDetail: number;
+  /** Result row limit, defaults to CLI_DEFAULT_LIMIT */
+  rows: number;
+}
 
 /**
  * NfFindCommand - Handles the "find" CLI command for querying formas.
@@ -27,7 +45,7 @@ export class NfFindCommand {
    * @returns Array of matching formas
    * @throws Error if fuzzy ID not found
    */
-  async resolveQuery(query: string, limit?: number): Promise<any[]> {
+  async _resolveQuery(query: string, limit?: number): Promise<any[]> {
     let { nfProgram } = this;
     let parsed: any;
     try {
@@ -84,59 +102,96 @@ export class NfFindCommand {
     return [resolved.forma];
   }
 
+  /**
+   * Validate find command parameters (queries and options)
+   * @param queries - Array of query strings
+   * @param options - CLI options object
+   * @returns Validated and parsed options
+   * @throws Error if queries is empty, projection has mixed 0/1 values, lines is not positive, or lines detail is not 0-1
+   */
+  _validateParameters(queries: string[], options: any): ParsedOptions {
+    if (!queries || queries.length === 0) {
+      throw new Error('At least one query is required');
+    }
+    const projection = options.project ? Hjson.parse(options.project) : {};
+    const pv = Object.values(projection);
+    const optIn = pv.some((v) => v === 1);
+    const optOut = pv.some((v) => v === 0);
+    if (optIn && optOut) {
+      throw new Error(
+        `Mixed projection not supported: ${JSON.stringify(projection)}`,
+      );
+    }
+
+    const [sLines, sDetail] = options.lines?.split('@') ?? [
+      undefined,
+      undefined,
+    ];
+    const lines = sLines ? parseInt(sLines, 10) : 7;
+    if (isNaN(lines) || lines <= 0) {
+      throw new Error(
+        `Invalid lines: ${options.lines} (must be positive integer)`,
+      );
+    }
+    const linesDetail = sDetail ? parseFloat(sDetail) : 0;
+    if (isNaN(linesDetail) || linesDetail < 0 || linesDetail > 1) {
+      throw new Error(`Invalid lines detail: ${sDetail} (must be 0-1)`);
+    }
+
+    const rows = options.rows
+      ? parseInt(options.rows, 10)
+      : CLI_DEFAULT_LIMIT;
+    if (rows !== undefined && isNaN(rows)) {
+      throw new Error(`Invalid rows: ${options.rows}`);
+    }
+
+    let fuzzyColumn = options.fuzzyId;
+    const addZid = options.zid ?? false;
+    if (addZid) {
+      fuzzyColumn = 'id';
+    }
+
+    return { projection, fuzzyColumn, addZid, lines, linesDetail, rows };
+  }
+
+  /**
+   * Resolve multiple queries and merge results with deduplication by id
+   * @param queries - Array of query strings to resolve
+   * @param rows - Result row limit (respects global limit across all queries)
+   * @returns Array of deduplicated formas
+   */
+  async _mergeResults(queries: string[], rows: number): Promise<any[]> {
+    const formas: any = [];
+    const seenIds = new Set<string>();
+    let remaining = rows;
+    for (const query of queries) {
+      if (remaining !== undefined && remaining <= 0) break;
+      const queryLimit = remaining;
+      const results = await this._resolveQuery(query, queryLimit);
+      for (const forma of results) {
+        const id = (forma as any)?.id?.base64 || (forma as any)?.id;
+        if (!seenIds.has(id)) {
+          seenIds.add(id);
+          formas.push(forma);
+          if (remaining !== undefined) remaining--;
+          if (remaining !== undefined && remaining <= 0) break;
+        }
+      }
+    }
+    return formas;
+  }
+
   async action(queries: string[], options: any) {
     const ctx = 'NfFindCommand.action';
     const { nfProgram } = this;
     let lines: string[] = [];
     try {
-      const p8n = options.project ? Hjson.parse(options.project) : {};
-      const fuzzyColumn = options.fuzzyId;
-      const pv = Object.values(p8n);
-      const optIn = pv.some((v) => v === 1);
-      const optOut = pv.some((v) => v === 0);
-      if (optIn && optOut) {
-        throw new Error(
-          `Mixed projection not supported: ${JSON.stringify(p8n)}`,
-        );
-      }
-      logger.info({ ctx, fuzzyColumn });
-
-      if (!queries || queries.length === 0) {
-        if (fuzzyColumn) {
-          throw new Error(
-            `A query is required: is '${fuzzyColumn}' a column or a query?`,
-          );
-        }
-        throw new Error('At least one query is required');
-      }
-
-      const limit = options.limit
-        ? parseInt(options.limit, 10)
-        : undefined;
-      if (limit !== undefined && isNaN(limit)) {
-        throw new Error(`Invalid limit: ${options.limit}`);
-      }
-
-      const formas: any = [];
-      const seenIds = new Set<string>();
-      let remaining = limit;
-      for (const query of queries) {
-        if (remaining !== undefined && remaining <= 0) break;
-        const queryLimit = remaining;
-        const results = await this.resolveQuery(query, queryLimit);
-        for (const forma of results) {
-          const id = (forma as any)?.id?.base64 || (forma as any)?.id;
-          if (!seenIds.has(id)) {
-            seenIds.add(id);
-            formas.push(forma);
-            if (remaining !== undefined) remaining--;
-            if (remaining !== undefined && remaining <= 0) break;
-          }
-        }
-      }
-
+      const valid = this._validateParameters(queries, options);
+      logger.info({ ctx, valid });
+      const { projection, fuzzyColumn } = valid;
+      const formas = await this._mergeResults(queries, valid.rows);
       const projected = formas.map((f3a) =>
-        nfProgram.applyProjection(f3a, p8n),
+        nfProgram.applyProjection(f3a, projection),
       );
       const theme = NameFormaTheme.shared;
       const { columnSeparator } = theme;
@@ -185,7 +240,12 @@ export class NfFindCommand {
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
       )
-      .option('-l, --limit <number>', 'Limit number of results')
+      .option('-l, --lines <val>', '<MAX_LINES(7)>[@DETAIL]')
+      .option(
+        '-r, --rows <number>',
+        'Limit number of results (default 10)',
+      )
+      .option('--zid', 'Add zid (fuzzyId) field to input rows')
       .option(
         '--fuzzy-id <string>',
         'Replace value of named column with its namespace fuzzyId',
@@ -204,6 +264,7 @@ Examples:
   nf find -p '{summary:0}' world
   nf find 'name:"foo"' -p '{name:1}'
   nf find --fuzzy-id id task -p id:1,name:1
+  nf find --zid task -p id:1,name:1
   nf find --table --limit 10 task`,
       )
       .action(async (queries: string[], options: any, command: any) => {

@@ -9,7 +9,6 @@
  */
 
 import type { INameFormaTheme } from './navigable-view.js';
-import type { IReadOnlyNamespace } from './fuzzy-namespace.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 
 /** A single column definition. */
@@ -39,10 +38,7 @@ export interface Header {
 export type Row = Record<string, unknown>;
 
 /** Function that renders a separator line between rows. */
-export type RowSeparatorFun = (
-  row: Row,
-  rowIndex: number,
-) => string;
+export type RowSeparatorFun = (row: Row, rowIndex: number) => string;
 
 /** String or function to render between rows in hybrid layouts. */
 export type RowSeparator = string | RowSeparatorFun;
@@ -115,7 +111,7 @@ export class TableDefaults implements TableOptions {
   type!: string;
   version!: string;
   theme: INameFormaTheme = NameFormaTheme.shared;
-  headerPad: string = '┄'; // perceived as an open and permeable boundary 
+  headerPad: string = '┄'; // perceived as an open and permeable boundary
 
   /**
    * Creates an instance of TableDefaults, applying option defaults.
@@ -290,7 +286,10 @@ export class MonoTable extends TableDefaults {
    * @returns The padded string.
    */
   static padVisible(
-    str: string, width: number, start = false, pad: string = ' '
+    str: string,
+    width: number,
+    start = false,
+    pad: string = ' ',
   ): string {
     let visLen = MonoTable.stripAnsi(str).length;
     let fill = pad.repeat(Math.max(0, width - visLen));
@@ -629,7 +628,10 @@ export class MonoTable extends TableDefaults {
    * @param totalRows - Total number of rows.
    * @returns Function that formats a separator line (can be passed as `rowSeparator` option).
    */
-  createRowSeparator(totalRows: number, template?: string): RowSeparatorFun {
+  createRowSeparator(
+    totalRows: number,
+    template?: string,
+  ): RowSeparatorFun {
     const { headerPad, maxRowWidth, theme } = this;
     return (row: Row, rowIndex: number, headerText?: string) => {
       const rowNum = rowIndex + 1;
@@ -646,8 +648,13 @@ export class MonoTable extends TableDefaults {
    * Renders header row string.
    */
   private _headerLine(overflowIndex: number): string | undefined {
-    const { 
-      columnSeparator, headerCase, headerPad, headers, theme, maxRowWidth 
+    const {
+      columnSeparator,
+      headerCase,
+      headerPad,
+      headers,
+      theme,
+      maxRowWidth,
     } = this;
     if (headers.length === 0) {
       return undefined;
@@ -662,7 +669,12 @@ export class MonoTable extends TableDefaults {
       return MonoTable.padVisible(datum, h.width ?? 0, false, headerPad);
     });
     const lineText = '╭' + colTitles.join(columnSeparator);
-    const line = MonoTable.padVisible(lineText, maxRowWidth, false, headerPad);
+    const line = MonoTable.padVisible(
+      lineText,
+      maxRowWidth,
+      false,
+      headerPad,
+    );
     return theme.nfBoundary(line);
   }
 
@@ -715,7 +727,8 @@ export class MonoTable extends TableDefaults {
 
       // Render row separator if set
       if (rSep) {
-        const sepLine = typeof rSep === 'function' ? rSep(row, iRow) : rSep;
+        const sepLine =
+          typeof rSep === 'function' ? rSep(row, iRow) : rSep;
         lines.push(sepLine);
       }
 
@@ -749,7 +762,6 @@ export class MonoTable extends TableDefaults {
         const overflowLines = this.renderOverflowCell(h, value, opts);
         lines.push(...overflowLines);
       }
-
     }
 
     summary && lines.push(theme.nfNote(summary));

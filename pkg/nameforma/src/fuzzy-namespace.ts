@@ -316,3 +316,40 @@ export class FuzzyNamespace implements IMutableNamespace {
     }
   }
 }
+
+/**
+ * Check if a value is a record (not an array, not null).
+ */
+function isRecord(value: any): boolean {
+  return (
+    value !== null && typeof value === 'object' && !Array.isArray(value)
+  );
+}
+
+/**
+ * Return a copy of obj with `zid` siblings inserted before every `id` field,
+ * at any depth. Non-mutating; the original is unchanged.
+ * @param obj - Source value (record, array, or leaf)
+ * @param cfg.namespace - Supplies fuzzyIdOf() for each id found
+ * @returns Copy with zid fields inserted next to id fields
+ */
+export function zidify(
+  obj: any,
+  cfg: { namespace: IReadOnlyNamespace },
+): any {
+  const { namespace } = cfg;
+  if (Array.isArray(obj)) {
+    return obj.map((v) => zidify(v, cfg));
+  }
+  if (!isRecord(obj)) {
+    return obj;
+  }
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'id') {
+      result.zid = namespace.fuzzyIdOf(value as any);
+    }
+    result[key] = zidify(value, cfg);
+  }
+  return result;
+}

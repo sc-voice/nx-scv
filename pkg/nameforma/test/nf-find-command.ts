@@ -375,7 +375,7 @@ describe('NfFindCommand.register', () => {
       'node',
       'test',
       'find',
-      '--limit',
+      '--rows',
       '1',
       'task',
     ]);
@@ -390,7 +390,7 @@ describe('NfFindCommand.register', () => {
       'node',
       'test',
       'find',
-      '--limit',
+      '--rows',
       '2',
       'task',
     ]);
@@ -437,7 +437,7 @@ describe('NfFindCommand.register', () => {
       'node',
       'test',
       'find',
-      '--limit',
+      '--rows',
       '2',
       'focused',
     ]);
@@ -464,15 +464,15 @@ describe('NfFindCommand.register', () => {
     expect(results.length).toEqual(0);
   });
 
-  it('find with --fuzzy-id applies cellValue to transform id column', async () => {
+  it('find with --zid applies cellValue to transform id column', async () => {
     const task1Id = '0PxVmryB00tGyAPrFKqetW';
-    await world.upsertOne(Task, { name: 'Task-FuzzyId-Test' });
+    await world.upsertOne(Task, { name: 'Task-ZidTest' });
 
     const findCmd = program.findCommand;
     output = [];
     await findCmd.action([task1Id], {
       project: '{id:1,name:1}',
-      fuzzyId: 'id',
+      zid: true,
       tui: true,
       json: false,
     });
@@ -486,33 +486,152 @@ describe('NfFindCommand.register', () => {
     expect(formatted).toContain(fuzzyId);
     expect(formatted).not.toContain(task1Id);
   });
+});
 
-  it('find throws if --fuzzy-id column does not exist in projection', async () => {
-    const task1Id = '0PxVmryB00tGyAPrFKqetW';
+describe('NfFindCommand._parseOptions', () => {
+  let nfFindCommand: NfFindCommand;
+  let world: World;
+  let rootCmd: Command;
+  let program: NfProgram;
+  let tempDirObj: any;
 
-    const findCmd = program.findCommand;
-    expect(
-      findCmd.action([task1Id], {
-        project: '{id:1,name:1}',
-        fuzzyId: 'task',
-        tui: true,
-        json: false,
-      }),
-    ).rejects.toThrow(/fuzzyColumn "task" not found/);
+  beforeEach(async () => {
+    tempDirObj = createTempDir('nf-parseOptions-test');
+    const samplePath = path.join(__dirname, 'data/sample-task/.nameforma');
+    const tempWorldPath = path.join(tempDirObj.tempDir, '.nameforma');
+    fs.cpSync(samplePath, tempWorldPath, { recursive: true });
+    world = await FileRepository.worldFromPath(tempWorldPath);
+
+    rootCmd = new Command();
+    program = new NfProgram(rootCmd);
+    program.initialize(world);
+
+    nfFindCommand = program.findCommand;
   });
 
-  it('find throws helpful error if no queries provided with fuzzy-id', async () => {
-    const findCmd = program.findCommand;
-    expect(
-      findCmd.action([], {
-        fuzzyId: 'task',
-        project: '{id:1,name:1}',
-        tui: true,
-        json: false,
-      }),
-    ).rejects.toThrow(
-      /A query is required: is 'task' a column or a query\?/,
-    );
+  afterEach(() => {
+    tempDirObj.cleanup();
+  });
+
+  it('_parseOptions with empty options returns defaults', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {});
+    expect(parsed.projection).toEqual({});
+    expect(parsed.fuzzyColumn).toBeUndefined();
+    expect(parsed.addZid).toBe(false);
+    expect(parsed.lines).toBe(7);
+    expect(parsed.linesDetail).toBe(0);
+    expect(parsed.rows).toBe(10); // CLI_DEFAULT_LIMIT
+  });
+
+  it('_parseOptions parses projection with inclusion values', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      project: '{name:1, summary:1}',
+    });
+    expect(parsed.projection).toEqual({ name: 1, summary: 1 });
+  });
+
+  it('_parseOptions parses projection with exclusion values', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      project: '{rawActions:0, rawReferences:0}',
+    });
+    expect(parsed.projection).toEqual({ rawActions: 0, rawReferences: 0 });
+  });
+
+  it('_parseOptions throws on mixed projection (0 and 1)', () => {
+    expect(() => {
+      nfFindCommand._validateParameters(['test'], {
+        project: '{name:1, summary:0}',
+      });
+    }).toThrow(/Mixed projection not supported/);
+  });
+
+  it('_parseOptions parses lines option', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      lines: '15',
+    });
+    expect(parsed.lines).toBe(15);
+    expect(parsed.linesDetail).toBe(0);
+  });
+
+  it('_parseOptions parses lines with detail (lines@detail format)', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      lines: '10@0.5',
+    });
+    expect(parsed.lines).toBe(10);
+    expect(parsed.linesDetail).toBe(0.5);
+  });
+
+  it('_parseOptions throws on non-positive lines', () => {
+    expect(() => {
+      nfFindCommand._validateParameters(['test'], { lines: '0' });
+    }).toThrow(/must be positive integer/);
+
+    expect(() => {
+      nfFindCommand._validateParameters(['test'], { lines: '-5' });
+    }).toThrow(/must be positive integer/);
+  });
+
+  it('_parseOptions throws on invalid lines detail (out of 0-1 range)', () => {
+    expect(() => {
+      nfFindCommand._validateParameters(['test'], { lines: '10@1.5' });
+    }).toThrow(/must be 0-1/);
+
+    expect(() => {
+      nfFindCommand._validateParameters(['test'], { lines: '10@-0.1' });
+    }).toThrow(/must be 0-1/);
+  });
+
+  it('_parseOptions parses limit option', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      rows: '25',
+    });
+    expect(parsed.rows).toBe(25);
+  });
+
+  it('_parseOptions throws on invalid rows (non-integer)', () => {
+    expect(() => {
+      nfFindCommand._validateParameters(['test'], { rows: 'abc' });
+    }).toThrow(/Invalid rows/);
+  });
+
+  it('_parseOptions sets addZid flag', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      zid: true,
+    });
+    expect(parsed.addZid).toBe(true);
+    expect(parsed.fuzzyColumn).toBe('id');
+  });
+
+  it('_parseOptions: addZid forces fuzzyColumn to id', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      zid: true,
+      fuzzyId: 'customColumn',
+    });
+    expect(parsed.addZid).toBe(true);
+    expect(parsed.fuzzyColumn).toBe('id');
+  });
+
+  it('_parseOptions: fuzzyId without addZid is preserved', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      fuzzyId: 'customColumn',
+    });
+    expect(parsed.addZid).toBe(false);
+    expect(parsed.fuzzyColumn).toBe('customColumn');
+  });
+
+  it('_parseOptions combines all options', () => {
+    const parsed = nfFindCommand._validateParameters(['test'], {
+      project: '{id:1, name:1}',
+      fuzzyId: 'id',
+      lines: '20@0.8',
+      rows: '50',
+    });
+    expect(parsed.projection).toEqual({ id: 1, name: 1 });
+    expect(parsed.fuzzyColumn).toBe('id');
+    expect(parsed.addZid).toBe(false);
+    expect(parsed.lines).toBe(20);
+    expect(parsed.linesDetail).toBe(0.8);
+    expect(parsed.rows).toBe(50);
   });
 });
 

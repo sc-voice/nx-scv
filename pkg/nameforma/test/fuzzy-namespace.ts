@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
+import { FuzzyNamespace, zidify } from '../src/fuzzy-namespace.js';
 import { Forma } from '../src/forma.js';
 
 describe('FuzzyNamespace', () => {
@@ -249,6 +249,142 @@ describe('FuzzyNamespace', () => {
       const id2After = ns.fuzzyIdOf(forma2.id);
       expect(id2).toBeDefined();
       expect(id2After).toBeDefined();
+    });
+  });
+
+  describe('zidify', () => {
+    const mockNs = {
+      fuzzyIdOf: (id: any): string =>
+        typeof id === 'string'
+          ? `fz_${id.slice(0, 4)}`
+          : `fz_${String(id).slice(0, 4)}`,
+    };
+
+    it('adds zid sibling before bare id field', () => {
+      const obj = { id: 'abc123', name: 'test' };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result).toEqual({
+        zid: 'fz_abc1',
+        id: 'abc123',
+        name: 'test',
+      });
+      expect(Object.keys(result)).toEqual(['zid', 'id', 'name']);
+    });
+
+    it('preserves original id field', () => {
+      const obj = { id: 'originalId', value: 42 };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result.id).toBe('originalId');
+      expect(result.zid).toBe('fz_orig');
+    });
+
+    it('does not mutate source object', () => {
+      const obj = { id: 'test', name: 'foo' };
+      const original = JSON.stringify(obj);
+      zidify(obj, { namespace: mockNs as any });
+      expect(JSON.stringify(obj)).toBe(original);
+    });
+
+    it('recurses into nested objects', () => {
+      const obj = {
+        id: 'root123',
+        nested: {
+          id: 'nested456',
+          value: 'inner',
+        },
+      };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result.zid).toBe('fz_root');
+      expect(result.nested.zid).toBe('fz_nest');
+      expect(result.nested.id).toBe('nested456');
+    });
+
+    it('recurses into array elements', () => {
+      const obj = [
+        { id: 'id1', name: 'a' },
+        { id: 'id2', name: 'b' },
+      ];
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(Array.isArray(result)).toBe(true);
+      expect(result[0]).toEqual({ zid: 'fz_id1', id: 'id1', name: 'a' });
+      expect(result[1]).toEqual({ zid: 'fz_id2', id: 'id2', name: 'b' });
+    });
+
+    it('recurses into nested arrays', () => {
+      const obj = {
+        id: 'parent123',
+        items: [
+          { id: 'item1', val: 1 },
+          { id: 'item2', val: 2 },
+        ],
+      };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result.zid).toBe('fz_pare');
+      expect(result.items[0]).toEqual({
+        zid: 'fz_item',
+        id: 'item1',
+        val: 1,
+      });
+      expect(result.items[1]).toEqual({
+        zid: 'fz_item',
+        id: 'item2',
+        val: 2,
+      });
+    });
+
+    it('passes through non-id fields unchanged', () => {
+      const obj = {
+        id: 'test123',
+        name: 'foo',
+        value: 42,
+        flag: true,
+      };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result.name).toBe('foo');
+      expect(result.value).toBe(42);
+      expect(result.flag).toBe(true);
+    });
+
+    it('handles nested objects with multiple levels', () => {
+      const obj = {
+        id: 'level0',
+        level1: {
+          id: 'level1',
+          level2: {
+            id: 'level2',
+            data: 'deep',
+          },
+        },
+      };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result.zid).toBe('fz_leve');
+      expect(result.level1.zid).toBe('fz_leve');
+      expect(result.level1.level2.zid).toBe('fz_leve');
+      expect(result.level1.level2.data).toBe('deep');
+    });
+
+    it('handles leaf values (scalars) without recursion', () => {
+      const ns = { fuzzyIdOf: (v: any) => `zid:${v}` };
+      const leaf = 42;
+      const result = zidify(leaf, { namespace: ns as any });
+      expect(result).toBe(42);
+    });
+
+    it('handles null and undefined values', () => {
+      const obj = {
+        id: 'test123',
+        nullable: null,
+        undef: undefined,
+      };
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result.nullable).toBeNull();
+      expect(result.undef).toBeUndefined();
+    });
+
+    it('handles array with no id field', () => {
+      const obj = [{ name: 'a' }, { name: 'b' }];
+      const result = zidify(obj, { namespace: mockNs as any });
+      expect(result).toEqual([{ name: 'a' }, { name: 'b' }]);
     });
   });
 });
