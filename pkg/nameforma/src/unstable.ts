@@ -26,4 +26,32 @@ export {
   type Row,
   type TableOptions,
 } from './mono-table.js';
+export {
+  MonoJSONBuilder,
+  type MonoJSON,
+  type SimpleType,
+  type IMonoJSON,
+} from './mono-json.js';
+export {
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
+  ZENO_2_ROWS,
+  ZENO_3_ROWS,
+  ZENO_5_ROWS,
+  ZENO_8_ROWS,
+  ZENO_13_ROWS,
+  ZENO_21_ROWS,
+  ZENO_34_ROWS,
+  ZENO_55_ROWS,
+  ZENO_89_ROWS,
+  ZENO_144_ROWS,
+  ZENO_233_ROWS,
+  ZENO_377_ROWS,
+  ZENO_610_ROWS,
+  ZENO_987_ROWS,
+  ZENO_1597_ROWS,
+  ZENO_2584_ROWS,
+  zenoStep,
+  type ZenoStep,
+} from './navigable-view.js';
 export type { INameFormaTheme } from './navigable-view.js';

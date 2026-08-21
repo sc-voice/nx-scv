@@ -579,7 +579,7 @@ export class MonoTable extends TableDefaults {
     } else if (typeof value === 'number' || typeof value === 'boolean') {
       stringValue = String(value);
     } else if (value instanceof Array) {
-      stringValue = value.join(',');
+      stringValue = value.join('WOW');
     } else {
       stringValue = JSON.stringify(value);
     }
