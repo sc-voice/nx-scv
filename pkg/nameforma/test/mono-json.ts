@@ -136,14 +136,14 @@ describe('mono-json', () => {
 
     it('plain object converts to JSON string', () => {
       const builder = new MonoJSONBuilder({});
-      const obj = { a: 1, b: 'test', 'x-y':'XY' };
+      const obj = { a: 1, b: 'test', 'x-y': 'XY' };
       const result = builder.asSimpleType(obj);
       expect(result).toBe('{a:1,b:"test","x-y":"XY"}');
     });
 
     it('nested object converts to JSON string', () => {
       const builder = new MonoJSONBuilder({});
-      const obj = { a:1, b: { c: 'X' } };
+      const obj = { a: 1, b: { c: 'X' } };
       const result = builder.asSimpleType(obj);
       expect(result).toBe('{a:1,b:{c:"X"}}');
     });
@@ -247,7 +247,7 @@ describe('mono-json', () => {
       builder.set('date', date);
       builder.set('null', null);
       builder.set('undef', undefined);
-      builder.set('obj', {a:1,b:2,c:3});
+      builder.set('obj', { a: 1, b: 2, c: 3 });
       const result = builder.build();
 
       // array fields show length

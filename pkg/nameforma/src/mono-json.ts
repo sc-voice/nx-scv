@@ -97,7 +97,7 @@ export class MonoJSONBuilder {
     /* eliminate quotes for identifier keys */
     const regexId = /(['"])([a-zA-Z_$][\w$]*)\1\s*:/g;
     return text.replace(regexId, (match, quote, ident) => {
-     return `${ident}:`;
+      return `${ident}:`;
     });
   }
 
