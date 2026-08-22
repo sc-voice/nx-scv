@@ -37,34 +37,85 @@ const ELLIPSIS = '…';
  */
 export class MonoJSONBuilder {
   readonly arrayDelimiter: string; // array element separator
-  readonly overflowDelimiter;
-  string; // overflow key-value (KV) separator
+  readonly overflowDelimiter: string; // overflow key-value (KV) separator
   readonly overflowKey: string; // key for overflow KV pairs
   readonly theme: INameFormaTheme; // pi-coding-agent theme
   readonly maxKeys: number; // maximum # of output keys (5)
+  readonly maxLines: number; // maximum # of output lines (5)
   readonly maxOverflow: number; // maximum number of overflow KV pairs (3)
 
-  #monoJSON: MonoJSON = {};
-  #nKeys: number = 0;
-  #nOverflow: number = 0;
-  #lastKey: string | undefined = undefined;
+  /** Total count of top-level array elements */
+  get nArrayElements() {
+    return this.#nArrayElements;
+  }
+  /** soource from which to build MonoJSON */
+  get source(): object {
+    return this.#source;
+  }
+
+  // Initialize to invalid sentinel values to enforce that reset() is always called.
+  // TypeScript's strict definite assignment requires this workaround.
+  #monoJSON: MonoJSON = { error: 'reset' };
+  #nKeys: number = -1;
+  #nOverflow: number = -1;
+  #nArrayElements: number = -1;
+  #lastKey: string | undefined = 'reset';
+  #source: object = { error: 'reset' };
 
   constructor(opts: Partial<MonoJSONBuilder>) {
+    const ctx = 'MonoJSONBUilder.ctor';
     const {
       arrayDelimiter = ',',
       overflowDelimiter = '|',
       overflowKey = ELLIPSIS,
+      maxLines,
       maxKeys = 5,
       maxOverflow = 3,
       theme = NameFormaTheme.shared,
+      source = {},
     } = opts;
 
+    this.#source = source;
     this.arrayDelimiter = arrayDelimiter;
     this.overflowDelimiter = theme.nfBoundary(overflowDelimiter);
     this.overflowKey = overflowKey;
     this.maxOverflow = maxOverflow;
     this.maxKeys = maxKeys;
     this.theme = theme;
+    this.maxLines = maxLines ?? maxKeys;
+
+    if (maxLines! <= 0) {
+      throw new Error(`${ctx} maxLines: ${maxLines} < 1?`);
+    }
+    if (maxKeys <= 0) {
+      throw new Error(`${ctx} maxKeys: ${maxKeys} < 1?`);
+    }
+    if (maxOverflow <= 0) {
+      throw new Error(`${ctx} maxOverflow: ${maxOverflow} < 1?`);
+    }
+
+    this._reset(source);
+  }
+
+  /** Internal: reset builder for new source */
+  _reset(source: object): this {
+    this.#monoJSON = {};
+    this.#nKeys = 0;
+    this.#nOverflow = 0;
+    this.#nArrayElements = 0;
+    this.#lastKey = undefined;
+    this.#source = source;
+
+    return this;
+  }
+
+  /** Reset with source and auto-populate from its fields */
+  fromSource(source: object): this {
+    this._reset(source);
+    for (const [key, value] of Object.entries(source)) {
+      this.set(key, value);
+    }
+    return this;
   }
 
   build(): MonoJSON {
@@ -95,8 +146,8 @@ export class MonoJSONBuilder {
     const text = JSON.stringify(value);
 
     /* eliminate quotes for identifier keys */
-    const regexId = /(['"])([a-zA-Z_$][\w$]*)\1\s*:/g;
-    return text.replace(regexId, (match, quote, ident) => {
+    const regexId = /"([a-z_$][a-z0-9_$]*)":/gi;
+    return text.replace(regexId, (match, ident) => {
       return `${ident}:`;
     });
   }
@@ -106,7 +157,8 @@ export class MonoJSONBuilder {
    * to maxKeys and maxOverflow constraints, converting values
    * to SimpleType.
    */
-  set(key: string, value: any): void {
+  set(key: string, value: any): this {
+    const ctx = 'MonoJSON.set';
     const { theme, overflowDelimiter, maxKeys, maxOverflow, overflowKey } =
       this;
     const monoJSON = this.#monoJSON;
@@ -114,25 +166,32 @@ export class MonoJSONBuilder {
     let resolvedKey =
       value instanceof Array ? `${key}[${value.length}]` : key;
 
-    if (monoJSON[key] == undefined) {
-      // New key
-      if (this.#nKeys < maxKeys) {
-        this.#nKeys++;
-        monoJSON[resolvedKey] = simpleValue;
-        this.#lastKey = key;
-      } else if (this.#nOverflow < maxOverflow) {
-        this.#nOverflow++;
-        let lastValue = monoJSON[this.#lastKey!] ?? '';
-        if (this.#lastKey !== this.overflowKey) {
-          delete monoJSON[this.#lastKey!];
-          lastValue = theme.nfLabel(this.#lastKey!) + lastValue;
-        }
-        simpleValue =
-          lastValue + overflowDelimiter + theme.nfLabel(key) + simpleValue;
-        resolvedKey = this.overflowKey;
-        monoJSON[resolvedKey] = simpleValue;
-        this.#lastKey = overflowKey;
-      }
+    // Forbid resetting key values
+    if (monoJSON[key] !== undefined) {
+      throw new Error(`${ctx} attempt to overwrite ${key}:${value}`);
     }
+
+    if (this.#nKeys < maxKeys) {
+      this.#nKeys++;
+      monoJSON[resolvedKey] = simpleValue;
+      this.#lastKey = key;
+    } else if (this.#nOverflow < maxOverflow) {
+      this.#nOverflow++;
+      let lastValue = monoJSON[this.#lastKey!] ?? '';
+      if (this.#lastKey !== this.overflowKey) {
+        delete monoJSON[this.#lastKey!];
+        lastValue = theme.nfLabel(this.#lastKey!) + lastValue;
+      }
+      simpleValue =
+        lastValue + overflowDelimiter + theme.nfLabel(key) + simpleValue;
+      resolvedKey = this.overflowKey;
+      monoJSON[resolvedKey] = simpleValue;
+      this.#lastKey = overflowKey;
+    }
+    if (value instanceof Array) {
+      this.#nArrayElements += value.length;
+    }
+    return this;
   }
+
 }

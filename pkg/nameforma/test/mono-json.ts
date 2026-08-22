@@ -22,6 +22,7 @@ describe('mono-json', () => {
       expect(builder.overflowKey).toBe('…');
       expect(builder.maxKeys).toBe(5);
       expect(builder.maxOverflow).toBe(3);
+      expect(builder.nArrayElements).toBe(0);
     });
 
     it('accepts custom ctor', () => {
@@ -260,6 +261,7 @@ describe('mono-json', () => {
         'arr[3]': '1,2,3',
         obj: '{a:1,b:2,c:3}',
       });
+      expect(builder.nArrayElements).toBe(3);
     });
     it('build() returns copy not reference', () => {
       const builder = new MonoJSONBuilder({});
@@ -268,6 +270,34 @@ describe('mono-json', () => {
       const result2 = builder.build();
       expect(result1).not.toBe(result2);
       expect(result1).toEqual(result2);
+    });
+    it('nArrayElements counts array elements, ignores non-arrays', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      builder.set('num', 42);
+      builder.set('arr1', [1, 2, 3]);
+      expect(builder.nArrayElements).toBe(3);
+      builder.set('str', 'hello');
+      builder.set('arr2', [4, [5, 6]]);
+      expect(builder.nArrayElements).toBe(5);
+    });
+  });
+
+  describe('MonoJSONBuilder.fromSource', () => {
+    it('auto-populates and allows decoration', () => {
+      const builder = new MonoJSONBuilder({maxKeys: 3});
+
+      const result1 = builder
+        .fromSource({ name: 'test1', count: 42 })
+        .set('extra', 'field1')
+        .build();
+      expect(result1).toEqual({ name: 'test1', count: 42, extra: 'field1' });
+
+      // A builder retains its configuration and can be re-used
+      const result2 = builder
+        .fromSource({ name: 'test2' })
+        .set('extra', 'field2')
+        .build();
+      expect(result2).toEqual({ name: 'test2', extra: 'field2' });
     });
   });
 });
