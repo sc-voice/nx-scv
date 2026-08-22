@@ -12,6 +12,9 @@ import {
   FormaField,
   DBG,
   FuzzyNamespace,
+  MonoJSONBuilder,
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
 } from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
@@ -29,6 +32,18 @@ class TestThing extends Forma {
     dbg && cc.fyi1(msg, ...cc.props(this));
   }
 }
+
+const theme = {
+  nfText: (text: string): string => text,
+  nfNote: (text: string): string => `<${text}>`,
+  nfLabel: (text: string): string => `${text}:`,
+  nfBoundary: (text: string): string => ` ${text} `,
+  nfLink: (text: string): string => text,
+  nfNominal: (text: string): string => text,
+  nfWarn: (text: string): string => text,
+  nfAttend: (text: string): string => text,
+  nfAway: (text: string): string => text,
+};
 
 describe('Forma', () => {
   it('ctor', () => {
@@ -381,5 +396,50 @@ describe('Forma', () => {
 
     expect(() => forma.applyCommand(cmd)).toThrow('not supported');
     dbg && cc.ok1(msg + UOK, 'unsupported command throws');
+  });
+
+  it('toMonoJSON projects forma as flat record', () => {
+    const id = new UUID64();
+    const name = 'aName';
+    const summary = 'aSummary';
+    const forma = new Forma({ id, name, summary });
+
+    // Terse (ZENO_1_ROW_TERSE): id + name, no summary
+    const builder = new MonoJSONBuilder({ maxKeys: 5, theme });
+    const mj1 = forma.toMonoJSON(builder, {
+      theme,
+      zeno: ZENO_1_ROW_TERSE,
+    });
+    expect(mj1).toEqual({ id: id.base64, name });
+
+    // Verbose (ZENO_1_ROW_VERBOSE): id + name + summary
+    const mj2 = forma.toMonoJSON(builder, {
+      theme,
+      zeno: ZENO_1_ROW_VERBOSE,
+    });
+    expect(mj2).toEqual({ id: id.base64, name, summary: '<aSummary>' });
+
+    // With namespace: zid preferred over full id in terse mode
+    const ns = new FuzzyNamespace();
+    ns.addForma(forma);
+    const zid = ns.fuzzyIdOf(forma.id.base64);
+    const mj3 = forma.toMonoJSON(builder, {
+      theme,
+      zeno: ZENO_1_ROW_TERSE,
+      namespace: ns,
+    });
+    expect(mj3).toEqual({ zid, name });
+
+    const mj4 = forma.toMonoJSON(builder, {
+      theme,
+      zeno: ZENO_1_ROW_VERBOSE,
+      namespace: ns,
+    });
+    expect(mj4).toEqual({
+      zid,
+      id: id.base64,
+      name,
+      summary: '<aSummary>',
+    });
   });
 });

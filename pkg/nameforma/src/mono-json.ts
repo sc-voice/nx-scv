@@ -1,5 +1,5 @@
 /*
- * MonoJSON is a rendering protocol for projecting complex internal state
+ * MonoJSON is a Data Transfer Object (DTO) for projecting complex internal state
  * as a flattened object presentable as tabular data.
  * MonoJSONBuilder builds MonoJSON objects with a maximum number of keys,
  * with an allowance for overflow key-value (KV) fields, whose values
@@ -24,10 +24,13 @@ export type SimpleType =
 /** A single flattened, atomic record representing a relational tuple.  */
 export type MonoJSON = Record<string, SimpleType>;
 
-/** The contract for any class that can be projected as MonoJSON  */
-export interface IMonoJSON {
+/** Facade allowing any Forma to present itself as MonoJSON (agentic) or MonoTable (human) */
+export interface IMonoJSONFacade {
   /** Flatten internal state into atomic MonoJSON object */
-  toMonoJSON(builder: MonoJSONBuilder): MonoJSON;
+  toMonoJSON(
+    builder: MonoJSONBuilder,
+    opts: Record<string, any>,
+  ): MonoJSON;
 }
 
 const ELLIPSIS = '…';
@@ -94,11 +97,11 @@ export class MonoJSONBuilder {
       throw new Error(`${ctx} maxOverflow: ${maxOverflow} < 1?`);
     }
 
-    this._reset(source);
+    this.reset(source);
   }
 
-  /** Internal: reset builder for new source */
-  _reset(source: object): this {
+  /** Reset builder for new source */
+  reset(source: object): this {
     this.#monoJSON = {};
     this.#nKeys = 0;
     this.#nOverflow = 0;
@@ -111,7 +114,7 @@ export class MonoJSONBuilder {
 
   /** Reset with source and auto-populate from its fields */
   fromSource(source: object): this {
-    this._reset(source);
+    this.reset(source);
     for (const [key, value] of Object.entries(source)) {
       this.set(key, value);
     }
@@ -193,5 +196,4 @@ export class MonoJSONBuilder {
     }
     return this;
   }
-
 }

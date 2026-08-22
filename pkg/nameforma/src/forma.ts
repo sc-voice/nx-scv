@@ -1,6 +1,12 @@
 import UUID64 from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { IReadOnlyNamespace } from './fuzzy-namespace.js';
+import {
+  MonoJSON,
+  IMonoJSONFacade,
+  MonoJSONBuilder,
+} from './mono-json.js';
 import {
   ICommandMutable,
   Mutator,
@@ -34,7 +40,7 @@ const { FORMA: F3A } = DBG;
 /** Forma - Base class for Identifiable with a name and summary */
 export class Forma
   extends Identifiable
-  implements IRenderable, ICommandMutable
+  implements IRenderable, ICommandMutable, IMonoJSONFacade
 {
   static #instances: Record<string, number> = {}; // instance count
 
@@ -330,6 +336,29 @@ export class Forma
 
     return rows;
   } // asRenderData
+
+  override toMonoJSON(
+    builder: MonoJSONBuilder,
+    opts: Record<string, any>,
+  ): MonoJSON {
+    const {
+      theme = NameFormaTheme.shared,
+      zeno = ZENO_1_ROW_TERSE,
+      namespace,
+    } = opts;
+    super.toMonoJSON(builder, opts);
+    const { name, summary } = this;
+
+    // name
+    builder.set('name', name);
+
+    // summary
+    if (zeno >= ZENO_1_ROW_VERBOSE && this.summary) {
+      builder.set('summary', theme.nfNote(summary));
+    }
+
+    return builder.build();
+  } // toMonoJSON
 
   /* ICommandMutable implementation */
   applyCommand(cmd: Command): Partial<Forma> {

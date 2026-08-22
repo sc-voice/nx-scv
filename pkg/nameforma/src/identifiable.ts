@@ -4,6 +4,19 @@ import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/text';
 import { ISchemaClass } from './schema.js';
 import { DBG } from './defines.js';
+import { NameFormaTheme } from './nameforma-theme.js';
+import { IReadOnlyNamespace } from './fuzzy-namespace.js';
+import {
+  MonoJSON,
+  IMonoJSONFacade,
+  MonoJSONBuilder,
+} from './mono-json.js';
+import {
+  ZenoStep,
+  ZENO_1_ROW_TERSE,
+  ZENO_1_ROW_VERBOSE,
+  ZENO_2_ROWS,
+} from './navigable-view.js';
 
 const { ColorConsole, Unicode } = Text;
 const { CHECKMARK: UOK } = Unicode;
@@ -78,7 +91,7 @@ export interface IdentifiableConfig {
  *    - JSON.parse() returns id as string, fromString() reconstructs UUID64 POJO
  *    - Deserialized id has all UUID64 methods available
  */
-export class Identifiable {
+export class Identifiable implements IMonoJSONFacade {
   static readonly AVRO_NAMESPACE = 'scvoice.nameforma';
 
   readonly forma: string;
@@ -314,4 +327,26 @@ export class Identifiable {
   get typeName(): string {
     return (this.constructor as typeof Identifiable).typeName;
   }
-}
+
+  toMonoJSON(
+    builder: MonoJSONBuilder,
+    opts: Record<string, any>,
+  ): MonoJSON {
+    const {
+      theme = NameFormaTheme.shared,
+      zeno = ZENO_1_ROW_TERSE,
+      namespace,
+    } = opts;
+    builder.reset({});
+    const { id } = this;
+
+    // id, zid
+    const zid = (namespace && namespace.fuzzyIdOf(id)) || null;
+    zid && builder.set('zid', theme.nfLink(zid));
+    if (zid == null || zeno > ZENO_1_ROW_TERSE) {
+      builder.set('id', theme.nfLink(id.base64));
+    }
+
+    return builder.build();
+  } // toMonoJSON
+} // Identifiable

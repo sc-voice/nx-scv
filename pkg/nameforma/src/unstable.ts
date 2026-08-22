@@ -30,7 +30,7 @@ export {
   MonoJSONBuilder,
   type MonoJSON,
   type SimpleType,
-  type IMonoJSON,
+  type IMonoJSONFacade,
 } from './mono-json.js';
 export {
   ZENO_1_ROW_TERSE,

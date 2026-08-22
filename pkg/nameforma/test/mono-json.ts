@@ -284,13 +284,17 @@ describe('mono-json', () => {
 
   describe('MonoJSONBuilder.fromSource', () => {
     it('auto-populates and allows decoration', () => {
-      const builder = new MonoJSONBuilder({maxKeys: 3});
+      const builder = new MonoJSONBuilder({ maxKeys: 3 });
 
       const result1 = builder
         .fromSource({ name: 'test1', count: 42 })
         .set('extra', 'field1')
         .build();
-      expect(result1).toEqual({ name: 'test1', count: 42, extra: 'field1' });
+      expect(result1).toEqual({
+        name: 'test1',
+        count: 42,
+        extra: 'field1',
+      });
 
       // A builder retains its configuration and can be re-used
       const result2 = builder
