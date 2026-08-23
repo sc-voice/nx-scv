@@ -9,6 +9,11 @@ import { NfProgram } from '../src/nf-program.js';
 import { NfFindCommand } from '../src/nf-find-command.js';
 import { createTempDir } from './cli/helpers.js';
 
+// TUI screen dimensions are normally determined from process.stdout.
+// During tests, process.stdout is not available, so 24x80 are used by default.
+const SYSTEM_ROWS = 24;
+const SYSTEM_COLUMNS = 80;
+
 describe('NfFindCommand.register', () => {
   let tempDirObj: any;
   let tempWorldPath: string;
@@ -518,9 +523,13 @@ describe('NfFindCommand._parseOptions', () => {
     expect(parsed.projection).toEqual({});
     expect(parsed.fuzzyColumn).toBeUndefined();
     expect(parsed.addZid).toBe(false);
-    expect(parsed.lines).toBe(7);
     expect(parsed.linesDetail).toBe(0);
-    expect(parsed.rows).toBe(10); // CLI_DEFAULT_LIMIT
+
+    // DEFAULT_ROWS provides a "semantic glance" of the data
+    expect(parsed.rows).toBe(NfFindCommand.DEFAULT_ROWS);
+    expect(parsed.lines).toBe(7);
+    expect(parsed.tuiRows).toEqual(SYSTEM_ROWS);
+    expect(parsed.tuiColumns).toEqual(SYSTEM_COLUMNS);
   });
 
   it('_parseOptions parses projection with inclusion values', () => {

@@ -66,6 +66,7 @@ export class NfExtensionCommand extends NfProgram {
     this.registerFindCommand();
     this.registerUpdateCommand();
     this.registerPiTestCommand();
+    this.registerSystemCommand();
   }
 
   private exitCallback(err: any) {

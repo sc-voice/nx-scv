@@ -297,6 +297,7 @@ export class NfCLI extends NfProgram {
     this.registerThemeCommand();
     this.registerUpdateCommand();
     this.registerAddCommand();
+    this.registerSystemCommand();
     program.configureOutput({
       writeOut: (str: string) => nfTui.log(str),
       writeErr: (str: string) => nfTui.error(str),

@@ -13,7 +13,7 @@ import * as HJSON_CJS from 'hjson';
 
 const Hjson = HJSON_CJS as any;
 
-const CLI_DEFAULT_LIMIT = 10;
+const DEFAULT_SEMANTIC_ROWS = 3;
 
 interface ParsedOptions {
   /** Projection object with 0/1 values (validated for non-mixed) */
@@ -26,8 +26,12 @@ interface ParsedOptions {
   lines: number;
   /** Detail level for lines output (0-1), defaults to 0 */
   linesDetail: number;
-  /** Result row limit, defaults to CLI_DEFAULT_LIMIT */
+  /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
   rows: number;
+  /** Terminal height in rows for layout optimization */
+  tuiRows: number;
+  /** Terminal height in rows for layout optimization */
+  tuiColumns: number;
 }
 
 /**
@@ -41,6 +45,11 @@ export class NfFindCommand {
   constructor(nfProgram: NfProgram) {
     this.nfProgram = nfProgram;
     this.jsonBuilder = new MonoJSONBuilder({});
+  }
+
+  /** Semantic content is brief and glancing by default */
+  static get DEFAULT_ROWS() {
+    return DEFAULT_SEMANTIC_ROWS;
   }
 
   /**
@@ -129,6 +138,15 @@ export class NfFindCommand {
         `Mixed projection not supported: ${JSON.stringify(projection)}`,
       );
     }
+    const tuiRows = process.stdout.rows ?? 24;
+    const tuiColumns = process.stdout.columns ?? 80;
+
+    const rows = options.rows
+      ? parseInt(options.rows, 10)
+      : DEFAULT_SEMANTIC_ROWS;
+    if (rows !== undefined && isNaN(rows)) {
+      throw new Error(`Invalid rows: ${options.rows}`);
+    }
 
     const [sLines, sDetail] = options.lines?.split('@') ?? [
       undefined,
@@ -145,20 +163,22 @@ export class NfFindCommand {
       throw new Error(`Invalid lines detail: ${sDetail} (must be 0-1)`);
     }
 
-    const rows = options.rows
-      ? parseInt(options.rows, 10)
-      : CLI_DEFAULT_LIMIT;
-    if (rows !== undefined && isNaN(rows)) {
-      throw new Error(`Invalid rows: ${options.rows}`);
-    }
-
     let fuzzyColumn = options.fuzzyId;
     const addZid = options.zid ?? false;
     if (addZid) {
       fuzzyColumn = 'id';
     }
 
-    return { projection, fuzzyColumn, addZid, lines, linesDetail, rows };
+    return {
+      projection,
+      fuzzyColumn,
+      addZid,
+      lines,
+      linesDetail,
+      rows,
+      tuiRows,
+      tuiColumns,
+    };
   }
 
   /**
@@ -243,14 +263,13 @@ export class NfFindCommand {
     const subCmd = rootCmd.command('find');
     subCmd
       .description('Find Formas that match given queries')
+      .option('-r, --rows <number>', 'Limit number of results (default 5)')
+      .option('--tui-rows <val>', 'system default')
+      .option('--tui-cols,--tui-columns <val>', 'system default')
+      .option('-l, --lines <val>', '<MAX_LINES(7)>[@DETAIL]')
       .option(
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
-      )
-      .option('-l, --lines <val>', '<MAX_LINES(7)>[@DETAIL]')
-      .option(
-        '-r, --rows <number>',
-        'Limit number of results (default 10)',
       )
       .option('--zid', 'Add zid (fuzzyId) field to input rows')
       .option(

@@ -445,6 +445,22 @@ Examples:
       );
   } // registerUpdateCommand
 
+  registerSystemCommand(): void {
+    const nfp = this;
+    this.rootCmd
+      .command('system')
+      .description('Show system/environmental info')
+      .action(async (options: any) => {
+        const { rows, columns } = process.stdout ?? {};
+        nfp.writeOut(
+          JSON.stringify({
+            rows,
+            columns,
+          }),
+        );
+      });
+  } // registerSystemCommand
+
   registerThemeCommand(): void {
     this.themeCommand.register(this.rootCmd);
   }

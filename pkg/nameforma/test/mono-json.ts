@@ -1,5 +1,9 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { PlainTheme, MonoJSONBuilder, SimpleType } from '@sc-voice/nameforma/unstable';
+import {
+  PlainTheme,
+  MonoJSONBuilder,
+  SimpleType,
+} from '@sc-voice/nameforma/unstable';
 
 const theme = new PlainTheme();
 
