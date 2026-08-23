@@ -1,18 +1,11 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { MonoTable, TableDefaults } from '@sc-voice/nameforma/unstable';
-import type { INameFormaTheme } from '@sc-voice/nameforma/unstable';
+import {
+  MonoTable,
+  TableDefaults,
+  PlainTheme,
+} from '@sc-voice/nameforma/unstable';
 
-const PLAIN_THEME: INameFormaTheme = {
-  nfText: (t) => t,
-  nfNote: (t) => t,
-  nfLabel: (t) => t,
-  nfBoundary: (t) => t,
-  nfLink: (t) => t,
-  nfNominal: (t) => t,
-  nfWarn: (t) => t,
-  nfAttend: (t) => t,
-  nfAway: (t) => t,
-};
+const PLAIN_THEME = new PlainTheme();
 
 const TEST_ARRAY = [
   ['color', 'size', 'date'],
@@ -132,12 +125,12 @@ describe('mono-table', () => {
 
     let tbl = MonoTable.fromArray2(data, opts);
     let lines = tbl.asLines();
-    expect(lines[0]).toBe(name);
+    expect(lines[0]).toBe('test-name');
     expect(lines[1]).toMatch(/Color.*Size/i);
     expect(lines[2]).toMatch(/purple.*10/);
     expect(lines[3]).toMatch(/red.*5/);
     expect(lines[4]).toMatch(/blue.*⌿/);
-    expect(lines.at(-1)).toBe(summary);
+    expect(lines.at(-1)).toBe('test-summary');
   });
   it('filter()', () => {
     let name = 'test-name';

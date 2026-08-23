@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { LineRenderer } from '../src/line-renderer.js';
 import { FormaField } from '../src/forma-field.js';
 import { ZENO_1_ROW_VERBOSE } from '../src/navigable-view.js';
+import { MarkerTheme } from '@sc-voice/nameforma/unstable';
 
 const renderer = new LineRenderer();
 
@@ -67,21 +68,12 @@ describe('LineRenderer: multiple rows', () => {
 
 describe('LineRenderer: nfLabel styling', () => {
   it('applies nfLabel to FormaField labels', () => {
-    const mockTheme = {
-      nfLabel: vi.fn((text: string) => `[${text}]`),
-      nfBoundary: vi.fn((text: string) => text),
-      nfLink: vi.fn((text: string) => text),
-      nfNominal: vi.fn((text: string) => text),
-      nfWarn: vi.fn((text: string) => text),
-      nfAttend: vi.fn((text: string) => text),
-      nfAway: vi.fn((text: string) => text),
-    };
-    const themedRenderer = new LineRenderer({ theme: mockTheme });
+    const markerTheme = new MarkerTheme();
+    const themedRenderer = new LineRenderer({ theme: markerTheme });
     const field = new FormaField('fname', false, 'First name', 'Sam');
     const result = themedRenderer.render([field])[0];
 
-    expect(mockTheme.nfLabel).toHaveBeenCalledWith('First name');
-    expect(result).toContain('[First name]');
+    expect(result).toContain('First name:');
     expect(result).toContain('Sam');
   });
 });

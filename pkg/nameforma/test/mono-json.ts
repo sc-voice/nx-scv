@@ -1,18 +1,7 @@
 import { describe, it, expect } from '@sc-voice/vitest';
-import { MonoJSONBuilder, SimpleType } from '@sc-voice/nameforma/unstable';
+import { PlainTheme, MonoJSONBuilder, SimpleType } from '@sc-voice/nameforma/unstable';
 
-/** Test theme implements INameFormaTheme */
-const theme = {
-  nfText: (text: string): string => text,
-  nfNote: (text: string): string => text,
-  nfLabel: (text: string): string => text + ':',
-  nfBoundary: (text: string): string => ` ${text} `,
-  nfLink: (text: string): string => `<$={text}>`,
-  nfNominal: (text: string): string => text,
-  nfWarn: (text: string): string => text,
-  nfAttend: (text: string): string => text,
-  nfAway: (text: string): string => text,
-};
+const theme = new PlainTheme();
 
 describe('mono-json', () => {
   describe('MonoJSONBuilder constructor', () => {
@@ -193,17 +182,17 @@ describe('mono-json', () => {
       // Overflow 1
       builder.set('b', 2);
       const result2 = builder.build();
-      expect(result2).toEqual({ '…': 'a:1 | b:2' });
+      expect(result2).toEqual({ '…': 'a:1|b:2' });
 
       // Overflow 2
       builder.set('c', 3);
       const result3 = builder.build();
-      expect(result3).toEqual({ '…': 'a:1 | b:2 | c:3' });
+      expect(result3).toEqual({ '…': 'a:1|b:2|c:3' });
 
       // Clipped overflow
       builder.set('d', 4);
       const result4 = builder.build();
-      expect(result4).toEqual({ '…': 'a:1 | b:2 | c:3' });
+      expect(result4).toEqual({ '…': 'a:1|b:2|c:3' });
     });
     it('handles maxKeys:2 with overflow', () => {
       const builder = new MonoJSONBuilder({
@@ -227,17 +216,17 @@ describe('mono-json', () => {
       // Overflow 1
       builder.set('c', 3);
       const result3 = builder.build();
-      expect(result3).toEqual({ a: 1, '…': 'b:2 | c:3' });
+      expect(result3).toEqual({ a: 1, '…': 'b:2|c:3' });
 
       // Overflow 1
       builder.set('d', 4);
       const result4 = builder.build();
-      expect(result4).toEqual({ a: 1, '…': 'b:2 | c:3 | d:4' });
+      expect(result4).toEqual({ a: 1, '…': 'b:2|c:3|d:4' });
 
       // Clipped overflow
       builder.set('e', 5);
       const result5 = builder.build();
-      expect(result5).toEqual({ a: 1, '…': 'b:2 | c:3 | d:4' });
+      expect(result5).toEqual({ a: 1, '…': 'b:2|c:3|d:4' });
     });
     it('converts values using asSimpleType', () => {
       const builder = new MonoJSONBuilder({ maxKeys: 10 });

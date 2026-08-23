@@ -2,6 +2,11 @@ import { logger } from './file-repository.js';
 import { MonoTable } from './mono-table.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { zidify } from './fuzzy-namespace.js';
+import {
+  MonoJSONBuilder,
+  MonoJSON,
+  IMonoJSONFacade,
+} from './mono-json.js';
 import type { NfProgram, ICommand } from './nf-program.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
@@ -31,9 +36,11 @@ interface ParsedOptions {
  */
 export class NfFindCommand {
   nfProgram: NfProgram;
+  jsonBuilder: MonoJSONBuilder;
 
   constructor(nfProgram: NfProgram) {
     this.nfProgram = nfProgram;
+    this.jsonBuilder = new MonoJSONBuilder({});
   }
 
   /**

@@ -34,14 +34,18 @@ vi.mock('../../../src/pi/nf-pi/nf-watch.js', () => {
 });
 
 // Mock NameFormaTheme
-vi.mock('../../../src/nameforma-theme.js', () => ({
-  NameFormaTheme: {
-    load: vi.fn().mockReturnValue({
-      nfBoundary: (str: string) => `[BOUNDARY] ${str}`,
-      nfText: (str: string) => str,
-    }),
-  },
-}));
+vi.mock('../../../src/nameforma-theme.js', async () => {
+  const { MarkerTheme } = await vi.importActual<
+    typeof import('@sc-voice/nameforma/unstable')
+  >('@sc-voice/nameforma/unstable');
+  const markerTheme = new MarkerTheme!();
+  return {
+    NameFormaTheme: {
+      load: vi.fn().mockReturnValue(markerTheme),
+      shared: markerTheme,
+    },
+  };
+});
 
 describe('NfExtensionCommand', () => {
   let mockCtx: ExtensionCommandContext;
@@ -157,18 +161,11 @@ describe('NfExtensionCommand', () => {
       const cmd = new NfExtensionCommand(mockCtx);
       await cmd.parse('test default');
 
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.stringContaining('[BOUNDARY] TEST BEGIN'),
-        'info',
-      );
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.stringContaining('[BOUNDARY] TEST END'),
-        'info',
-      );
-      expect(notifyMock).toHaveBeenCalledWith(
-        expect.stringContaining('default'),
-        'info',
-      );
+      const msg = notifyMock.mock.calls[0][0];
+      expect(msg).toContain('「TEST BEGIN」');
+      expect(msg).toContain('「TEST END」');
+      expect(msg).toContain('default');
+      expect(notifyMock.mock.calls[0][1]).toEqual('info');
     });
 
     it('executes test with "more" variant', async () => {

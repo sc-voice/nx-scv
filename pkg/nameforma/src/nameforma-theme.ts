@@ -206,3 +206,72 @@ export class NameFormaTheme implements INameFormaTheme {
     };
   }
 } // NameFormaTheme
+
+/**
+ * MarkerTheme implements INameFormaTheme. This theme is useful
+ * for tests that validate specically themed content without
+ * ANSI Colors
+ */
+export class MarkerTheme implements INameFormaTheme {
+  nfText(text: string): string {
+    return `«${text}»`;
+  }
+  nfNote(text: string): string {
+    return `‹${text}›`;
+  }
+  nfLabel(text: string): string {
+    return text + ':';
+  }
+  nfBoundary(text: string): string {
+    return `「${text}」`;
+  }
+  nfLink(text: string): string {
+    return `←${text}→`;
+  }
+  nfNominal(text: string): string {
+    return '🟢' + text;
+  }
+  nfWarn(text: string): string {
+    return '🟡' + text;
+  }
+  nfAttend(text: string): string {
+    return '🔴' + text;
+  }
+  nfAway(text: string): string {
+    return '❎' + text;
+  }
+}
+
+/**
+ * PlainTheme implements INameFormaTheme. This theme is useful
+ * for content without color.
+ */
+export class PlainTheme implements INameFormaTheme {
+  nfText(text: string): string {
+    return text;
+  }
+  nfNote(text: string): string {
+    return text;
+  }
+  nfLabel(text: string): string {
+    return text + ':';
+  }
+  nfBoundary(text: string): string {
+    return text;
+  }
+  nfLink(text: string): string {
+    return text;
+  }
+  nfNominal(text: string): string {
+    return text;
+  }
+  nfWarn(text: string): string {
+    return text;
+  }
+  nfAttend(text: string): string {
+    return text;
+  }
+  nfAway(text: string): string {
+    return text;
+  }
+}
