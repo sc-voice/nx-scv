@@ -1,4 +1,10 @@
 import { logger } from './file-repository.js';
+import {
+  ZenoStep,
+  zenoStep,
+  linesToZenoStep,
+  zenoStepToLines,
+} from './navigable-view.js';
 import { MonoTable } from './mono-table.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { zidify } from './fuzzy-namespace.js';
@@ -18,20 +24,22 @@ const DEFAULT_SEMANTIC_ROWS = 3;
 interface ParsedOptions {
   /** Projection object with 0/1 values (validated for non-mixed) */
   projection: Record<string, 0 | 1>;
-  /** Column name to replace with fuzzyId, or undefined if not set */
-  fuzzyColumn: string | undefined;
-  /** Whether to add zid field (if true, fuzzyColumn is forced to 'id') */
+  /** Whether to add zid field */
   addZid: boolean;
-  /** Max lines for output display */
-  lines: number;
-  /** Detail level for lines output (0-1), defaults to 0 */
-  linesDetail: number;
+  /** lines per row */
+  linesPerRow: number;
+  /** output as MonoTable */
+  monoTable: boolean;
   /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
   rows: number;
   /** Terminal height in rows for layout optimization */
   tuiRows: number;
   /** Terminal height in rows for layout optimization */
   tuiColumns: number;
+  /** output as JSON */
+  json: boolean;
+  /** Semantic zoom (ZenoStep) */
+  zeno: ZenoStep;
 }
 
 /**
@@ -120,10 +128,10 @@ export class NfFindCommand {
 
   /**
    * Validate find command parameters (queries and options)
-   * @param queries - Array of query strings
+   * @param queries - Array of >=1 query strings
    * @param options - CLI options object
    * @returns Validated and parsed options
-   * @throws Error if queries is empty, projection has mixed 0/1 values, lines is not positive, or lines detail is not 0-1
+   * @throws Error for invalid options
    */
   _validateParameters(queries: string[], options: any): ParsedOptions {
     if (!queries || queries.length === 0) {
@@ -138,46 +146,57 @@ export class NfFindCommand {
         `Mixed projection not supported: ${JSON.stringify(projection)}`,
       );
     }
-    const tuiRows = process.stdout.rows ?? 24;
+    const tuiRows = options.tuiRows
+      ? parseInt(options.tuiRows)
+      : (process.stdout.rows ?? 24);
+    if (isNaN(tuiRows)) {
+      throw new Error(`Invalid rows: ${options.tuiRows}`);
+    }
     const tuiColumns = process.stdout.columns ?? 80;
+    const zeno = options.zeno ?? zenoStep(1);
+    const zenoLines = zenoStepToLines(zeno);
 
-    const rows = options.rows
-      ? parseInt(options.rows, 10)
-      : DEFAULT_SEMANTIC_ROWS;
-    if (rows !== undefined && isNaN(rows)) {
+    // resolve output options
+    const defaultOutput = [options.json, options.monoTable].every(
+      (f) => f === undefined,
+    );
+    const json = options.json ?? false;
+    const monoTable = options.monoTable ?? defaultOutput;
+
+    let rawRows = options.rows ? parseInt(options.rows, 10) : undefined;
+    if (rawRows !== undefined && isNaN(rawRows)) {
       throw new Error(`Invalid rows: ${options.rows}`);
     }
 
-    const [sLines, sDetail] = options.lines?.split('@') ?? [
-      undefined,
-      undefined,
-    ];
-    const lines = sLines ? parseInt(sLines, 10) : 7;
-    if (isNaN(lines) || lines <= 0) {
+    let rawLines = options.linesPerRow
+      ? parseInt(options.linesPerRow, 10)
+      : undefined;
+    if (rawLines !== undefined && (isNaN(rawLines) || rawLines < 1)) {
       throw new Error(
-        `Invalid lines: ${options.lines} (must be positive integer)`,
+        `Expected positive integer for linesPerRow: ${options.linesPerRow}`,
       );
     }
-    const linesDetail = sDetail ? parseFloat(sDetail) : 0;
-    if (isNaN(linesDetail) || linesDetail < 0 || linesDetail > 1) {
-      throw new Error(`Invalid lines detail: ${sDetail} (must be 0-1)`);
-    }
 
-    let fuzzyColumn = options.fuzzyId;
+    const rows =
+      rawRows ??
+      (rawLines === undefined
+        ? Math.max(1, tuiRows - 1)
+        : Math.max(1, Math.floor((tuiRows - 1) / rawLines)));
+    const linesPerRow =
+      rawLines ?? Math.max(1, Math.floor((tuiRows - 1) / rows));
+
     const addZid = options.zid ?? false;
-    if (addZid) {
-      fuzzyColumn = 'id';
-    }
 
     return {
       projection,
-      fuzzyColumn,
       addZid,
-      lines,
-      linesDetail,
+      json,
+      linesPerRow,
+      monoTable,
       rows,
       tuiRows,
       tuiColumns,
+      zeno,
     };
   }
 
@@ -215,41 +234,31 @@ export class NfFindCommand {
     try {
       const valid = this._validateParameters(queries, options);
       logger.info({ ctx, valid });
-      const { projection, fuzzyColumn } = valid;
+      const { projection, tuiColumns, tuiRows, linesPerRow, rows } = valid;
+      const jsonBuilder = (this.jsonBuilder = new MonoJSONBuilder({
+        maxLines: linesPerRow,
+      }));
       const formas = await this._mergeResults(queries, valid.rows);
+      const jsonFormas = formas.map((f) =>
+        jsonBuilder.fromSource(f).build(),
+      );
+      //const projected = jsonFormas.map((f3a) =>
       const projected = formas.map((f3a) =>
         nfProgram.applyProjection(f3a, projection),
       );
       const theme = NameFormaTheme.shared;
       const { columnSeparator } = theme;
       const ns = nfProgram.world.mutableNamespace;
-      if (fuzzyColumn && projected.length > 0) {
-        const headerIds = Object.keys(projected[0]);
-        if (!headerIds.includes(fuzzyColumn)) {
-          throw new Error(
-            `fuzzyColumn "${fuzzyColumn}" not found in projected headers: ${headerIds.join(', ')}`,
-          );
-        }
-      }
-      const cellValue = fuzzyColumn
-        ? (val: unknown, id: string): string =>
-            id === fuzzyColumn
-              ? theme.nfLink(ns.fuzzyIdOf(val as any))
-              : String(val ?? '')
-        : undefined;
-      if (options.tui) {
+      if (valid.monoTable) {
         const mt = new MonoTable({
           columnSeparator,
           headerCase: 'none',
           rows: projected,
-          cellValue,
         });
         lines.push(mt.format());
       } else {
-        // options.json is default
-        lines.push(JSON.stringify(projected, null, 2));
+        projected.forEach((p) => lines.push(JSON.stringify(p)));
       }
-
       nfProgram.writeOut(lines.join('\n'));
     } catch (err: any) {
       logger.error({ ctx, err });
@@ -264,18 +273,15 @@ export class NfFindCommand {
     subCmd
       .description('Find Formas that match given queries')
       .option('-r, --rows <number>', 'Limit number of results (default 5)')
+      .option('-m,--mono-table', 'output as MonoTable (default)')
       .option('--tui-rows <val>', 'system default')
       .option('--tui-cols,--tui-columns <val>', 'system default')
-      .option('-l, --lines <val>', '<MAX_LINES(7)>[@DETAIL]')
+      .option('-l, --lines-per-row <val>', 'lines per data row')
       .option(
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
       )
       .option('--zid', 'Add zid (fuzzyId) field to input rows')
-      .option(
-        '--fuzzy-id <string>',
-        'Replace value of named column with its namespace fuzzyId',
-      )
       .argument(
         '[queries...]',
         'Entity collection, FUZZY_ID, or HJSON sift filter',
@@ -287,11 +293,11 @@ Examples:
   nf find focus
   nf find task
   nf find -p '{name:1, summary:1}' focus task
-  nf find -p '{summary:0}' world
+  nf find -p id:0,summary:0 world
   nf find 'name:"foo"' -p '{name:1}'
   nf find --fuzzy-id id task -p id:1,name:1
   nf find --zid task -p id:1,name:1
-  nf find --table --limit 10 task`,
+  nf find --mono-table --rows 3 task`,
       )
       .action(async (queries: string[], options: any, command: any) => {
         const opts = command.optsWithGlobals();

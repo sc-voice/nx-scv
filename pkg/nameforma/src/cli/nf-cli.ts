@@ -219,8 +219,6 @@ export class NfCLI extends NfProgram {
         '--test-runner',
         'Run as test runner (for vitest/jest integration)',
       )
-      .option('-t, --tui', 'Output in Terminal User Interface format')
-      .option('-j, --json', 'Output as JSON')
       .hook('preAction', async (thisCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
         const cmdName = thisCommand._name || thisCommand.name?.();

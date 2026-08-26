@@ -484,15 +484,16 @@ describe('CLI: task command', () => {
         'node',
         'test',
         'find',
+        '-j',
         '-w',
         tempWorld.worldPath,
         'focus',
       ]);
 
-      expect(output.length).toBeGreaterThan(0);
-      expect(output[0]).toMatch(/forma": "Task/);
-      expect(output.join('\n')).toMatch(/name": "Focused Task/);
-      expect(output.join('\n')).toMatch(/"summary":/);
+      expect(output.length).toBe(1);
+      const outJSON = JSON.parse(output[0]);
+      expect(outJSON.id).equal(task.id.base64);
+      expect(outJSON.name).equal(task.name);
     });
 
     it('show without ID returns error when no task focused', async () => {
@@ -548,19 +549,18 @@ describe('CLI: task command', () => {
         'node',
         'test',
         'find',
+        '-j',
         '-w',
         tempWorld.worldPath,
         '--',
         taskId,
       ]);
 
-      const showOutput = output.join('\n');
-      expect(showOutput).toMatch(/forma": "Task/);
-      expect(showOutput).toMatch(/name": "Task With Actions/);
-      expect(showOutput).toMatch(/rawActions/);
-      expect(showOutput).toMatch(/"First action"/);
-      expect(showOutput).toMatch(/Do this first/);
-      expect(showOutput).toMatch(/"Second action"/);
+      expect(output.length).toBe(1);
+      const outJSON = JSON.parse(output[0]);
+      expect(outJSON.forma).toEqual(task.forma);
+      expect(outJSON.name).toEqual(task.name);
+      expect(outJSON.summary).toEqual(task.summary);
     });
 
     it('list tasks displays progress percentage', async () => {

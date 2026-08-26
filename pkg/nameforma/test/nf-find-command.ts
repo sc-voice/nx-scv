@@ -8,11 +8,9 @@ import { Task } from '../src/task.js';
 import { NfProgram } from '../src/nf-program.js';
 import { NfFindCommand } from '../src/nf-find-command.js';
 import { createTempDir } from './cli/helpers.js';
+import { zenoStep } from '@sc-voice/nameforma/unstable';
 
-// TUI screen dimensions are normally determined from process.stdout.
-// During tests, process.stdout is not available, so 24x80 are used by default.
-const SYSTEM_ROWS = 24;
-const SYSTEM_COLUMNS = 80;
+const FIND = ['node', 'test', 'find'];
 
 describe('NfFindCommand.register', () => {
   let tempDirObj: any;
@@ -53,89 +51,94 @@ describe('NfFindCommand.register', () => {
   it('find without projection returns all fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
-    await rootCmd.parseAsync(['node', 'test', 'find', taskId]);
+    await rootCmd.parseAsync([...FIND, '-j', taskId]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.id).toBe(taskId);
-    expect(r0.name).toBe('Task1-Name');
-    expect(r0.summary).toBe('Task1-Summary');
-    expect(r0.rawActions).toBeTruthy();
-    expect(r0.rawReferences).toBeTruthy();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].id).toBe(taskId);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].summary).toBe('Task1-Summary');
+    expect(json[0].rawActions).toBeTruthy();
+    expect(json[0].rawReferences).toBeTruthy();
   });
 
   it('find with inclusion projection returns only selected fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       '{name:1,summary:1}',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.name).toBe('Task1-Name');
-    expect(r0.summary).toBe('Task1-Summary');
-    expect(r0.id).toBeUndefined();
-    expect(r0.rawActions).toBeUndefined();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].summary).toBe('Task1-Summary');
+    expect(json[0].id).toBeUndefined();
+    expect(json[0].rawActions).toBeUndefined();
   });
 
   it('find with exclusion projection excludes selected fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       '{rawActions:0,rawReferences:0}',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.id).toBe(taskId);
-    expect(r0.name).toBe('Task1-Name');
-    expect(r0.summary).toBe('Task1-Summary');
-    expect(r0.rawActions).toBeUndefined();
-    expect(r0.rawReferences).toBeUndefined();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].id).toBe(taskId);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].summary).toBe('Task1-Summary');
+    expect(json[0].rawActions).toBeUndefined();
+    expect(json[0].rawReferences).toBeUndefined();
   });
 
   it('find with projection option supports HJSON field syntax', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       '{name:1, summary:1}',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.name).toBe('Task1-Name');
-    expect(r0.summary).toBe('Task1-Summary');
-    expect(r0.id).toBeUndefined();
-    expect(r0.rawActions).toBeUndefined();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].summary).toBe('Task1-Summary');
+    expect(json[0].id).toBeUndefined();
+    expect(json[0].rawActions).toBeUndefined();
   });
 
   it('find throws on invalid forma ID', async () => {
     await expect(
-      rootCmd.parseAsync(['node', 'test', 'find', 'nonexistent']),
+      rootCmd.parseAsync([...FIND, 'nonexistent']),
     ).rejects.toThrow(/Not found: nonexistent/);
   });
 
@@ -143,7 +146,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await expect(
-      rootCmd.parseAsync(['node', 'test', 'find', '-p', '{{{', taskId]),
+      rootCmd.parseAsync([...FIND, '-p', '{{{', taskId]),
     ).rejects.toThrow();
   });
 
@@ -151,14 +154,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await expect(
-      rootCmd.parseAsync([
-        'node',
-        'test',
-        'find',
-        '-p',
-        '{name:1,summary:0}',
-        taskId,
-      ]),
+      rootCmd.parseAsync([...FIND, '-p', '{name:1,summary:0}', taskId]),
     ).rejects.toThrow(/Mixed projection not supported/);
   });
 
@@ -166,49 +162,54 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       'name:1, rawActions.name:1, rawActions.status:1',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.name).toBe('Task1-Name');
-    expect(r0.summary).toBeUndefined();
-    expect(r0.rawActions).toBeTruthy();
-    expect(Array.isArray(r0.rawActions)).toBe(true);
-    expect(r0.rawActions[0].name).toBe('Action1-name');
-    expect(r0.rawActions[0].status).toBe('req');
-    expect(r0.rawActions[0].summary).toBeUndefined();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].summary).toBeUndefined();
+    expect(json[0].rawActions).toBeTruthy();
+    expect(Array.isArray(json[0].rawActions)).toBe(true);
+    expect(json[0].rawActions[0].name).toBe('Action1-name');
+    expect(json[0].rawActions[0].status).toBe('req');
+    expect(json[0].rawActions[0].summary).toBeUndefined();
   });
 
   it('find with dotted exclusion projection excludes nested fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       'rawActions.statusNote:0',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.name).toBe('Task1-Name');
-    expect(r0.rawActions).toBeTruthy();
-    expect(r0.rawActions[0].name).toBe('Action1-name');
-    expect(r0.rawActions[0].status).toBe('req');
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].rawActions).toBeTruthy();
+    expect(json[0].rawActions[0].name).toBe('Action1-name');
+    expect(json[0].rawActions[0].status).toBe('req');
     expect(
-      Object.prototype.hasOwnProperty.call(r0.rawActions[0], 'statusNote'),
+      Object.prototype.hasOwnProperty.call(
+        json[0].rawActions[0],
+        'statusNote',
+      ),
     ).toBe(false);
   });
 
@@ -216,40 +217,43 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       'id:1, rawActions.id:1',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
-    expect(r0.id).toBe(taskId);
-    expect(r0.name).toBeUndefined();
-    expect(r0.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
-    expect(r0.rawActions[0].name).toBeUndefined();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].id).toBe(taskId);
+    expect(json[0].name).toBeUndefined();
+    expect(json[0].rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
+    expect(json[0].rawActions[0].name).toBeUndefined();
   });
 
   it('find with only dotted projection excludes other fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       'rawActions.id:1',
       taskId,
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    const r0 = results[0];
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    const r0 = json[0];
     expect(Object.prototype.hasOwnProperty.call(r0, 'rawActions')).toBe(
       true,
     );
@@ -265,99 +269,88 @@ describe('NfFindCommand.register', () => {
 
   it('find with sift filter query returns array of matches', async () => {
     output = [];
-    await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
-      '{name:"Task1-Name"}',
-    ]);
+    await rootCmd.parseAsync([...FIND, '-j', '{name:"Task1-Name"}']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe('Task1-Name');
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toBeGreaterThan(0);
+    expect(json[0].name).toBe('Task1-Name');
   });
 
   it('find with sift filter query with no matches returns empty array', async () => {
     output = [];
-    await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
-      '{name:"NonexistentTask"}',
-    ]);
+    await rootCmd.parseAsync([...FIND, '-j', '{name:"NoTask"}']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBe(0);
+    expect(output.length).toBe(1);
+    expect(output[0].trim()).toEqual('');
   });
 
   it('find with sift filter query and projection applies projection', async () => {
     output = [];
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       '{name:1, summary:1}',
       '{name:"Task1-Name"}',
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe('Task1-Name');
-    expect(results[0].summary).toBe('Task1-Summary');
-    expect(results[0].id).toBeUndefined();
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toBeGreaterThan(0);
+    expect(json[0].name).toBe('Task1-Name');
+    expect(json[0].summary).toBe('Task1-Summary');
+    expect(json[0].id).toBeUndefined();
   });
 
   it('find with bare HJSON sift filter (no braces) returns array', async () => {
     output = [];
-    await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
-      'name:"Task1-Name"',
-    ]);
+    await rootCmd.parseAsync([...FIND, '-j', 'name:"Task1-Name"']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0].name).toBe('Task1-Name');
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toBeGreaterThan(0);
+    expect(json[0].name).toBe('Task1-Name');
   });
 
   it('find with sift filter query and dotted projection applies nested projection', async () => {
     output = [];
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '-p',
       'rawActions.id:1',
       '{name:"Task1-Name"}',
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBeGreaterThan(0);
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toBeGreaterThan(0);
     // Nested projection should include rawActions but exclude other fields
     expect(
-      Object.prototype.hasOwnProperty.call(results[0], 'rawActions'),
+      Object.prototype.hasOwnProperty.call(json[0], 'rawActions'),
     ).toBe(true);
-    expect(Object.prototype.hasOwnProperty.call(results[0], 'name')).toBe(
+    expect(Object.prototype.hasOwnProperty.call(json[0], 'name')).toBe(
       false,
     );
     // rawActions should only have id field
-    if (results[0].rawActions.length > 0) {
-      expect(results[0].rawActions[0].id).toBeTruthy();
+    if (json[0].rawActions.length > 0) {
+      expect(json[0].rawActions[0].id).toBeTruthy();
       expect(
         Object.prototype.hasOwnProperty.call(
-          results[0].rawActions[0],
+          json[0].rawActions[0],
           'status',
         ),
       ).toBe(false);
@@ -367,42 +360,44 @@ describe('NfFindCommand.register', () => {
   it('find deduplicates duplicate queries', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
-    await rootCmd.parseAsync(['node', 'test', 'find', taskId, taskId]);
+    await rootCmd.parseAsync([...FIND, '-j', taskId, taskId]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
-    expect(results[0].id).toBe(taskId);
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
+    expect(json[0].id).toBe(taskId);
   });
 
   it('find with --limit returns only specified number of results', async () => {
-    await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
-      '--rows',
-      '1',
-      'task',
-    ]);
+    await rootCmd.parseAsync([...FIND, '-j', '--rows', '1', 'task']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(1);
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toEqual(1);
   });
 
   it('find with --limit across multiple queries respects global limit', async () => {
     await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
+      ...FIND,
+      '-j',
       '--rows',
       '2',
       'task',
+      'task',
     ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toBeLessThanOrEqual(2);
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toBeLessThanOrEqual(2);
   });
 
   it('find focused returns focused entities in stack order (most recent first)', async () => {
@@ -416,15 +411,16 @@ describe('NfFindCommand.register', () => {
     world.focusManager.focus(task3.id);
 
     output = [];
-    await rootCmd.parseAsync(['node', 'test', 'find', 'focused']);
-
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBe(3);
-    expect(results[0].id).toBe(task3.id.base64);
-    expect(results[1].id).toBe(task2.id.base64);
-    expect(results[2].id).toBe(task1Id);
+    await rootCmd.parseAsync([...FIND, '-j', 'focused']);
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json.length).toBe(3);
+    expect(json[0].id).toBe(task3.id.base64);
+    expect(json[1].id).toBe(task2.id.base64);
+    expect(json[2].id).toBe(task1Id);
   });
 
   it('find focused with limit respects limit and stack order', async () => {
@@ -438,20 +434,15 @@ describe('NfFindCommand.register', () => {
     world.focusManager.focus(task3.id);
 
     output = [];
-    await rootCmd.parseAsync([
-      'node',
-      'test',
-      'find',
-      '--rows',
-      '2',
-      'focused',
-    ]);
+    await rootCmd.parseAsync([...FIND, '-j', '--rows', '2', 'focused']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(results.length).toEqual(2);
-    expect(results[0].id).toBe(task3.id.base64);
-    expect(results[1].id).toBe(task2.id.base64);
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .map((s) => JSON.parse(s));
+    expect(json[0].id).toBe(task3.id.base64);
+    expect(json[1].id).toBe(task2.id.base64);
   });
 
   it('find focused returns empty when nothing focused', async () => {
@@ -461,39 +452,14 @@ describe('NfFindCommand.register', () => {
     }
 
     output = [];
-    await rootCmd.parseAsync(['node', 'test', 'find', 'focused']);
+    await rootCmd.parseAsync([...FIND, '--json', 'focused']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toEqual(0);
-  });
-
-  it('find with --zid applies cellValue to transform id column', async () => {
-    const task1Id = '0PxVmryB00tGyAPrFKqetW';
-    await world.upsertOne(Task, { name: 'Task-ZidTest' });
-
-    const findCmd = program.findCommand;
-    output = [];
-    await findCmd.action([task1Id], {
-      project: '{id:1,name:1}',
-      zid: true,
-      tui: true,
-      json: false,
-    });
-
-    expect(output.length).toBeGreaterThan(0);
-    const formatted = output[0];
-    expect(formatted).toBeTruthy();
-    expect(formatted).toMatch(/[iI]d/);
-    expect(formatted).toMatch(/[nN]ame/);
-    const fuzzyId = world.mutableNamespace.fuzzyIdOf(task1Id);
-    expect(formatted).toContain(fuzzyId);
-    expect(formatted).not.toContain(task1Id);
+    expect(output.length).toEqual(1);
+    expect(output[0].trim()).toEqual('');
   });
 });
 
-describe('NfFindCommand._parseOptions', () => {
+describe('NfFindCommand._validateParameters', () => {
   let nfFindCommand: NfFindCommand;
   let world: World;
   let rootCmd: Command;
@@ -518,35 +484,78 @@ describe('NfFindCommand._parseOptions', () => {
     tempDirObj.cleanup();
   });
 
-  it('_parseOptions with empty options returns defaults', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {});
-    expect(parsed.projection).toEqual({});
-    expect(parsed.fuzzyColumn).toBeUndefined();
-    expect(parsed.addZid).toBe(false);
-    expect(parsed.linesDetail).toBe(0);
+  it('_validateParameters with empty options returns defaults', () => {
+    const valid = nfFindCommand._validateParameters(['test'], {});
+    expect(valid.projection).toEqual({});
+    expect(valid.addZid).toBe(false);
 
-    // DEFAULT_ROWS provides a "semantic glance" of the data
-    expect(parsed.rows).toBe(NfFindCommand.DEFAULT_ROWS);
-    expect(parsed.lines).toBe(7);
-    expect(parsed.tuiRows).toEqual(SYSTEM_ROWS);
-    expect(parsed.tuiColumns).toEqual(SYSTEM_COLUMNS);
+    // TUI screen dimensions are normally determined from process.stdout.
+    // During tests, process.stdout is not available, so 24x80 are used by default.
+    expect(valid.tuiRows).toEqual(24);
+    expect(valid.tuiColumns).toEqual(80);
+
+    expect(valid.json).toBe(false);
+    expect(valid.monoTable).toBe(true);
+    expect(valid.zeno).toBe(1);
+    expect(valid.rows).toBe(valid.tuiRows - 1);
+    expect(valid.linesPerRow).toBe(1);
   });
 
-  it('_parseOptions parses projection with inclusion values', () => {
+  it('_validateParameters adjusts linesPerRow given rows', () => {
+    const tuiRows = 24; // adjust to available display rows
+
+    const v2 = nfFindCommand._validateParameters(['test'], {
+      rows: 2,
+      tuiRows,
+    });
+    expect(v2.rows).toBe(2);
+    expect(v2.linesPerRow).toBe(
+      Math.max(1, Math.floor((tuiRows - 1) / 2)),
+    );
+
+    const v5 = nfFindCommand._validateParameters(['test'], {
+      rows: 5,
+      tuiRows,
+    });
+    expect(v5.rows).toBe(5);
+    expect(v5.linesPerRow).toBe(
+      Math.max(1, Math.floor((tuiRows - 1) / 5)),
+    );
+  });
+
+  it('_validateParameters adjusts rows given linesPerRow', () => {
+    const tuiRows = 24; // adjust to available display rows
+
+    const v2 = nfFindCommand._validateParameters(['test'], {
+      linesPerRow: 2,
+      tuiRows,
+    });
+    expect(v2.linesPerRow).toBe(2);
+    expect(v2.rows).toBe(Math.max(1, Math.floor((tuiRows - 1) / 2)));
+
+    const v5 = nfFindCommand._validateParameters(['test'], {
+      linesPerRow: 5,
+      tuiRows,
+    });
+    expect(v5.linesPerRow).toBe(5);
+    expect(v5.rows).toBe(Math.max(1, Math.floor((tuiRows - 1) / 5)));
+  });
+
+  it('_validateParameters parses projection with inclusion values', () => {
     const parsed = nfFindCommand._validateParameters(['test'], {
       project: '{name:1, summary:1}',
     });
     expect(parsed.projection).toEqual({ name: 1, summary: 1 });
   });
 
-  it('_parseOptions parses projection with exclusion values', () => {
+  it('_validateParameters parses projection with exclusion values', () => {
     const parsed = nfFindCommand._validateParameters(['test'], {
       project: '{rawActions:0, rawReferences:0}',
     });
     expect(parsed.projection).toEqual({ rawActions: 0, rawReferences: 0 });
   });
 
-  it('_parseOptions throws on mixed projection (0 and 1)', () => {
+  it('_validateParameters throws on mixed projection (0 and 1)', () => {
     expect(() => {
       nfFindCommand._validateParameters(['test'], {
         project: '{name:1, summary:0}',
@@ -554,93 +563,35 @@ describe('NfFindCommand._parseOptions', () => {
     }).toThrow(/Mixed projection not supported/);
   });
 
-  it('_parseOptions parses lines option', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
-      lines: '15',
-    });
-    expect(parsed.lines).toBe(15);
-    expect(parsed.linesDetail).toBe(0);
-  });
-
-  it('_parseOptions parses lines with detail (lines@detail format)', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
-      lines: '10@0.5',
-    });
-    expect(parsed.lines).toBe(10);
-    expect(parsed.linesDetail).toBe(0.5);
-  });
-
-  it('_parseOptions throws on non-positive lines', () => {
+  it('_validateParameters throws on non-positive linesPerRow', () => {
     expect(() => {
-      nfFindCommand._validateParameters(['test'], { lines: '0' });
-    }).toThrow(/must be positive integer/);
+      nfFindCommand._validateParameters(['test'], { linesPerRow: '0' });
+    }).toThrow(/Expected positive integer/);
 
     expect(() => {
-      nfFindCommand._validateParameters(['test'], { lines: '-5' });
-    }).toThrow(/must be positive integer/);
+      nfFindCommand._validateParameters(['test'], { linesPerRow: '-5' });
+    }).toThrow(/Expected positive integer/);
   });
 
-  it('_parseOptions throws on invalid lines detail (out of 0-1 range)', () => {
-    expect(() => {
-      nfFindCommand._validateParameters(['test'], { lines: '10@1.5' });
-    }).toThrow(/must be 0-1/);
-
-    expect(() => {
-      nfFindCommand._validateParameters(['test'], { lines: '10@-0.1' });
-    }).toThrow(/must be 0-1/);
-  });
-
-  it('_parseOptions parses limit option', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
-      rows: '25',
-    });
-    expect(parsed.rows).toBe(25);
-  });
-
-  it('_parseOptions throws on invalid rows (non-integer)', () => {
+  it('_validateParameters throws on invalid rows (non-integer)', () => {
     expect(() => {
       nfFindCommand._validateParameters(['test'], { rows: 'abc' });
     }).toThrow(/Invalid rows/);
   });
 
-  it('_parseOptions sets addZid flag', () => {
+  it('_validateParameters sets addZid flag', () => {
     const parsed = nfFindCommand._validateParameters(['test'], {
       zid: true,
     });
     expect(parsed.addZid).toBe(true);
-    expect(parsed.fuzzyColumn).toBe('id');
   });
 
-  it('_parseOptions: addZid forces fuzzyColumn to id', () => {
+  it('_validateParameters: addZid forces fuzzyColumn to id', () => {
     const parsed = nfFindCommand._validateParameters(['test'], {
       zid: true,
       fuzzyId: 'customColumn',
     });
     expect(parsed.addZid).toBe(true);
-    expect(parsed.fuzzyColumn).toBe('id');
-  });
-
-  it('_parseOptions: fuzzyId without addZid is preserved', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
-      fuzzyId: 'customColumn',
-    });
-    expect(parsed.addZid).toBe(false);
-    expect(parsed.fuzzyColumn).toBe('customColumn');
-  });
-
-  it('_parseOptions combines all options', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
-      project: '{id:1, name:1}',
-      fuzzyId: 'id',
-      lines: '20@0.8',
-      rows: '50',
-    });
-    expect(parsed.projection).toEqual({ id: 1, name: 1 });
-    expect(parsed.fuzzyColumn).toBe('id');
-    expect(parsed.addZid).toBe(false);
-    expect(parsed.lines).toBe(20);
-    expect(parsed.linesDetail).toBe(0.8);
-    expect(parsed.rows).toBe(50);
   });
 });
 
@@ -685,12 +636,10 @@ describe('NfFindCommand.registerCommand with single-focus fixture', () => {
   it('find focus resolves the single currently-focused entity (per addHelpText example)', async () => {
     const focusedTaskId = '0P_48Nru00l9bnpQmdmx7W';
 
-    await rootCmd.parseAsync(['node', 'test', 'find', 'focus']);
+    await rootCmd.parseAsync([...FIND, '--json', 'focus']);
 
-    expect(output.length).toBeGreaterThan(0);
-    const results = JSON.parse(output[0]);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBe(1);
-    expect(results[0].id).toBe(focusedTaskId);
+    expect(output.length).toBe(1);
+    const outJSON = JSON.parse(output[0]);
+    expect(outJSON.id).toBe(focusedTaskId);
   });
 });

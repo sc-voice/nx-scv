@@ -113,10 +113,14 @@ export class MonoJSONBuilder {
   }
 
   /** Reset with source and auto-populate from its fields */
-  fromSource(source: object): this {
+  fromSource(source: object, opts: Record<string, any> = {}): this {
     this.reset(source);
-    for (const [key, value] of Object.entries(source)) {
-      this.set(key, value);
+    if (typeof (source as any)?.toMonoJSON === 'function') {
+      (source as any).toMonoJSON(this, opts);
+    } else {
+      for (const [key, value] of Object.entries(source)) {
+        this.addKeyValue(key, value);
+      }
     }
     return this;
   }
@@ -146,6 +150,11 @@ export class MonoJSONBuilder {
       return value;
     }
 
+    // Handle objects with toJSON (like UUID64) recursively
+    if (typeof value.toJSON === 'function') {
+      return this.asSimpleType(value.toJSON());
+    }
+
     const text = JSON.stringify(value);
 
     /* eliminate quotes for identifier keys */
@@ -160,7 +169,7 @@ export class MonoJSONBuilder {
    * to maxKeys and maxOverflow constraints, converting values
    * to SimpleType.
    */
-  set(key: string, value: any): this {
+  addKeyValue(key: string, value: any): this {
     const ctx = 'MonoJSON.set';
     const { theme, overflowDelimiter, maxKeys, maxOverflow, overflowKey } =
       this;

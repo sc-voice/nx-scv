@@ -332,21 +332,29 @@ export class Identifiable implements IMonoJSONFacade {
     builder: MonoJSONBuilder,
     opts: Record<string, any>,
   ): MonoJSON {
+    builder.reset({});
     const {
       theme = NameFormaTheme.shared,
       zeno = ZENO_1_ROW_TERSE,
       namespace,
     } = opts;
-    builder.reset({});
-    const { id } = this;
+    const resolvedOpts = { theme, zeno, namespace };
 
-    // id, zid
-    const zid = (namespace && namespace.fuzzyIdOf(id)) || null;
-    zid && builder.set('zid', theme.nfLink(zid));
-    if (zid == null || zeno > ZENO_1_ROW_TERSE) {
-      builder.set('id', theme.nfLink(id.base64));
-    }
+    this.addKeyValues(builder, resolvedOpts);
 
     return builder.build();
   } // toMonoJSON
+
+  /** Add key-value pairs to MonoJSONBuilder */
+  addKeyValues(builder: MonoJSONBuilder, opts: Record<string, any>): void {
+    const { theme, zeno, namespace } = opts;
+    const { id } = this;
+
+    // conditionally add zid
+    const zid = (namespace && namespace.fuzzyIdOf(id)) || null;
+    zid && builder.addKeyValue('zid', theme.nfLink(zid));
+    if (zid == null || zeno > ZENO_1_ROW_TERSE) {
+      builder.addKeyValue('id', theme.nfLink(id.base64));
+    }
+  }
 } // Identifiable

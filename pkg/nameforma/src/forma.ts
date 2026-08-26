@@ -337,28 +337,42 @@ export class Forma
     return rows;
   } // asRenderData
 
-  override toMonoJSON(
+  /** Add MonoJSON KV pair on behalf of toMonoJSON() */
+  override addKeyValues(
     builder: MonoJSONBuilder,
     opts: Record<string, any>,
-  ): MonoJSON {
-    const {
-      theme = NameFormaTheme.shared,
-      zeno = ZENO_1_ROW_TERSE,
-      namespace,
-    } = opts;
-    super.toMonoJSON(builder, opts);
+  ): void {
+    super.addKeyValues(builder, opts);
+    const { theme, zeno } = opts;
     const { name, summary } = this;
 
     // name
-    builder.set('name', name);
+    builder.addKeyValue('name', name);
 
     // summary
     if (zeno >= ZENO_1_ROW_VERBOSE && this.summary) {
-      builder.set('summary', theme.nfNote(summary));
+      builder.addKeyValue('summary', theme.nfNote(summary));
     }
-
-    return builder.build();
-  } // toMonoJSON
+    if (zeno > ZENO_1_ROW_VERBOSE) {
+      console.log('addKV');
+      Object.keys(this).forEach((k) => {
+        switch (k) {
+          case 'id':
+          case 'zid':
+          case 'name':
+          case 'summary':
+            // already added
+            break;
+          default:
+            const value = this[k];
+            if (value !== undefined) {
+              builder.addKeyValue(k, value);
+            }
+            break;
+        }
+      });
+    }
+  }
 
   /* ICommandMutable implementation */
   applyCommand(cmd: Command): Partial<Forma> {

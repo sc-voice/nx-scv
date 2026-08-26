@@ -3,7 +3,10 @@ import {
   PlainTheme,
   MonoJSONBuilder,
   SimpleType,
+  NameFormaTheme,
+  zenoStep,
 } from '@sc-voice/nameforma/unstable';
+import { UUID64, Forma, Task, Action } from '@sc-voice/nameforma';
 
 const theme = new PlainTheme();
 
@@ -168,7 +171,7 @@ describe('mono-json', () => {
     });
   });
 
-  describe('MonoJSONBuilder.set', () => {
+  describe('MonoJSONBuilder.addKeyValue', () => {
     it('handles maxKeys:1 with overflow', () => {
       const builder = new MonoJSONBuilder({
         theme,
@@ -179,22 +182,22 @@ describe('mono-json', () => {
       expect(result0).toEqual({});
 
       // No overflow
-      builder.set('a', 1);
+      builder.addKeyValue('a', 1);
       const result1 = builder.build();
       expect(result1).toEqual({ a: 1 });
 
       // Overflow 1
-      builder.set('b', 2);
+      builder.addKeyValue('b', 2);
       const result2 = builder.build();
       expect(result2).toEqual({ '…': 'a:1|b:2' });
 
       // Overflow 2
-      builder.set('c', 3);
+      builder.addKeyValue('c', 3);
       const result3 = builder.build();
       expect(result3).toEqual({ '…': 'a:1|b:2|c:3' });
 
       // Clipped overflow
-      builder.set('d', 4);
+      builder.addKeyValue('d', 4);
       const result4 = builder.build();
       expect(result4).toEqual({ '…': 'a:1|b:2|c:3' });
     });
@@ -208,40 +211,40 @@ describe('mono-json', () => {
       expect(result0).toEqual({});
 
       // No overflow
-      builder.set('a', 1);
+      builder.addKeyValue('a', 1);
       const result1 = builder.build();
       expect(result1).toEqual({ a: 1 });
 
       // No overflow
-      builder.set('b', 2);
+      builder.addKeyValue('b', 2);
       const result2 = builder.build();
       expect(result2).toEqual({ a: 1, b: 2 });
 
       // Overflow 1
-      builder.set('c', 3);
+      builder.addKeyValue('c', 3);
       const result3 = builder.build();
       expect(result3).toEqual({ a: 1, '…': 'b:2|c:3' });
 
       // Overflow 1
-      builder.set('d', 4);
+      builder.addKeyValue('d', 4);
       const result4 = builder.build();
       expect(result4).toEqual({ a: 1, '…': 'b:2|c:3|d:4' });
 
       // Clipped overflow
-      builder.set('e', 5);
+      builder.addKeyValue('e', 5);
       const result5 = builder.build();
       expect(result5).toEqual({ a: 1, '…': 'b:2|c:3|d:4' });
     });
     it('converts values using asSimpleType', () => {
       const builder = new MonoJSONBuilder({ maxKeys: 10 });
       const date = new Date('2024-01-15T12:00:00Z');
-      builder.set('num', 42);
-      builder.set('bool', true);
-      builder.set('arr', [1, 2, 3]);
-      builder.set('date', date);
-      builder.set('null', null);
-      builder.set('undef', undefined);
-      builder.set('obj', { a: 1, b: 2, c: 3 });
+      builder.addKeyValue('num', 42);
+      builder.addKeyValue('bool', true);
+      builder.addKeyValue('arr', [1, 2, 3]);
+      builder.addKeyValue('date', date);
+      builder.addKeyValue('null', null);
+      builder.addKeyValue('undef', undefined);
+      builder.addKeyValue('obj', { a: 1, b: 2, c: 3 });
       const result = builder.build();
 
       // array fields show length
@@ -258,7 +261,7 @@ describe('mono-json', () => {
     });
     it('build() returns copy not reference', () => {
       const builder = new MonoJSONBuilder({});
-      builder.set('key', 'value');
+      builder.addKeyValue('key', 'value');
       const result1 = builder.build();
       const result2 = builder.build();
       expect(result1).not.toBe(result2);
@@ -266,11 +269,11 @@ describe('mono-json', () => {
     });
     it('nArrayElements counts array elements, ignores non-arrays', () => {
       const builder = new MonoJSONBuilder({ maxKeys: 10 });
-      builder.set('num', 42);
-      builder.set('arr1', [1, 2, 3]);
+      builder.addKeyValue('num', 42);
+      builder.addKeyValue('arr1', [1, 2, 3]);
       expect(builder.nArrayElements).toBe(3);
-      builder.set('str', 'hello');
-      builder.set('arr2', [4, [5, 6]]);
+      builder.addKeyValue('str', 'hello');
+      builder.addKeyValue('arr2', [4, [5, 6]]);
       expect(builder.nArrayElements).toBe(5);
     });
   });
@@ -281,7 +284,7 @@ describe('mono-json', () => {
 
       const result1 = builder
         .fromSource({ name: 'test1', count: 42 })
-        .set('extra', 'field1')
+        .addKeyValue('extra', 'field1')
         .build();
       expect(result1).toEqual({
         name: 'test1',
@@ -292,9 +295,56 @@ describe('mono-json', () => {
       // A builder retains its configuration and can be re-used
       const result2 = builder
         .fromSource({ name: 'test2' })
-        .set('extra', 'field2')
+        .addKeyValue('extra', 'field2')
         .build();
       expect(result2).toEqual({ name: 'test2', extra: 'field2' });
+    });
+
+    it('Forma id values should not be quoted', () => {
+      // Reproduces: nf find task -p forma:1,id:1,name:1
+      // where id values appear quoted but name values do not
+      const id = new UUID64();
+      const name = 'Name1';
+      const forma = new Forma({ id, name });
+      const status = 'work';
+      const theme = NameFormaTheme.shared;
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      const monoJSON = builder.fromSource(forma).build();
+
+      expect(monoJSON.name).toEqual(name); // unquoted
+      expect(monoJSON.id).toEqual(theme.nfLink(id.base64)); // id.toJSON()
+    });
+
+    it('MonoJSON Action should have status', () => {
+      // Reproduces: nf find task -p forma:1,id:1,name:1
+      // where id values appear quoted but name values do not
+      const id = new UUID64();
+      const name = 'Action1';
+      const summary = 'Summary1';
+      const status = 'work';
+      const theme = NameFormaTheme.shared;
+      const statusNote = 'note';
+      const action = new Action({ id, name, summary, status, statusNote });
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+
+      // ZenoStep 1 only shows id, name, summary
+      const mj1 = builder
+        .fromSource(action, { zeno: zenoStep(1) })
+        .build();
+      expect(mj1.id).toEqual(theme.nfLink(id.base64)); // id.toJSON()
+      expect(mj1.name).toEqual(name);
+      expect(mj1.summary).toBe(theme.nfNote(summary));
+      expect(mj1.status).toBe(undefined);
+      expect(mj1.statusNote).toBe(undefined);
+
+      const mj2 = builder
+        .fromSource(action, { zeno: zenoStep(2) })
+        .build();
+      expect(mj2.id).toEqual(theme.nfLink(id.base64)); // id.toJSON()
+      expect(mj2.name).toEqual(name);
+      expect(mj2.summary).toBe(theme.nfNote(summary));
+      expect(mj2.status).toEqual(status);
+      expect(mj2.statusNote).toEqual(statusNote);
     });
   });
 });
