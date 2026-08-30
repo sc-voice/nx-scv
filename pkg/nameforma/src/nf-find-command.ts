@@ -2,12 +2,16 @@ import { logger } from './file-repository.js';
 import {
   ZenoStep,
   zenoStep,
+  ZENO_1_ROW_VERBOSE,
+  ZENO_1_ROW_TERSE,
+  ZENO_MAX_ROWS,
   linesToZenoStep,
   zenoStepToLines,
 } from './navigable-view.js';
 import { MonoTable } from './mono-table.js';
-import { NameFormaTheme } from './nameforma-theme.js';
+import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
 import { zidify } from './fuzzy-namespace.js';
+import { DBG } from './defines.js';
 import {
   MonoJSONBuilder,
   MonoJSON,
@@ -28,6 +32,8 @@ interface ParsedOptions {
   addZid: boolean;
   /** lines per row */
   linesPerRow: number;
+  /** maximum number of keys to display for each row */
+  maxKeys: number;
   /** output as MonoTable */
   monoTable: boolean;
   /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
@@ -38,8 +44,8 @@ interface ParsedOptions {
   tuiColumns: number;
   /** output as JSON */
   json: boolean;
-  /** Semantic zoom (ZenoStep) */
-  zeno: ZenoStep;
+  /** Default semantic zoom (ZenoStep) for each row */
+  rowZeno: ZenoStep;
 }
 
 /**
@@ -153,8 +159,7 @@ export class NfFindCommand {
       throw new Error(`Invalid rows: ${options.tuiRows}`);
     }
     const tuiColumns = process.stdout.columns ?? 80;
-    const zeno = options.zeno ?? zenoStep(1);
-    const zenoLines = zenoStepToLines(zeno);
+    const rowZeno = options.rowZeno ?? ZENO_MAX_ROWS;
 
     // resolve output options
     const defaultOutput = [options.json, options.monoTable].every(
@@ -162,6 +167,13 @@ export class NfFindCommand {
     );
     const json = options.json ?? false;
     const monoTable = options.monoTable ?? defaultOutput;
+
+    let rawKeys = options.maxKeys
+      ? parseInt(options.maxKeys, 10)
+      : undefined;
+    if (rawKeys !== undefined && isNaN(rawKeys)) {
+      throw new Error(`Invalid maxKeys: ${options.maxKeys}`);
+    }
 
     let rawRows = options.rows ? parseInt(options.rows, 10) : undefined;
     if (rawRows !== undefined && isNaN(rawRows)) {
@@ -182,21 +194,25 @@ export class NfFindCommand {
       (rawLines === undefined
         ? Math.max(1, tuiRows - 1)
         : Math.max(1, Math.floor((tuiRows - 1) / rawLines)));
+
     const linesPerRow =
       rawLines ?? Math.max(1, Math.floor((tuiRows - 1) / rows));
 
     const addZid = options.zid ?? false;
 
+    let maxKeys = rawKeys ?? 0;
+
     return {
-      projection,
       addZid,
       json,
       linesPerRow,
+      maxKeys,
       monoTable,
+      projection,
+      rowZeno,
       rows,
       tuiRows,
       tuiColumns,
-      zeno,
     };
   }
 
@@ -230,23 +246,36 @@ export class NfFindCommand {
   async action(queries: string[], options: any) {
     const ctx = 'NfFindCommand.action';
     const { nfProgram } = this;
+    const dbg = DBG.NF_PROGRAM.FIND;
     let lines: string[] = [];
     try {
       const valid = this._validateParameters(queries, options);
-      logger.info({ ctx, valid });
-      const { projection, tuiColumns, tuiRows, linesPerRow, rows } = valid;
+      dbg && logger.info({ ctx, valid });
+      const {
+        maxKeys,
+        projection,
+        tuiColumns,
+        tuiRows,
+        linesPerRow,
+        rows,
+        rowZeno,
+        json,
+      } = valid;
+      const theme = json ? new PlainTheme() : NameFormaTheme.shared;
       const jsonBuilder = (this.jsonBuilder = new MonoJSONBuilder({
-        maxLines: linesPerRow,
+        maxKeys,
+        maxOverflow: 0,
+        theme,
       }));
       const formas = await this._mergeResults(queries, valid.rows);
-      const jsonFormas = formas.map((f) =>
-        jsonBuilder.fromSource(f).build(),
-      );
-      //const projected = jsonFormas.map((f3a) =>
-      const projected = formas.map((f3a) =>
+      const jsonFormas = formas.map((f) => {
+        const opts = { zeno: rowZeno };
+        return jsonBuilder.fromSource(f, opts).build();
+      });
+      dbg && logger.info({ ctx, jsonFormas });
+      const projected = jsonFormas.map((f3a) =>
         nfProgram.applyProjection(f3a, projection),
       );
-      const theme = NameFormaTheme.shared;
       const { columnSeparator } = theme;
       const ns = nfProgram.world.mutableNamespace;
       if (valid.monoTable) {
@@ -272,11 +301,16 @@ export class NfFindCommand {
     const subCmd = rootCmd.command('find');
     subCmd
       .description('Find Formas that match given queries')
-      .option('-r, --rows <number>', 'Limit number of results (default 5)')
-      .option('-m,--mono-table', 'output as MonoTable (default)')
-      .option('--tui-rows <val>', 'system default')
-      .option('--tui-cols,--tui-columns <val>', 'system default')
-      .option('-l, --lines-per-row <val>', 'lines per data row')
+      .option('-z, --row-zeno <number>', 'Row resolution (0..17)')
+      .option(
+        '-k, --max-keys <number>',
+        'Max number of keys to display for each row (auto)',
+      )
+      .option('-r, --rows <number>', 'Max number of result rows (auto)')
+      .option('-m,--mono-table', 'Output as MonoTable (auto)')
+      .option('--tui-rows <val>', 'System default')
+      .option('--tui-cols,--tui-columns <val>', 'System default')
+      .option('-l, --lines-per-row <val>', 'Max lines per data row')
       .option(
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',

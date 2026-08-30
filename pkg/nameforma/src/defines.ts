@@ -165,6 +165,7 @@ const NF_CLI = 1;
 const NF_PI_CLI = 1;
 const NF_PROGRAM = {
   ANY: Math.max(NF_CLI, NF_PI_CLI),
+  FIND: 1,
   NF_CLI,
   NF_PI_CLI,
 };

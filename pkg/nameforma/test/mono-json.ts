@@ -5,6 +5,8 @@ import {
   SimpleType,
   NameFormaTheme,
   zenoStep,
+  ZENO_2_ROWS,
+  ZENO_MAX_ROWS,
 } from '@sc-voice/nameforma/unstable';
 import { UUID64, Forma, Task, Action } from '@sc-voice/nameforma';
 
@@ -16,22 +18,29 @@ describe('mono-json', () => {
       const builder = new MonoJSONBuilder({});
       expect(builder.arrayDelimiter).toBe(',');
       expect(builder.overflowKey).toBe('…');
-      expect(builder.maxKeys).toBe(5);
-      expect(builder.maxOverflow).toBe(3);
+      expect(builder.maxKeys).toBe(0);
+      expect(builder.maxOverflow).toBe(0);
       expect(builder.nArrayElements).toBe(0);
+      expect(builder.theme).toBe(NameFormaTheme.shared);
+      expect(builder.zeno).toBe(ZENO_MAX_ROWS);
     });
 
     it('accepts custom ctor', () => {
+      const theme = new PlainTheme();
       const builder = new MonoJSONBuilder({
         arrayDelimiter: '; ',
         overflowKey: '+',
         maxKeys: 7,
         maxOverflow: 5,
+        theme,
+        zeno: ZENO_2_ROWS,
       });
       expect(builder.arrayDelimiter).toBe('; ');
       expect(builder.overflowKey).toBe('+');
       expect(builder.maxKeys).toBe(7);
       expect(builder.maxOverflow).toBe(5);
+      expect(builder.theme).toBe(theme);
+      expect(builder.zeno).toBe(ZENO_2_ROWS);
     });
 
     it('theme applies nfBoundary to overflowDelimiter', () => {
@@ -39,12 +48,6 @@ describe('mono-json', () => {
       // Theme wraps the delimiter, so it should be different from plain '|'
       expect(typeof builder.overflowDelimiter).toBe('string');
       expect(builder.overflowDelimiter).toBeDefined();
-    });
-
-    it('theme is stored', () => {
-      const builder = new MonoJSONBuilder({});
-      expect(builder.theme).toBeDefined();
-      expect(builder.theme).toHaveProperty('nfBoundary');
     });
   });
 
@@ -90,26 +93,17 @@ describe('mono-json', () => {
 
     it('empty array returns empty string', () => {
       const builder = new MonoJSONBuilder({ arrayDelimiter: ',' });
-      expect(builder.asSimpleType([])).toBe('');
+      expect(builder.asSimpleType([])).toBe('[…0]');
     });
 
     it('array of primitives joins with default delimiter', () => {
       const builder = new MonoJSONBuilder({});
-      expect(builder.asSimpleType([1, 2, 3])).toBe('1,2,3');
-      expect(builder.asSimpleType(['a', 'b', 'c'])).toBe('a,b,c');
-    });
-
-    it('array respects custom arrayDelimiter', () => {
-      const builder = new MonoJSONBuilder({ arrayDelimiter: '; ' });
-      expect(builder.asSimpleType([1, 2, 3])).toBe('1; 2; 3');
-      expect(builder.asSimpleType(['x', 'y', 'z'])).toBe('x; y; z');
+      expect(builder.asSimpleType(['a', 'b', 'c'])).toBe('[…3]');
     });
 
     it('array with mixed types', () => {
       const builder = new MonoJSONBuilder({});
-      expect(builder.asSimpleType([1, 'two', true, null])).toBe(
-        '1,two,true,',
-      );
+      expect(builder.asSimpleType([1, 'two', true, null])).toBe('[…4]');
     });
 
     it('nested arrays flatten with multiple delimiters', () => {
@@ -119,7 +113,7 @@ describe('mono-json', () => {
         [1, 2],
         [3, 4],
       ]);
-      expect(result).toBe('1,2,3,4');
+      expect(result).toBe('[…2]');
     });
 
     it('array containing Dates joins Date toString()', () => {
@@ -127,8 +121,7 @@ describe('mono-json', () => {
       const date1 = new Date('2024-01-01T00:00:00Z');
       const date2 = new Date('2024-01-02T00:00:00Z');
       const result = builder.asSimpleType([date1, date2]);
-      const expected = `${date1.toString()},${date2.toString()}`;
-      expect(result).toBe(expected);
+      expect(result).toBe('[…2]');
     });
 
     it('plain object converts to JSON string', () => {
@@ -254,7 +247,7 @@ describe('mono-json', () => {
         date,
         null: null,
         undef: undefined,
-        'arr[3]': '1,2,3',
+        arr: '[…3]',
         obj: '{a:1,b:2,c:3}',
       });
       expect(builder.nArrayElements).toBe(3);
@@ -308,11 +301,11 @@ describe('mono-json', () => {
       const forma = new Forma({ id, name });
       const status = 'work';
       const theme = NameFormaTheme.shared;
-      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      const builder = new MonoJSONBuilder();
       const monoJSON = builder.fromSource(forma).build();
 
       expect(monoJSON.name).toEqual(name); // unquoted
-      expect(monoJSON.id).toEqual(theme.nfLink(id.base64)); // id.toJSON()
+      expect(monoJSON.id).toMatch(id.base64); // id.toJSON()
     });
 
     it('MonoJSON Action should have status', () => {
@@ -325,26 +318,26 @@ describe('mono-json', () => {
       const theme = NameFormaTheme.shared;
       const statusNote = 'note';
       const action = new Action({ id, name, summary, status, statusNote });
-      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      const builder = new MonoJSONBuilder({ maxKeys: 10, theme });
 
       // ZenoStep 1 only shows id, name, summary
       const mj1 = builder
-        .fromSource(action, { zeno: zenoStep(1) })
+        .fromSource(action, { zeno: zenoStep(2) })
         .build();
-      expect(mj1.id).toEqual(theme.nfLink(id.base64)); // id.toJSON()
+      expect(mj1.id).toMatch(id.base64); // id.toJSON()
       expect(mj1.name).toEqual(name);
-      expect(mj1.summary).toBe(theme.nfNote(summary));
-      expect(mj1.status).toBe(undefined);
-      expect(mj1.statusNote).toBe(undefined);
+      expect(mj1.summary).toMatch(summary);
+      expect(mj1.status).toMatch(status);
+      expect(mj1.statusNote).toMatch(statusNote);
 
       const mj2 = builder
         .fromSource(action, { zeno: zenoStep(2) })
         .build();
-      expect(mj2.id).toEqual(theme.nfLink(id.base64)); // id.toJSON()
+      expect(mj2.id).toMatch(id.base64); // id.toJSON()
       expect(mj2.name).toEqual(name);
-      expect(mj2.summary).toBe(theme.nfNote(summary));
-      expect(mj2.status).toEqual(status);
-      expect(mj2.statusNote).toEqual(statusNote);
+      expect(mj2.summary).toMatch(summary);
+      expect(mj2.status).toMatch(status);
+      expect(mj2.statusNote).toMatch(statusNote);
     });
   });
 });

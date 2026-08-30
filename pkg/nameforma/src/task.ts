@@ -12,6 +12,7 @@ import { Schema, type AvroType } from './schema.js';
 import { Action, ActionStatus, STATUS_ORDER } from './action.js';
 import { Reference } from './reference.js';
 import { FormaList, type IEventBus } from './forma-list.js';
+import { MonoJSONBuilder } from './mono-json.js';
 import {
   RenderData,
   RenderRow,
@@ -315,4 +316,19 @@ export class Task extends Entity {
     }
     return buf.getRenderData();
   } // renderDataAtZeno
+
+  /** Add MonoJSON KV pair on behalf of toMonoJSON() */
+  override addKeyValues(
+    builder: MonoJSONBuilder,
+    opts: Record<string, any> = {},
+  ): void {
+    super.addKeyValues(builder, opts);
+    const { theme, zeno, namespace } = opts;
+    const { rawActions, rawReferences } = this;
+
+    if (zeno >= ZENO_3_ROWS) {
+      builder.addKeyValue('rawActions', rawActions);
+      builder.addKeyValue('rawReferences', rawReferences);
+    }
+  }
 } // Task

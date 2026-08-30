@@ -556,6 +556,7 @@ describe('CLI: task command', () => {
         taskId,
       ]);
 
+      originalLog(output[0]);
       expect(output.length).toBe(1);
       const outJSON = JSON.parse(output[0]);
       expect(outJSON.forma).toEqual(task.forma);

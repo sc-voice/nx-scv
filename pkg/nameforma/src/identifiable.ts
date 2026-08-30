@@ -4,7 +4,7 @@ import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/text';
 import { ISchemaClass } from './schema.js';
 import { DBG } from './defines.js';
-import { NameFormaTheme } from './nameforma-theme.js';
+import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
 import { IReadOnlyNamespace } from './fuzzy-namespace.js';
 import {
   MonoJSON,
@@ -16,6 +16,7 @@ import {
   ZENO_1_ROW_TERSE,
   ZENO_1_ROW_VERBOSE,
   ZENO_2_ROWS,
+  ZENO_MAX_ROWS,
 } from './navigable-view.js';
 
 const { ColorConsole, Unicode } = Text;
@@ -330,12 +331,12 @@ export class Identifiable implements IMonoJSONFacade {
 
   toMonoJSON(
     builder: MonoJSONBuilder,
-    opts: Record<string, any>,
+    opts: Record<string, any> = {},
   ): MonoJSON {
     builder.reset({});
     const {
-      theme = NameFormaTheme.shared,
-      zeno = ZENO_1_ROW_TERSE,
+      theme = new PlainTheme(),
+      zeno = builder.zeno ?? ZENO_MAX_ROWS,
       namespace,
     } = opts;
     const resolvedOpts = { theme, zeno, namespace };

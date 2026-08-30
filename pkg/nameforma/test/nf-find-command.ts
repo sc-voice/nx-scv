@@ -8,7 +8,12 @@ import { Task } from '../src/task.js';
 import { NfProgram } from '../src/nf-program.js';
 import { NfFindCommand } from '../src/nf-find-command.js';
 import { createTempDir } from './cli/helpers.js';
-import { zenoStep } from '@sc-voice/nameforma/unstable';
+import {
+  ZENO_1_ROW_TERSE,
+  ZENO_8_ROWS,
+  ZENO_MAX_ROWS,
+  zenoStep,
+} from '@sc-voice/nameforma/unstable';
 
 const FIND = ['node', 'test', 'find'];
 
@@ -177,11 +182,7 @@ describe('NfFindCommand.register', () => {
     expect(json.length).toEqual(1);
     expect(json[0].name).toBe('Task1-Name');
     expect(json[0].summary).toBeUndefined();
-    expect(json[0].rawActions).toBeTruthy();
-    expect(Array.isArray(json[0].rawActions)).toBe(true);
-    expect(json[0].rawActions[0].name).toBe('Action1-name');
-    expect(json[0].rawActions[0].status).toBe('req');
-    expect(json[0].rawActions[0].summary).toBeUndefined();
+    expect(json[0].rawActions).toEqual('[…2]');
   });
 
   it('find with dotted exclusion projection excludes nested fields', async () => {
@@ -203,14 +204,7 @@ describe('NfFindCommand.register', () => {
     expect(json.length).toEqual(1);
     expect(json[0].name).toBe('Task1-Name');
     expect(json[0].rawActions).toBeTruthy();
-    expect(json[0].rawActions[0].name).toBe('Action1-name');
-    expect(json[0].rawActions[0].status).toBe('req');
-    expect(
-      Object.prototype.hasOwnProperty.call(
-        json[0].rawActions[0],
-        'statusNote',
-      ),
-    ).toBe(false);
+    expect(json[0].rawActions).toEqual('[…2]');
   });
 
   it('find with multiple dotted paths', async () => {
@@ -232,8 +226,7 @@ describe('NfFindCommand.register', () => {
     expect(json.length).toEqual(1);
     expect(json[0].id).toBe(taskId);
     expect(json[0].name).toBeUndefined();
-    expect(json[0].rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
-    expect(json[0].rawActions[0].name).toBeUndefined();
+    expect(json[0].rawActions).toEqual('[…2]');
   });
 
   it('find with only dotted projection excludes other fields', async () => {
@@ -261,7 +254,7 @@ describe('NfFindCommand.register', () => {
       false,
     );
     expect(Object.prototype.hasOwnProperty.call(r0, 'name')).toBe(false);
-    expect(r0.rawActions[0].id).toBe('0PxVwGSx00tGyAPrFKqetW');
+    expect(r0.rawActions).toBe('[…2]');
     expect(
       Object.prototype.hasOwnProperty.call(r0.rawActions[0], 'name'),
     ).toBe(false);
@@ -347,7 +340,7 @@ describe('NfFindCommand.register', () => {
     );
     // rawActions should only have id field
     if (json[0].rawActions.length > 0) {
-      expect(json[0].rawActions[0].id).toBeTruthy();
+      expect(json[0].rawActions).toEqual('[…2]');
       expect(
         Object.prototype.hasOwnProperty.call(
           json[0].rawActions[0],
@@ -496,9 +489,11 @@ describe('NfFindCommand._validateParameters', () => {
 
     expect(valid.json).toBe(false);
     expect(valid.monoTable).toBe(true);
-    expect(valid.zeno).toBe(1);
+    expect(valid.addZid).toBe(false);
+    expect(valid.rowZeno).toBe(ZENO_MAX_ROWS);
     expect(valid.rows).toBe(valid.tuiRows - 1);
     expect(valid.linesPerRow).toBe(1);
+    expect(valid.maxKeys).toBe(0);
   });
 
   it('_validateParameters adjusts linesPerRow given rows', () => {
@@ -512,6 +507,7 @@ describe('NfFindCommand._validateParameters', () => {
     expect(v2.linesPerRow).toBe(
       Math.max(1, Math.floor((tuiRows - 1) / 2)),
     );
+    expect(v2.maxKeys).toBe(0);
 
     const v5 = nfFindCommand._validateParameters(['test'], {
       rows: 5,
@@ -519,25 +515,48 @@ describe('NfFindCommand._validateParameters', () => {
     });
     expect(v5.rows).toBe(5);
     expect(v5.linesPerRow).toBe(
-      Math.max(1, Math.floor((tuiRows - 1) / 5)),
+      4, // Math.max(1, Math.floor((tuiRows - 1) / 5))
     );
+    expect(v5.maxKeys).toBe(0);
   });
 
   it('_validateParameters adjusts rows given linesPerRow', () => {
     const tuiRows = 24; // adjust to available display rows
 
+    const v1 = nfFindCommand._validateParameters(['test'], {
+      tuiRows,
+    });
+    expect(v1.addZid).toBe(false);
+    expect(v1.linesPerRow).toBe(1);
+    expect(v1.maxKeys).toBe(0);
+    expect(v1.rows).toBe(23); // max(1, floor((24 - 1) / 1)));
+
     const v2 = nfFindCommand._validateParameters(['test'], {
       linesPerRow: 2,
       tuiRows,
     });
+    expect(v2.addZid).toBe(false);
     expect(v2.linesPerRow).toBe(2);
-    expect(v2.rows).toBe(Math.max(1, Math.floor((tuiRows - 1) / 2)));
+    expect(v2.maxKeys).toBe(0);
+    expect(v2.rows).toBe(11); // max(1, floor((24 - 1) / 2)));
+
+    const v2Zeno = nfFindCommand._validateParameters(['test'], {
+      linesPerRow: 2,
+      tuiRows,
+      rowZeno: ZENO_8_ROWS, // affects maxKeys
+    });
+    expect(v2Zeno.addZid).toBe(false);
+    expect(v2Zeno.rowZeno).toBe(ZENO_8_ROWS);
+    expect(v2Zeno.linesPerRow).toBe(2);
+    expect(v2Zeno.maxKeys).toBe(0);
+    expect(v2Zeno.rows).toBe(11); // max(1, floor((tuiRows - 1) / 2)));
 
     const v5 = nfFindCommand._validateParameters(['test'], {
       linesPerRow: 5,
       tuiRows,
     });
     expect(v5.linesPerRow).toBe(5);
+    expect(v5.maxKeys).toBe(0);
     expect(v5.rows).toBe(Math.max(1, Math.floor((tuiRows - 1) / 5)));
   });
 
@@ -633,8 +652,8 @@ describe('NfFindCommand.registerCommand with single-focus fixture', () => {
     tempDirObj.cleanup();
   });
 
-  it('find focus resolves the single currently-focused entity (per addHelpText example)', async () => {
-    const focusedTaskId = '0P_48Nru00l9bnpQmdmx7W';
+  it('find focus resolves currently-focused entity', async () => {
+    const focusedTaskId = '0P_48Nru00l9bnpQmdmx7W'; // sample data
 
     await rootCmd.parseAsync([...FIND, '--json', 'focus']);
 

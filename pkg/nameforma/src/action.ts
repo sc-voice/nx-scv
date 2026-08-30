@@ -4,6 +4,8 @@ import { NameFormaTheme } from './nameforma-theme.js';
 import { DBG } from './defines.js';
 import { Schema } from './schema.js';
 import { Unicode, ColorConsole } from '@sc-voice/tools/text';
+import { ZENO_2_ROWS } from '@sc-voice/nameforma/unstable';
+import { MonoJSONBuilder } from './mono-json.js';
 
 const { cc } = ColorConsole;
 const { RIGHT_ARROW: URAR, CHECKMARK: UOK } = Unicode;
@@ -176,6 +178,21 @@ export class Action extends Forma {
     dbg && cc.ok1(msg, cfg);
 
     return changed;
+  }
+
+  /** Add MonoJSON KV pair on behalf of toMonoJSON() */
+  override addKeyValues(
+    builder: MonoJSONBuilder,
+    opts: Record<string, any> = {},
+  ): void {
+    super.addKeyValues(builder, opts);
+    const { theme, zeno, namespace } = opts;
+    const { status, statusNote } = this;
+
+    if (zeno >= ZENO_2_ROWS) {
+      builder.addKeyValue('status', status);
+      builder.addKeyValue('statusNote', statusNote);
+    }
   }
 
   static shortDate(date: Date): string {

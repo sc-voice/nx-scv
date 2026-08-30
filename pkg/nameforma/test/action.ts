@@ -6,6 +6,8 @@ import {
   STATUS_ORDER,
   DBG,
   FormaList,
+  MonoJSONBuilder,
+  zenoStep,
 } from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
@@ -242,5 +244,58 @@ describe('Action', () => {
     expect(STATUS_ORDER[ActionStatus.spec]).toBeGreaterThan(
       STATUS_ORDER[ActionStatus.req],
     );
+  });
+
+  describe('toMonoJSON projects a semantic summary', () => {
+    const id = new UUID64();
+    const name = 'aName';
+    const summary = 'aSummary';
+    const status = 'work';
+    const statusNote = 'aNote';
+    const a4n = new Action({ id, name, summary, status, statusNote });
+    const updateId = a4n.updateId;
+    const all = {
+      id: id.base64,
+      name,
+      summary,
+      forma: a4n.forma,
+      updateId: updateId.base64,
+      status,
+      statusNote,
+    };
+
+    it('flattens UUID64', () => {
+      const builder = new MonoJSONBuilder();
+      const mj = a4n.toMonoJSON(builder);
+      expect(mj).toEqual(all);
+    });
+
+    it('maxKeys constrains Forma', () => {
+      const builder = [0, 1, 2, 3, 4].map(
+        (maxKeys) => new MonoJSONBuilder({ maxKeys }),
+      );
+      const mj = builder.map((b) => a4n.toMonoJSON(b));
+      expect(mj[1]).toEqual({ id: all.id });
+      expect(mj[2]).toEqual({ id: all.id, name });
+      expect(mj[3]).toEqual({ id: all.id, name, summary });
+      expect(mj[4]).toEqual({
+        id: all.id,
+        name,
+        summary,
+        forma: a4n.forma,
+      });
+
+      expect(mj[0]).toEqual(all);
+    });
+
+    it('zeno constrains Forma', () => {
+      const builder = [0, 1, 2, 3].map(
+        (z) => new MonoJSONBuilder({ zeno: zenoStep(z) }),
+      );
+      const mj = builder.map((b) => a4n.toMonoJSON(b));
+      expect(mj[0]).toEqual({ id: all.id, name });
+      expect(mj[1]).toEqual({ id: all.id, name, summary });
+      expect(mj[2]).toEqual(all);
+    });
   });
 });

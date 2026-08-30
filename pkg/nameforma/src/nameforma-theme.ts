@@ -213,6 +213,8 @@ export class NameFormaTheme implements INameFormaTheme {
  * ANSI Colors
  */
 export class MarkerTheme implements INameFormaTheme {
+  columnSeparator: string = '│';
+
   nfText(text: string): string {
     return `«${text}»`;
   }
@@ -247,6 +249,8 @@ export class MarkerTheme implements INameFormaTheme {
  * for content without color.
  */
 export class PlainTheme implements INameFormaTheme {
+  columnSeparator: string = '│';
+
   nfText(text: string): string {
     return text;
   }

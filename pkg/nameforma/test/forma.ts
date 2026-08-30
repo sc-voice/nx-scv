@@ -12,9 +12,11 @@ import {
   FormaField,
   DBG,
   FuzzyNamespace,
+  MarkerTheme,
   MonoJSONBuilder,
   ZENO_1_ROW_TERSE,
   ZENO_1_ROW_VERBOSE,
+  zenoStep,
 } from '@sc-voice/nameforma/unstable';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
@@ -33,7 +35,8 @@ class TestThing extends Forma {
   }
 }
 
-const theme = {
+const theme = new MarkerTheme();
+const xtheme = {
   nfText: (text: string): string => text,
   nfNote: (text: string): string => `<${text}>`,
   nfLabel: (text: string): string => `${text}:`,
@@ -398,48 +401,51 @@ describe('Forma', () => {
     dbg && cc.ok1(msg + UOK, 'unsupported command throws');
   });
 
-  it('toMonoJSON projects forma as flat record', () => {
+  describe('toMonoJSON projects a semantic summary', () => {
     const id = new UUID64();
     const name = 'aName';
     const summary = 'aSummary';
-    const forma = new Forma({ id, name, summary });
-
-    // Terse (ZENO_1_ROW_TERSE): id + name, no summary
-    const builder = new MonoJSONBuilder({ maxKeys: 5, theme });
-    const mj1 = forma.toMonoJSON(builder, {
-      theme,
-      zeno: ZENO_1_ROW_TERSE,
-    });
-    expect(mj1).toEqual({ id: id.base64, name });
-
-    // Verbose (ZENO_1_ROW_VERBOSE): id + name + summary
-    const mj2 = forma.toMonoJSON(builder, {
-      theme,
-      zeno: ZENO_1_ROW_VERBOSE,
-    });
-    expect(mj2).toEqual({ id: id.base64, name, summary: '<aSummary>' });
-
-    // With namespace: zid preferred over full id in terse mode
-    const ns = new FuzzyNamespace();
-    ns.addForma(forma);
-    const zid = ns.fuzzyIdOf(forma.id.base64);
-    const mj3 = forma.toMonoJSON(builder, {
-      theme,
-      zeno: ZENO_1_ROW_TERSE,
-      namespace: ns,
-    });
-    expect(mj3).toEqual({ zid, name });
-
-    const mj4 = forma.toMonoJSON(builder, {
-      theme,
-      zeno: ZENO_1_ROW_VERBOSE,
-      namespace: ns,
-    });
-    expect(mj4).toEqual({
-      zid,
+    const f3a = new Forma({ id, name, summary });
+    const updateId = f3a.updateId;
+    const all = {
       id: id.base64,
       name,
-      summary: '<aSummary>',
+      summary,
+      forma: f3a.forma,
+      updateId: updateId.base64,
+    };
+
+    it('flattens UUID64', () => {
+      const builder = new MonoJSONBuilder();
+      const mj = f3a.toMonoJSON(builder);
+      expect(mj).toEqual(all);
+    });
+
+    it('maxKeys constrains Forma', () => {
+      const builder = [0, 1, 2, 3, 4].map(
+        (maxKeys) => new MonoJSONBuilder({ maxKeys }),
+      );
+      const mj = builder.map((b) => f3a.toMonoJSON(b));
+      expect(mj[0]).toEqual(all);
+      expect(mj[1]).toEqual({ id: all.id });
+      expect(mj[2]).toEqual({ id: all.id, name });
+      expect(mj[3]).toEqual({ id: all.id, name, summary });
+      expect(mj[4]).toEqual({
+        id: all.id,
+        name,
+        summary,
+        forma: f3a.forma,
+      });
+    });
+
+    it('zeno constrains Forma', () => {
+      const builder = [0, 1, 2].map(
+        (z) => new MonoJSONBuilder({ zeno: zenoStep(z) }),
+      );
+      const mj = builder.map((b) => f3a.toMonoJSON(b));
+      expect(mj[0]).toEqual({ id: all.id, name });
+      expect(mj[1]).toEqual({ id: all.id, name, summary });
+      expect(mj[2]).toEqual(all);
     });
   });
 });

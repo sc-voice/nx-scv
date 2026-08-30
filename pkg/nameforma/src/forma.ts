@@ -340,37 +340,22 @@ export class Forma
   /** Add MonoJSON KV pair on behalf of toMonoJSON() */
   override addKeyValues(
     builder: MonoJSONBuilder,
-    opts: Record<string, any>,
+    opts: Record<string, any> = {},
   ): void {
     super.addKeyValues(builder, opts);
-    const { theme, zeno } = opts;
-    const { name, summary } = this;
+    const { theme, zeno, namespace } = opts;
+    const { forma, updateId, name, summary } = this;
 
     // name
     builder.addKeyValue('name', name);
 
     // summary
-    if (zeno >= ZENO_1_ROW_VERBOSE && this.summary) {
+    if (zeno >= ZENO_1_ROW_VERBOSE) {
       builder.addKeyValue('summary', theme.nfNote(summary));
     }
     if (zeno > ZENO_1_ROW_VERBOSE) {
-      console.log('addKV');
-      Object.keys(this).forEach((k) => {
-        switch (k) {
-          case 'id':
-          case 'zid':
-          case 'name':
-          case 'summary':
-            // already added
-            break;
-          default:
-            const value = this[k];
-            if (value !== undefined) {
-              builder.addKeyValue(k, value);
-            }
-            break;
-        }
-      });
+      builder.addKeyValue('forma', forma);
+      builder.addKeyValue('updateId', updateId.base64);
     }
   }
 

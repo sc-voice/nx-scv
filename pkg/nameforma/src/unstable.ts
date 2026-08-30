@@ -51,6 +51,7 @@ export {
   ZENO_987_ROWS,
   ZENO_1597_ROWS,
   ZENO_2584_ROWS,
+  ZENO_MAX_ROWS,
   zenoStep,
   type ZenoStep,
 } from './navigable-view.js';

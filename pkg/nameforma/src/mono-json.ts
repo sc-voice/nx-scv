@@ -1,13 +1,36 @@
 /*
- * MonoJSON is a Data Transfer Object (DTO) for projecting complex internal state
- * as a flattened object presentable as tabular data.
- * MonoJSONBuilder builds MonoJSON objects with a maximum number of keys,
- * with an allowance for overflow key-value (KV) fields, whose values
- * are concatenated as the value of a single overflow key ('…').
+ * MonoJSON is a flattened JSON Data Transfer Object (DTO) presentable as
+ * tabular data. MonoJSON therefore functions as a semantic viewport
+ * into a given data context. MonoJSON supports applications that
+ * allow users to "zoom in/out" of their data without needing to
+ * specify what detail to omit/summarize. Detail is added to or removed
+ * from MonoJSON according to a simple numeric "semantic projection" metric.
+ * Unlike traditional projection that requires users to define what column(s)
+ * to include/exclude, a semantic projection is scaled numerically,
+ * allowing the user to increment/decrement the level of detail shown in the
+ * semantic viewport.
+ *
+ * An example of a simple semantic projection metric is "maximum number of keys".
+ * Clearly, since the original data is organized as KV pairs, detail can
+ * be controlled by limiting the number of keys presented.
+ * Given [id, name, email, telephone, home address], if we specify
+ * maxKeys=3, the semantic projection is implicitly [id, name, email].
+ * Other semantic projection metrics are possible as long as they are
+ * incrementable. The choice of semantic projection metric is not
+ * a MonoJSON concern since MonoJSON is simply a DTO for a semantic
+ * projection.
+ *
+ * MonoJSONBuilder is a builder for MonoJSON objects constructed from
+ * deeply nested JSON objects according to specific constraints such as the maximum
+ * number of keys (maxKeys) to be included in the new MonoJSON object.
+ * The maxKeys constraint can be used to prune detail from the original
+ * object provided that keys are ordered by increasing level of detail
+ * and decreasing level of general relevance.
  */
 
 import { INameFormaTheme } from './navigable-view.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { ZenoStep, ZENO_MAX_ROWS } from './navigable-view.js';
 
 /**
  * The fundamental scalar types allowed within a MonoJSON object.
@@ -43,15 +66,17 @@ export class MonoJSONBuilder {
   readonly overflowDelimiter: string; // overflow key-value (KV) separator
   readonly overflowKey: string; // key for overflow KV pairs
   readonly theme: INameFormaTheme; // pi-coding-agent theme
-  readonly maxKeys: number; // maximum # of output keys (5)
-  readonly maxLines: number; // maximum # of output lines (5)
+  readonly maxKeys: number; // maximum # of output keys (0:unlimited)
+  readonly zeno: ZenoStep;
+
+  // TODO: Deprecate maxOverflow?
   readonly maxOverflow: number; // maximum number of overflow KV pairs (3)
 
   /** Total count of top-level array elements */
   get nArrayElements() {
     return this.#nArrayElements;
   }
-  /** soource from which to build MonoJSON */
+  /** source from which to build MonoJSON */
   get source(): object {
     return this.#source;
   }
@@ -65,17 +90,17 @@ export class MonoJSONBuilder {
   #lastKey: string | undefined = 'reset';
   #source: object = { error: 'reset' };
 
-  constructor(opts: Partial<MonoJSONBuilder>) {
+  constructor(opts: Partial<MonoJSONBuilder> = {}) {
     const ctx = 'MonoJSONBUilder.ctor';
     const {
       arrayDelimiter = ',',
       overflowDelimiter = '|',
       overflowKey = ELLIPSIS,
-      maxLines,
-      maxKeys = 5,
-      maxOverflow = 3,
+      maxKeys = 0,
+      maxOverflow = 0,
       theme = NameFormaTheme.shared,
       source = {},
+      zeno = ZENO_MAX_ROWS,
     } = opts;
 
     this.#source = source;
@@ -85,16 +110,13 @@ export class MonoJSONBuilder {
     this.maxOverflow = maxOverflow;
     this.maxKeys = maxKeys;
     this.theme = theme;
-    this.maxLines = maxLines ?? maxKeys;
+    this.zeno = zeno;
 
-    if (maxLines! <= 0) {
-      throw new Error(`${ctx} maxLines: ${maxLines} < 1?`);
+    if (maxKeys < 0) {
+      throw new Error(`${ctx} maxKeys: ${maxKeys} < 0?`);
     }
-    if (maxKeys <= 0) {
-      throw new Error(`${ctx} maxKeys: ${maxKeys} < 1?`);
-    }
-    if (maxOverflow <= 0) {
-      throw new Error(`${ctx} maxOverflow: ${maxOverflow} < 1?`);
+    if (maxOverflow < 0) {
+      throw new Error(`${ctx} maxOverflow: ${maxOverflow} < 0?`);
     }
 
     this.reset(source);
@@ -116,7 +138,11 @@ export class MonoJSONBuilder {
   fromSource(source: object, opts: Record<string, any> = {}): this {
     this.reset(source);
     if (typeof (source as any)?.toMonoJSON === 'function') {
-      (source as any).toMonoJSON(this, opts);
+      const resolvedOpts = {
+        theme: this.theme,
+        ...opts,
+      };
+      (source as any).toMonoJSON(this, resolvedOpts);
     } else {
       for (const [key, value] of Object.entries(source)) {
         this.addKeyValue(key, value);
@@ -142,9 +168,7 @@ export class MonoJSONBuilder {
         break;
     }
     if (value instanceof Array) {
-      return value
-        .map((v) => this.asSimpleType(v))
-        .join(this.arrayDelimiter);
+      return `[…${value.length}]`;
     }
     if (value instanceof Date) {
       return value;
@@ -164,6 +188,11 @@ export class MonoJSONBuilder {
     });
   }
 
+  /** Return true if builder has already added a key value */
+  hasKey(key: string): boolean {
+    return this.#monoJSON[key] !== undefined;
+  }
+
   /*
    * Conditionally add given KV pair to MonoJSON object subject
    * to maxKeys and maxOverflow constraints, converting values
@@ -175,17 +204,15 @@ export class MonoJSONBuilder {
       this;
     const monoJSON = this.#monoJSON;
     let simpleValue = this.asSimpleType(value);
-    let resolvedKey =
-      value instanceof Array ? `${key}[${value.length}]` : key;
 
     // Forbid resetting key values
     if (monoJSON[key] !== undefined) {
       throw new Error(`${ctx} attempt to overwrite ${key}:${value}`);
     }
 
-    if (this.#nKeys < maxKeys) {
+    if (maxKeys === 0 || this.#nKeys < maxKeys) {
       this.#nKeys++;
-      monoJSON[resolvedKey] = simpleValue;
+      monoJSON[key] = simpleValue;
       this.#lastKey = key;
     } else if (this.#nOverflow < maxOverflow) {
       this.#nOverflow++;
@@ -196,8 +223,8 @@ export class MonoJSONBuilder {
       }
       simpleValue =
         lastValue + overflowDelimiter + theme.nfLabel(key) + simpleValue;
-      resolvedKey = this.overflowKey;
-      monoJSON[resolvedKey] = simpleValue;
+      key = this.overflowKey;
+      monoJSON[key] = simpleValue;
       this.#lastKey = overflowKey;
     }
     if (value instanceof Array) {

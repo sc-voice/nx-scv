@@ -18,6 +18,9 @@ export { ViewNamespace } from './view-namespace.js';
  * or may not require attention
  */
 export interface INameFormaTheme {
+  // vertical border
+  columnSeparator: string;
+
   // Primary text, terse
   nfText(text: string): string;
 
@@ -135,6 +138,7 @@ export const ZENO_610_ROWS = zenoStep(14);
 export const ZENO_987_ROWS = zenoStep(15);
 export const ZENO_1597_ROWS = zenoStep(16);
 export const ZENO_2584_ROWS = zenoStep(17);
+export const ZENO_MAX_ROWS = zenoStep(17);
 
 /**
  * Rendering detail can be specified continously over the range [0..1].
