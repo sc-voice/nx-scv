@@ -1,5 +1,6 @@
 import { logger } from './file-repository.js';
 import {
+  INameFormaTheme,
   ZenoStep,
   zenoStep,
   ZENO_1_ROW_VERBOSE,
@@ -10,7 +11,6 @@ import {
 } from './navigable-view.js';
 import { MonoTable } from './mono-table.js';
 import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
-import { zidify } from './fuzzy-namespace.js';
 import { DBG } from './defines.js';
 import {
   MonoJSONBuilder,
@@ -243,6 +243,15 @@ export class NfFindCommand {
     return formas;
   }
 
+  themedValue(theme: INameFormaTheme, key, value): string {
+    if (theme) {
+      if (key === 'zid') {
+        return theme.nfLink(value);
+      }
+    }
+    return value;
+  }
+
   async action(queries: string[], options: any) {
     const ctx = 'NfFindCommand.action';
     const { nfProgram } = this;
@@ -252,6 +261,7 @@ export class NfFindCommand {
       const valid = this._validateParameters(queries, options);
       dbg && logger.info({ ctx, valid });
       const {
+        addZid,
         maxKeys,
         projection,
         tuiColumns,
@@ -262,10 +272,10 @@ export class NfFindCommand {
         json,
       } = valid;
       const theme = json ? new PlainTheme() : NameFormaTheme.shared;
+      const namespace = addZid ? nfProgram.world.namespace : undefined;
       const jsonBuilder = (this.jsonBuilder = new MonoJSONBuilder({
         maxKeys,
-        maxOverflow: 0,
-        theme,
+        namespace,
       }));
       const formas = await this._mergeResults(queries, valid.rows);
       const jsonFormas = formas.map((f) => {
@@ -277,12 +287,13 @@ export class NfFindCommand {
         nfProgram.applyProjection(f3a, projection),
       );
       const { columnSeparator } = theme;
-      const ns = nfProgram.world.mutableNamespace;
       if (valid.monoTable) {
         const mt = new MonoTable({
           columnSeparator,
           headerCase: 'none',
           rows: projected,
+          theme,
+          themedValue: this.themedValue,
         });
         lines.push(mt.format());
       } else {

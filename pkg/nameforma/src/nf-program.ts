@@ -454,10 +454,14 @@ Examples:
       .description('Show system/environmental info')
       .action(async (options: any) => {
         const { rows, columns } = process.stdout ?? {};
+        const { _world } = nfp;
+        const ns = _world && _world.namespace;
+        const nsSize = (ns && ns.size) || 'uninitialized';
         nfp.writeOut(
           JSON.stringify({
             rows,
             columns,
+            nsSize,
           }),
         );
       });

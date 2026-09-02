@@ -56,6 +56,10 @@ export class ViewNamespace implements IMutableNamespace {
     return [...this._tracked];
   }
 
+  get size(): number {
+    return this.getMerged().size;
+  }
+
   /** Compute merged namespace from anchor + pivot */
   private getMerged(): FuzzyNamespace {
     const merged = new FuzzyNamespace();

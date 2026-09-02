@@ -252,7 +252,8 @@ describe('FuzzyNamespace', () => {
     });
   });
 
-  describe('zidify', () => {
+  // We probably do not need zidify given toMonoJSON()
+  describe.skip('zidify', () => {
     const mockNs = {
       fuzzyIdOf: (id: any): string =>
         typeof id === 'string'

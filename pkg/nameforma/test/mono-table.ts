@@ -821,4 +821,52 @@ describe('mono-table', () => {
       }).toThrow('rows must be an Array');
     });
   });
+
+  describe('themedValue callback', () => {
+    it('applies themedValue to zid column', () => {
+      const rows = [
+        { name: 'Alice', zid: 'abc123' },
+        { name: 'Bob', zid: 'def456' },
+      ];
+      const themedValue = (theme: any, key: string, value: string) => {
+        if (key === 'zid') {
+          return `[LINK:${value}]`;
+        }
+        return value;
+      };
+
+      const tbl = new MonoTable({
+        rows,
+        theme: PLAIN_THEME,
+        themedValue,
+      });
+
+      const formatted = tbl.format();
+      expect(formatted).toContain('[LINK:abc123]');
+      expect(formatted).toContain('[LINK:def456]');
+      expect(formatted).toContain('Alice');
+      expect(formatted).toContain('Bob');
+    });
+
+    it('does not apply themedValue to non-zid columns', () => {
+      const rows = [{ name: 'Alice', zid: 'abc123' }];
+      const themedValue = (theme: any, key: string, value: string) => {
+        if (key === 'zid') {
+          return `[LINK:${value}]`;
+        }
+        return value;
+      };
+
+      const tbl = new MonoTable({
+        rows,
+        theme: PLAIN_THEME,
+        themedValue,
+      });
+
+      const formatted = tbl.format();
+      expect(formatted).toContain('[LINK:abc123]');
+      expect(formatted).toContain('Alice'); // name not transformed
+      expect(formatted).not.toContain('[LINK:Alice]');
+    });
+  });
 });

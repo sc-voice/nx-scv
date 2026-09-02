@@ -28,9 +28,11 @@
  * and decreasing level of general relevance.
  */
 
-import { INameFormaTheme } from './navigable-view.js';
-import { NameFormaTheme } from './nameforma-theme.js';
 import { ZenoStep, ZENO_MAX_ROWS } from './navigable-view.js';
+import {
+  FuzzyNamespace,
+  type IReadOnlyNamespace,
+} from './fuzzy-namespace.js';
 
 /**
  * The fundamental scalar types allowed within a MonoJSON object.
@@ -63,14 +65,10 @@ const ELLIPSIS = '…';
  */
 export class MonoJSONBuilder {
   readonly arrayDelimiter: string; // array element separator
-  readonly overflowDelimiter: string; // overflow key-value (KV) separator
-  readonly overflowKey: string; // key for overflow KV pairs
-  readonly theme: INameFormaTheme; // pi-coding-agent theme
   readonly maxKeys: number; // maximum # of output keys (0:unlimited)
-  readonly zeno: ZenoStep;
-
-  // TODO: Deprecate maxOverflow?
-  readonly maxOverflow: number; // maximum number of overflow KV pairs (3)
+  readonly namespace: IReadOnlyNamespace | undefined; // for zid resolution
+  readonly zeno: ZenoStep; // semantic zoom (ZENO_MAX_ROWS)
+  readonly zidSource: string; // zid source if namespace is provided (id)
 
   /** Total count of top-level array elements */
   get nArrayElements() {
@@ -85,7 +83,6 @@ export class MonoJSONBuilder {
   // TypeScript's strict definite assignment requires this workaround.
   #monoJSON: MonoJSON = { error: 'reset' };
   #nKeys: number = -1;
-  #nOverflow: number = -1;
   #nArrayElements: number = -1;
   #lastKey: string | undefined = 'reset';
   #source: object = { error: 'reset' };
@@ -94,29 +91,25 @@ export class MonoJSONBuilder {
     const ctx = 'MonoJSONBUilder.ctor';
     const {
       arrayDelimiter = ',',
-      overflowDelimiter = '|',
-      overflowKey = ELLIPSIS,
       maxKeys = 0,
-      maxOverflow = 0,
-      theme = NameFormaTheme.shared,
+      namespace,
       source = {},
       zeno = ZENO_MAX_ROWS,
+      zidSource = 'id',
     } = opts;
 
     this.#source = source;
     this.arrayDelimiter = arrayDelimiter;
-    this.overflowDelimiter = theme.nfBoundary(overflowDelimiter);
-    this.overflowKey = overflowKey;
-    this.maxOverflow = maxOverflow;
     this.maxKeys = maxKeys;
-    this.theme = theme;
     this.zeno = zeno;
+    if (zidSource === 'zid') {
+      throw new Error(`Invalid zidSource:${zidSource}`);
+    }
+    this.zidSource = zidSource;
+    this.namespace = namespace;
 
     if (maxKeys < 0) {
       throw new Error(`${ctx} maxKeys: ${maxKeys} < 0?`);
-    }
-    if (maxOverflow < 0) {
-      throw new Error(`${ctx} maxOverflow: ${maxOverflow} < 0?`);
     }
 
     this.reset(source);
@@ -126,7 +119,6 @@ export class MonoJSONBuilder {
   reset(source: object): this {
     this.#monoJSON = {};
     this.#nKeys = 0;
-    this.#nOverflow = 0;
     this.#nArrayElements = 0;
     this.#lastKey = undefined;
     this.#source = source;
@@ -138,11 +130,7 @@ export class MonoJSONBuilder {
   fromSource(source: object, opts: Record<string, any> = {}): this {
     this.reset(source);
     if (typeof (source as any)?.toMonoJSON === 'function') {
-      const resolvedOpts = {
-        theme: this.theme,
-        ...opts,
-      };
-      (source as any).toMonoJSON(this, resolvedOpts);
+      (source as any).toMonoJSON(this, opts);
     } else {
       for (const [key, value] of Object.entries(source)) {
         this.addKeyValue(key, value);
@@ -195,13 +183,13 @@ export class MonoJSONBuilder {
 
   /*
    * Conditionally add given KV pair to MonoJSON object subject
-   * to maxKeys and maxOverflow constraints, converting values
+   * to maxKeys constraints, converting values
    * to SimpleType.
    */
   addKeyValue(key: string, value: any): this {
+    const { zidSource, namespace } = this;
     const ctx = 'MonoJSON.set';
-    const { theme, overflowDelimiter, maxKeys, maxOverflow, overflowKey } =
-      this;
+    const { maxKeys } = this;
     const monoJSON = this.#monoJSON;
     let simpleValue = this.asSimpleType(value);
 
@@ -209,23 +197,15 @@ export class MonoJSONBuilder {
     if (monoJSON[key] !== undefined) {
       throw new Error(`${ctx} attempt to overwrite ${key}:${value}`);
     }
+    if (namespace && key === zidSource) {
+      const zid: string = namespace.fuzzyIdOf(value);
+      this.addKeyValue('zid', zid);
+    }
 
     if (maxKeys === 0 || this.#nKeys < maxKeys) {
       this.#nKeys++;
       monoJSON[key] = simpleValue;
       this.#lastKey = key;
-    } else if (this.#nOverflow < maxOverflow) {
-      this.#nOverflow++;
-      let lastValue = monoJSON[this.#lastKey!] ?? '';
-      if (this.#lastKey !== this.overflowKey) {
-        delete monoJSON[this.#lastKey!];
-        lastValue = theme.nfLabel(this.#lastKey!) + lastValue;
-      }
-      simpleValue =
-        lastValue + overflowDelimiter + theme.nfLabel(key) + simpleValue;
-      key = this.overflowKey;
-      monoJSON[key] = simpleValue;
-      this.#lastKey = overflowKey;
     }
     if (value instanceof Array) {
       this.#nArrayElements += value.length;

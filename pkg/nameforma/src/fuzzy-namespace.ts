@@ -32,6 +32,8 @@ export interface IReadOnlyNamespace {
     targetClass: C,
     filter?: (element: T) => boolean,
   ): Generator<InstanceType<C>>;
+
+  readonly size: number;
 }
 
 /**
@@ -79,6 +81,10 @@ export class FuzzyNamespace implements IMutableNamespace {
       this.#cachedPrefixLen = that.#cachedPrefixLen;
       this.#cachedSuffixLen = that.#cachedSuffixLen;
     }
+  }
+
+  get size(): number {
+    return this.#formas.length;
   }
 
   /**
@@ -162,18 +168,25 @@ export class FuzzyNamespace implements IMutableNamespace {
 
   /**
    * Generate the masked FuzzyId for an ID in this namespace.
-   * @param idInput - UUID64 instance or base64 string
+   * Handles ANSI-decorated string IDs by extracting plain ID, computing zid, and replacing.
+   * @param idInput - UUID64 instance or base64 string (string may have ANSI codes)
    * @returns The computed FuzzyId, or the input if not in namespace
    */
   fuzzyIdOf(idInput: UUID64 | string): FuzzyId {
-    const idStr = typeof idInput === 'string' ? idInput : idInput.base64;
+    const isString = typeof idInput === 'string';
+    const idStr = isString ? idInput : idInput.base64;
 
-    // Return unchanged if not in this namespace
-    const exists = this.#formas.some((f) => f.id.base64 === idStr);
-    if (!exists) return idStr;
+    // Extract plain ID (strip ANSI codes for lookup)
+    const plainId = idStr.replace(/\x1B\[[0-9;]*m/g, '');
 
-    if (this.#fuzzyIdCache.has(idStr)) {
-      return this.#fuzzyIdCache.get(idStr)!;
+    // Return plain ID if not in this namespace
+    const exists = this.#formas.some((f) => f.id.base64 === plainId);
+    if (!exists) return plainId;
+
+    if (this.#fuzzyIdCache.has(plainId)) {
+      const cached = this.#fuzzyIdCache.get(plainId)!;
+      // Replace plainId with cached zid in idStr (preserves ANSI codes if string)
+      return isString ? idStr.replace(plainId, cached) : cached;
     }
 
     // Compute prefix/suffix if not cached
@@ -182,12 +195,14 @@ export class FuzzyNamespace implements IMutableNamespace {
     }
 
     // Mask the FuzzyId
-    const timeId = idStr.substring(0, UUID64.TIME_SEQ_CHARS);
+    const timeId = plainId.substring(0, UUID64.TIME_SEQ_CHARS);
     const endIndex = timeId.length - this.#cachedSuffixLen!;
     const masked = timeId.substring(this.#cachedPrefixLen!, endIndex);
 
-    this.#fuzzyIdCache.set(idStr, masked);
-    return masked;
+    this.#fuzzyIdCache.set(plainId, masked);
+
+    // Replace plainId with masked in idStr (preserves ANSI codes if string)
+    return isString ? idStr.replace(plainId, masked) : masked;
   }
 
   /**
@@ -327,6 +342,7 @@ function isRecord(value: any): boolean {
 }
 
 /**
+ * @deprecated
  * Return a copy of obj with `zid` siblings inserted before every `id` field,
  * at any depth. Non-mutating; the original is unchanged.
  * @param obj - Source value (record, array, or leaf)

@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import {
-  PlainTheme,
+  FuzzyNamespace,
   MonoJSONBuilder,
   SimpleType,
   NameFormaTheme,
@@ -10,44 +10,32 @@ import {
 } from '@sc-voice/nameforma/unstable';
 import { UUID64, Forma, Task, Action } from '@sc-voice/nameforma';
 
-const theme = new PlainTheme();
-
 describe('mono-json', () => {
   describe('MonoJSONBuilder constructor', () => {
     it('uses default options', () => {
       const builder = new MonoJSONBuilder({});
       expect(builder.arrayDelimiter).toBe(',');
-      expect(builder.overflowKey).toBe('…');
       expect(builder.maxKeys).toBe(0);
-      expect(builder.maxOverflow).toBe(0);
       expect(builder.nArrayElements).toBe(0);
-      expect(builder.theme).toBe(NameFormaTheme.shared);
       expect(builder.zeno).toBe(ZENO_MAX_ROWS);
+      expect(builder.zidSource).toBe('id');
+      expect(builder.namespace).toBeUndefined();
     });
 
     it('accepts custom ctor', () => {
-      const theme = new PlainTheme();
+      const namespace = new FuzzyNamespace();
       const builder = new MonoJSONBuilder({
         arrayDelimiter: '; ',
-        overflowKey: '+',
         maxKeys: 7,
-        maxOverflow: 5,
-        theme,
         zeno: ZENO_2_ROWS,
+        zidSource: 'uuid',
+        namespace,
       });
       expect(builder.arrayDelimiter).toBe('; ');
-      expect(builder.overflowKey).toBe('+');
       expect(builder.maxKeys).toBe(7);
-      expect(builder.maxOverflow).toBe(5);
-      expect(builder.theme).toBe(theme);
       expect(builder.zeno).toBe(ZENO_2_ROWS);
-    });
-
-    it('theme applies nfBoundary to overflowDelimiter', () => {
-      const builder = new MonoJSONBuilder({ overflowDelimiter: '|' });
-      // Theme wraps the delimiter, so it should be different from plain '|'
-      expect(typeof builder.overflowDelimiter).toBe('string');
-      expect(builder.overflowDelimiter).toBeDefined();
+      expect(builder.zidSource).toBe('uuid');
+      expect(builder.namespace).toBe(namespace);
     });
   });
 
@@ -165,69 +153,6 @@ describe('mono-json', () => {
   });
 
   describe('MonoJSONBuilder.addKeyValue', () => {
-    it('handles maxKeys:1 with overflow', () => {
-      const builder = new MonoJSONBuilder({
-        theme,
-        maxKeys: 1,
-        maxOverflow: 2,
-      });
-      const result0 = builder.build();
-      expect(result0).toEqual({});
-
-      // No overflow
-      builder.addKeyValue('a', 1);
-      const result1 = builder.build();
-      expect(result1).toEqual({ a: 1 });
-
-      // Overflow 1
-      builder.addKeyValue('b', 2);
-      const result2 = builder.build();
-      expect(result2).toEqual({ '…': 'a:1|b:2' });
-
-      // Overflow 2
-      builder.addKeyValue('c', 3);
-      const result3 = builder.build();
-      expect(result3).toEqual({ '…': 'a:1|b:2|c:3' });
-
-      // Clipped overflow
-      builder.addKeyValue('d', 4);
-      const result4 = builder.build();
-      expect(result4).toEqual({ '…': 'a:1|b:2|c:3' });
-    });
-    it('handles maxKeys:2 with overflow', () => {
-      const builder = new MonoJSONBuilder({
-        theme,
-        maxKeys: 2,
-        maxOverflow: 2,
-      });
-      const result0 = builder.build();
-      expect(result0).toEqual({});
-
-      // No overflow
-      builder.addKeyValue('a', 1);
-      const result1 = builder.build();
-      expect(result1).toEqual({ a: 1 });
-
-      // No overflow
-      builder.addKeyValue('b', 2);
-      const result2 = builder.build();
-      expect(result2).toEqual({ a: 1, b: 2 });
-
-      // Overflow 1
-      builder.addKeyValue('c', 3);
-      const result3 = builder.build();
-      expect(result3).toEqual({ a: 1, '…': 'b:2|c:3' });
-
-      // Overflow 1
-      builder.addKeyValue('d', 4);
-      const result4 = builder.build();
-      expect(result4).toEqual({ a: 1, '…': 'b:2|c:3|d:4' });
-
-      // Clipped overflow
-      builder.addKeyValue('e', 5);
-      const result5 = builder.build();
-      expect(result5).toEqual({ a: 1, '…': 'b:2|c:3|d:4' });
-    });
     it('converts values using asSimpleType', () => {
       const builder = new MonoJSONBuilder({ maxKeys: 10 });
       const date = new Date('2024-01-15T12:00:00Z');
@@ -269,6 +194,39 @@ describe('mono-json', () => {
       builder.addKeyValue('arr2', [4, [5, 6]]);
       expect(builder.nArrayElements).toBe(5);
     });
+    it('zid column is inserted if namespace is provided', () => {
+      // create namespace having id and uuid
+      const namespace = new FuzzyNamespace();
+      const forma1 = new Forma({ name: 'name1' });
+      const forma2 = new Forma({ name: 'name2' });
+      [forma1, forma2].forEach((f3a) => namespace.addForma(f3a));
+      const id = forma1.id;
+      const uuid = forma2.id;
+
+      // Create a builder for zidSource uuid
+      const zidSource = 'uuid';
+      const builder = new MonoJSONBuilder({ namespace, zidSource });
+
+      // addKeyValue will add zid iff key===zidSource (false)
+      builder.addKeyValue('id', id);
+      expect(builder.build()).toEqual({
+        id: id.base64,
+      });
+
+      // addKeyValue will add zid iff key===zidSource (true)
+      builder.addKeyValue('uuid', uuid);
+      const zidJSON = builder.build();
+      const zid = namespace.fuzzyIdOf(uuid);
+      expect(zidJSON).toEqual({
+        id: id.base64,
+        zid,
+        uuid: uuid.base64,
+      });
+      expect(zid.length).toBeLessThan(10);
+
+      // zid column is inserted before zidSource
+      expect(Object.keys(zidJSON)).toEqual(['id', 'zid', 'uuid']);
+    });
   });
 
   describe('MonoJSONBuilder.fromSource', () => {
@@ -300,7 +258,6 @@ describe('mono-json', () => {
       const name = 'Name1';
       const forma = new Forma({ id, name });
       const status = 'work';
-      const theme = NameFormaTheme.shared;
       const builder = new MonoJSONBuilder();
       const monoJSON = builder.fromSource(forma).build();
 
@@ -315,10 +272,9 @@ describe('mono-json', () => {
       const name = 'Action1';
       const summary = 'Summary1';
       const status = 'work';
-      const theme = NameFormaTheme.shared;
       const statusNote = 'note';
       const action = new Action({ id, name, summary, status, statusNote });
-      const builder = new MonoJSONBuilder({ maxKeys: 10, theme });
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
 
       // ZenoStep 1 only shows id, name, summary
       const mj1 = builder

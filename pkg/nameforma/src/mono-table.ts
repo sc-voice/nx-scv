@@ -83,6 +83,12 @@ export interface TableOptions {
   version?: string;
   /** Theme used to color table name, headers, and non-space separators. */
   theme?: INameFormaTheme;
+  /** Apply theme to value of key */
+  themedValue?: (
+    theme: INameFormaTheme,
+    key: string,
+    value: string,
+  ) => string;
   /** header title padding character */
   headerPad?: string;
 }
@@ -111,6 +117,11 @@ export class TableDefaults implements TableOptions {
   type!: string;
   version!: string;
   theme: INameFormaTheme = NameFormaTheme.shared;
+  themedValue?: (
+    theme: INameFormaTheme,
+    key: string,
+    value: string,
+  ) => string;
   headerPad: string = '┄'; // perceived as an open and permeable boundary
 
   /**
@@ -147,6 +158,7 @@ export class TableDefaults implements TableOptions {
       type = 'MonoTable',
       version = '1.0.0',
       theme = NameFormaTheme.shared,
+      themedValue = (theme, key, value) => value,
     } = opts;
 
     if (headers && !(headers instanceof Array)) {
@@ -176,6 +188,7 @@ export class TableDefaults implements TableOptions {
       type,
       version,
       theme,
+      themedValue,
     };
   }
 }
@@ -583,6 +596,12 @@ export class MonoTable extends TableDefaults {
     } else {
       stringValue = JSON.stringify(value);
     }
+    if (theme) {
+      stringValue = this.themedValue!(theme, header.id, stringValue);
+      console.error('themedValue', stringValue);
+    } else {
+      console.error('unthemedValue', stringValue);
+    }
 
     const content = styledLabel + stringValue;
 
@@ -698,6 +717,7 @@ export class MonoTable extends TableDefaults {
       localeOptions,
       summary,
       theme = NameFormaTheme.shared,
+      themedValue,
     } = opts;
 
     const { overflowIndex } = this._calculateLayout(opts);
@@ -743,6 +763,9 @@ export class MonoTable extends TableDefaults {
               locales,
               localeOptions,
             }) ?? '';
+          if (theme && themedValue) {
+            text = themedValue(theme, h.id, text);
+          }
           if (typeof row[h.id] === 'number') {
             data.push(MonoTable.padVisible(text, h.width ?? 0, true));
           } else {
