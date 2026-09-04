@@ -18,6 +18,7 @@ describe('mono-json', () => {
       expect(builder.maxKeys).toBe(0);
       expect(builder.nArrayElements).toBe(0);
       expect(builder.zeno).toBe(ZENO_MAX_ROWS);
+      expect(builder.projection).toEqual({});
       expect(builder.zidSource).toBe('id');
       expect(builder.namespace).toBeUndefined();
     });

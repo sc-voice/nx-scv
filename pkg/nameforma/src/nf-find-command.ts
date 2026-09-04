@@ -143,7 +143,12 @@ export class NfFindCommand {
     if (!queries || queries.length === 0) {
       throw new Error('At least one query is required');
     }
-    const projection = options.project ? Hjson.parse(options.project) : {};
+
+    const p5n = (options.project ?? '')
+      .split(',')
+      .map((c) => c.trim().replace(/^([a-z_][a-z0-9_]*)$/i, '$1:1'))
+      .join(',');
+    const projection = p5n ? Hjson.parse(p5n) : {};
     const pv = Object.values(projection);
     const optIn = pv.some((v) => v === 1);
     const optOut = pv.some((v) => v === 0);
@@ -220,7 +225,7 @@ export class NfFindCommand {
    * Resolve multiple queries and merge results with deduplication by id
    * @param queries - Array of query strings to resolve
    * @param rows - Result row limit (respects global limit across all queries)
-   * @returns Array of deduplicated formas
+   * @returns Array of deduplicated formas, sorted with focused entities first
    */
   async _mergeResults(queries: string[], rows: number): Promise<any[]> {
     const formas: any = [];
@@ -240,6 +245,7 @@ export class NfFindCommand {
         }
       }
     }
+    formas.sort(this.nfProgram.world.entityComparator);
     return formas;
   }
 
@@ -276,6 +282,7 @@ export class NfFindCommand {
       const jsonBuilder = (this.jsonBuilder = new MonoJSONBuilder({
         maxKeys,
         namespace,
+        projection,
       }));
       const formas = await this._mergeResults(queries, valid.rows);
       const jsonFormas = formas.map((f) => {
@@ -341,7 +348,7 @@ Examples:
   nf find -p id:0,summary:0 world
   nf find 'name:"foo"' -p '{name:1}'
   nf find --fuzzy-id id task -p id:1,name:1
-  nf find --zid task -p id:1,name:1
+  nf find --zid task -p id,name
   nf find --mono-table --rows 3 task`,
       )
       .action(async (queries: string[], options: any, command: any) => {

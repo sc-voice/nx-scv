@@ -67,6 +67,7 @@ export class MonoJSONBuilder {
   readonly arrayDelimiter: string; // array element separator
   readonly maxKeys: number; // maximum # of output keys (0:unlimited)
   readonly namespace: IReadOnlyNamespace | undefined; // for zid resolution
+  readonly projection: Record<string, 0 | 1>; // top-level key projection (0:exclude, 1:include)
   readonly zeno: ZenoStep; // semantic zoom (ZENO_MAX_ROWS)
   readonly zidSource: string; // zid source if namespace is provided (id)
 
@@ -93,6 +94,7 @@ export class MonoJSONBuilder {
       arrayDelimiter = ',',
       maxKeys = 0,
       namespace,
+      projection = {},
       source = {},
       zeno = ZENO_MAX_ROWS,
       zidSource = 'id',
@@ -101,6 +103,7 @@ export class MonoJSONBuilder {
     this.#source = source;
     this.arrayDelimiter = arrayDelimiter;
     this.maxKeys = maxKeys;
+    this.projection = projection;
     this.zeno = zeno;
     if (zidSource === 'zid') {
       throw new Error(`Invalid zidSource:${zidSource}`);
@@ -187,7 +190,7 @@ export class MonoJSONBuilder {
    * to SimpleType.
    */
   addKeyValue(key: string, value: any): this {
-    const { zidSource, namespace } = this;
+    const { projection, zidSource, namespace } = this;
     const ctx = 'MonoJSON.set';
     const { maxKeys } = this;
     const monoJSON = this.#monoJSON;
@@ -202,6 +205,10 @@ export class MonoJSONBuilder {
       this.addKeyValue('zid', zid);
     }
 
+    // suppress projection exclusions before they affect maxKeys limit
+    if (projection[key] === 0) {
+      return this;
+    }
     if (maxKeys === 0 || this.#nKeys < maxKeys) {
       this.#nKeys++;
       monoJSON[key] = simpleValue;

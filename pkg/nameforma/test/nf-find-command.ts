@@ -438,6 +438,36 @@ describe('NfFindCommand.register', () => {
     expect(json[1].id).toBe(task2.id.base64);
   });
 
+  it('find collection returns focused entities first, then non-focused', async () => {
+    const task1Id = '0PxVmryB00tGyAPrFKqetW';
+    const task1 = await world.loadFuzzy(Task, task1Id);
+    const task2 = await world.upsertOne(Task, {
+      name: 'Unfocused-Task-2',
+    });
+    const task3 = await world.upsertOne(Task, { name: 'Task-Focused-3' });
+
+    // Focus task3 (most recent), then task1
+    world.focusManager.focus(task1!.id);
+    world.focusManager.focus(task3.id);
+
+    output = [];
+    await rootCmd.parseAsync([...FIND, '-j', '-p', 'id:1,name:1', 'task']);
+
+    expect(output.length).toBe(1);
+    const json = output[0]
+      .trim()
+      .split('\n')
+      .filter((s) => s.trim())
+      .map((s) => JSON.parse(s));
+
+    // Focused entities should come first, in focus stack order (task3 then task1)
+    expect(json[0].id).toBe(task3.id.base64); // top of focus stack
+    expect(json[1].id).toBe(task1Id); // second in focus stack
+    // task2 (unfocused) should come after focused tasks
+    const task2Index = json.findIndex((j) => j.id === task2.id.base64);
+    expect(task2Index).toBeGreaterThan(1);
+  });
+
   it('find focused returns empty when nothing focused', async () => {
     // Ensure focus stack is empty
     while (world.focusManager.peek() !== null) {
@@ -611,6 +641,23 @@ describe('NfFindCommand._validateParameters', () => {
       fuzzyId: 'customColumn',
     });
     expect(parsed.addZid).toBe(true);
+  });
+
+  it('_validateParameters normalizes bare field names to inclusion format', () => {
+    expect(
+      nfFindCommand._validateParameters(['test'], { project: 'id' })
+        .projection,
+    ).toEqual({ id: 1 });
+    expect(
+      nfFindCommand._validateParameters(['test'], {
+        project: 'id,name,summary',
+      }).projection,
+    ).toEqual({ id: 1, name: 1, summary: 1 });
+    expect(
+      nfFindCommand._validateParameters(['test'], {
+        project: '_abc, xyz:1',
+      }).projection,
+    ).toEqual({ _abc: 1, xyz: 1 });
   });
 });
 
