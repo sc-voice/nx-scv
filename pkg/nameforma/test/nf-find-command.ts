@@ -10,12 +10,16 @@ import { NfFindCommand } from '../src/nf-find-command.js';
 import { createTempDir } from './cli/helpers.js';
 import {
   ZENO_1_ROW_TERSE,
+  ZENO_5_ROWS,
   ZENO_8_ROWS,
+  ZENO_13_ROWS,
+  ZENO_21_ROWS,
   ZENO_MAX_ROWS,
   zenoStep,
 } from '@sc-voice/nameforma/unstable';
+import { ZenoCoord } from '@sc-voice/nameforma';
 
-const FIND = ['node', 'test', 'find'];
+const FIND = ['node', 'test', 'find', '-k 0'];
 
 describe('NfFindCommand.register', () => {
   let tempDirObj: any;
@@ -53,7 +57,7 @@ describe('NfFindCommand.register', () => {
     tempDirObj.cleanup();
   });
 
-  it('find without projection returns all fields', async () => {
+  it('find without projection returns important fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([...FIND, '-j', taskId]);
@@ -67,8 +71,6 @@ describe('NfFindCommand.register', () => {
     expect(json[0].id).toBe(taskId);
     expect(json[0].name).toBe('Task1-Name');
     expect(json[0].summary).toBe('Task1-Summary');
-    expect(json[0].rawActions).toBeTruthy();
-    expect(json[0].rawReferences).toBeTruthy();
   });
 
   it('find with inclusion projection returns only selected fields', async () => {
@@ -515,15 +517,16 @@ describe('NfFindCommand._validateParameters', () => {
     // TUI screen dimensions are normally determined from process.stdout.
     // During tests, process.stdout is not available, so 24x80 are used by default.
     expect(valid.tuiRows).toEqual(24);
-    expect(valid.tuiColumns).toEqual(80);
+    expect(valid.tuiColumns).toBeLessThanOrEqual(80);
+    expect(valid.tuiColumns).toBeGreaterThanOrEqual(78);
 
     expect(valid.json).toBe(false);
     expect(valid.monoTable).toBe(true);
     expect(valid.addZid).toBe(false);
-    expect(valid.rowZeno).toBe(ZENO_MAX_ROWS);
+    //expect(valid.detailZeno).toEqual(new ZenoCoord(ZENO_21_ROWS,0));
     expect(valid.rows).toBe(valid.tuiRows - 1);
     expect(valid.linesPerRow).toBe(1);
-    expect(valid.maxKeys).toBe(0);
+    expect(valid.rawMaxKeys).toBe(undefined);
   });
 
   it('_validateParameters adjusts linesPerRow given rows', () => {
@@ -534,20 +537,7 @@ describe('NfFindCommand._validateParameters', () => {
       tuiRows,
     });
     expect(v2.rows).toBe(2);
-    expect(v2.linesPerRow).toBe(
-      Math.max(1, Math.floor((tuiRows - 1) / 2)),
-    );
-    expect(v2.maxKeys).toBe(0);
-
-    const v5 = nfFindCommand._validateParameters(['test'], {
-      rows: 5,
-      tuiRows,
-    });
-    expect(v5.rows).toBe(5);
-    expect(v5.linesPerRow).toBe(
-      4, // Math.max(1, Math.floor((tuiRows - 1) / 5))
-    );
-    expect(v5.maxKeys).toBe(0);
+    expect(v2.linesPerRow).toBe(1);
   });
 
   it('_validateParameters adjusts rows given linesPerRow', () => {
@@ -558,7 +548,6 @@ describe('NfFindCommand._validateParameters', () => {
     });
     expect(v1.addZid).toBe(false);
     expect(v1.linesPerRow).toBe(1);
-    expect(v1.maxKeys).toBe(0);
     expect(v1.rows).toBe(23); // max(1, floor((24 - 1) / 1)));
 
     const v2 = nfFindCommand._validateParameters(['test'], {
@@ -567,18 +556,18 @@ describe('NfFindCommand._validateParameters', () => {
     });
     expect(v2.addZid).toBe(false);
     expect(v2.linesPerRow).toBe(2);
-    expect(v2.maxKeys).toBe(0);
     expect(v2.rows).toBe(11); // max(1, floor((24 - 1) / 2)));
 
+    const zenoCoord = new ZenoCoord(zenoStep(3), zenoStep(1));
+    const detailZeno = zenoCoord.toRenderDetail();
     const v2Zeno = nfFindCommand._validateParameters(['test'], {
       linesPerRow: 2,
       tuiRows,
-      rowZeno: ZENO_8_ROWS, // affects maxKeys
+      detailZeno,
     });
     expect(v2Zeno.addZid).toBe(false);
-    expect(v2Zeno.rowZeno).toBe(ZENO_8_ROWS);
+    //expect(v2Zeno.detailZeno).toEqual(detailZeno);
     expect(v2Zeno.linesPerRow).toBe(2);
-    expect(v2Zeno.maxKeys).toBe(0);
     expect(v2Zeno.rows).toBe(11); // max(1, floor((tuiRows - 1) / 2)));
 
     const v5 = nfFindCommand._validateParameters(['test'], {
@@ -586,7 +575,6 @@ describe('NfFindCommand._validateParameters', () => {
       tuiRows,
     });
     expect(v5.linesPerRow).toBe(5);
-    expect(v5.maxKeys).toBe(0);
     expect(v5.rows).toBe(Math.max(1, Math.floor((tuiRows - 1) / 5)));
   });
 

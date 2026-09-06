@@ -19,7 +19,8 @@ const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
  */
 export class NameFormaTheme implements INameFormaTheme {
   private static _shared: NameFormaTheme | null = null;
-  columnSeparator: string = '│';
+  //columnSeparator: string = '│';  // does not delimit word-click
+  columnSeparator: string = '|'; // word-click delimiter
 
   constructor(private theme: Theme) {}
 

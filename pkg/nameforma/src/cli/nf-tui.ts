@@ -102,9 +102,9 @@ export class ReplRenderer implements IReplRenderer {
   private resolveInput?: (value: string) => void;
 
   constructor() {
-    this.scrollText = new Text();
-    this.watchText = new Text('(watch...)');
-    this.errorText = new Text('');
+    this.scrollText = new Text('', 0);
+    this.watchText = new Text('(watch...)', 0);
+    this.errorText = new Text('', 0);
     this.promptInput = new PromptInput('nf');
     this.tui = new TUI(new ProcessTerminal());
     this.tui.addChild(this.scrollText);

@@ -8,6 +8,8 @@ import {
   ZENO_MAX_ROWS,
   linesToZenoStep,
   zenoStepToLines,
+  ZenoCoord,
+  RenderDetail,
 } from './navigable-view.js';
 import { MonoTable } from './mono-table.js';
 import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
@@ -33,7 +35,7 @@ interface ParsedOptions {
   /** lines per row */
   linesPerRow: number;
   /** maximum number of keys to display for each row */
-  maxKeys: number;
+  rawMaxKeys: number | undefined;
   /** output as MonoTable */
   monoTable: boolean;
   /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
@@ -44,8 +46,12 @@ interface ParsedOptions {
   tuiColumns: number;
   /** output as JSON */
   json: boolean;
+  /** Semantic zoom for detail row  [0,1] */
+  detail: number;
+  /** Lines for detail row*/
+  detailLines: number;
   /** Default semantic zoom (ZenoStep) for each row */
-  rowZeno: ZenoStep;
+  detailCoord: ZenoCoord;
 }
 
 /**
@@ -163,9 +169,12 @@ export class NfFindCommand {
     if (isNaN(tuiRows)) {
       throw new Error(`Invalid rows: ${options.tuiRows}`);
     }
-    const tuiColumns = process.stdout.columns ?? 80;
-    const rowZeno = options.rowZeno ?? ZENO_MAX_ROWS;
-
+    const tuiColumns = options.tuiColumns
+      ? parseInt(options.tuiColumns)
+      : (process.stdout.columns ?? 80);
+    if (isNaN(tuiColumns)) {
+      throw new Error(`Invalid tuiColumns: ${options.tuiColumns}`);
+    }
     // resolve output options
     const defaultOutput = [options.json, options.monoTable].every(
       (f) => f === undefined,
@@ -173,19 +182,18 @@ export class NfFindCommand {
     const json = options.json ?? false;
     const monoTable = options.monoTable ?? defaultOutput;
 
-    let rawKeys = options.maxKeys
+    // Parse layout constraints
+    const rawMaxKeys = options.maxKeys
       ? parseInt(options.maxKeys, 10)
       : undefined;
-    if (rawKeys !== undefined && isNaN(rawKeys)) {
+    if (rawMaxKeys !== undefined && isNaN(rawMaxKeys)) {
       throw new Error(`Invalid maxKeys: ${options.maxKeys}`);
     }
-
-    let rawRows = options.rows ? parseInt(options.rows, 10) : undefined;
+    const rawRows = options.rows ? parseInt(options.rows, 10) : undefined;
     if (rawRows !== undefined && isNaN(rawRows)) {
       throw new Error(`Invalid rows: ${options.rows}`);
     }
-
-    let rawLines = options.linesPerRow
+    const rawLines = options.linesPerRow
       ? parseInt(options.linesPerRow, 10)
       : undefined;
     if (rawLines !== undefined && (isNaN(rawLines) || rawLines < 1)) {
@@ -193,31 +201,58 @@ export class NfFindCommand {
         `Expected positive integer for linesPerRow: ${options.linesPerRow}`,
       );
     }
+    const rawDetail = options.detail
+      ? parseFloat(options.detail)
+      : undefined;
+    if (
+      rawDetail !== undefined &&
+      (isNaN(rawDetail) || rawDetail < 0 || 1 < rawDetail)
+    ) {
+      throw new Error(`Invalid detail: ${options.detail}`);
+    }
 
+    // Compute layout according to constraints.
+
+    // Primary layout constraint is level of detail (default 0)
+    const detail = rawDetail ?? 0;
+    const detailZeno = linesToZenoStep(
+      Math.floor((tuiRows - 1) * detail) + 1,
+    );
+    const detailLines = zenoStepToLines(detailZeno);
+
+    // Account for row headers
+    const headerLines = 1;
+    const detailRows = 1;
+    const nonDetailLines = Math.max(
+      1,
+      tuiRows - headerLines - detailLines,
+    );
+    const linesPerRow = rawLines ?? 1;
+    const nonDetailRows = Math.floor(nonDetailLines / linesPerRow);
+    const maxRows = detailRows + nonDetailRows;
+
+    const detailCoord = new ZenoCoord(detailZeno, zenoStep(0));
     const rows =
       rawRows ??
       (rawLines === undefined
-        ? Math.max(1, tuiRows - 1)
+        ? maxRows
         : Math.max(1, Math.floor((tuiRows - 1) / rawLines)));
-
-    const linesPerRow =
-      rawLines ?? Math.max(1, Math.floor((tuiRows - 1) / rows));
 
     const addZid = options.zid ?? false;
 
-    let maxKeys = rawKeys ?? 0;
-
     return {
       addZid,
+      detail,
+      detailLines,
+      detailCoord,
       json,
       linesPerRow,
-      maxKeys,
       monoTable,
       projection,
-      rowZeno,
+      rawMaxKeys,
       rows,
-      tuiRows,
       tuiColumns,
+      tuiRows,
     };
   }
 
@@ -268,25 +303,29 @@ export class NfFindCommand {
       dbg && logger.info({ ctx, valid });
       const {
         addZid,
-        maxKeys,
+        detail,
+        detailCoord,
+        detailLines,
+        json,
+        linesPerRow,
         projection,
+        rawMaxKeys,
+        rows,
         tuiColumns,
         tuiRows,
-        linesPerRow,
-        rows,
-        rowZeno,
-        json,
       } = valid;
       const theme = json ? new PlainTheme() : NameFormaTheme.shared;
       const namespace = addZid ? nfProgram.world.namespace : undefined;
+      const formas = await this._mergeResults(queries, valid.rows);
+      const maxKeys =
+        rawMaxKeys ?? (formas.length === 1 ? 0 : Math.max(3, detailLines));
       const jsonBuilder = (this.jsonBuilder = new MonoJSONBuilder({
         maxKeys,
         namespace,
         projection,
       }));
-      const formas = await this._mergeResults(queries, valid.rows);
       const jsonFormas = formas.map((f) => {
-        const opts = { zeno: rowZeno };
+        const opts = { zenoCoord: detailCoord };
         return jsonBuilder.fromSource(f, opts).build();
       });
       dbg && logger.info({ ctx, jsonFormas });
@@ -295,9 +334,11 @@ export class NfFindCommand {
       );
       const { columnSeparator } = theme;
       if (valid.monoTable) {
+        const COLFUDGE = 2; // avoid wrapping if host pads output
         const mt = new MonoTable({
           columnSeparator,
           headerCase: 'none',
+          maxRowWidth: tuiColumns - COLFUDGE,
           rows: projected,
           theme,
           themedValue: this.themedValue,
@@ -319,7 +360,6 @@ export class NfFindCommand {
     const subCmd = rootCmd.command('find');
     subCmd
       .description('Find Formas that match given queries')
-      .option('-z, --row-zeno <number>', 'Row resolution (0..17)')
       .option(
         '-k, --max-keys <number>',
         'Max number of keys to display for each row (auto)',
@@ -329,6 +369,10 @@ export class NfFindCommand {
       .option('--tui-rows <val>', 'System default')
       .option('--tui-cols,--tui-columns <val>', 'System default')
       .option('-l, --lines-per-row <val>', 'Max lines per data row')
+      .option(
+        '-d, --detail <number>',
+        'Semantic detail zoom [0,1] (0 default minimum)',
+      )
       .option(
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',

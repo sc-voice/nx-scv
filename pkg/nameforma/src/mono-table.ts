@@ -592,15 +592,12 @@ export class MonoTable extends TableDefaults {
     } else if (typeof value === 'number' || typeof value === 'boolean') {
       stringValue = String(value);
     } else if (value instanceof Array) {
-      stringValue = value.join('WOW');
+      stringValue = value.join(',');
     } else {
       stringValue = JSON.stringify(value);
     }
     if (theme) {
       stringValue = this.themedValue!(theme, header.id, stringValue);
-      console.error('themedValue', stringValue);
-    } else {
-      console.error('unthemedValue', stringValue);
     }
 
     const content = styledLabel + stringValue;
