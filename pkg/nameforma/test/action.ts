@@ -288,14 +288,20 @@ describe('Action', () => {
       expect(mj[0]).toEqual(all);
     });
 
-    it('zeno constrains Forma', () => {
+    it('maxKeys constrains Action', () => {
       const builder = [0, 1, 2, 3].map(
-        (z) => new MonoJSONBuilder({ zeno: zenoStep(z) }),
+        (maxKeys) => new MonoJSONBuilder({ maxKeys }),
       );
-      const mj = builder.map((b) => a4n.toMonoJSON(b));
-      expect(mj[0]).toEqual({ id: all.id, name });
-      expect(mj[1]).toEqual({ id: all.id, name, summary });
-      expect(mj[2]).toEqual(all);
+      const mjb = builder.map((b) => a4n.toMonoJSON(b));
+      expect(mjb[0]).toMatchObject({
+        id: all.id,
+        name,
+        summary,
+        forma: 'Action',
+      });
+      expect(mjb[1]).toEqual({ id: all.id });
+      expect(mjb[2]).toEqual({ id: all.id, name });
+      expect(mjb[3]).toEqual({ id: all.id, name, summary });
     });
   });
 });

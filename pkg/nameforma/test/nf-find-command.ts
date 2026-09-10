@@ -19,7 +19,8 @@ import {
 } from '@sc-voice/nameforma/unstable';
 import { ZenoCoord } from '@sc-voice/nameforma';
 
-const FIND = ['node', 'test', 'find', '-k 0'];
+const FIND = ['node', 'test', 'find'];
+const FIND_K0 = [...FIND, '-k 0'];
 
 describe('NfFindCommand.register', () => {
   let tempDirObj: any;
@@ -60,7 +61,7 @@ describe('NfFindCommand.register', () => {
   it('find without projection returns important fields', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
-    await rootCmd.parseAsync([...FIND, '-j', taskId]);
+    await rootCmd.parseAsync([...FIND_K0, '-j', taskId]);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -77,7 +78,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       '{name:1,summary:1}',
@@ -100,7 +101,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       '{rawActions:0,rawReferences:0}',
@@ -124,7 +125,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       '{name:1, summary:1}',
@@ -145,7 +146,7 @@ describe('NfFindCommand.register', () => {
 
   it('find throws on invalid forma ID', async () => {
     await expect(
-      rootCmd.parseAsync([...FIND, 'nonexistent']),
+      rootCmd.parseAsync([...FIND_K0, 'nonexistent']),
     ).rejects.toThrow(/Not found: nonexistent/);
   });
 
@@ -153,7 +154,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await expect(
-      rootCmd.parseAsync([...FIND, '-p', '{{{', taskId]),
+      rootCmd.parseAsync([...FIND_K0, '-p', '{{{', taskId]),
     ).rejects.toThrow();
   });
 
@@ -161,7 +162,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await expect(
-      rootCmd.parseAsync([...FIND, '-p', '{name:1,summary:0}', taskId]),
+      rootCmd.parseAsync([...FIND_K0, '-p', '{name:1,summary:0}', taskId]),
     ).rejects.toThrow(/Mixed projection not supported/);
   });
 
@@ -169,7 +170,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       'name:1, rawActions.name:1, rawActions.status:1',
@@ -191,7 +192,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       'rawActions.statusNote:0',
@@ -213,7 +214,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       'id:1, rawActions.id:1',
@@ -235,7 +236,7 @@ describe('NfFindCommand.register', () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       'rawActions.id:1',
@@ -264,7 +265,7 @@ describe('NfFindCommand.register', () => {
 
   it('find with sift filter query returns array of matches', async () => {
     output = [];
-    await rootCmd.parseAsync([...FIND, '-j', '{name:"Task1-Name"}']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', '{name:"Task1-Name"}']);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -277,7 +278,7 @@ describe('NfFindCommand.register', () => {
 
   it('find with sift filter query with no matches returns empty array', async () => {
     output = [];
-    await rootCmd.parseAsync([...FIND, '-j', '{name:"NoTask"}']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', '{name:"NoTask"}']);
 
     expect(output.length).toBe(1);
     expect(output[0].trim()).toEqual('');
@@ -286,7 +287,7 @@ describe('NfFindCommand.register', () => {
   it('find with sift filter query and projection applies projection', async () => {
     output = [];
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '-p',
       '{name:1, summary:1}',
@@ -306,7 +307,7 @@ describe('NfFindCommand.register', () => {
 
   it('find with bare HJSON sift filter (no braces) returns array', async () => {
     output = [];
-    await rootCmd.parseAsync([...FIND, '-j', 'name:"Task1-Name"']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', 'name:"Task1-Name"']);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -322,6 +323,7 @@ describe('NfFindCommand.register', () => {
     await rootCmd.parseAsync([
       ...FIND,
       '-j',
+      //      '-k2',
       '-p',
       'rawActions.id:1',
       '{name:"Task1-Name"}',
@@ -355,7 +357,7 @@ describe('NfFindCommand.register', () => {
   it('find deduplicates duplicate queries', async () => {
     const taskId = '0PxVmryB00tGyAPrFKqetW';
 
-    await rootCmd.parseAsync([...FIND, '-j', taskId, taskId]);
+    await rootCmd.parseAsync([...FIND_K0, '-j', taskId, taskId]);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -367,7 +369,7 @@ describe('NfFindCommand.register', () => {
   });
 
   it('find with --limit returns only specified number of results', async () => {
-    await rootCmd.parseAsync([...FIND, '-j', '--rows', '1', 'task']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', '--rows', '1', 'task']);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -379,7 +381,7 @@ describe('NfFindCommand.register', () => {
 
   it('find with --limit across multiple queries respects global limit', async () => {
     await rootCmd.parseAsync([
-      ...FIND,
+      ...FIND_K0,
       '-j',
       '--rows',
       '2',
@@ -406,7 +408,7 @@ describe('NfFindCommand.register', () => {
     world.focusManager.focus(task3.id);
 
     output = [];
-    await rootCmd.parseAsync([...FIND, '-j', 'focused']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', 'focused']);
     expect(output.length).toBe(1);
     const json = output[0]
       .trim()
@@ -429,7 +431,7 @@ describe('NfFindCommand.register', () => {
     world.focusManager.focus(task3.id);
 
     output = [];
-    await rootCmd.parseAsync([...FIND, '-j', '--rows', '2', 'focused']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', '--rows', '2', 'focused']);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -453,7 +455,13 @@ describe('NfFindCommand.register', () => {
     world.focusManager.focus(task3.id);
 
     output = [];
-    await rootCmd.parseAsync([...FIND, '-j', '-p', 'id:1,name:1', 'task']);
+    await rootCmd.parseAsync([
+      ...FIND_K0,
+      '-j',
+      '-p',
+      'id:1,name:1',
+      'task',
+    ]);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -477,7 +485,7 @@ describe('NfFindCommand.register', () => {
     }
 
     output = [];
-    await rootCmd.parseAsync([...FIND, '--json', 'focused']);
+    await rootCmd.parseAsync([...FIND_K0, '--json', 'focused']);
 
     expect(output.length).toEqual(1);
     expect(output[0].trim()).toEqual('');
@@ -512,7 +520,7 @@ describe('NfFindCommand._validateParameters', () => {
   it('_validateParameters with empty options returns defaults', () => {
     const valid = nfFindCommand._validateParameters(['test'], {});
     expect(valid.projection).toEqual({});
-    expect(valid.addZid).toBe(false);
+    expect(valid.addZid).toBe(true);
 
     // TUI screen dimensions are normally determined from process.stdout.
     // During tests, process.stdout is not available, so 24x80 are used by default.
@@ -522,7 +530,7 @@ describe('NfFindCommand._validateParameters', () => {
 
     expect(valid.json).toBe(false);
     expect(valid.monoTable).toBe(true);
-    expect(valid.addZid).toBe(false);
+    expect(valid.addZid).toBe(true);
     //expect(valid.detailZeno).toEqual(new ZenoCoord(ZENO_21_ROWS,0));
     expect(valid.rows).toBe(valid.tuiRows - 1);
     expect(valid.linesPerRow).toBe(1);
@@ -546,7 +554,6 @@ describe('NfFindCommand._validateParameters', () => {
     const v1 = nfFindCommand._validateParameters(['test'], {
       tuiRows,
     });
-    expect(v1.addZid).toBe(false);
     expect(v1.linesPerRow).toBe(1);
     expect(v1.rows).toBe(23); // max(1, floor((24 - 1) / 1)));
 
@@ -554,7 +561,6 @@ describe('NfFindCommand._validateParameters', () => {
       linesPerRow: 2,
       tuiRows,
     });
-    expect(v2.addZid).toBe(false);
     expect(v2.linesPerRow).toBe(2);
     expect(v2.rows).toBe(11); // max(1, floor((24 - 1) / 2)));
 
@@ -565,7 +571,6 @@ describe('NfFindCommand._validateParameters', () => {
       tuiRows,
       detailZeno,
     });
-    expect(v2Zeno.addZid).toBe(false);
     //expect(v2Zeno.detailZeno).toEqual(detailZeno);
     expect(v2Zeno.linesPerRow).toBe(2);
     expect(v2Zeno.rows).toBe(11); // max(1, floor((tuiRows - 1) / 2)));
@@ -690,7 +695,7 @@ describe('NfFindCommand.registerCommand with single-focus fixture', () => {
   it('find focus resolves currently-focused entity', async () => {
     const focusedTaskId = '0P_48Nru00l9bnpQmdmx7W'; // sample data
 
-    await rootCmd.parseAsync([...FIND, '--json', 'focus']);
+    await rootCmd.parseAsync([...FIND_K0, '--json', 'focus']);
 
     expect(output.length).toBe(1);
     const outJSON = JSON.parse(output[0]);

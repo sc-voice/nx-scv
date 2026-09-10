@@ -230,26 +230,33 @@ describe('mono-json', () => {
     });
   });
 
-  describe('MonoJSONBuilder.fromSource', () => {
-    it('auto-populates and allows decoration', () => {
+  describe('MonoJSONBuilder.resetFromSource', () => {
+    it('auto-populates and observes maxKeys', () => {
       const builder = new MonoJSONBuilder({ maxKeys: 3 });
 
       const result1 = builder
-        .fromSource({ name: 'test1', count: 42 })
-        .addKeyValue('extra', 'field1')
+        .resetFromSource({ name: 'name1', age: 42 })
+        .addKeyValue('extra', 'extra1')
         .build();
       expect(result1).toEqual({
-        name: 'test1',
-        count: 42,
-        extra: 'field1',
+        name: 'name1',
+        age: 42,
+        extra: 'extra1',
       });
 
-      // A builder retains its configuration and can be re-used
+      // resetFromSource resets builder #nKeys
       const result2 = builder
-        .fromSource({ name: 'test2' })
-        .addKeyValue('extra', 'field2')
+        .resetFromSource({ name: 'name2' })
+        .addKeyValue('extra', 'extra2')
         .build();
-      expect(result2).toEqual({ name: 'test2', extra: 'field2' });
+      expect(result2).toEqual({ name: 'name2', extra: 'extra2' });
+
+      // override/restore maxKeys during resetFromSource
+      const result3 = builder
+        .resetFromSource({ name: 'name3', age: 42 }, { maxKeys: 1 }) // maxKeys changed to 1
+        .addKeyValue('extra', 'extra3') // maxKeys restored to 3
+        .build();
+      expect(result3).toEqual({ name: 'name3', extra: 'extra3' });
     });
 
     it('Forma id values should not be quoted', () => {
@@ -260,7 +267,7 @@ describe('mono-json', () => {
       const forma = new Forma({ id, name });
       const status = 'work';
       const builder = new MonoJSONBuilder();
-      const monoJSON = builder.fromSource(forma).build();
+      const monoJSON = builder.resetFromSource(forma).build();
 
       expect(monoJSON.name).toEqual(name); // unquoted
       expect(monoJSON.id).toMatch(id.base64); // id.toJSON()
@@ -279,7 +286,7 @@ describe('mono-json', () => {
 
       // ZenoStep 1 only shows id, name, summary
       const mj1 = builder
-        .fromSource(action, { zeno: zenoStep(2) })
+        .resetFromSource(action, { zeno: zenoStep(2) })
         .build();
       expect(mj1.id).toMatch(id.base64); // id.toJSON()
       expect(mj1.name).toEqual(name);
@@ -288,7 +295,7 @@ describe('mono-json', () => {
       expect(mj1.statusNote).toMatch(statusNote);
 
       const mj2 = builder
-        .fromSource(action, { zeno: zenoStep(2) })
+        .resetFromSource(action, { zeno: zenoStep(2) })
         .build();
       expect(mj2.id).toMatch(id.base64); // id.toJSON()
       expect(mj2.name).toEqual(name);

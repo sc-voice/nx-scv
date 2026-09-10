@@ -162,6 +162,26 @@ export class NfProgram {
     return await FileRepository.loadWorld(resolvedPath);
   }
 
+  /** Return true iff val is: true, non-zero number, "1", "yes", "y" */
+  static parseBoolean(val: any, defaultVal: boolean = false): boolean {
+    if (val === undefined) {
+      return defaultVal;
+    }
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'number') return val !== 0;
+    if (typeof val === 'string') {
+      const lower = val.toLowerCase().trim();
+      return (
+        lower === 'true' ||
+        lower === '1' ||
+        lower === 'yes' ||
+        lower === 'y'
+      );
+    }
+
+    return false;
+  }
+
   constructor(protected readonly rootCmd: ICommand) {
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const pkgJson = JSON.parse(

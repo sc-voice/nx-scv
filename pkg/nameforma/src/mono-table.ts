@@ -581,6 +581,11 @@ export class MonoTable extends TableDefaults {
       theme = NameFormaTheme.shared,
     } = opts;
 
+    // trim undefined values
+    if (value === undefined) {
+      return [];
+    }
+
     const label = header.title || header.id;
     const styledLabel = theme.nfLabel(label);
 

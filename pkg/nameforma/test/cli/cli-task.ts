@@ -32,6 +32,8 @@ import {
   countTasks,
 } from './helpers.js';
 
+const FIND = ['node', 'test', 'find'];
+
 describe('CLI: task command', () => {
   let cli;
   let output;
@@ -481,9 +483,8 @@ describe('CLI: task command', () => {
 
       // Show without ID - should use focused task
       await cli.parseArgv([
-        'node',
-        'test',
-        'find',
+        ...FIND,
+        '-k0',
         '-j',
         '-w',
         tempWorld.worldPath,

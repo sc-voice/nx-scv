@@ -185,14 +185,12 @@ export class Action extends Forma {
     builder: MonoJSONBuilder,
     opts: Record<string, any> = {},
   ): void {
-    super.addKeyValues(builder, opts);
-    const { theme, zeno, namespace } = opts;
+    const { theme, namespace } = opts;
     const { status, statusNote } = this;
 
-    if (zeno >= ZENO_2_ROWS) {
-      builder.addKeyValue('status', status);
-      builder.addKeyValue('statusNote', statusNote);
-    }
+    super.addKeyValues(builder, opts);
+    builder.addKeyValue('status', status);
+    builder.addKeyValue('statusNote', statusNote);
   }
 
   static shortDate(date: Date): string {

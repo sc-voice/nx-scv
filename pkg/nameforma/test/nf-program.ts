@@ -15,6 +15,67 @@ describe('ICommand', () => {
   });
 });
 
+describe('NfProgram.parseBoolean', () => {
+  it('returns true for boolean true', () => {
+    expect(NfProgram.parseBoolean(true)).toBe(true);
+  });
+
+  it('returns false for boolean false', () => {
+    expect(NfProgram.parseBoolean(false)).toBe(false);
+  });
+
+  it('returns true for non-zero number', () => {
+    expect(NfProgram.parseBoolean(1)).toBe(true);
+    expect(NfProgram.parseBoolean(42)).toBe(true);
+    expect(NfProgram.parseBoolean(-1)).toBe(true);
+  });
+
+  it('returns false for zero', () => {
+    expect(NfProgram.parseBoolean(0)).toBe(false);
+  });
+
+  it('returns true for string "true" (case-insensitive)', () => {
+    expect(NfProgram.parseBoolean('true')).toBe(true);
+    expect(NfProgram.parseBoolean('True')).toBe(true);
+    expect(NfProgram.parseBoolean('TRUE')).toBe(true);
+  });
+
+  it('returns true for string "1"', () => {
+    expect(NfProgram.parseBoolean('1')).toBe(true);
+  });
+
+  it('returns true for string "yes" (case-insensitive)', () => {
+    expect(NfProgram.parseBoolean('yes')).toBe(true);
+    expect(NfProgram.parseBoolean('Yes')).toBe(true);
+    expect(NfProgram.parseBoolean('YES')).toBe(true);
+  });
+
+  it('returns true for string "y" (case-insensitive)', () => {
+    expect(NfProgram.parseBoolean('y')).toBe(true);
+    expect(NfProgram.parseBoolean('Y')).toBe(true);
+  });
+
+  it('returns false for other strings', () => {
+    expect(NfProgram.parseBoolean('false')).toBe(false);
+    expect(NfProgram.parseBoolean('0')).toBe(false);
+    expect(NfProgram.parseBoolean('no')).toBe(false);
+    expect(NfProgram.parseBoolean('n')).toBe(false);
+    expect(NfProgram.parseBoolean('random')).toBe(false);
+  });
+
+  it('handles strings with whitespace', () => {
+    expect(NfProgram.parseBoolean('  true  ')).toBe(true);
+    expect(NfProgram.parseBoolean('  yes  ')).toBe(true);
+    expect(NfProgram.parseBoolean('  y  ')).toBe(true);
+  });
+
+  it('uses defaultVal when val is undefined', () => {
+    expect(NfProgram.parseBoolean(undefined, true)).toBe(true);
+    expect(NfProgram.parseBoolean(undefined, false)).toBe(false);
+    expect(NfProgram.parseBoolean(undefined)).toBe(false);
+  });
+});
+
 describe('NfProgram construction and initialization', () => {
   let tempDirObj: any;
   let tempWorldPath: string;

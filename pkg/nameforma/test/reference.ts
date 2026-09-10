@@ -73,7 +73,13 @@ describe('Reference', () => {
     expect(ref.summary).toBe(summary2);
     expect(ref.relevance).toBe(relevance2);
     expect(ref.source).toBe(source2);
-    expect(ref.id.base64 < ref.updateId.base64).toBe(true);
+
+    // TODO: undiagnosed intermittent failure
+    expect(
+      ref.id.base64 < ref.updateId.base64,
+      `Expect ${ref.id.base64} < ${ref.updateId.base64}`,
+    ).toBe(true);
+
     expect(p2).properties({ name, summary, relevance, source });
   });
 

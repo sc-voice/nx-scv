@@ -65,7 +65,6 @@ const ELLIPSIS = '…';
  */
 export class MonoJSONBuilder {
   readonly arrayDelimiter: string; // array element separator
-  readonly maxKeys: number; // maximum # of output keys (0:unlimited)
   readonly namespace: IReadOnlyNamespace | undefined; // for zid resolution
   readonly projection: Record<string, 0 | 1>; // top-level key projection (0:exclude, 1:include)
   readonly zeno: ZenoStep; // semantic zoom (ZENO_MAX_ROWS)
@@ -79,14 +78,18 @@ export class MonoJSONBuilder {
   get source(): object {
     return this.#source;
   }
+  /** maximum # of output keys (0:unlimited) */
+  get maxKeys(): number {
+    return this.#maxKeys;
+  }
 
   // Initialize to invalid sentinel values to enforce that reset() is always called.
   // TypeScript's strict definite assignment requires this workaround.
   #monoJSON: MonoJSON = { error: 'reset' };
   #nKeys: number = -1;
   #nArrayElements: number = -1;
-  #lastKey: string | undefined = 'reset';
   #source: object = { error: 'reset' };
+  #maxKeys: number = 0;
 
   constructor(opts: Partial<MonoJSONBuilder> = {}) {
     const ctx = 'MonoJSONBUilder.ctor';
@@ -102,7 +105,7 @@ export class MonoJSONBuilder {
 
     this.#source = source;
     this.arrayDelimiter = arrayDelimiter;
-    this.maxKeys = maxKeys;
+    this.#maxKeys = maxKeys;
     this.projection = projection;
     this.zeno = zeno;
     if (zidSource === 'zid') {
@@ -123,22 +126,30 @@ export class MonoJSONBuilder {
     this.#monoJSON = {};
     this.#nKeys = 0;
     this.#nArrayElements = 0;
-    this.#lastKey = undefined;
     this.#source = source;
 
     return this;
   }
 
   /** Reset with source and auto-populate from its fields */
-  fromSource(source: object, opts: Record<string, any> = {}): this {
+  resetFromSource(source: object, opts: Record<string, any> = {}): this {
     this.reset(source);
+
+    const savedMaxKeys = this.#maxKeys;
+    this.#maxKeys = opts.maxKeys ?? this.#maxKeys;
+    const resolvedOpts = {
+      maxKeys: savedMaxKeys,
+      ...opts,
+    };
     if (typeof (source as any)?.toMonoJSON === 'function') {
-      (source as any).toMonoJSON(this, opts);
+      (source as any).toMonoJSON(this, resolvedOpts);
     } else {
       for (const [key, value] of Object.entries(source)) {
         this.addKeyValue(key, value);
       }
     }
+    this.#maxKeys = savedMaxKeys;
+
     return this;
   }
 
@@ -191,8 +202,7 @@ export class MonoJSONBuilder {
    */
   addKeyValue(key: string, value: any): this {
     const { projection, zidSource, namespace } = this;
-    const ctx = 'MonoJSON.set';
-    const { maxKeys } = this;
+    const ctx = 'MonoJSON.addKeyValue';
     const monoJSON = this.#monoJSON;
     let simpleValue = this.asSimpleType(value);
 
@@ -209,10 +219,9 @@ export class MonoJSONBuilder {
     if (projection[key] === 0) {
       return this;
     }
-    if (maxKeys === 0 || this.#nKeys < maxKeys) {
+    if (this.#maxKeys === 0 || this.#nKeys < this.#maxKeys) {
       this.#nKeys++;
       monoJSON[key] = simpleValue;
-      this.#lastKey = key;
     }
     if (value instanceof Array) {
       this.#nArrayElements += value.length;

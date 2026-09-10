@@ -336,10 +336,10 @@ export class Identifiable implements IMonoJSONFacade {
     builder.reset({});
     const {
       theme = new PlainTheme(),
-      zeno = builder.zeno ?? ZENO_MAX_ROWS,
       namespace,
+      maxKeys = builder.maxKeys,
     } = opts;
-    const resolvedOpts = { theme, zeno, namespace };
+    const resolvedOpts = { theme, namespace };
 
     this.addKeyValues(builder, resolvedOpts);
 
@@ -348,14 +348,13 @@ export class Identifiable implements IMonoJSONFacade {
 
   /** Add key-value pairs to MonoJSONBuilder */
   addKeyValues(builder: MonoJSONBuilder, opts: Record<string, any>): void {
-    const { theme, zeno, namespace } = opts;
+    const { theme, namespace } = opts;
     const { id } = this;
 
     // conditionally add zid
     const zid = (namespace && namespace.fuzzyIdOf(id)) || null;
     zid && builder.addKeyValue('zid', theme.nfLink(zid));
-    if (zid == null || zeno > ZENO_1_ROW_TERSE) {
-      builder.addKeyValue('id', theme.nfLink(id.base64));
-    }
+
+    builder.addKeyValue('id', theme.nfLink(id.base64));
   }
 } // Identifiable

@@ -19,7 +19,7 @@ import {
   MonoJSON,
   IMonoJSONFacade,
 } from './mono-json.js';
-import type { NfProgram, ICommand } from './nf-program.js';
+import { NfProgram, ICommand } from './nf-program.js';
 // @ts-ignore - hjson has no type definitions
 import * as HJSON_CJS from 'hjson';
 
@@ -28,30 +28,32 @@ const Hjson = HJSON_CJS as any;
 const DEFAULT_SEMANTIC_ROWS = 3;
 
 interface ParsedOptions {
-  /** Projection object with 0/1 values (validated for non-mixed) */
-  projection: Record<string, 0 | 1>;
   /** Whether to add zid field */
   addZid: boolean;
-  /** lines per row */
-  linesPerRow: number;
-  /** maximum number of keys to display for each row */
-  rawMaxKeys: number | undefined;
-  /** output as MonoTable */
-  monoTable: boolean;
-  /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
-  rows: number;
-  /** Terminal height in rows for layout optimization */
-  tuiRows: number;
-  /** Terminal height in rows for layout optimization */
-  tuiColumns: number;
-  /** output as JSON */
-  json: boolean;
   /** Semantic zoom for detail row  [0,1] */
   detail: number;
   /** Lines for detail row*/
   detailLines: number;
+  /** maxKeys for detail row*/
+  detailKeys: number;
   /** Default semantic zoom (ZenoStep) for each row */
   detailCoord: ZenoCoord;
+  /** output as JSON */
+  json: boolean;
+  /** lines per row */
+  linesPerRow: number;
+  /** output as MonoTable */
+  monoTable: boolean;
+  /** Projection object with 0/1 values (validated for non-mixed) */
+  projection: Record<string, 0 | 1>;
+  /** maximum number of keys to display for each row */
+  rawMaxKeys: number | undefined;
+  /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
+  rows: number;
+  /** Terminal height in rows for layout optimization */
+  tuiColumns: number;
+  /** Terminal height in rows for layout optimization */
+  tuiRows: number;
 }
 
 /**
@@ -60,11 +62,9 @@ interface ParsedOptions {
  */
 export class NfFindCommand {
   nfProgram: NfProgram;
-  jsonBuilder: MonoJSONBuilder;
 
   constructor(nfProgram: NfProgram) {
     this.nfProgram = nfProgram;
-    this.jsonBuilder = new MonoJSONBuilder({});
   }
 
   /** Semantic content is brief and glancing by default */
@@ -183,9 +183,8 @@ export class NfFindCommand {
     const monoTable = options.monoTable ?? defaultOutput;
 
     // Parse layout constraints
-    const rawMaxKeys = options.maxKeys
-      ? parseInt(options.maxKeys, 10)
-      : undefined;
+    const rawMaxKeys =
+      options.maxKeys != null ? parseInt(options.maxKeys) : undefined;
     if (rawMaxKeys !== undefined && isNaN(rawMaxKeys)) {
       throw new Error(`Invalid maxKeys: ${options.maxKeys}`);
     }
@@ -219,6 +218,10 @@ export class NfFindCommand {
       Math.floor((tuiRows - 1) * detail) + 1,
     );
     const detailLines = zenoStepToLines(detailZeno);
+    const detailKeys =
+      rawMaxKeys != null
+        ? 0
+        : zenoStepToLines((detailZeno + 4) as ZenoStep);
 
     // Account for row headers
     const headerLines = 1;
@@ -238,12 +241,13 @@ export class NfFindCommand {
         ? maxRows
         : Math.max(1, Math.floor((tuiRows - 1) / rawLines)));
 
-    const addZid = options.zid ?? false;
+    const addZid = NfProgram.parseBoolean(options.zid, true);
 
     return {
       addZid,
       detail,
       detailLines,
+      detailKeys,
       detailCoord,
       json,
       linesPerRow,
@@ -299,36 +303,44 @@ export class NfFindCommand {
     const dbg = DBG.NF_PROGRAM.FIND;
     let lines: string[] = [];
     try {
-      const valid = this._validateParameters(queries, options);
-      dbg && logger.info({ ctx, valid });
+      // process queries to obtain actual row count
+      const { addZid, rawMaxKeys, rows } = this._validateParameters(
+        queries,
+        options,
+      );
+      const formas = await this._mergeResults(queries, rows);
+      const dataRows = formas.length;
+      const maxKeys = rawMaxKeys ?? (dataRows === 1 ? 0 : addZid ? 3 : 2);
+
+      // re-validate options again using actual data row count
+      const dataOpts = { ...options, rows: dataRows, maxKeys };
+      const valid = this._validateParameters(queries, dataOpts);
+      dbg && logger.info({ ctx, valid, maxKeys });
       const {
-        addZid,
         detail,
         detailCoord,
-        detailLines,
+        detailKeys,
+        detailLines, // deprecate?
         json,
         linesPerRow,
         projection,
-        rawMaxKeys,
-        rows,
         tuiColumns,
         tuiRows,
       } = valid;
       const theme = json ? new PlainTheme() : NameFormaTheme.shared;
       const namespace = addZid ? nfProgram.world.namespace : undefined;
-      const formas = await this._mergeResults(queries, valid.rows);
-      const maxKeys =
-        rawMaxKeys ?? (formas.length === 1 ? 0 : Math.max(3, detailLines));
-      const jsonBuilder = (this.jsonBuilder = new MonoJSONBuilder({
-        maxKeys,
-        namespace,
-        projection,
-      }));
-      const jsonFormas = formas.map((f) => {
-        const opts = { zenoCoord: detailCoord };
-        return jsonBuilder.fromSource(f, opts).build();
+      const mjbOpts = { maxKeys, namespace, projection };
+      const mjbDefault = new MonoJSONBuilder(mjbOpts);
+      const mjbDetail = new MonoJSONBuilder({
+        ...mjbOpts,
+        maxKeys: detailKeys,
+      });
+      const jsonFormas = formas.map((f, i) => {
+        const mjb = i === 0 ? mjbDetail : mjbDefault;
+        return mjb.resetFromSource(f).build();
       });
       dbg && logger.info({ ctx, jsonFormas });
+      process;
       const projected = jsonFormas.map((f3a) =>
         nfProgram.applyProjection(f3a, projection),
       );
@@ -364,11 +376,17 @@ export class NfFindCommand {
         '-k, --max-keys <number>',
         'Max number of keys to display for each row (auto)',
       )
-      .option('-r, --rows <number>', 'Max number of result rows (auto)')
+      .option('-r, --rows <number>', 'Max number of data rows (auto)')
       .option('-m,--mono-table', 'Output as MonoTable (auto)')
-      .option('--tui-rows <val>', 'System default')
-      .option('--tui-cols,--tui-columns <val>', 'System default')
-      .option('-l, --lines-per-row <val>', 'Max lines per data row')
+      .option('--tui-rows <val>', 'Viewport height (system default or 24)')
+      .option(
+        '--tui-cols,--tui-columns <val>',
+        'Viewport width (system default or 80)',
+      )
+      .option(
+        '-l, --lines-per-row <val>',
+        'Default lines to display per data row',
+      )
       .option(
         '-d, --detail <number>',
         'Semantic detail zoom [0,1] (0 default minimum)',
@@ -377,7 +395,10 @@ export class NfFindCommand {
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
       )
-      .option('--zid', 'Add zid (fuzzyId) field to input rows')
+      .option(
+        '--zid <boolean>',
+        'Add zid (fuzzyId) field to data rows (true)',
+      )
       .argument(
         '[queries...]',
         'Entity collection, FUZZY_ID, or HJSON sift filter',

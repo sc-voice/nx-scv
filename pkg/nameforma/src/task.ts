@@ -322,13 +322,11 @@ export class Task extends Entity {
     builder: MonoJSONBuilder,
     opts: Record<string, any> = {},
   ): void {
-    super.addKeyValues(builder, opts);
-    const { theme, zeno, namespace } = opts;
+    const { theme, namespace } = opts;
     const { rawActions, rawReferences } = this;
 
-    if (zeno >= ZENO_3_ROWS) {
-      builder.addKeyValue('rawActions', rawActions);
-      builder.addKeyValue('rawReferences', rawReferences);
-    }
+    super.addKeyValues(builder, opts);
+    builder.addKeyValue('rawActions', rawActions);
+    builder.addKeyValue('rawReferences', rawReferences);
   }
 } // Task

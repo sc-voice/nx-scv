@@ -342,21 +342,14 @@ export class Forma
     builder: MonoJSONBuilder,
     opts: Record<string, any> = {},
   ): void {
-    super.addKeyValues(builder, opts);
-    const { theme, zeno, namespace } = opts;
+    const { theme, namespace } = opts;
     const { forma, updateId, name, summary } = this;
 
-    // name
+    super.addKeyValues(builder, opts);
     builder.addKeyValue('name', name);
-
-    // summary
-    if (zeno >= ZENO_1_ROW_VERBOSE) {
-      builder.addKeyValue('summary', theme.nfNote(summary));
-    }
-    if (zeno > ZENO_1_ROW_VERBOSE) {
-      builder.addKeyValue('forma', forma);
-      builder.addKeyValue('updateId', updateId.base64);
-    }
+    builder.addKeyValue('summary', theme.nfNote(summary));
+    builder.addKeyValue('forma', forma);
+    builder.addKeyValue('updateId', updateId.base64);
   }
 
   /* ICommandMutable implementation */
