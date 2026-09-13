@@ -787,7 +787,7 @@ export class MonoTable extends TableDefaults {
         const overflowLines = this.renderOverflowCell(h, value, opts);
         lines.push(...overflowLines);
       }
-    }
+    } // row
 
     summary && lines.push(theme.nfNote(summary));
 
