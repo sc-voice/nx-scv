@@ -344,11 +344,11 @@ export class NfFindCommand {
       const projected = jsonFormas.map((f3a) =>
         nfProgram.applyProjection(f3a, projection),
       );
-      const { columnSeparator } = theme;
+      const { colSeparator } = theme;
       if (valid.monoTable) {
         const COLFUDGE = 2; // avoid wrapping if host pads output
         const mt = new MonoTable({
-          columnSeparator,
+          colSeparator,
           headerCase: 'none',
           maxRowWidth: tuiColumns - COLFUDGE,
           rows: projected,

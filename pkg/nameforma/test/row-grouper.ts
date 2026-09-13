@@ -165,7 +165,7 @@ describe('RowGrouper', () => {
 
       // 3 line row (using varargs pushLine)
       const id2 = row2.id;
-      grouper.startRow().pushLine(id2+'a', id2+'b', id2+'c');
+      grouper.startRow().pushLine(id2 + 'a', id2 + 'b', id2 + 'c');
       expect(grouper.getLines()).toEqual([
         ...['Row 1', 'R1a', 'R1b'],
         ...['Row 2', 'R2a', 'R2b', 'R2c'],

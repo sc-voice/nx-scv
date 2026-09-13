@@ -10,6 +10,7 @@
 
 import type { INameFormaTheme } from './navigable-view.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+import { RowGrouper, HeaderFun } from './row-grouper.js';
 
 /** A single column definition. */
 export interface Header {
@@ -49,10 +50,14 @@ export interface TableOptions {
   name?: string;
   /** A summary to display at the end of the table. */
   summary?: string;
+  /** Table header border character/string */
+  borderHeaderLeft?: string;
+  /** Table data row border character/string */
+  borderLeft?: string;
   /** Character used for overflowing text. */
   cellOverflow?: string;
   /** Character/string separating columns. */
-  columnSeparator?: string;
+  colSeparator?: string;
   /** String or function to render between rows in hybrid layouts. */
   rowSeparator?: RowSeparator;
   /** Callback function to transform a cell value: (value, id) => string. */
@@ -73,6 +78,7 @@ export interface TableOptions {
   locales?: string[];
   /** Maximum row width in characters (defaults to terminal width). */
   maxRowWidth?: number;
+  /** Accumulate output lines grouped by rows */
   /** Array of row objects. */
   rows?: Row[];
   /** Function to transform an ID into a name. */
@@ -99,8 +105,10 @@ export interface TableOptions {
  */
 export class TableDefaults implements TableOptions {
   summary?: string;
+  borderHeaderLeft!: string;
+  borderLeft!: string;
   cellOverflow!: string;
-  columnSeparator!: string;
+  colSeparator!: string;
   rowSeparator?: RowSeparator;
   cellValue?: (value: unknown, id: string) => string;
   emptyCell!: string;
@@ -138,27 +146,29 @@ export class TableDefaults implements TableOptions {
    * @returns The complete options object.
    */
   static options(opts: Partial<TableOptions> = {}): TableOptions {
-    const {
-      summary = undefined,
+    let {
+      borderHeaderLeft = '╭',
+      borderLeft = '|',
       cellOverflow = '…',
-      columnSeparator = ' ',
-      rowSeparator = undefined,
       cellValue = undefined,
+      colSeparator = ' ',
       emptyCell = '⌿',
       emptyRow = {},
-      headers = undefined,
       headerCase = 'capitalize',
+      headers,
       lineSeparator = '\n',
       localeOptions = undefined,
       locales = undefined,
       maxRowWidth = process.stdout.columns ?? 80,
-      rows = [],
       name = undefined,
+      rows = [],
+      rowSeparator = undefined,
+      summary = undefined,
+      theme = NameFormaTheme.shared,
+      themedValue = (theme, key, value) => value,
       titleOfId = MonoTable.titleOfId,
       type = 'MonoTable',
       version = '1.0.0',
-      theme = NameFormaTheme.shared,
-      themedValue = (theme, key, value) => value,
     } = opts;
 
     if (headers && !(headers instanceof Array)) {
@@ -167,54 +177,42 @@ export class TableDefaults implements TableOptions {
     if (rows && !(rows instanceof Array)) {
       throw new Error(`[MonoTable.options] rows must be an Array`);
     }
+    rows = [...rows];
+    if (headers == null) {
+      headers = TableDefaults._rowHeaders(rows);
+    } else {
+      headers = [...headers];
+    }
 
     return {
-      summary,
+      borderHeaderLeft,
+      borderLeft,
       cellOverflow,
-      columnSeparator,
-      rowSeparator,
       cellValue,
+      colSeparator,
       emptyCell,
       emptyRow,
-      headers,
       headerCase,
+      headers,
       lineSeparator,
       localeOptions,
       locales,
       maxRowWidth,
-      rows,
       name,
+      rows,
+      rowSeparator,
+      summary,
+      theme,
+      themedValue,
       titleOfId,
       type,
       version,
-      theme,
-      themedValue,
     };
-  }
-}
+  } // options
 
-/**
- * A table utility for generating perfectly aligned monospaced text representations.
- * Provides methods for filtering, sorting, grouping, and formatting tabular data.
- * Rows are keyed by column IDs; columns are automatically sized based on content.
- */
-export class MonoTable extends TableDefaults {
-  /**
-   * Creates an instance of MonoTable.
-   * @param opts - Configuration options.
-   */
-  constructor(opts: TableOptions) {
-    const msg = 'MonoTable.ctor';
-    super(opts);
-    this.type = 'MonoTable';
-    this.version = '1.0.0';
-
-    let { headers, rows } = this;
-
-    // headers are owned by table
-    this.headers = headers = headers
-      ? JSON.parse(JSON.stringify(headers))
-      : [];
+  static _rowHeaders(rows: Row[]): Header[] {
+    const msg = '_rowHeaders';
+    let headers: Header[] = [];
 
     // Each row is owned by client, but the collection is owned by table
     rows = (rows && [...rows]) || [];
@@ -241,7 +239,25 @@ export class MonoTable extends TableDefaults {
       h.index = i;
     });
 
-    Object.assign(this, { headers, rows });
+    return headers;
+  } // _rowHeaders
+} // TableDefaults
+
+/**
+ * A table utility for generating perfectly aligned monospaced text representations.
+ * Provides methods for filtering, sorting, grouping, and formatting tabular data.
+ * Rows are keyed by column IDs; columns are automatically sized based on content.
+ */
+export class MonoTable extends TableDefaults {
+  /**
+   * Creates an instance of MonoTable.
+   * @param opts - Configuration options.
+   */
+  constructor(opts: TableOptions) {
+    const msg = 'MonoTable.ctor';
+    super(opts);
+    this.type = 'MonoTable';
+    this.version = '1.0.0';
   }
 
   /**
@@ -315,9 +331,11 @@ export class MonoTable extends TableDefaults {
    * @returns The transformed title.
    */
   static titleOfId(id: string = ''): string {
-    return id && id.length
-      ? id.replace(/^./, id.at(0)!.toUpperCase())
-      : id || '';
+    if (id.length === 0) {
+      return id;
+    }
+    const camelCase = id.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    return camelCase.replace(/^./, camelCase.at(0)!.toUpperCase());
   }
 
   /**
@@ -344,7 +362,7 @@ export class MonoTable extends TableDefaults {
           .split(/\s+/)
           .map((word) =>
             word.length > 0
-              ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              ? word.charAt(0).toUpperCase() + word.slice(1)
               : word,
           )
           .join(' ');
@@ -510,19 +528,22 @@ export class MonoTable extends TableDefaults {
    * @internal Calculates column widths, indices, and determines how many
    * columns fit within maxRowWidth (the "fit count" / overflowIndex).
    * Mutates headers[i].width and headers[i].index as a side effect.
-   * @param opts - Options including titleOfId, emptyCell, maxRowWidth, columnSeparator.
+   * @param opts - Options including titleOfId, emptyCell, maxRowWidth, colSeparator.
    * @returns { overflowIndex } — index of the first column that overflows
    * maxRowWidth. Equals headers.length for Full Fit, 0 for Zero Fit.
    */
   _calculateLayout(opts: Partial<TableOptions> = {}): {
     overflowIndex: number;
+    headerTemplate: string | undefined;
   } {
     let { headers, rows } = this;
     let {
-      titleOfId = this.titleOfId,
+      borderHeaderLeft = this.borderHeaderLeft,
+      borderLeft = this.borderLeft,
+      colSeparator = this.colSeparator,
       emptyCell = this.emptyCell,
       maxRowWidth = this.maxRowWidth,
-      columnSeparator = this.columnSeparator,
+      titleOfId = this.titleOfId,
     } = opts;
 
     // Calculate intrinsic column widths from headers and data
@@ -545,28 +566,31 @@ export class MonoTable extends TableDefaults {
     }
 
     // Determine overflowIndex: first column that exceeds maxRowWidth
-    const sepWidth = MonoTable.stripAnsi(columnSeparator).length;
-    let runningTotal = 0;
+    const borderLeftW = MonoTable.stripAnsi(borderLeft).length;
+    const colSepW = MonoTable.stripAnsi(colSeparator).length;
+    let runningTotal = borderLeftW;
     let overflowIndex = headers.length;
 
     for (let i = 0; i < headers.length; i++) {
       const h = headers[i];
-      runningTotal += sepWidth + (h.width ?? 0);
+      runningTotal += (i ? borderLeftW : colSepW) + (h.width ?? 0);
       if (runningTotal > maxRowWidth) {
         overflowIndex = i;
         break;
       }
     }
 
-    return { overflowIndex };
-  }
+    const headerTemplate = this._headerTemplate(overflowIndex);
+
+    return { overflowIndex, headerTemplate };
+  } // _calculateTemplate
 
   /**
    * Renders an overflow cell by combining label and value, wrapping to
-   * maxRowWidth, and prefixing each line with the styled columnSeparator.
+   * maxRowWidth, and prefixing each line with the styled colSeparator.
    * @param header - Column header containing the label.
    * @param value - Cell value to render.
-   * @param opts - Options including maxRowWidth, columnSeparator, theme.
+   * @param opts - Options including maxRowWidth, colSeparator, theme.
    * @returns Array of wrapped, prefixed lines.
    */
   renderOverflowCell(
@@ -576,7 +600,8 @@ export class MonoTable extends TableDefaults {
   ): string[] {
     const {
       maxRowWidth = this.maxRowWidth,
-      columnSeparator = this.columnSeparator,
+      borderLeft = this.borderLeft,
+      colSeparator = this.colSeparator,
       emptyCell = this.emptyCell,
       theme = NameFormaTheme.shared,
     } = opts;
@@ -607,12 +632,12 @@ export class MonoTable extends TableDefaults {
 
     const content = styledLabel + stringValue;
 
-    const sepWidth = MonoTable.stripAnsi(columnSeparator).length;
-    const wrapWidth = maxRowWidth - sepWidth;
+    const borderWidth = MonoTable.stripAnsi(borderLeft).length;
+    const wrapWidth = maxRowWidth - borderWidth;
 
     if (wrapWidth <= 0) {
-      const styledSep = theme.nfBoundary(columnSeparator);
-      return [styledSep + content];
+      const styledLeft = theme.nfBoundary(borderLeft);
+      return [styledLeft + content];
     }
 
     // Split on spaces and greedily fit words to wrapWidth
@@ -638,9 +663,9 @@ export class MonoTable extends TableDefaults {
       lines.push(currentLine);
     }
 
-    // Prefix each line with styled columnSeparator
-    const styledSep = theme.nfBoundary(columnSeparator);
-    return lines.map((line) => styledSep + line);
+    // Prefix each line with styled borderLeft
+    const borderLeftThemed = theme.nfBoundary(borderLeft);
+    return lines.map((line) => borderLeftThemed + line);
   }
 
   /**
@@ -665,12 +690,12 @@ export class MonoTable extends TableDefaults {
     };
   }
 
-  /**
-   * Renders header row string.
-   */
-  private _headerLine(overflowIndex: number): string | undefined {
+  /** Renders header row string.  */
+  private _headerTemplate(overflowIndex: number): string | undefined {
     const {
-      columnSeparator,
+      borderHeaderLeft,
+      borderLeft,
+      colSeparator,
       headerCase,
       headerPad,
       headers,
@@ -689,27 +714,29 @@ export class MonoTable extends TableDefaults {
       datum = MonoTable.applyHeaderCase(datum, headerCase);
       return MonoTable.padVisible(datum, h.width ?? 0, false, headerPad);
     });
-    const lineText = '╭' + colTitles.join(columnSeparator);
+    const lineText = borderHeaderLeft + colTitles.join(colSeparator);
     const line = MonoTable.padVisible(
       lineText,
       maxRowWidth,
       false,
       headerPad,
     );
-    return theme.nfBoundary(line);
+    return line;
   }
 
   /**
    * Transforms the table into an array of formatted strings (rows).
-   * @param rawOpts - Formatting options.
-   * @returns Array of strings, each representing a row.
+   * @param opts - Formatting option overrides
+   * @returns Array of strings, each representing a row
    */
-  asLines(rawOpts?: Partial<TableOptions>): string[] {
-    let opts = MonoTable.options(Object.assign({}, this, rawOpts));
+  asLines(opts?: Partial<TableOptions>): string[] {
+    let mergedOpts = MonoTable.options(Object.assign({}, this, opts));
     let {
       name,
       titleOfId,
-      columnSeparator = ' ',
+      borderHeaderLeft,
+      borderLeft,
+      colSeparator = ' ',
       rowSeparator,
       cellValue,
       headers = [],
@@ -720,39 +747,30 @@ export class MonoTable extends TableDefaults {
       summary,
       theme = NameFormaTheme.shared,
       themedValue,
-    } = opts;
+    } = mergedOpts;
 
-    const { overflowIndex } = this._calculateLayout(opts);
+    const { overflowIndex, headerTemplate = '' } =
+      this._calculateLayout(mergedOpts);
     const hasOverflow = overflowIndex < headers.length;
 
-    let lines: string[] = [];
-    if (name) {
-      lines.push(theme.nfBoundary(name));
-    }
+    // Create HeaderFun that generates column header row
+    const headerFun: HeaderFun = (
+      rowNum: number,
+      rowData: any,
+    ): string => {
+      const suffix = `${rowNum}/${rows.length}`;
+      const text = headerTemplate.slice(0, -suffix.length) + suffix;
+      return theme.nfBoundary(text);
+    };
 
-    // Render header line (fit columns only; overflow columns show labels inline)
-    const headerLine = this._headerLine(overflowIndex);
-    // Resolve effective row separator: user-provided or auto-default in overflow
-    let rSep = rowSeparator;
-    if (rSep == null && hasOverflow && headerLine != null) {
-      const headerText = MonoTable.stripAnsi(headerLine!);
-      rSep = this.createRowSeparator(rows.length, headerText);
-    }
-
-    if (headerLine && !hasOverflow) {
-      lines.push(headerLine);
-    }
+    // Create fresh RowGrouper with custom HeaderFun
+    const rowGrouper = new RowGrouper({ headerFun });
 
     // Render each row with fit and overflow cells
+    let rowData = { rows, borderHeaderLeft };
     for (let iRow = 0; iRow < rows.length; iRow++) {
       let row = rows[iRow];
-
-      // Render row separator if set
-      if (rSep) {
-        const sepLine =
-          typeof rSep === 'function' ? rSep(row, iRow) : rSep;
-        lines.push(sepLine);
-      }
+      rowGrouper.startRow(rowData);
 
       // Render fit row (columns that fit within maxRowWidth)
       if (overflowIndex > 0) {
@@ -774,25 +792,40 @@ export class MonoTable extends TableDefaults {
             data.push(MonoTable.padVisible(text, h.width ?? 0));
           }
         }
-        let sep = columnSeparator.trim()
-          ? theme.nfBoundary(columnSeparator)
-          : columnSeparator;
-        lines.push(sep + data.join(sep));
+        let colSep = colSeparator.trim()
+          ? theme.nfBoundary(colSeparator)
+          : colSeparator;
+        let borderL = borderLeft!.trim()
+          ? theme.nfBoundary(borderLeft!)
+          : borderLeft;
+        rowGrouper.pushLine(borderL + data.join(colSep));
       }
 
       // Render overflow cells (columns beyond fit)
       for (let iCol = overflowIndex; iCol < headers.length; iCol++) {
         const h = headers[iCol];
         const value = row[h.id];
-        const overflowLines = this.renderOverflowCell(h, value, opts);
-        lines.push(...overflowLines);
+        const overflowLines = this.renderOverflowCell(
+          h,
+          value,
+          mergedOpts,
+        );
+        rowGrouper.pushLine(...overflowLines);
       }
     } // row
 
-    summary && lines.push(theme.nfNote(summary));
+    // Build final output: name + grouped rows + summary
+    const result: string[] = [];
+    if (name) {
+      result.push(theme.nfBoundary(name));
+    }
+    result.push(...rowGrouper.getLines());
+    if (summary) {
+      result.push(theme.nfNote(summary));
+    }
 
-    return lines;
-  }
+    return result;
+  } // asLines
 
   /**
    * Returns a new MonoTable containing only rows that match the predicate.

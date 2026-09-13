@@ -19,7 +19,7 @@ export { ViewNamespace } from './view-namespace.js';
  */
 export interface INameFormaTheme {
   // vertical border
-  columnSeparator: string;
+  colSeparator: string;
 
   // Primary text, terse
   nfText(text: string): string;

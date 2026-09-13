@@ -19,8 +19,8 @@ const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
  */
 export class NameFormaTheme implements INameFormaTheme {
   private static _shared: NameFormaTheme | null = null;
-  //columnSeparator: string = '│';  // does not delimit word-click
-  columnSeparator: string = '|'; // word-click delimiter
+  //colSeparator: string = '│';  // does not delimit word-click
+  colSeparator: string = '|'; // word-click delimiter
 
   constructor(private theme: Theme) {}
 
@@ -214,7 +214,7 @@ export class NameFormaTheme implements INameFormaTheme {
  * ANSI Colors
  */
 export class MarkerTheme implements INameFormaTheme {
-  columnSeparator: string = '│';
+  colSeparator: string = '│';
 
   nfText(text: string): string {
     return `«${text}»`;
@@ -250,7 +250,7 @@ export class MarkerTheme implements INameFormaTheme {
  * for content without color.
  */
 export class PlainTheme implements INameFormaTheme {
-  columnSeparator: string = '│';
+  colSeparator: string = '│';
 
   nfText(text: string): string {
     return text;

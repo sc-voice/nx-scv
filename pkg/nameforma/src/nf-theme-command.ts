@@ -24,10 +24,10 @@ export class NfThemeCommand {
     try {
       const theme = NameFormaTheme.shared;
       const doc = theme.documentation();
-      const { columnSeparator } = theme;
+      const { colSeparator } = theme;
       if (options.tui) {
         const mt = new MonoTable(doc);
-        lines.push(mt.format({ columnSeparator }));
+        lines.push(mt.format({ colSeparator }));
       } else {
         lines.push(JSON.stringify(doc, null, 2));
       }

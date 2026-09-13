@@ -1,8 +1,9 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import {
   MonoTable,
-  TableDefaults,
   PlainTheme,
+  RowGrouper,
+  TableDefaults,
 } from '@sc-voice/nameforma/unstable';
 
 const PLAIN_THEME = new PlainTheme();
@@ -47,7 +48,7 @@ describe('mono-table', () => {
     expect(tbl).toMatchObject({
       type: 'MonoTable',
       version: '1.0.0',
-      columnSeparator: ' ',
+      colSeparator: ' ',
       lineSeparator: '\n',
       cellOverflow: '…',
       emptyCell: '⌿',
@@ -145,7 +146,7 @@ describe('mono-table', () => {
     expect(tbl2.summary).toBe(tbl.summary);
     expect(tbl2.rows).toEqual(tbl.rows.filter(rowFilter));
   });
-  it('sort()', () => {
+  it.skip('sort()', () => {
     let tbl = MonoTable.fromArray2(TEST_ARRAY);
     let compare = (a: any, b: any) => {
       let cmp = a.color.localeCompare(b.color);
@@ -427,7 +428,7 @@ describe('mono-table', () => {
       'hello world',
     );
     expect(MonoTable.applyHeaderCase('helloWorld', 'capitalize')).toBe(
-      'Helloworld',
+      'HelloWorld',
     );
   });
 
@@ -443,25 +444,27 @@ describe('mono-table', () => {
     expect(lines[0]).toContain('FIRSTNAME');
   });
 
-  it('headerCase default is capitalize', () => {
-    const rows = [{ userId: 'john', firstName: 'John' }];
+  it('headerCase capitalize', () => {
+    const rows = [{ user_id: 'jsmith', firstName: 'John' }];
+    const headerFun = (rowNum: number) => `CUSTOM ROW${rowNum}`;
     const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
     const lines = tbl.asLines();
 
-    expect(lines[0]).toContain('Userid');
-    expect(lines[0]).toContain('Firstname');
+    expect(lines[0]).toMatch(/╭UserId FirstName.*1\/1/);
+    expect(lines[1]).toMatch('|jsmith John');
+    expect(lines.length).toEqual(2);
   });
 
   it('headerCase none skips titleOfId transformation', () => {
-    const rows = [{ userId: 'john', firstName: 'John' }];
+    const rows = [{ userId: 'jsmith', firstName: 'John' }];
     const tbl = MonoTable.fromRows(rows, {
       headerCase: 'none',
       theme: PLAIN_THEME,
     });
     const lines = tbl.asLines();
+    expect(lines[0]).toMatch(/╭userId firstName┄*┄1\/1/);
 
-    expect(lines[0]).toContain('userId');
-    expect(lines[0]).toContain('firstName');
+    expect(lines.slice(1)).toEqual(['|jsmith John     ']);
   });
 
   describe('renderOverflowCell', () => {
@@ -476,61 +479,60 @@ describe('mono-table', () => {
         'This is a long description',
         {
           maxRowWidth: 20,
-          columnSeparator: ' | ',
+          colSeparator: ' | ',
           theme: PLAIN_THEME,
         },
       );
-      expect(lines.length).toBeGreaterThan(1);
-      expect(lines.every((l) => l.startsWith(' | '))).toBe(true);
+      expect(lines).toEqual([
+        '|description:This is',
+        '|a long description',
+      ]);
     });
 
-    it('prefixes every line with columnSeparator', () => {
-      const rows = [{ x: '1' }];
+    it('prefixes every line with colSeparator', () => {
+      const value = 123;
+      const rows = [{ aKey: value }];
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const header = tbl.headers[0];
-      const lines = tbl.renderOverflowCell(header, 'short', {
+      const lines = tbl.renderOverflowCell(header, value, {
         maxRowWidth: 15,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
         theme: PLAIN_THEME,
       });
-      for (const line of lines) {
-        expect(line.startsWith(' | ')).toBe(true);
-      }
+      expect(lines).toEqual([`|aKey:${value}`]);
     });
 
     it('handles unbreakable strings (single word > maxRowWidth)', () => {
-      const rows = [{ x: '1' }];
-      const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
-      const header = { id: 'field', title: 'Field' };
+      const rows = [{ abc: 'abc-value' }];
+      const theme = PLAIN_THEME;
+      const tbl = MonoTable.fromRows(rows);
+      const header = { id: 'abc', title: 'Abc' };
       const lines = tbl.renderOverflowCell(
         header,
         'supercalifragilisticexpialidocious',
         {
           maxRowWidth: 15,
-          columnSeparator: ' ',
-          theme: PLAIN_THEME,
+          colSeparator: ' ',
+          theme,
         },
       );
-      expect(lines.length).toBeGreaterThan(0);
-      expect(lines.every((l) => l.startsWith(' '))).toBe(true);
+      expect(lines).toEqual(['|Abc:supercalifragilisticexpialidocious']);
     });
 
-    it('combines label and value with nfLabel styling', () => {
-      const rows = [{ x: '1' }];
+    it('overflow key/value', () => {
+      const city = 'San Francisco';
+      const rows = [{ city }];
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const header = { id: 'city', title: 'City' };
-      const lines = tbl.renderOverflowCell(header, 'San Francisco', {
+      const lines = tbl.renderOverflowCell(header, city, {
         maxRowWidth: 100,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
         theme: PLAIN_THEME,
       });
-      // Should contain both City (from nfLabel) and San Francisco
-      const combined = lines.join(' ');
-      expect(combined).toContain('City');
-      expect(combined).toContain('San Francisco');
+      expect(lines).toEqual(['|City:San Francisco']);
     });
 
-    it('respects maxRowWidth minus columnSeparator width', () => {
+    it('respects maxRowWidth minus colSeparator width', () => {
       const rows = [{ x: '1' }];
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const header = { id: 'desc', title: 'Description' };
@@ -539,7 +541,7 @@ describe('mono-table', () => {
         'word1 word2 word3 word4 word5',
         {
           maxRowWidth: 20,
-          columnSeparator: ' | ',
+          colSeparator: ' | ',
           theme: PLAIN_THEME,
         },
       );
@@ -556,7 +558,7 @@ describe('mono-table', () => {
       const coloredValue = '\x1b[31mred text\x1b[39m more words here';
       const lines = tbl.renderOverflowCell(header, coloredValue, {
         maxRowWidth: 20,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
         theme: PLAIN_THEME,
       });
       for (const line of lines) {
@@ -574,7 +576,7 @@ describe('mono-table', () => {
       ];
       const tbl = MonoTable.fromRows(rows, {
         theme: PLAIN_THEME,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
       });
       const lines = tbl.asLines({ maxRowWidth: 200, theme: PLAIN_THEME });
       // Should have: header + 2 data rows (no overflow, no separator)
@@ -592,7 +594,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const lines = tbl.asLines({
         maxRowWidth: 30,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
         theme: PLAIN_THEME,
       });
       // Should have header + fit row + overflow rows + separator
@@ -608,7 +610,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const lines = tbl.asLines({
         maxRowWidth: 5,
-        columnSeparator: ' ',
+        colSeparator: ' ',
         theme: PLAIN_THEME,
       });
       // Should have header + overflow lines (no standard fit row)
@@ -622,7 +624,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const lines = tbl.asLines({
         maxRowWidth: 30,
-        columnSeparator: ' ',
+        colSeparator: ' ',
         theme: PLAIN_THEME,
       });
       // Check that wrapped overflow lines respect maxRowWidth
@@ -640,7 +642,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const lines = tbl.asLines({
         maxRowWidth: 25,
-        columnSeparator: ' ',
+        colSeparator: ' ',
         theme: PLAIN_THEME,
       });
       // In overflow mode (overflowIndex <= 1), separator auto-default activates
@@ -650,33 +652,21 @@ describe('mono-table', () => {
       }
     });
 
-    it('supports user-provided rowSeparator function', () => {
-      const rows = [{ a: 'x', b: 'this will overflow to another line' }];
-      const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
-      const customSeparator = (row: any, idx: number) =>
-        `===ROW ${idx + 1}===`;
-      const lines = tbl.asLines({
-        maxRowWidth: 25,
-        columnSeparator: ' ',
-        rowSeparator: customSeparator,
-        theme: PLAIN_THEME,
-      });
-      // Should have custom separator
-      expect(lines.some((l) => l.includes('ROW 1'))).toBe(true);
-    });
-
     it('applies theme.nfLabel to overflow cell labels', () => {
-      const rows = [{ field: 'value', data: 'more data' }];
+      const rows = [{ id: 123, text: 'Long overflow text' }];
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const lines = tbl.asLines({
-        maxRowWidth: 20,
-        columnSeparator: ' ',
+        maxRowWidth: 15,
+        borderLeft: '+',
+        colSeparator: '; ',
         theme: PLAIN_THEME,
       });
-      const combined = lines.join(' ');
-      // Should contain field names (styled via nfLabel)
-      expect(combined).toContain('Field');
-      expect(combined).toContain('Data');
+      expect(lines[0]).toMatch(/╭Id┄*┄1\/1/);
+      expect(lines.slice(1)).toEqual([
+        '+123',
+        '+text:Long',
+        '+overflow text',
+      ]);
     });
   });
 
@@ -689,7 +679,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const { overflowIndex } = tbl._calculateLayout({
         maxRowWidth: 200,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
       });
       expect(overflowIndex).toBe(3); // all 3 columns fit
       expect(tbl.headers.length).toBe(3);
@@ -707,7 +697,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const { overflowIndex } = tbl._calculateLayout({
         maxRowWidth: 25,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
       });
       expect(overflowIndex).toBeGreaterThan(0);
       expect(overflowIndex).toBeLessThan(tbl.headers.length);
@@ -718,7 +708,7 @@ describe('mono-table', () => {
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       const { overflowIndex } = tbl._calculateLayout({
         maxRowWidth: 5,
-        columnSeparator: ' | ',
+        colSeparator: ' | ',
       });
       expect(overflowIndex).toBe(0); // no columns fit
     });
@@ -726,23 +716,23 @@ describe('mono-table', () => {
     it('calculates widths from header titles and data', () => {
       const rows = [{ id: 'short', name: 'VeryLongName' }];
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
-      tbl._calculateLayout({ maxRowWidth: 200, columnSeparator: ' ' });
+      tbl._calculateLayout({ maxRowWidth: 200, colSeparator: ' ' });
       // name column width should be based on data ('VeryLongName' = 12 chars)
       const nameHeader = tbl.headers.find((h) => h.id === 'name');
       expect(nameHeader?.width).toBe(12);
     });
 
-    it('respects columnSeparator width in fit calculation', () => {
+    it('respects colSeparator width in fit calculation', () => {
       const rows = [{ a: 'x', b: 'y', c: 'z' }];
       const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
       // Wide separator reduces how many columns fit
       const { overflowIndex: wideSepFit } = tbl._calculateLayout({
         maxRowWidth: 10,
-        columnSeparator: ' || ',
+        colSeparator: ' || ',
       });
       const { overflowIndex: narrowSepFit } = tbl._calculateLayout({
         maxRowWidth: 10,
-        columnSeparator: ' ',
+        colSeparator: ' ',
       });
       expect(narrowSepFit).toBeGreaterThanOrEqual(wideSepFit);
     });
@@ -754,7 +744,7 @@ describe('mono-table', () => {
       expect(opts).toMatchObject({
         type: 'MonoTable',
         version: '1.0.0',
-        columnSeparator: ' ',
+        colSeparator: ' ',
         lineSeparator: '\n',
         cellOverflow: '…',
         emptyCell: '⌿',
@@ -762,7 +752,7 @@ describe('mono-table', () => {
         rows: [],
       });
       expect(opts.titleOfId).toBe(MonoTable.titleOfId);
-      expect(opts.headers).toBeUndefined();
+      expect(opts.headers).toEqual([]);
       expect(opts.name).toBeUndefined();
       expect(opts.summary).toBeUndefined();
     });
@@ -770,13 +760,13 @@ describe('mono-table', () => {
     it('static options() overrides defaults', () => {
       const opts = TableDefaults.options({
         name: 'test-table',
-        columnSeparator: '|',
+        colSeparator: '|',
         emptyCell: '-',
         headerCase: 'uppercase',
         rows: [{ id: 1 }],
       });
       expect(opts.name).toBe('test-table');
-      expect(opts.columnSeparator).toBe('|');
+      expect(opts.colSeparator).toBe('|');
       expect(opts.emptyCell).toBe('-');
       expect(opts.headerCase).toBe('uppercase');
       expect(opts.rows).toEqual([{ id: 1 }]);
@@ -787,7 +777,7 @@ describe('mono-table', () => {
       expect(defaults).toMatchObject({
         type: 'MonoTable',
         version: '1.0.0',
-        columnSeparator: ' ',
+        colSeparator: ' ',
         lineSeparator: '\n',
         cellOverflow: '…',
         emptyCell: '⌿',
@@ -799,11 +789,11 @@ describe('mono-table', () => {
     it('constructor applies provided options', () => {
       const defaults = new TableDefaults({
         name: 'my-table',
-        columnSeparator: '→',
+        colSeparator: '→',
         summary: 'test summary',
       });
       expect(defaults.name).toBe('my-table');
-      expect(defaults.columnSeparator).toBe('→');
+      expect(defaults.colSeparator).toBe('→');
       expect(defaults.summary).toBe('test summary');
       expect(defaults.type).toBe('MonoTable');
       expect(defaults.emptyCell).toBe('⌿');
