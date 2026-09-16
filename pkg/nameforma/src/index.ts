@@ -6,6 +6,7 @@ import { FileRepository } from './file-repository.js';
 import { Forma, type Constructor } from './forma.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
+import { Zeno, type ZenoStep } from './zeno-step.js';
 import UUID64, { type IUUID64Config } from './uuid64.js';
 export type { FuzzyId, IRegistry };
 import { Rational } from './rational.js';
@@ -48,6 +49,7 @@ export {
   User,
   UUID64,
   World,
+  Zeno,
   ZenoCoord,
 };
 export type {
@@ -55,4 +57,5 @@ export type {
   IEntityRepository,
   ICommandMutable,
   IUUID64Config,
+  ZenoStep,
 };

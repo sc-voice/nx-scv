@@ -170,6 +170,11 @@ const NF_PROGRAM = {
   NF_PI_CLI,
 };
 
+const ZENO_STEP = {
+  ANY: Math.max(NF_CLI, NF_PI_CLI),
+  VERIFY: 0,
+};
+
 export const DBG = {
   ACTION,
   CLOCK,
@@ -196,4 +201,5 @@ export const DBG = {
   TIMER,
   TIMERS,
   WORLD,
+  ZENO_STEP,
 };

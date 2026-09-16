@@ -4,6 +4,12 @@ import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
 import { NameFormaTheme } from './nameforma-theme.js';
+
+import type { ZenoStep } from './zeno-step.js';
+
+// @deprecated clients should import directly from zeno-step.js
+export type { ZenoStep } from './zeno-step.js';
+
 import {
   FuzzyNamespace,
   type IReadOnlyNamespace,
@@ -101,7 +107,6 @@ const MIN_ZENO_STEP = 0;
  * ZenoStep: branded integer [0..MAX_ZENO_STEP] for stepped detail levels.
  * Uses Zeno-like convergence: detail = 1 - (8/13)^n
  */
-export type ZenoStep = number & { readonly __zenoStep: unique symbol };
 
 export function zenoStep(n: number): ZenoStep {
   if (!Number.isInteger(n) || n < 0 || n > MAX_ZENO_STEP) {

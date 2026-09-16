@@ -1,7 +1,6 @@
 import { logger } from './file-repository.js';
 import {
   INameFormaTheme,
-  ZenoStep,
   zenoStep,
   ZENO_1_ROW_VERBOSE,
   ZENO_1_ROW_TERSE,
@@ -11,6 +10,7 @@ import {
   ZenoCoord,
   RenderDetail,
 } from './navigable-view.js';
+import { Zeno, type ZenoStep } from './zeno-step.js';
 import { MonoTable } from './mono-table.js';
 import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
 import { DBG } from './defines.js';
@@ -25,7 +25,20 @@ import * as HJSON_CJS from 'hjson';
 
 const Hjson = HJSON_CJS as any;
 
-const DEFAULT_SEMANTIC_ROWS = 3;
+/**
+ * Communication induces state resonance.
+ *   Sₜ₊₁ = Sₜ + ΔS
+ * Efficient communication necessitates the transfer of only essential information.
+ * However, determining what is "essential information" is entirely context dependent.
+ *
+ * Semantic detail is measured by the number of key/value pairs
+ * displayed to both agent/human.
+ *   zeno 0: zid, name
+ *   zeno 1: zid, name, id
+ *   zeno 2: zid, name, id, summary, forma
+ *   zeno 3: zid, name, id, summary, forma, ...
+ */
+const DEFAULT_KEYS = 3; // Zeno 3
 
 interface ParsedOptions {
   /** Whether to add zid field */
@@ -36,12 +49,13 @@ interface ParsedOptions {
   detailLines: number;
   /** maxKeys for detail row*/
   detailKeys: number;
-  /** Default semantic zoom (ZenoStep) for each row */
-  detailCoord: ZenoCoord;
+  detailZeno: ZenoStep;
   /** output as JSON */
   json: boolean;
   /** lines per row */
   linesPerRow: number;
+  /** maximum number of keys to display for each row */
+  maxKeys: number;
   /** output as MonoTable */
   monoTable: boolean;
   /** Projection object with 0/1 values (validated for non-mixed) */
@@ -65,11 +79,6 @@ export class NfFindCommand {
 
   constructor(nfProgram: NfProgram) {
     this.nfProgram = nfProgram;
-  }
-
-  /** Semantic content is brief and glancing by default */
-  static get DEFAULT_ROWS() {
-    return DEFAULT_SEMANTIC_ROWS;
   }
 
   /**
@@ -212,16 +221,17 @@ export class NfFindCommand {
 
     // Compute layout according to constraints.
 
+    const maxKeys = rawMaxKeys ?? DEFAULT_KEYS;
+
     // Primary layout constraint is level of detail (default 0)
     const detail = rawDetail ?? 0;
-    const detailZeno = linesToZenoStep(
-      Math.floor((tuiRows - 1) * detail) + 1,
-    );
-    const detailLines = zenoStepToLines(detailZeno);
-    const detailKeys =
-      rawMaxKeys != null
-        ? 0
-        : zenoStepToLines((detailZeno + 4) as ZenoStep);
+    const minDetailZeno = Zeno.ZKV.fromCount(maxKeys);
+    const maxZeno = Math.max(minDetailZeno, Zeno.ZKV.fromCount(tuiRows));
+    const detailZeno = Math.floor(
+      maxZeno * detail + (1 - detail) * minDetailZeno,
+    ) as ZenoStep;
+    const detailLines = Zeno.ZKV.toCount(detailZeno);
+    const detailKeys = Zeno.ZKV.toCount(detailZeno);
 
     // Account for row headers
     const headerLines = 1;
@@ -234,7 +244,6 @@ export class NfFindCommand {
     const nonDetailRows = Math.floor(nonDetailLines / linesPerRow);
     const maxRows = detailRows + nonDetailRows;
 
-    const detailCoord = new ZenoCoord(detailZeno, zenoStep(0));
     const rows =
       rawRows ??
       (rawLines === undefined
@@ -248,9 +257,10 @@ export class NfFindCommand {
       detail,
       detailLines,
       detailKeys,
-      detailCoord,
+      detailZeno,
       json,
       linesPerRow,
+      maxKeys,
       monoTable,
       projection,
       rawMaxKeys,
@@ -318,7 +328,6 @@ export class NfFindCommand {
       dbg && logger.info({ ctx, valid, maxKeys });
       const {
         detail,
-        detailCoord,
         detailKeys,
         detailLines, // deprecate?
         json,
@@ -327,6 +336,7 @@ export class NfFindCommand {
         tuiColumns,
         tuiRows,
       } = valid;
+
       const theme = json ? new PlainTheme() : NameFormaTheme.shared;
       const namespace = addZid ? nfProgram.world.namespace : undefined;
       const mjbOpts = { maxKeys, namespace, projection };
@@ -374,7 +384,7 @@ export class NfFindCommand {
       .description('Find Formas that match given queries')
       .option(
         '-k, --max-keys <number>',
-        'Max number of keys to display for each row (auto)',
+        'Max number of keys to display for each data row (auto: 0:all)',
       )
       .option('-r, --rows <number>', 'Max number of data rows (auto)')
       .option('-m,--mono-table', 'Output as MonoTable (auto)')

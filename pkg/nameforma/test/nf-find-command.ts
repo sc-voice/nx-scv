@@ -17,6 +17,7 @@ import {
   ZENO_MAX_ROWS,
   zenoStep,
 } from '@sc-voice/nameforma/unstable';
+import { Zeno, type ZenoStep } from '@sc-voice/nameforma';
 import { ZenoCoord } from '@sc-voice/nameforma';
 
 const FIND = ['node', 'test', 'find'];
@@ -323,7 +324,7 @@ describe('NfFindCommand.register', () => {
     await rootCmd.parseAsync([
       ...FIND,
       '-j',
-      //      '-k2',
+      '-k0',
       '-p',
       'rawActions.id:1',
       '{name:"Task1-Name"}',
@@ -519,22 +520,25 @@ describe('NfFindCommand._validateParameters', () => {
 
   it('_validateParameters with empty options returns defaults', () => {
     const valid = nfFindCommand._validateParameters(['test'], {});
-    expect(valid.projection).toEqual({});
+
     expect(valid.addZid).toBe(true);
+    expect(valid.detail).toEqual(0);
+    expect(valid.detailLines).toEqual(3);
+    expect(valid.detailKeys).toEqual(3);
+    expect(valid.detailZeno).toEqual(3 as ZenoStep);
+    expect(valid.json).toBe(false);
+    expect(valid.linesPerRow).toBe(1);
+    expect(valid.maxKeys).toBe(3);
+    expect(valid.monoTable).toBe(true);
+    expect(valid.projection).toEqual({});
+    expect(valid.rawMaxKeys).toBe(undefined);
+    expect(valid.rows).toBe(valid.tuiRows - 3);
 
     // TUI screen dimensions are normally determined from process.stdout.
     // During tests, process.stdout is not available, so 24x80 are used by default.
-    expect(valid.tuiRows).toEqual(24);
-    expect(valid.tuiColumns).toBeLessThanOrEqual(80);
     expect(valid.tuiColumns).toBeGreaterThanOrEqual(78);
-
-    expect(valid.json).toBe(false);
-    expect(valid.monoTable).toBe(true);
-    expect(valid.addZid).toBe(true);
-    //expect(valid.detailZeno).toEqual(new ZenoCoord(ZENO_21_ROWS,0));
-    expect(valid.rows).toBe(valid.tuiRows - 1);
-    expect(valid.linesPerRow).toBe(1);
-    expect(valid.rawMaxKeys).toBe(undefined);
+    expect(valid.tuiColumns).toBeLessThanOrEqual(80);
+    expect(valid.tuiRows).toEqual(24);
   });
 
   it('_validateParameters adjusts linesPerRow given rows', () => {
@@ -555,7 +559,7 @@ describe('NfFindCommand._validateParameters', () => {
       tuiRows,
     });
     expect(v1.linesPerRow).toBe(1);
-    expect(v1.rows).toBe(23); // max(1, floor((24 - 1) / 1)));
+    expect(v1.rows).toBe(21); // max(1, floor((24 - 1) / 1)));
 
     const v2 = nfFindCommand._validateParameters(['test'], {
       linesPerRow: 2,
@@ -652,7 +656,7 @@ describe('NfFindCommand._validateParameters', () => {
       }).projection,
     ).toEqual({ _abc: 1, xyz: 1 });
   });
-});
+}); // _validateParameters
 
 describe('NfFindCommand.registerCommand with single-focus fixture', () => {
   let tempDirObj: any;

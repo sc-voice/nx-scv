@@ -551,7 +551,7 @@ describe('CLI: task command', () => {
         'test',
         'find',
         '-j',
-        '-k0',
+        '-d1',
         '-w',
         tempWorld.worldPath,
         '--',
