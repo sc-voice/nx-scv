@@ -1,15 +1,5 @@
 import { logger } from './file-repository.js';
-import {
-  INameFormaTheme,
-  zenoStep,
-  ZENO_1_ROW_VERBOSE,
-  ZENO_1_ROW_TERSE,
-  ZENO_MAX_ROWS,
-  linesToZenoStep,
-  zenoStepToLines,
-  ZenoCoord,
-  RenderDetail,
-} from './navigable-view.js';
+import { INameFormaTheme, } from './navigable-view.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
 import { MonoTable } from './mono-table.js';
 import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
@@ -25,49 +15,40 @@ import * as HJSON_CJS from 'hjson';
 
 const Hjson = HJSON_CJS as any;
 
-/**
- * Communication induces state resonance.
- *   Sₜ₊₁ = Sₜ + ΔS
- * Efficient communication necessitates the transfer of only essential information.
- * However, determining what is "essential information" is entirely context dependent.
- *
- * Semantic detail is measured by the number of key/value pairs
- * displayed to both agent/human.
- *   zeno 0: zid, name
- *   zeno 1: zid, name, id
- *   zeno 2: zid, name, id, summary, forma
- *   zeno 3: zid, name, id, summary, forma, ...
- */
-const DEFAULT_KEYS = 3; // Zeno 3
+const DEFAULT_HEADERS = 3; 
+const DEFAULT_KEYS = 3; 
 
 interface ParsedOptions {
   /** Whether to add zid field */
   addZid: boolean;
-  /** Semantic zoom for detail row  [0,1] */
+  /** max keys to display for background data rows */
+  bgKeys: number;
+  /** max lines per background data row */
+  bgLines: number;
+  /* TEMP */  bgRows: number;
+  /* TEMP */  fgRows: number;
+  /** semantic "fish-eye" zoom (0:background-only, 1:foreground-only) */
   detail: number;
-  /** Lines for detail row*/
-  detailLines: number;
-  /** maxKeys for detail row*/
-  detailKeys: number;
-  detailZeno: ZenoStep;
-  /** output as JSON */
-  json: boolean;
-  /** lines per row */
-  linesPerRow: number;
-  /** maximum number of keys to display for each row */
-  maxKeys: number;
+  /** max keys to show in foreground data row */
+  fgKeys: number;
+  /** max lines per foreground data row */
+  fgLines: number;
+  /** Maximum number of table headers (3) */
+  maxHeaders: number;
   /** output as MonoTable */
   monoTable: boolean;
+  /** output as JSON */
+  outJson: boolean;
   /** Projection object with 0/1 values (validated for non-mixed) */
   projection: Record<string, 0 | 1>;
-  /** maximum number of keys to display for each row */
-  rawMaxKeys: number | undefined;
+  /** max keys to display for each background data row */
+  rawBgKeys: number | undefined;
   /** Result row limit, defaults to DEFAULT_SEMANTIC_ROWS */
-  rows: number;
-  /** Terminal height in rows for layout optimization */
-  tuiColumns: number;
-  /** Terminal height in rows for layout optimization */
-  tuiRows: number;
+  rowLimit: number;
+  /** Terminal width in characters for layout optimization */
+  tuiWidth: number;
+  /** Terminal height in lines for layout optimization */
+  tuiHeight: number;
 }
 
 /**
@@ -147,6 +128,51 @@ export class NfFindCommand {
     return [resolved.forma];
   }
 
+  _parseFloatOption(
+    opts:Record<string,any>, 
+    key:string, 
+    defaultValue?: number | undefined,
+    minValue: number = 0,
+    maxValue: number = 1,
+  ): number | undefined {
+    const rawValue = opts[key];
+    if (rawValue === undefined) {
+      return defaultValue;
+    }
+    const value = parseFloat(rawValue);
+    if (isNaN(value)) {
+      throw new Error(`Invalid ${key}: ${rawValue}`);
+    }
+    if (value < minValue) {
+      throw new Error(`Invalid ${key}: ${rawValue} < ${minValue}`);
+    }
+    if (value > maxValue) {
+      throw new Error(`Invalid ${key}: ${rawValue} > ${maxValue}`);
+    }
+    return value;
+    return value;
+  }
+
+  _parseIntOption(
+    opts:Record<string,any>, 
+    key:string, 
+    defaultValue?: number | undefined,
+    minValue: number = 0,
+  ): number | undefined {
+    const rawValue = opts[key];
+    if (rawValue === undefined) {
+      return defaultValue;
+    }
+    const value = parseInt(rawValue);
+    if (isNaN(value)) {
+      throw new Error(`Invalid ${key}: ${rawValue}`);
+    }
+    if (value < minValue) {
+      throw new Error(`Invalid ${key}: ${rawValue} < ${minValue}`);
+    }
+    return value;
+  }
+
   /**
    * Validate find command parameters (queries and options)
    * @param queries - Array of >=1 query strings
@@ -154,7 +180,7 @@ export class NfFindCommand {
    * @returns Validated and parsed options
    * @throws Error for invalid options
    */
-  _validateParameters(queries: string[], options: any): ParsedOptions {
+  _validateOpts(queries: string[], options: any): ParsedOptions {
     if (!queries || queries.length === 0) {
       throw new Error('At least one query is required');
     }
@@ -172,114 +198,88 @@ export class NfFindCommand {
         `Mixed projection not supported: ${JSON.stringify(projection)}`,
       );
     }
-    const tuiRows = options.tuiRows
-      ? parseInt(options.tuiRows)
-      : (process.stdout.rows ?? 24);
-    if (isNaN(tuiRows)) {
-      throw new Error(`Invalid rows: ${options.tuiRows}`);
-    }
-    const tuiColumns = options.tuiColumns
-      ? parseInt(options.tuiColumns)
-      : (process.stdout.columns ?? 80);
-    if (isNaN(tuiColumns)) {
-      throw new Error(`Invalid tuiColumns: ${options.tuiColumns}`);
-    }
+    const tuiHeight = this._parseIntOption(options, 'tuiHeight', process.stdout.rows ?? 24)!;
+    const tuiWidth = this._parseIntOption(options, 'tuiWidth', process.stdout.columns ?? 80)!;
+
     // resolve output options
-    const defaultOutput = [options.json, options.monoTable].every(
+    const defaultOutput = [options.outJson, options.monoTable].every(
       (f) => f === undefined,
     );
-    const json = options.json ?? false;
+    const outJson = options.outJson ?? false;
     const monoTable = options.monoTable ?? defaultOutput;
 
     // Parse layout constraints
-    const rawMaxKeys =
-      options.maxKeys != null ? parseInt(options.maxKeys) : undefined;
-    if (rawMaxKeys !== undefined && isNaN(rawMaxKeys)) {
-      throw new Error(`Invalid maxKeys: ${options.maxKeys}`);
-    }
-    const rawRows = options.rows ? parseInt(options.rows, 10) : undefined;
-    if (rawRows !== undefined && isNaN(rawRows)) {
-      throw new Error(`Invalid rows: ${options.rows}`);
-    }
-    const rawLines = options.linesPerRow
-      ? parseInt(options.linesPerRow, 10)
-      : undefined;
-    if (rawLines !== undefined && (isNaN(rawLines) || rawLines < 1)) {
-      throw new Error(
-        `Expected positive integer for linesPerRow: ${options.linesPerRow}`,
-      );
-    }
-    const rawDetail = options.detail
-      ? parseFloat(options.detail)
-      : undefined;
-    if (
-      rawDetail !== undefined &&
-      (isNaN(rawDetail) || rawDetail < 0 || 1 < rawDetail)
-    ) {
-      throw new Error(`Invalid detail: ${options.detail}`);
-    }
+    // --------------------------------------
+    const maxHeaders = this._parseIntOption(options, 'maxHeaders', DEFAULT_HEADERS)!;
+    const rawBgKeys = this._parseIntOption(options, 'bgKeys');
+    const rawRowLimit = this._parseIntOption(options, 'rowLimit');
+    const bgLinesRaw = this._parseIntOption(options, 'bgLines', undefined, 1);
+    const rawDetail = this._parseFloatOption(options, 'detail');
 
     // Compute layout according to constraints.
-
-    const maxKeys = rawMaxKeys ?? DEFAULT_KEYS;
-
-    // Primary layout constraint is level of detail (default 0)
-    const detail = rawDetail ?? 0;
-    const minDetailZeno = Zeno.ZKV.fromCount(maxKeys);
-    const maxZeno = Math.max(minDetailZeno, Zeno.ZKV.fromCount(tuiRows));
-    const detailZeno = Math.floor(
-      maxZeno * detail + (1 - detail) * minDetailZeno,
-    ) as ZenoStep;
-    const detailLines = Zeno.ZKV.toCount(detailZeno);
-    const detailKeys = Zeno.ZKV.toCount(detailZeno);
+    // --------------------------------------
+    const detail = rawDetail ?? (rawRowLimit === 1 ? 1 : 0);
+    const bgKeys = rawBgKeys ?? Math.max(maxHeaders, DEFAULT_KEYS);
+    const bgOverflow = Math.max(0, bgKeys - maxHeaders);
+    const bgLines = bgLinesRaw ?? 1 + bgOverflow;
+    const fgZenoMin = Zeno.ZKV.fromCount(bgKeys);
+    const fgZenoMax = Math.max(fgZenoMin, Zeno.ZKV.fromCount(tuiHeight));
+    const fgZeno = fgZenoMax * detail + (1 - detail) * fgZenoMin;
+    const fgLinesMax = Math.floor(tuiHeight*detail + (1-detail) * bgLines);
+    //const fgKeys = Zeno.ZKV.toCount(fgZeno as ZenoStep);
+    const fgKeys = fgLinesMax - (maxHeaders ? 1 : 0) + maxHeaders;
+    const fgOverflow = Math.max(0, fgKeys - maxHeaders); 
+    const fgLines = 1 + fgOverflow;
 
     // Account for row headers
-    const headerLines = 1;
-    const detailRows = 1;
-    const nonDetailLines = Math.max(
-      1,
-      tuiRows - headerLines - detailLines,
-    );
-    const linesPerRow = rawLines ?? 1;
-    const nonDetailRows = Math.floor(nonDetailLines / linesPerRow);
-    const maxRows = detailRows + nonDetailRows;
+    const fgRows = 1;
+    const bgLinesTotal = Math.max(1, tuiHeight - fgLines);
+    const bgRows = detail === 1 ? 0 : Math.floor(bgLinesTotal / bgLines);
+    const totalRows = fgRows + bgRows;
 
-    const rows =
-      rawRows ??
-      (rawLines === undefined
-        ? maxRows
-        : Math.max(1, Math.floor((tuiRows - 1) / rawLines)));
+    let rowLimit;
+
+    if (detail === 1) {
+      rowLimit = rawRowLimit ?? totalRows;
+    } else {
+      rowLimit = rawRowLimit ??
+        (bgLinesRaw === undefined
+          ? totalRows
+          : Math.max(1, Math.floor((tuiHeight - 1) / bgLinesRaw)));
+    }
 
     const addZid = NfProgram.parseBoolean(options.zid, true);
 
     return {
       addZid,
       detail,
-      detailLines,
-      detailKeys,
-      detailZeno,
-      json,
-      linesPerRow,
-      maxKeys,
+      fgLines,
+      fgKeys,
+      bgLines,
+      maxHeaders,
+      bgKeys,
+      bgRows,
+      fgRows,
       monoTable,
+      outJson,
       projection,
-      rawMaxKeys,
-      rows,
-      tuiColumns,
-      tuiRows,
+      rawBgKeys,
+      rowLimit,
+      tuiWidth,
+      tuiHeight,
     };
   }
 
   /**
    * Resolve multiple queries and merge results with deduplication by id
    * @param queries - Array of query strings to resolve
-   * @param rows - Result row limit (respects global limit across all queries)
+   * @param rowLimit - Result row limit (respects global limit across all queries)
    * @returns Array of deduplicated formas, sorted with focused entities first
    */
-  async _mergeResults(queries: string[], rows: number): Promise<any[]> {
+  async _mergeResults(queries: string[], rowLimit: number): Promise<any[]> {
     const formas: any = [];
     const seenIds = new Set<string>();
-    let remaining = rows;
+    let remaining = rowLimit;
     for (const query of queries) {
       if (remaining !== undefined && remaining <= 0) break;
       const queryLimit = remaining;
@@ -314,36 +314,35 @@ export class NfFindCommand {
     let lines: string[] = [];
     try {
       // process queries to obtain actual row count
-      const { addZid, rawMaxKeys, rows } = this._validateParameters(
+      const { addZid, rawBgKeys, rowLimit } = this._validateOpts(
         queries,
         options,
       );
-      const formas = await this._mergeResults(queries, rows);
-      const dataRows = formas.length;
-      const maxKeys = rawMaxKeys ?? (dataRows === 1 ? 0 : addZid ? 3 : 2);
+      const formas = await this._mergeResults(queries, rowLimit);
+      const bgKeys = rawBgKeys ?? (formas.length === 1 ? 0 : addZid ? 3 : 2);
 
       // re-validate options again using actual data row count
-      const dataOpts = { ...options, rows: dataRows, maxKeys };
-      const valid = this._validateParameters(queries, dataOpts);
-      dbg && logger.info({ ctx, valid, maxKeys });
+      const dataOpts = { ...options, rowLimit: formas.length, bgKeys };
+      const valid = this._validateOpts(queries, dataOpts);
+      dbg && logger.info({ ctx, valid, bgKeys });
       const {
         detail,
-        detailKeys,
-        detailLines, // deprecate?
-        json,
-        linesPerRow,
+        bgLines,
+        fgKeys,
+        fgLines, // deprecate?
+        outJson,
         projection,
-        tuiColumns,
-        tuiRows,
+        tuiWidth,
+        tuiHeight,
       } = valid;
 
-      const theme = json ? new PlainTheme() : NameFormaTheme.shared;
+      const theme = outJson ? new PlainTheme() : NameFormaTheme.shared;
       const namespace = addZid ? nfProgram.world.namespace : undefined;
-      const mjbOpts = { maxKeys, namespace, projection };
+      const mjbOpts = { bgKeys, namespace, projection };
       const mjbDefault = new MonoJSONBuilder(mjbOpts);
       const mjbDetail = new MonoJSONBuilder({
         ...mjbOpts,
-        maxKeys: detailKeys,
+        maxKeys: fgKeys,
       });
       const jsonFormas = formas.map((f, i) => {
         const mjb = i === 0 ? mjbDetail : mjbDefault;
@@ -360,7 +359,7 @@ export class NfFindCommand {
         const mt = new MonoTable({
           colSeparator,
           headerCase: 'none',
-          maxRowWidth: tuiColumns - COLFUDGE,
+          maxRowWidth: tuiWidth - COLFUDGE,
           rows: projected,
           theme,
           themedValue: this.themedValue,
@@ -383,23 +382,23 @@ export class NfFindCommand {
     subCmd
       .description('Find Formas that match given queries')
       .option(
-        '-k, --max-keys <number>',
-        'Max number of keys to display for each data row (auto: 0:all)',
+        '-k, --bg-keys <number>',
+        'Max number of keys to display for each background data row (auto)',
       )
-      .option('-r, --rows <number>', 'Max number of data rows (auto)')
+      .option('-r, --row-limit <number>', 'Max number of data rows (auto)')
       .option('-m,--mono-table', 'Output as MonoTable (auto)')
-      .option('--tui-rows <val>', 'Viewport height (system default or 24)')
+      .option('--tui-lines <val>', 'Viewport height (system default or 24)')
       .option(
-        '--tui-cols,--tui-columns <val>',
+        '--tui-width <val>',
         'Viewport width (system default or 80)',
       )
       .option(
-        '-l, --lines-per-row <val>',
-        'Default lines to display per data row',
+        '-l, --bg-lines <val>',
+        'Max lines to display per background data row',
       )
       .option(
         '-d, --detail <number>',
-        'Semantic detail zoom [0,1] (0 default minimum)',
+        'Semantic "fish-eye" zoom (0:background-only, 1:foreground-only)',
       )
       .option(
         '-p, --project <hjson>',
@@ -424,7 +423,7 @@ Examples:
   nf find 'name:"foo"' -p '{name:1}'
   nf find --fuzzy-id id task -p id:1,name:1
   nf find --zid task -p id,name
-  nf find --mono-table --rows 3 task`,
+  nf find --mono-table --row-limit 3 task`,
       )
       .action(async (queries: string[], options: any, command: any) => {
         const opts = command.optsWithGlobals();

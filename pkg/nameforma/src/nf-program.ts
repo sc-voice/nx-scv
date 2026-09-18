@@ -195,7 +195,7 @@ export class NfProgram {
     this.rootCmd
       .name('nf')
       .option('-t, --tui', 'Output in Terminal User Interface format')
-      .option('-j, --json', 'Output as JSON')
+      .option('-j, --out-json', 'Output as JSON')
       .version(version)
       .description(
         `NameForma/${USER} CLI - Personal reality manager for human/agent cooperation`,
@@ -319,7 +319,7 @@ export class NfProgram {
       .argument('<typeName>', 'Entity type: Plan, ... (required)')
       .argument('<name>', 'Name or title (required)')
       .argument('[summary...]', 'Optional descriptive summary')
-      .option('-j, --json', 'Output update forma as JSON')
+      .option('-j, --out-json', 'Output update forma as JSON')
       .addHelpText(
         'after',
         [

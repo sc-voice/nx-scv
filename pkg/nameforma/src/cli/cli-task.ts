@@ -29,7 +29,7 @@ export default class TaskCommand {
     get: [
       '$ nf task get TASK_ID',
       '$ nf task get  # gets focused task',
-      '$ nf task get --json  # output as JSON',
+      '$ nf task get --out-json  # output as JSON',
     ],
     set: [
       '$ nf task set name "New Task Name"',
@@ -302,7 +302,7 @@ export default class TaskCommand {
     cmd
       .command('get [id]')
       .description('Get task details')
-      .option('--json', 'Output as JSON')
+      .option('--out-json', 'Output as JSON')
       .addHelpText(
         'after',
         [
@@ -317,7 +317,7 @@ export default class TaskCommand {
         const verbosity = nfProgram.verbosity;
         const task = await TaskCommand.resolveTask(world, id);
 
-        if (options.json) {
+        if (options.outJson) {
           nfTui.log(JSON.stringify(task, null, 2));
           return;
         }

@@ -370,7 +370,7 @@ describe('NfFindCommand.register', () => {
   });
 
   it('find with --limit returns only specified number of results', async () => {
-    await rootCmd.parseAsync([...FIND_K0, '-j', '--rows', '1', 'task']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', '-r', '1', 'task']);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -384,7 +384,7 @@ describe('NfFindCommand.register', () => {
     await rootCmd.parseAsync([
       ...FIND_K0,
       '-j',
-      '--rows',
+      '-r',
       '2',
       'task',
       'task',
@@ -432,7 +432,7 @@ describe('NfFindCommand.register', () => {
     world.focusManager.focus(task3.id);
 
     output = [];
-    await rootCmd.parseAsync([...FIND_K0, '-j', '--rows', '2', 'focused']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', '-r', '2', 'focused']);
 
     expect(output.length).toBe(1);
     const json = output[0]
@@ -486,19 +486,20 @@ describe('NfFindCommand.register', () => {
     }
 
     output = [];
-    await rootCmd.parseAsync([...FIND_K0, '--json', 'focused']);
+    await rootCmd.parseAsync([...FIND_K0, '--out-json', 'focused']);
 
     expect(output.length).toEqual(1);
     expect(output[0].trim()).toEqual('');
   });
 });
 
-describe('NfFindCommand._validateParameters', () => {
+describe('NfFindCommand._validateOpts', () => {
   let nfFindCommand: NfFindCommand;
   let world: World;
   let rootCmd: Command;
   let program: NfProgram;
   let tempDirObj: any;
+  const TQ = ['ignored']; // test queries
 
   beforeEach(async () => {
     tempDirObj = createTempDir('nf-parseOptions-test');
@@ -518,145 +519,198 @@ describe('NfFindCommand._validateParameters', () => {
     tempDirObj.cleanup();
   });
 
-  it('_validateParameters with empty options returns defaults', () => {
-    const valid = nfFindCommand._validateParameters(['test'], {});
+  it('_parseFloatOption', () => {
+    const opts = {
+      string: '0.123',
+      number: 0.456,
+      double: 0.14,
+      doubleStr: '.618',
+      nan: 'notNumber',
+      tooSmall: -1,
+      tooBig: 2,
+    }
+    expect(nfFindCommand._parseFloatOption(opts, 'string')).toBe(0.123);
+    expect(nfFindCommand._parseFloatOption(opts, 'number')).toBe(0.456);
+    expect(nfFindCommand._parseFloatOption(opts, 'double')).toBe(0.14);
+    expect(nfFindCommand._parseFloatOption(opts, 'doubleStr')).toBe(0.618);
+    expect(nfFindCommand._parseFloatOption(opts, 'notThere',0.5)).toBe(0.5); 
+
+    expect(()=>nfFindCommand._parseFloatOption(opts, 'nan'))
+      .toThrow(/Invalid nan: notNumber/);
+    expect(()=>nfFindCommand._parseFloatOption(opts, 'tooSmall'))
+      .toThrow(/Invalid tooSmall: -1 < 0/);
+    expect(()=>nfFindCommand._parseFloatOption(opts, 'tooBig'))
+      .toThrow(/Invalid tooBig: 2 > 1/);
+  });
+
+  it('_parseIntOption', () => {
+    const opts = {
+      string: '123',
+      number: 456,
+      double: 3.14,
+      doubleStr: '1.618',
+      nan: 'notNumber',
+      tooSmall: -1,
+    }
+    expect(nfFindCommand._parseIntOption(opts, 'string')).toBe(123);
+    expect(nfFindCommand._parseIntOption(opts, 'number')).toBe(456);
+    expect(nfFindCommand._parseIntOption(opts, 'double')).toBe(3); // truncate
+    expect(nfFindCommand._parseIntOption(opts, 'doubleStr')).toBe(1); // truncate
+    expect(()=>nfFindCommand._parseIntOption(opts, 'nan')).toThrow(/Invalid nan: notNumber/);
+    expect(nfFindCommand._parseIntOption(opts, 'notThere',789)).toBe(789); 
+
+    expect(()=>nfFindCommand._parseIntOption(opts, 'nan'))
+      .toThrow(/Invalid nan: notNumber/);
+    expect(()=>nfFindCommand._parseIntOption(opts, 'tooSmall'))
+      .toThrow(/Invalid tooSmall: -1 < 0/);
+  });
+
+  it('_validateOpts defaults', () => {
+    const valid = nfFindCommand._validateOpts(TQ, {});
 
     expect(valid.addZid).toBe(true);
+    expect(valid.bgKeys).toBe(3);
+    expect(valid.bgLines).toBe(1);
     expect(valid.detail).toEqual(0);
-    expect(valid.detailLines).toEqual(3);
-    expect(valid.detailKeys).toEqual(3);
-    expect(valid.detailZeno).toEqual(3 as ZenoStep);
-    expect(valid.json).toBe(false);
-    expect(valid.linesPerRow).toBe(1);
-    expect(valid.maxKeys).toBe(3);
+    expect(valid.fgKeys).toEqual(3);
+    expect(valid.fgLines).toEqual(1);
+    expect(valid.maxHeaders).toBe(3);
     expect(valid.monoTable).toBe(true);
+    expect(valid.outJson).toBe(false);
     expect(valid.projection).toEqual({});
-    expect(valid.rawMaxKeys).toBe(undefined);
-    expect(valid.rows).toBe(valid.tuiRows - 3);
+    expect(valid.rawBgKeys).toBe(undefined);
+    expect(valid.rowLimit).toBe(valid.tuiHeight);
 
     // TUI screen dimensions are normally determined from process.stdout.
     // During tests, process.stdout is not available, so 24x80 are used by default.
-    expect(valid.tuiColumns).toBeGreaterThanOrEqual(78);
-    expect(valid.tuiColumns).toBeLessThanOrEqual(80);
-    expect(valid.tuiRows).toEqual(24);
+    expect(valid.tuiHeight).toEqual(24);
+    expect(valid.tuiWidth).toEqual(80);
   });
 
-  it('_validateParameters adjusts linesPerRow given rows', () => {
-    const tuiRows = 24; // adjust to available display rows
+  it('_validateOpts calculates bgLines', () => {
+    // unaffected by: rowLimit, detail
+    const rowLimit = 5;
+    const detail = 1;
+    const unaffected = nfFindCommand._validateOpts(TQ, { rowLimit, detail });
+    expect(unaffected.detail).toBe(detail);
+    expect(unaffected.rowLimit).toBe(rowLimit);
+    expect(unaffected.bgLines).toBe(1);
 
-    const v2 = nfFindCommand._validateParameters(['test'], {
-      rows: 2,
-      tuiRows,
-    });
-    expect(v2.rows).toBe(2);
-    expect(v2.linesPerRow).toBe(1);
+    // implicitly affected by: bgKeys, maxHeaders 
+    const bgKeys = 7;
+    const maxHeaders = 2;
+    const implicit = nfFindCommand._validateOpts(TQ, { bgKeys, maxHeaders });
+    expect(implicit.bgKeys).toBe(bgKeys);
+    expect(implicit.maxHeaders).toBe(maxHeaders);
+    expect(implicit.bgLines).toBe(bgKeys - maxHeaders + 1);
+
+    // explicitly affected by: bgLines
+    const bgLines = 3;
+    const explicit = nfFindCommand._validateOpts(TQ, { bgLines });
+    expect(explicit.bgLines).toBe(bgLines);
   });
 
-  it('_validateParameters adjusts rows given linesPerRow', () => {
-    const tuiRows = 24; // adjust to available display rows
+  it('_validateOpts calculates rowLimit', () => {
+    // implicitly affected by explicit bgLines
+    const bgLines = 3;
+    const implicit1 = nfFindCommand._validateOpts(TQ, { bgLines });
+    expect(implicit1.bgLines).toBe(bgLines);
+    expect(implicit1.rowLimit).toBe(7); // max(1, floor((24 - 1) / 2)));
 
-    const v1 = nfFindCommand._validateParameters(['test'], {
-      tuiRows,
-    });
-    expect(v1.linesPerRow).toBe(1);
-    expect(v1.rows).toBe(21); // max(1, floor((24 - 1) / 1)));
+    // implicitly affected by bgKeys, maxHeaders
+    const bgKeys = 7;
+    const maxHeaders = 2;
+    const implicit2 = nfFindCommand._validateOpts(TQ, { bgKeys, maxHeaders });
+    expect(implicit2.bgLines).toBe(6);
+    expect(implicit2.rowLimit).toBe(4);
 
-    const v2 = nfFindCommand._validateParameters(['test'], {
-      linesPerRow: 2,
-      tuiRows,
-    });
-    expect(v2.linesPerRow).toBe(2);
-    expect(v2.rows).toBe(11); // max(1, floor((24 - 1) / 2)));
+    // implicitly affected by detail
+    const implicit3 = nfFindCommand._validateOpts(TQ, { detail:0 });
+    expect(implicit3.detail).toBe(0);
+    expect(implicit3.rowLimit).toBe(24);
+    const implicit4 = nfFindCommand._validateOpts(TQ, { detail:0.5 });
+    expect(implicit4.detail).toBe(0.5);
+    expect(implicit4.rowLimit).toBe(13);
+    const implicit5 = nfFindCommand._validateOpts(TQ, { detail:1 });
+    expect(implicit5.detail).toBe(1);
+    expect(implicit5.rowLimit).toBe(1);
 
-    const zenoCoord = new ZenoCoord(zenoStep(3), zenoStep(1));
-    const detailZeno = zenoCoord.toRenderDetail();
-    const v2Zeno = nfFindCommand._validateParameters(['test'], {
-      linesPerRow: 2,
-      tuiRows,
-      detailZeno,
-    });
-    //expect(v2Zeno.detailZeno).toEqual(detailZeno);
-    expect(v2Zeno.linesPerRow).toBe(2);
-    expect(v2Zeno.rows).toBe(11); // max(1, floor((tuiRows - 1) / 2)));
-
-    const v5 = nfFindCommand._validateParameters(['test'], {
-      linesPerRow: 5,
-      tuiRows,
-    });
-    expect(v5.linesPerRow).toBe(5);
-    expect(v5.rows).toBe(Math.max(1, Math.floor((tuiRows - 1) / 5)));
+    // explicitly affected by rowLimit
+    const rowLimit = 3;
+    const explicit = nfFindCommand._validateOpts(TQ, { rowLimit });
+    expect(explicit.rowLimit).toBe(rowLimit);
   });
 
-  it('_validateParameters parses projection with inclusion values', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
+  it('_validateOpts parses projection with inclusion values', () => {
+    const parsed = nfFindCommand._validateOpts(TQ, {
       project: '{name:1, summary:1}',
     });
     expect(parsed.projection).toEqual({ name: 1, summary: 1 });
   });
 
-  it('_validateParameters parses projection with exclusion values', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
+  it('_validateOpts parses projection with exclusion values', () => {
+    const parsed = nfFindCommand._validateOpts(TQ, {
       project: '{rawActions:0, rawReferences:0}',
     });
     expect(parsed.projection).toEqual({ rawActions: 0, rawReferences: 0 });
   });
 
-  it('_validateParameters throws on mixed projection (0 and 1)', () => {
+  it('_validateOpts throws on mixed projection (0 and 1)', () => {
     expect(() => {
-      nfFindCommand._validateParameters(['test'], {
+      nfFindCommand._validateOpts(TQ, {
         project: '{name:1, summary:0}',
       });
     }).toThrow(/Mixed projection not supported/);
   });
 
-  it('_validateParameters throws on non-positive linesPerRow', () => {
+  it('_validateOpts throws on non-positive bgLines', () => {
     expect(() => {
-      nfFindCommand._validateParameters(['test'], { linesPerRow: '0' });
-    }).toThrow(/Expected positive integer/);
+      nfFindCommand._validateOpts(TQ, { bgLines: '0' });
+    }).toThrow(/Invalid bgLines: 0 < 1/);
 
     expect(() => {
-      nfFindCommand._validateParameters(['test'], { linesPerRow: '-5' });
-    }).toThrow(/Expected positive integer/);
+      nfFindCommand._validateOpts(TQ, { bgLines: '-5' });
+    }).toThrow(/Invalid bgLines: -5 < 1/);
   });
 
-  it('_validateParameters throws on invalid rows (non-integer)', () => {
+  it('_validateOpts throws on invalid rowLimit (non-integer)', () => {
     expect(() => {
-      nfFindCommand._validateParameters(['test'], { rows: 'abc' });
-    }).toThrow(/Invalid rows/);
+      nfFindCommand._validateOpts(TQ, { rowLimit: 'abc' });
+    }).toThrow(/Invalid rowLimit/);
   });
 
-  it('_validateParameters sets addZid flag', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
+  it('_validateOpts sets addZid flag', () => {
+    const parsed = nfFindCommand._validateOpts(TQ, {
       zid: true,
     });
     expect(parsed.addZid).toBe(true);
   });
 
-  it('_validateParameters: addZid forces fuzzyColumn to id', () => {
-    const parsed = nfFindCommand._validateParameters(['test'], {
+  it('_validateOpts: addZid forces fuzzyColumn to id', () => {
+    const parsed = nfFindCommand._validateOpts(TQ, {
       zid: true,
       fuzzyId: 'customColumn',
     });
     expect(parsed.addZid).toBe(true);
   });
 
-  it('_validateParameters normalizes bare field names to inclusion format', () => {
+  it('_validateOpts normalizes bare field names to inclusion format', () => {
     expect(
-      nfFindCommand._validateParameters(['test'], { project: 'id' })
+      nfFindCommand._validateOpts(TQ, { project: 'id' })
         .projection,
     ).toEqual({ id: 1 });
     expect(
-      nfFindCommand._validateParameters(['test'], {
+      nfFindCommand._validateOpts(TQ, {
         project: 'id,name,summary',
       }).projection,
     ).toEqual({ id: 1, name: 1, summary: 1 });
     expect(
-      nfFindCommand._validateParameters(['test'], {
+      nfFindCommand._validateOpts(TQ, {
         project: '_abc, xyz:1',
       }).projection,
     ).toEqual({ _abc: 1, xyz: 1 });
   });
-}); // _validateParameters
+}); // _validateOpts
 
 describe('NfFindCommand.registerCommand with single-focus fixture', () => {
   let tempDirObj: any;
@@ -699,7 +753,7 @@ describe('NfFindCommand.registerCommand with single-focus fixture', () => {
   it('find focus resolves currently-focused entity', async () => {
     const focusedTaskId = '0P_48Nru00l9bnpQmdmx7W'; // sample data
 
-    await rootCmd.parseAsync([...FIND_K0, '--json', 'focus']);
+    await rootCmd.parseAsync([...FIND_K0, '-j', 'focus']);
 
     expect(output.length).toBe(1);
     const outJSON = JSON.parse(output[0]);

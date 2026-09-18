@@ -1,16 +1,30 @@
 /**
- * ZenoStep is a universal metric for measuring information,
- * ideal for controlling "semantic zooming" with progressive detail levels.
- * ZenoSteps are based on the Zeno-Key-Value (ZKV) mapping that
- * maps to the Fibonacci sequence by omitting F(1). Omitting F(1) allows
- * us to define a bijection from IEEE 745 "rationals" [0..27] <-> natural numbers [0..196418]:
- *   ZKV(0) <-> F(0) = 0
- *   ZKV(n>0) onto F(n+1) for n in [1..27].
+ * The ZenoStep system introduces a scale for measuring information on a 
+ * a logarithmic scale of number key-value pairs present in the information
+ * being measured. The basis for the ZenoStep system is the Zeno-Key-Value (ZKV)
+ * information scale. A ZenoStep is simply an integer ZKV value.
+ * 
+ * ZKV is a hybrid scale with an initial linear scale for n≤5 followed by
+ * a logarithmic scale based on Binet's simplified approximation to the
+ * Fibonacci sequence. The hybrid scale replaces the Fibonacci ambiguity (F(1) = F(2))
+ * with a more pragmatic linear scale: 
+ *   ZKV(0) <-> 0 key-value pairs
+ *   ZKV(1) <-> 1 key-value pairs
+ *   ZKV(2) <-> 2 key-value pairs
+ *   ZKV(3) <-> 3 key-value pairs
+ *   ZKV(4) <-> 4 key-value pairs
+ *   ZKV(n≥5) <-> F(n) for n in [1..ZENO_MAX_SAFE].
  *
- * ZKV properties for domain [0..27] and codomain [0..196418]:
- *   - bijects domain integers [0..27] with codomain integers [0..196418]
- *   - bijects codomain integers [0..200000] with IEEE 754 integer domain
- *   - scales logarithmically beyond ZKV(n>27) without bijective integer precision
+ * Formally, the ZKV scale is a mapping between a subset of the double precision 
+ * (IEEE 754) domain and a natural number codomain that counts the number of 
+ * key-value pairs present in the information being measured:
+ * - ZKV is a bijection for domain integers [0..ZENO_MAX_SAFE] 
+ * - ZKV is a bijection for codomain integers [0..NATURAL_MAX_SAFE]
+ * - ZKV Fibonacci bijective codomain values map to IEEE 754 integer values (n≥5)
+ * - ZKV non-Fibonacci codomain values map to IEEE 754 non-integer values (n>5)
+ * - scales linearly for small values (n≤5)
+ * - scales logarithmically using Binet simplified Fibonacci formula (n≥5)
+ * - extends beyond NATURAL_MAX_SAFE without bijective integer precision
  */
 
 export type ZenoStep = number & { readonly __zenoStep: unique symbol };
@@ -20,7 +34,7 @@ const PHI = (1 + Math.sqrt(5)) / 2;
 const SQRT5 = Math.sqrt(5);
 const LN_PHI = Math.log(PHI);
 const NATURAL_MIN = 0;
-const NATURAL_MAX_SAFE = 1e6;
+const NATURAL_MAX_SAFE = 1e6; // Arbitrary but verified limit
 const ZENO_MIN = 0;
 const ZENO_MAX_SAFE = 30;
 
@@ -55,7 +69,7 @@ export const Zeno = {
   ZENO_MIN,
   ZENO_MAX_SAFE,
   ZKV: {
-    /** ZenoStep ↔ key-value pair count (linear <5, Fibonacci(n>5), true inverse). */
+    /** ZenoStep ↔ key-value pair count (linear ≤5, Fibonacci(n≥5), true inverse). */
     toCount: zenoStepToZKV,
     fromCount: zkvToZenoStep,
   },
