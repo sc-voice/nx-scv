@@ -528,22 +528,27 @@ describe('NfFindCommand._validateOpts', () => {
       nan: 'notNumber',
       tooSmall: -1,
       tooBig: 2,
-    }
+    };
     expect(nfFindCommand._parseFloatOption(opts, 'string')).toBe(0.123);
     expect(nfFindCommand._parseFloatOption(opts, 'number')).toBe(0.456);
     expect(nfFindCommand._parseFloatOption(opts, 'double')).toBe(0.14);
     expect(nfFindCommand._parseFloatOption(opts, 'doubleStr')).toBe(0.618);
-    expect(nfFindCommand._parseFloatOption(opts, 'notThere',0.5)).toBe(0.5); 
+    expect(nfFindCommand._parseFloatOption(opts, 'notThere', 0.5)).toBe(
+      0.5,
+    );
 
-    expect(()=>nfFindCommand._parseFloatOption(opts, 'nan'))
-      .toThrow(/Invalid nan: notNumber/);
-    expect(()=>nfFindCommand._parseFloatOption(opts, 'tooSmall'))
-      .toThrow(/Invalid tooSmall: -1 < 0/);
-    expect(()=>nfFindCommand._parseFloatOption(opts, 'tooBig'))
-      .toThrow(/Invalid tooBig: 2 > 1/);
+    expect(() => nfFindCommand._parseFloatOption(opts, 'nan')).toThrow(
+      /Invalid nan: notNumber/,
+    );
+    expect(() =>
+      nfFindCommand._parseFloatOption(opts, 'tooSmall'),
+    ).toThrow(/Invalid tooSmall: -1 < 0/);
+    expect(() => nfFindCommand._parseFloatOption(opts, 'tooBig')).toThrow(
+      /Invalid tooBig: 2 > 1/,
+    );
   });
 
-  it('_parseIntOption', () => {
+  it('_parseInt', () => {
     const opts = {
       string: '123',
       number: 456,
@@ -551,26 +556,29 @@ describe('NfFindCommand._validateOpts', () => {
       doubleStr: '1.618',
       nan: 'notNumber',
       tooSmall: -1,
-    }
-    expect(nfFindCommand._parseIntOption(opts, 'string')).toBe(123);
-    expect(nfFindCommand._parseIntOption(opts, 'number')).toBe(456);
-    expect(nfFindCommand._parseIntOption(opts, 'double')).toBe(3); // truncate
-    expect(nfFindCommand._parseIntOption(opts, 'doubleStr')).toBe(1); // truncate
-    expect(()=>nfFindCommand._parseIntOption(opts, 'nan')).toThrow(/Invalid nan: notNumber/);
-    expect(nfFindCommand._parseIntOption(opts, 'notThere',789)).toBe(789); 
+    };
+    expect(nfFindCommand._parseInt(opts, 'string')).toBe(123);
+    expect(nfFindCommand._parseInt(opts, 'number')).toBe(456);
+    expect(nfFindCommand._parseInt(opts, 'double')).toBe(3); // truncate
+    expect(nfFindCommand._parseInt(opts, 'doubleStr')).toBe(1); // truncate
+    expect(() => nfFindCommand._parseInt(opts, 'nan')).toThrow(
+      /Invalid nan: notNumber/,
+    );
+    expect(nfFindCommand._parseInt(opts, 'notThere', 789)).toBe(789);
 
-    expect(()=>nfFindCommand._parseIntOption(opts, 'nan'))
-      .toThrow(/Invalid nan: notNumber/);
-    expect(()=>nfFindCommand._parseIntOption(opts, 'tooSmall'))
-      .toThrow(/Invalid tooSmall: -1 < 0/);
+    expect(() => nfFindCommand._parseInt(opts, 'nan')).toThrow(
+      /Invalid nan: notNumber/,
+    );
+    expect(() => nfFindCommand._parseInt(opts, 'tooSmall')).toThrow(
+      /Invalid tooSmall: -1 < 0/,
+    );
   });
 
   it('_validateOpts defaults', () => {
     const valid = nfFindCommand._validateOpts(TQ, {});
 
-    expect(valid.addZid).toBe(true);
     expect(valid.bgKeys).toBe(3);
-    expect(valid.bgLines).toBe(1);
+    expect(valid.bgRowLines).toBe(1);
     expect(valid.detail).toEqual(0);
     expect(valid.fgKeys).toEqual(3);
     expect(valid.fgLines).toEqual(1);
@@ -587,55 +595,86 @@ describe('NfFindCommand._validateOpts', () => {
     expect(valid.tuiWidth).toEqual(80);
   });
 
-  it('_validateOpts calculates bgLines', () => {
+  it('_validateOpts calculates bgKeys', () => {
+    const implicit1 = nfFindCommand._validateOpts(TQ, { detail: 0 });
+    expect(implicit1.detail).toBe(0);
+    expect(implicit1.bgKeys).toBe(3);
+
+    const implicit2 = nfFindCommand._validateOpts(TQ, { detail: 0.5 });
+    expect(implicit2.detail).toBe(0.5);
+    expect(implicit2.bgKeys).toBe(3);
+
+    const implicit3 = nfFindCommand._validateOpts(TQ, { detail: 1 });
+    expect(implicit3.detail).toBe(1);
+    expect(implicit3.bgKeys).toBe(3);
+  });
+
+  it('_validateOpts calculates bgRowLines', () => {
     // unaffected by: rowLimit, detail
     const rowLimit = 5;
-    const detail = 1;
-    const unaffected = nfFindCommand._validateOpts(TQ, { rowLimit, detail });
+    const detail = 0.5;
+    const unaffected = nfFindCommand._validateOpts(TQ, {
+      rowLimit,
+      detail,
+    });
     expect(unaffected.detail).toBe(detail);
     expect(unaffected.rowLimit).toBe(rowLimit);
-    expect(unaffected.bgLines).toBe(1);
+    expect(unaffected.bgRowLines).toBe(1);
 
-    // implicitly affected by: bgKeys, maxHeaders 
+    // implicitly affected by: bgKeys, maxHeaders
     const bgKeys = 7;
-    const maxHeaders = 2;
-    const implicit = nfFindCommand._validateOpts(TQ, { bgKeys, maxHeaders });
+    const maxHeaders = 3;
+    const implicit = nfFindCommand._validateOpts(TQ, {
+      bgKeys,
+      maxHeaders,
+    });
     expect(implicit.bgKeys).toBe(bgKeys);
     expect(implicit.maxHeaders).toBe(maxHeaders);
-    expect(implicit.bgLines).toBe(bgKeys - maxHeaders + 1);
+    expect(implicit.bgRowLines).toBe(bgKeys - maxHeaders + 1);
 
-    // explicitly affected by: bgLines
-    const bgLines = 3;
-    const explicit = nfFindCommand._validateOpts(TQ, { bgLines });
-    expect(explicit.bgLines).toBe(bgLines);
+    // explicitly affected by: bgRowLines
+    const bgRowLines = 3;
+    const explicit = nfFindCommand._validateOpts(TQ, { bgRowLines });
+    expect(explicit.bgRowLines).toBe(bgRowLines);
   });
 
   it('_validateOpts calculates rowLimit', () => {
-    // implicitly affected by explicit bgLines
-    const bgLines = 3;
-    const implicit1 = nfFindCommand._validateOpts(TQ, { bgLines });
-    expect(implicit1.bgLines).toBe(bgLines);
-    expect(implicit1.rowLimit).toBe(7); // max(1, floor((24 - 1) / 2)));
+    // Multi-line rows reduce the default # of displayable rows
 
-    // implicitly affected by bgKeys, maxHeaders
+    // implicitly affected by explicit bgRowLines
+    const bgRowLines = 3;
+    const implicit1a = nfFindCommand._validateOpts(TQ, { bgRowLines });
+    expect(implicit1a.bgRowLines).toBe(bgRowLines);
+    expect(implicit1a.rowLimit).toBe(7); // max(1, floor((24 - 1) / 2)));
+
+    // implicitly affected by bgRowLines as F(bgKeys, maxHeaders)
     const bgKeys = 7;
     const maxHeaders = 2;
-    const implicit2 = nfFindCommand._validateOpts(TQ, { bgKeys, maxHeaders });
-    expect(implicit2.bgLines).toBe(6);
-    expect(implicit2.rowLimit).toBe(4);
+    const implicit2a = nfFindCommand._validateOpts(TQ, {
+      bgKeys,
+      maxHeaders,
+    });
+    expect(implicit2a.bgRowLines).toBe(6);
+    expect(implicit2a.rowLimit).toBe(4);
 
-    // implicitly affected by detail
-    const implicit3 = nfFindCommand._validateOpts(TQ, { detail:0 });
-    expect(implicit3.detail).toBe(0);
-    expect(implicit3.rowLimit).toBe(24);
-    const implicit4 = nfFindCommand._validateOpts(TQ, { detail:0.5 });
-    expect(implicit4.detail).toBe(0.5);
-    expect(implicit4.rowLimit).toBe(13);
-    const implicit5 = nfFindCommand._validateOpts(TQ, { detail:1 });
-    expect(implicit5.detail).toBe(1);
-    expect(implicit5.rowLimit).toBe(1);
+    // implicitly affected by detail (more detail, fewer rows)
+    const implicit3a = nfFindCommand._validateOpts(TQ, { detail: 0 });
+    expect(implicit3a.detail).toBe(0);
+    expect(implicit3a.rowLimit).toBe(24);
+    const implicit3b = nfFindCommand._validateOpts(TQ, { detail: 0.25 });
+    expect(implicit3b.detail).toBe(0.25);
+    expect(implicit3b.rowLimit).toBe(23);
+    const implicit3c = nfFindCommand._validateOpts(TQ, { detail: 0.5 });
+    expect(implicit3c.detail).toBe(0.5);
+    expect(implicit3c.rowLimit).toBe(21);
+    const implicit3d = nfFindCommand._validateOpts(TQ, { detail: 0.75 });
+    expect(implicit3d.detail).toBe(0.75);
+    expect(implicit3d.rowLimit).toBe(15);
+    const implicit3e = nfFindCommand._validateOpts(TQ, { detail: 1 });
+    expect(implicit3e.detail).toBe(1);
+    expect(implicit3e.rowLimit).toBe(1);
 
-    // explicitly affected by rowLimit
+    // set value explicitly
     const rowLimit = 3;
     const explicit = nfFindCommand._validateOpts(TQ, { rowLimit });
     expect(explicit.rowLimit).toBe(rowLimit);
@@ -663,14 +702,14 @@ describe('NfFindCommand._validateOpts', () => {
     }).toThrow(/Mixed projection not supported/);
   });
 
-  it('_validateOpts throws on non-positive bgLines', () => {
+  it('_validateOpts throws on non-positive bgRowLines', () => {
     expect(() => {
-      nfFindCommand._validateOpts(TQ, { bgLines: '0' });
-    }).toThrow(/Invalid bgLines: 0 < 1/);
+      nfFindCommand._validateOpts(TQ, { bgRowLines: '0' });
+    }).toThrow(/Invalid bgRowLines: 0 < 1/);
 
     expect(() => {
-      nfFindCommand._validateOpts(TQ, { bgLines: '-5' });
-    }).toThrow(/Invalid bgLines: -5 < 1/);
+      nfFindCommand._validateOpts(TQ, { bgRowLines: '-5' });
+    }).toThrow(/Invalid bgRowLines: -5 < 1/);
   });
 
   it('_validateOpts throws on invalid rowLimit (non-integer)', () => {
@@ -679,25 +718,9 @@ describe('NfFindCommand._validateOpts', () => {
     }).toThrow(/Invalid rowLimit/);
   });
 
-  it('_validateOpts sets addZid flag', () => {
-    const parsed = nfFindCommand._validateOpts(TQ, {
-      zid: true,
-    });
-    expect(parsed.addZid).toBe(true);
-  });
-
-  it('_validateOpts: addZid forces fuzzyColumn to id', () => {
-    const parsed = nfFindCommand._validateOpts(TQ, {
-      zid: true,
-      fuzzyId: 'customColumn',
-    });
-    expect(parsed.addZid).toBe(true);
-  });
-
   it('_validateOpts normalizes bare field names to inclusion format', () => {
     expect(
-      nfFindCommand._validateOpts(TQ, { project: 'id' })
-        .projection,
+      nfFindCommand._validateOpts(TQ, { project: 'id' }).projection,
     ).toEqual({ id: 1 });
     expect(
       nfFindCommand._validateOpts(TQ, {

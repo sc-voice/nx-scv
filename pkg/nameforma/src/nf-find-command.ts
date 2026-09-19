@@ -1,5 +1,5 @@
 import { logger } from './file-repository.js';
-import { INameFormaTheme, } from './navigable-view.js';
+import { INameFormaTheme } from './navigable-view.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
 import { MonoTable } from './mono-table.js';
 import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
@@ -15,18 +15,14 @@ import * as HJSON_CJS from 'hjson';
 
 const Hjson = HJSON_CJS as any;
 
-const DEFAULT_HEADERS = 3; 
-const DEFAULT_KEYS = 3; 
+const DEFAULT_HEADERS = 3;
 
 interface ParsedOptions {
-  /** Whether to add zid field */
-  addZid: boolean;
-  /** max keys to display for background data rows */
   bgKeys: number;
   /** max lines per background data row */
-  bgLines: number;
-  /* TEMP */  bgRows: number;
-  /* TEMP */  fgRows: number;
+  bgRowLines: number;
+  /* TEMP */ bgRows: number;
+  /* TEMP */ fgRows: number;
   /** semantic "fish-eye" zoom (0:background-only, 1:foreground-only) */
   detail: number;
   /** max keys to show in foreground data row */
@@ -129,8 +125,8 @@ export class NfFindCommand {
   }
 
   _parseFloatOption(
-    opts:Record<string,any>, 
-    key:string, 
+    opts: Record<string, any>,
+    key: string,
     defaultValue?: number | undefined,
     minValue: number = 0,
     maxValue: number = 1,
@@ -153,9 +149,9 @@ export class NfFindCommand {
     return value;
   }
 
-  _parseIntOption(
-    opts:Record<string,any>, 
-    key:string, 
+  _parseInt(
+    opts: Record<string, any>,
+    key: string,
     defaultValue?: number | undefined,
     minValue: number = 0,
   ): number | undefined {
@@ -198,8 +194,16 @@ export class NfFindCommand {
         `Mixed projection not supported: ${JSON.stringify(projection)}`,
       );
     }
-    const tuiHeight = this._parseIntOption(options, 'tuiHeight', process.stdout.rows ?? 24)!;
-    const tuiWidth = this._parseIntOption(options, 'tuiWidth', process.stdout.columns ?? 80)!;
+    const tuiHeight = this._parseInt(
+      options,
+      'tuiHeight',
+      process.stdout.rows ?? 24,
+    )!;
+    const tuiWidth = this._parseInt(
+      options,
+      'tuiWidth',
+      process.stdout.columns ?? 80,
+    )!;
 
     // resolve output options
     const defaultOutput = [options.outJson, options.monoTable].every(
@@ -210,31 +214,39 @@ export class NfFindCommand {
 
     // Parse layout constraints
     // --------------------------------------
-    const maxHeaders = this._parseIntOption(options, 'maxHeaders', DEFAULT_HEADERS)!;
-    const rawBgKeys = this._parseIntOption(options, 'bgKeys');
-    const rawRowLimit = this._parseIntOption(options, 'rowLimit');
-    const bgLinesRaw = this._parseIntOption(options, 'bgLines', undefined, 1);
+    const maxHeaders = this._parseInt(
+      options,
+      'maxHeaders',
+      DEFAULT_HEADERS,
+    )!;
+    const rawBgKeys = this._parseInt(options, 'bgKeys');
+    const rawRowLimit = this._parseInt(options, 'rowLimit');
+    const bgRowLinesRaw = this._parseInt(
+      options,
+      'bgRowLines',
+      undefined,
+      1,
+    );
     const rawDetail = this._parseFloatOption(options, 'detail');
 
     // Compute layout according to constraints.
     // --------------------------------------
     const detail = rawDetail ?? (rawRowLimit === 1 ? 1 : 0);
-    const bgKeys = rawBgKeys ?? Math.max(maxHeaders, DEFAULT_KEYS);
+    const bgKeys = rawBgKeys ?? Math.max(maxHeaders, 1);
     const bgOverflow = Math.max(0, bgKeys - maxHeaders);
-    const bgLines = bgLinesRaw ?? 1 + bgOverflow;
-    const fgZenoMin = Zeno.ZKV.fromCount(bgKeys);
+    const bgRowLines = bgRowLinesRaw ?? 1 + bgOverflow;
+    const fgZenoMin = Zeno.ZKV.fromCount(bgRowLines);
     const fgZenoMax = Math.max(fgZenoMin, Zeno.ZKV.fromCount(tuiHeight));
     const fgZeno = fgZenoMax * detail + (1 - detail) * fgZenoMin;
-    const fgLinesMax = Math.floor(tuiHeight*detail + (1-detail) * bgLines);
-    //const fgKeys = Zeno.ZKV.toCount(fgZeno as ZenoStep);
+    const fgLinesMax = Zeno.ZKV.toCount(fgZeno as ZenoStep);
     const fgKeys = fgLinesMax - (maxHeaders ? 1 : 0) + maxHeaders;
-    const fgOverflow = Math.max(0, fgKeys - maxHeaders); 
+    const fgOverflow = Math.max(0, fgKeys - maxHeaders);
     const fgLines = 1 + fgOverflow;
 
     // Account for row headers
     const fgRows = 1;
-    const bgLinesTotal = Math.max(1, tuiHeight - fgLines);
-    const bgRows = detail === 1 ? 0 : Math.floor(bgLinesTotal / bgLines);
+    const bgLines = Math.max(1, tuiHeight - fgLines);
+    const bgRows = detail === 1 ? 0 : Math.floor(bgLines / bgRowLines);
     const totalRows = fgRows + bgRows;
 
     let rowLimit;
@@ -242,31 +254,29 @@ export class NfFindCommand {
     if (detail === 1) {
       rowLimit = rawRowLimit ?? totalRows;
     } else {
-      rowLimit = rawRowLimit ??
-        (bgLinesRaw === undefined
+      rowLimit =
+        rawRowLimit ??
+        (bgRowLinesRaw === undefined
           ? totalRows
-          : Math.max(1, Math.floor((tuiHeight - 1) / bgLinesRaw)));
+          : Math.max(1, Math.floor((tuiHeight - 1) / bgRowLinesRaw)));
     }
 
-    const addZid = NfProgram.parseBoolean(options.zid, true);
-
     return {
-      addZid,
-      detail,
-      fgLines,
-      fgKeys,
-      bgLines,
-      maxHeaders,
       bgKeys,
+      bgRowLines,
       bgRows,
+      detail,
+      fgKeys,
+      fgLines,
       fgRows,
+      maxHeaders,
       monoTable,
       outJson,
       projection,
       rawBgKeys,
       rowLimit,
-      tuiWidth,
       tuiHeight,
+      tuiWidth,
     };
   }
 
@@ -276,7 +286,10 @@ export class NfFindCommand {
    * @param rowLimit - Result row limit (respects global limit across all queries)
    * @returns Array of deduplicated formas, sorted with focused entities first
    */
-  async _mergeResults(queries: string[], rowLimit: number): Promise<any[]> {
+  async _mergeResults(
+    queries: string[],
+    rowLimit: number,
+  ): Promise<any[]> {
     const formas: any = [];
     const seenIds = new Set<string>();
     let remaining = rowLimit;
@@ -314,20 +327,16 @@ export class NfFindCommand {
     let lines: string[] = [];
     try {
       // process queries to obtain actual row count
-      const { addZid, rawBgKeys, rowLimit } = this._validateOpts(
-        queries,
-        options,
-      );
+      const { rawBgKeys, rowLimit } = this._validateOpts(queries, options);
       const formas = await this._mergeResults(queries, rowLimit);
-      const bgKeys = rawBgKeys ?? (formas.length === 1 ? 0 : addZid ? 3 : 2);
 
       // re-validate options again using actual data row count
-      const dataOpts = { ...options, rowLimit: formas.length, bgKeys };
+      const dataOpts = { ...options, rowLimit: formas.length };
       const valid = this._validateOpts(queries, dataOpts);
-      dbg && logger.info({ ctx, valid, bgKeys });
       const {
         detail,
-        bgLines,
+        bgRowLines,
+        bgKeys,
         fgKeys,
         fgLines, // deprecate?
         outJson,
@@ -335,26 +344,32 @@ export class NfFindCommand {
         tuiWidth,
         tuiHeight,
       } = valid;
+      dbg && logger.info({ ctx, valid, bgKeys });
 
       const theme = outJson ? new PlainTheme() : NameFormaTheme.shared;
-      const namespace = addZid ? nfProgram.world.namespace : undefined;
-      const mjbOpts = { bgKeys, namespace, projection };
-      const mjbDefault = new MonoJSONBuilder(mjbOpts);
-      const mjbDetail = new MonoJSONBuilder({
-        ...mjbOpts,
+      const namespace = nfProgram.world.namespace;
+      const bgBuilder = new MonoJSONBuilder({
+        maxKeys: bgKeys,
+        namespace,
+        projection,
+      });
+      const fgBuilder = new MonoJSONBuilder({
         maxKeys: fgKeys,
+        namespace,
+        projection,
       });
       const jsonFormas = formas.map((f, i) => {
-        const mjb = i === 0 ? mjbDetail : mjbDefault;
+        const mjb = i === 0 ? fgBuilder : bgBuilder;
         return mjb.resetFromSource(f).build();
       });
       dbg && logger.info({ ctx, jsonFormas });
-      process;
       const projected = jsonFormas.map((f3a) =>
         nfProgram.applyProjection(f3a, projection),
       );
       const { colSeparator } = theme;
-      if (valid.monoTable) {
+      if (valid.outJson) {
+        projected.forEach((p) => lines.push(JSON.stringify(p)));
+      } else {
         const COLFUDGE = 2; // avoid wrapping if host pads output
         const mt = new MonoTable({
           colSeparator,
@@ -365,8 +380,6 @@ export class NfFindCommand {
           themedValue: this.themedValue,
         });
         lines.push(mt.format());
-      } else {
-        projected.forEach((p) => lines.push(JSON.stringify(p)));
       }
       nfProgram.writeOut(lines.join('\n'));
     } catch (err: any) {
@@ -387,13 +400,13 @@ export class NfFindCommand {
       )
       .option('-r, --row-limit <number>', 'Max number of data rows (auto)')
       .option('-m,--mono-table', 'Output as MonoTable (auto)')
-      .option('--tui-lines <val>', 'Viewport height (system default or 24)')
       .option(
-        '--tui-width <val>',
-        'Viewport width (system default or 80)',
+        '--tui-lines <val>',
+        'Viewport height (system default or 24)',
       )
+      .option('--tui-width <val>', 'Viewport width (system default or 80)')
       .option(
-        '-l, --bg-lines <val>',
+        '-l, --bg-row-lines <val>',
         'Max lines to display per background data row',
       )
       .option(
@@ -403,10 +416,6 @@ export class NfFindCommand {
       .option(
         '-p, --project <hjson>',
         'Projection as HJSON string, e.g.: "name:1, summary:1"',
-      )
-      .option(
-        '--zid <boolean>',
-        'Add zid (fuzzyId) field to data rows (true)',
       )
       .argument(
         '[queries...]',
@@ -422,7 +431,7 @@ Examples:
   nf find -p id:0,summary:0 world
   nf find 'name:"foo"' -p '{name:1}'
   nf find --fuzzy-id id task -p id:1,name:1
-  nf find --zid task -p id,name
+  nf find --detail 0.5 task -p id,name
   nf find --mono-table --row-limit 3 task`,
       )
       .action(async (queries: string[], options: any, command: any) => {

@@ -1,13 +1,13 @@
 /**
- * The ZenoStep system introduces a scale for measuring information on a 
+ * The ZenoStep system introduces a scale for measuring information on a
  * a logarithmic scale of number key-value pairs present in the information
  * being measured. The basis for the ZenoStep system is the Zeno-Key-Value (ZKV)
  * information scale. A ZenoStep is simply an integer ZKV value.
- * 
+ *
  * ZKV is a hybrid scale with an initial linear scale for n≤5 followed by
  * a logarithmic scale based on Binet's simplified approximation to the
  * Fibonacci sequence. The hybrid scale replaces the Fibonacci ambiguity (F(1) = F(2))
- * with a more pragmatic linear scale: 
+ * with a more pragmatic linear scale:
  *   ZKV(0) <-> 0 key-value pairs
  *   ZKV(1) <-> 1 key-value pairs
  *   ZKV(2) <-> 2 key-value pairs
@@ -15,10 +15,10 @@
  *   ZKV(4) <-> 4 key-value pairs
  *   ZKV(n≥5) <-> F(n) for n in [1..ZENO_MAX_SAFE].
  *
- * Formally, the ZKV scale is a mapping between a subset of the double precision 
- * (IEEE 754) domain and a natural number codomain that counts the number of 
+ * Formally, the ZKV scale is a mapping between a subset of the double precision
+ * (IEEE 754) domain and a natural number codomain that counts the number of
  * key-value pairs present in the information being measured:
- * - ZKV is a bijection for domain integers [0..ZENO_MAX_SAFE] 
+ * - ZKV is a bijection for domain integers [0..ZENO_MAX_SAFE]
  * - ZKV is a bijection for codomain integers [0..NATURAL_MAX_SAFE]
  * - ZKV Fibonacci bijective codomain values map to IEEE 754 integer values (n≥5)
  * - ZKV non-Fibonacci codomain values map to IEEE 754 non-integer values (n>5)
