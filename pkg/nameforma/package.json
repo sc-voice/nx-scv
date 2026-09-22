@@ -58,7 +58,7 @@
   "homepage": "https://github.com/sc-voice/nx-scv/packages/nameforma/#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@sc-voice/vitest": "^4.1.11",
+    "vitest": "^4.1.11",
     "@types/uuid": "^10.0.0",
     "eslint": "^10.11.0",
     "hjson": "^3.2.2"
