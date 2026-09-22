@@ -83,6 +83,11 @@ export class MonoJSONBuilder {
     return this.#maxKeys;
   }
 
+  // Return # of keys available, reserving given # of keys
+  availableKeys(reserved: number = 0): number {
+    return Math.max(0, this.#maxKeys - this.#nKeys - reserved);
+  }
+
   // Initialize to invalid sentinel values to enforce that reset() is always called.
   // TypeScript's strict definite assignment requires this workaround.
   #monoJSON: MonoJSON = { error: 'reset' };

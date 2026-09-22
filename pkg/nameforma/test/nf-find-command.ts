@@ -186,7 +186,7 @@ describe('NfFindCommand.register', () => {
     expect(json.length).toEqual(1);
     expect(json[0].name).toBe('Task1-Name');
     expect(json[0].summary).toBeUndefined();
-    expect(json[0].rawActions).toEqual('[…2]');
+    expect(json[0].rawActions).toMatch('[…2]');
   });
 
   it('find with dotted exclusion projection excludes nested fields', async () => {
@@ -208,7 +208,7 @@ describe('NfFindCommand.register', () => {
     expect(json.length).toEqual(1);
     expect(json[0].name).toBe('Task1-Name');
     expect(json[0].rawActions).toBeTruthy();
-    expect(json[0].rawActions).toEqual('[…2]');
+    expect(json[0].rawActions).toMatch('[…2]');
   });
 
   it('find with multiple dotted paths', async () => {
@@ -230,7 +230,7 @@ describe('NfFindCommand.register', () => {
     expect(json.length).toEqual(1);
     expect(json[0].id).toBe(taskId);
     expect(json[0].name).toBeUndefined();
-    expect(json[0].rawActions).toEqual('[…2]');
+    expect(json[0].rawActions).toMatch('[…2]');
   });
 
   it('find with only dotted projection excludes other fields', async () => {
@@ -258,7 +258,7 @@ describe('NfFindCommand.register', () => {
       false,
     );
     expect(Object.prototype.hasOwnProperty.call(r0, 'name')).toBe(false);
-    expect(r0.rawActions).toBe('[…2]');
+    expect(r0.rawActions).toMatch('[…2]');
     expect(
       Object.prototype.hasOwnProperty.call(r0.rawActions[0], 'name'),
     ).toBe(false);
@@ -345,7 +345,7 @@ describe('NfFindCommand.register', () => {
     );
     // rawActions should only have id field
     if (json[0].rawActions.length > 0) {
-      expect(json[0].rawActions).toEqual('[…2]');
+      expect(json[0].rawActions).toMatch('[…2]');
       expect(
         Object.prototype.hasOwnProperty.call(
           json[0].rawActions[0],

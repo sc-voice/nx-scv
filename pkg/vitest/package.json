@@ -1,6 +1,6 @@
 {
   "name": "@sc-voice/vitest",
-  "version": "4.1.7",
+  "version": "4.1.11",
   "description": "Vitest utilities for SC-Voice, including should.js compatibility wrapper",
   "main": "index.mjs",
   "types": "index.d.ts",
@@ -42,10 +42,10 @@
   "homepage": "https://github.com/sc-voice/nx-scv/tree/main/pkg/vitest#readme",
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "eslint": "^10.8.0",
+    "eslint": "^10.11.0",
     "should": "^13.2.3"
   },
   "dependencies": {
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.11"
   }
 }

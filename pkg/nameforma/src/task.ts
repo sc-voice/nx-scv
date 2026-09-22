@@ -31,7 +31,7 @@ import { ColorConsole, Unicode } from '@sc-voice/tools/text';
 const { TASK: T2K } = DBG;
 const { cc } = ColorConsole;
 const { CHECKMARK: UOK } = Unicode;
-const { LIGHT_VERTICAL_BAR: UBAR } = Unicode;
+const { ELLIPSIS, LIGHT_VERTICAL_BAR: UBAR } = Unicode;
 const FORMA = Forma.avroSchema;
 
 /**
@@ -317,6 +317,39 @@ export class Task extends Entity {
     return buf.getRenderData();
   } // renderDataAtZeno
 
+  addArrayValue({
+    builder,
+    key,
+    value,
+    reserved = 1,
+  }: {
+    builder: MonoJSONBuilder;
+    key: string;
+    value: unknown[];
+    reserved: number;
+  }): void {
+    const avail1 = builder.availableKeys(1);
+    const availR = builder.availableKeys(reserved);
+    if (avail1 > 0) {
+      const arrayKey = `${key}[${value.length}]`;
+      if (avail1 === 1) {
+        builder.addKeyValue(key, value);
+      } else if (availR > 0) {
+        const items = value
+          .slice(0, availR)
+          .map((item) => JSON.stringify(item));
+        const remainder = value.length - availR;
+        if (remainder) {
+          items[-1] += ELLIPSIS;
+        }
+        const arrayValue = [`[${ELLIPSIS}${value.length}]`, ...items].join(
+          '\n',
+        );
+        builder.addKeyValue(key, arrayValue);
+      }
+    }
+  }
+
   /** Add MonoJSON KV pair on behalf of toMonoJSON() */
   override addKeyValues(
     builder: MonoJSONBuilder,
@@ -326,7 +359,19 @@ export class Task extends Entity {
     const { rawActions, rawReferences } = this;
 
     super.addKeyValues(builder, opts);
-    builder.addKeyValue('rawActions', rawActions);
-    builder.addKeyValue('rawReferences', rawReferences);
+    let reserved = 2;
+    this.addArrayValue({
+      builder,
+      key: 'rawActions',
+      value: rawActions,
+      reserved,
+    });
+    reserved--;
+    this.addArrayValue({
+      builder,
+      key: 'rawReferences',
+      value: rawReferences,
+      reserved,
+    });
   }
 } // Task

@@ -178,6 +178,24 @@ describe('mono-json', () => {
       });
       expect(builder.nArrayElements).toBe(3);
     });
+    it('availableKeys => # of available keys', () => {
+      const maxKeys = 10;
+      const builder = new MonoJSONBuilder({ maxKeys });
+      const reserved = 2;
+
+      expect(builder.availableKeys()).toBe(maxKeys);
+      expect(builder.availableKeys(reserved)).toBe(maxKeys - reserved);
+      for (let i = 1; i < maxKeys; i++) {
+        const key = `key${i}`;
+        const value = i;
+        builder.addKeyValue(key, value);
+        expect(builder.availableKeys()).toBe(Math.max(0, maxKeys - i));
+        expect(builder.availableKeys(reserved)).toBe(
+          Math.max(0, maxKeys - i - reserved),
+        );
+      }
+      const result = builder.build();
+    });
     it('build() returns copy not reference', () => {
       const builder = new MonoJSONBuilder({});
       builder.addKeyValue('key', 'value');

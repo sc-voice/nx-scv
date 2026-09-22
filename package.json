@@ -12,12 +12,12 @@
   },
   "private": true,
   "devDependencies": {
-    "@nx/js": "^22.6.4",
+    "@nx/js": "^22.7.12",
     "@nx/workspace": "^22.6.4",
-    "@swc-node/register": "^1.11.1",
+    "@swc-node/register": "^1.12.1",
     "@swc/core": "~1.5.7",
-    "@swc/helpers": "~0.5.11",
-    "@types/node": "^24.12.2",
+    "@swc/helpers": "^0.5.23",
+    "@types/node": "^24.13.6",
     "nx": "^22.6.4",
     "tslib": "^2.3.0",
     "typescript": "~5.8.2"

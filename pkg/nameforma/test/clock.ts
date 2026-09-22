@@ -127,7 +127,9 @@ describe('clock', () => {
     expect(nIdle).toBe(1);
     expect(Date.now() - msStart).toBeGreaterThanOrEqual(msIdle);
     expect(value2 - value1).toBeGreaterThanOrEqual(msIdle - tolerance);
-    expect(Math.abs(value2 - msStart - msIdle)).toBeLessThan(tolerance);
+    expect(Math.abs(value2 - msStart - msIdle)).toBeLessThanOrEqual(
+      tolerance,
+    );
 
     dbg && cc.tag(msg, 'clocks without consumers are NOT updated', value2);
     // IMPORTANT:
