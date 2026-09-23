@@ -3,7 +3,7 @@ import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
 import UUID64 from './uuid64.js';
 import type { IRegistry } from './registry.js';
-import { NameFormaTheme } from './nameforma-theme.js';
+import { INameFormaTheme, NameFormaTheme } from './nameforma-theme.js';
 
 import type { ZenoStep } from './zeno-step.js';
 
@@ -23,7 +23,7 @@ export { ViewNamespace } from './view-namespace.js';
  * for displaying status of observables that may
  * or may not require attention
  */
-export interface INameFormaTheme {
+export interface IOLDNameFormaTheme {
   // vertical border
   colSeparator: string;
 

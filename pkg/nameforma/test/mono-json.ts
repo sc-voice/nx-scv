@@ -1,16 +1,22 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import {
   FuzzyNamespace,
+  INameFormaTheme,
+  MarkerTheme,
   MonoJSONBuilder,
-  SimpleType,
   NameFormaTheme,
-  zenoStep,
+  SimpleType,
   ZENO_2_ROWS,
   ZENO_MAX_ROWS,
+  zenoStep,
 } from '@sc-voice/nameforma/unstable';
 import { UUID64, Forma, Task, Action } from '@sc-voice/nameforma';
 
 describe('mono-json', () => {
+  const theme = new MarkerTheme();
+  const forma1 = new Forma({ name: 'name1', summary: 'summary1' });
+  const forma2 = new Forma({ name: 'name2', summary: 'summary2' });
+
   describe('MonoJSONBuilder constructor', () => {
     it('uses default options', () => {
       const builder = new MonoJSONBuilder({});
@@ -322,4 +328,48 @@ describe('mono-json', () => {
       expect(mj2.statusNote).toMatch(statusNote);
     });
   });
+
+  describe('MonoJSONBuilder.zidStringOf', () => {
+    const namespace = new FuzzyNamespace();
+    const builder = new MonoJSONBuilder({ theme });
+    const builderNS = new MonoJSONBuilder({ theme, namespace });
+    const id = forma1.id;
+    const idTheme = theme.nfLink(id.base64);
+    const name = 'TestName';
+    const forma = new Forma({ id, name });
+
+    namespace.addForma(forma1);
+    namespace.addForma(forma2);
+
+    it('returns id and name joined with space for UUID64 id', () => {
+      const result = builder.zidStringOf(forma);
+      expect(result).toMatch(id.base64);
+      expect(result).toMatch(name);
+      expect(result).toEqual(`${idTheme} ${name}`);
+    });
+
+    it('returns zid and name joined with space for UUID64 id', () => {
+      const result = builderNS.zidStringOf(forma);
+      const zid = namespace.fuzzyIdOf(id);
+      expect(result).toMatch(zid);
+      expect(result).toMatch(name);
+      expect(result).toEqual(`${theme.nfLink(zid)} ${name}`);
+    });
+
+    it('handles empty name', () => {
+      const name = '';
+      const result = builder.zidStringOf({ id, name });
+
+      expect(result).toMatch(id.base64);
+      expect(result).toMatch('(name?)');
+    });
+
+    it('preserves special characters in name', () => {
+      const name = 'Forma@Name#123!';
+      const result = builder.zidStringOf({ id, name });
+
+      expect(result).toMatch(id.base64);
+      expect(result).toMatch(name);
+    });
+  }); // zidStringOf
 });

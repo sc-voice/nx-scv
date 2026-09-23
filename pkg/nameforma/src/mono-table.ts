@@ -8,8 +8,7 @@
  * - filter() returns a new MonoTable with selected rows
  */
 
-import type { INameFormaTheme } from './navigable-view.js';
-import { NameFormaTheme } from './nameforma-theme.js';
+import { INameFormaTheme, NameFormaTheme } from './nameforma-theme.js';
 import { RowGrouper, HeaderFun } from './row-grouper.js';
 
 /** A single column definition. */

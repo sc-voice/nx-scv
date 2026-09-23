@@ -3,7 +3,7 @@ import { Entity, type TObject, type IEntityRepository } from './entity.js';
 import { EntityScope } from './entity-scope.js';
 import { ArrayEntityCursor } from './entity-cursor.js';
 import { FileRepository } from './file-repository.js';
-import { Forma, type Constructor } from './forma.js';
+import { IForma, Forma, type Constructor } from './forma.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
@@ -56,6 +56,7 @@ export type {
   Constructor,
   IEntityRepository,
   ICommandMutable,
+  IForma,
   IUUID64Config,
   ZenoStep,
 };

@@ -1,8 +1,11 @@
 import { logger } from './file-repository.js';
-import { INameFormaTheme } from './navigable-view.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
 import { MonoTable } from './mono-table.js';
-import { PlainTheme, NameFormaTheme } from './nameforma-theme.js';
+import {
+  PlainTheme,
+  INameFormaTheme,
+  NameFormaTheme,
+} from './nameforma-theme.js';
 import { DBG } from './defines.js';
 import {
   MonoJSONBuilder,

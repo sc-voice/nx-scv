@@ -28,7 +28,14 @@
  * and decreasing level of general relevance.
  */
 
+import UUID64 from './uuid64.js';
+import { IForma } from './forma.js';
 import { ZenoStep, ZENO_MAX_ROWS } from './navigable-view.js';
+import {
+  INameFormaTheme,
+  NameFormaTheme,
+  PlainTheme,
+} from './nameforma-theme.js';
 import {
   FuzzyNamespace,
   type IReadOnlyNamespace,
@@ -69,6 +76,7 @@ export class MonoJSONBuilder {
   readonly projection: Record<string, 0 | 1>; // top-level key projection (0:exclude, 1:include)
   readonly zeno: ZenoStep; // semantic zoom (ZENO_MAX_ROWS)
   readonly zidSource: string; // zid source if namespace is provided (id)
+  readonly theme: INameFormaTheme;
 
   /** Total count of top-level array elements */
   get nArrayElements() {
@@ -104,6 +112,7 @@ export class MonoJSONBuilder {
       namespace,
       projection = {},
       source = {},
+      theme = NameFormaTheme.shared,
       zeno = ZENO_MAX_ROWS,
       zidSource = 'id',
     } = opts;
@@ -112,6 +121,7 @@ export class MonoJSONBuilder {
     this.arrayDelimiter = arrayDelimiter;
     this.#maxKeys = maxKeys;
     this.projection = projection;
+    this.theme = theme;
     this.zeno = zeno;
     if (zidSource === 'zid') {
       throw new Error(`Invalid zidSource:${zidSource}`);
@@ -195,9 +205,32 @@ export class MonoJSONBuilder {
     });
   }
 
+  /** Return a short, descriptive string for an IForma */
+  zidStringOf(forma: IForma): string {
+    const { namespace, theme } = this;
+    const { id, name, summary } = forma;
+    const idStr = id instanceof UUID64 ? (id as UUID64).base64 : id;
+    const zid = namespace == null ? idStr : namespace.fuzzyIdOf(id);
+    const nameStr = name ? name : '(name?)';
+    let result = `${theme.nfLink(zid)} ${nameStr}`;
+
+    return result;
+  }
+
   /** Return true if builder has already added a key value */
   hasKey(key: string): boolean {
     return this.#monoJSON[key] !== undefined;
+  }
+
+  incrementKeyCount(n: number = 1): boolean {
+    if (this.#nKeys < 0) {
+      throw new Error('reset()?');
+    }
+    if (n < 0) {
+      throw new Error('incrementKeyCount(n<0?)');
+    }
+    this.#nKeys += n;
+    return this.#nKeys <= this.#maxKeys;
   }
 
   /*
@@ -225,7 +258,7 @@ export class MonoJSONBuilder {
       return this;
     }
     if (this.#maxKeys === 0 || this.#nKeys < this.#maxKeys) {
-      this.#nKeys++;
+      this.incrementKeyCount();
       monoJSON[key] = simpleValue;
     }
     if (value instanceof Array) {

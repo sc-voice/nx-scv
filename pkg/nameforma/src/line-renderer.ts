@@ -3,10 +3,9 @@ import type {
   RenderCell,
   RenderRow,
   ZenoStep,
-  INameFormaTheme,
 } from './navigable-view.js';
 import { ZENO_1_ROW_TERSE } from './navigable-view.js';
-import { NameFormaTheme } from './nameforma-theme.js';
+import { INameFormaTheme, NameFormaTheme } from './nameforma-theme.js';
 import { FormaField } from './forma-field.js';
 
 /**

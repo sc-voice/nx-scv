@@ -37,10 +37,16 @@ const UOK = Unicode.CHECKMARK;
 const UNA = Unicode.EMPTY_SET;
 const { FORMA: F3A } = DBG;
 
+export interface IForma {
+  id: UUID64 | string;
+  name: string;
+  summary?: string;
+}
+
 /** Forma - Base class for Identifiable with a name and summary */
 export class Forma
   extends Identifiable
-  implements IRenderable, ICommandMutable, IMonoJSONFacade
+  implements IForma, IRenderable, ICommandMutable, IMonoJSONFacade
 {
   static #instances: Record<string, number> = {}; // instance count
 

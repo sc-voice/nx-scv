@@ -1,6 +1,7 @@
 import { DBG } from './defines.js';
 import { Entity } from './entity.js';
 import {
+  type IForma,
   Forma,
   type ListItemStringCfg,
   type Constructor,
@@ -321,32 +322,32 @@ export class Task extends Entity {
     builder,
     key,
     value,
-    reserved = 1,
+    reserved = 0,
   }: {
     builder: MonoJSONBuilder;
     key: string;
     value: unknown[];
-    reserved: number;
+    reserved?: number;
   }): void {
-    const avail1 = builder.availableKeys(1);
     const availR = builder.availableKeys(reserved);
-    if (avail1 > 0) {
-      const arrayKey = `${key}[${value.length}]`;
-      if (avail1 === 1) {
-        builder.addKeyValue(key, value);
-      } else if (availR > 0) {
-        const items = value
-          .slice(0, availR)
-          .map((item) => JSON.stringify(item));
-        const remainder = value.length - availR;
-        if (remainder) {
-          items[-1] += ELLIPSIS;
-        }
-        const arrayValue = [`[${ELLIPSIS}${value.length}]`, ...items].join(
-          '\n',
+    if (availR <= 1) {
+      builder.addKeyValue(key, value);
+    } else {
+      const items = value
+        .slice(0, availR)
+        .map((item) =>
+          item instanceof Forma
+            ? builder.zidStringOf(item)
+            : JSON.stringify(item),
         );
-        builder.addKeyValue(key, arrayValue);
+      const remainder = value.length - availR;
+      if (remainder) {
+        items[-1] += ELLIPSIS;
       }
+      const arrayValue = [`[${ELLIPSIS}${value.length}]`, ...items].join(
+        '\n',
+      );
+      builder.addKeyValue(key, arrayValue);
     }
   }
 
@@ -359,19 +360,21 @@ export class Task extends Entity {
     const { rawActions, rawReferences } = this;
 
     super.addKeyValues(builder, opts);
-    let reserved = 2;
-    this.addArrayValue({
-      builder,
-      key: 'rawActions',
-      value: rawActions,
-      reserved,
-    });
-    reserved--;
-    this.addArrayValue({
-      builder,
-      key: 'rawReferences',
-      value: rawReferences,
-      reserved,
-    });
+    let avail = builder.availableKeys();
+    if (avail > 0) {
+      this.addArrayValue({
+        builder,
+        key: 'rawActions',
+        value: rawActions,
+        reserved: 1, // for rawReferences
+      });
+    }
+    if (avail > 1) {
+      this.addArrayValue({
+        builder,
+        key: 'rawReferences',
+        value: rawReferences,
+      });
+    }
   }
 } // Task

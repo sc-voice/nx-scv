@@ -1,6 +1,5 @@
 import type { Theme } from '@earendil-works/pi-coding-agent';
 import { initTheme } from '@earendil-works/pi-coding-agent';
-import type { INameFormaTheme } from './navigable-view.js';
 import { Text } from '@sc-voice/tools';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
@@ -11,6 +10,43 @@ const { ColorConsole } = Text;
 const { cc } = ColorConsole;
 
 const THEME_KEY = Symbol.for('@earendil-works/pi-coding-agent:theme');
+
+/**
+ * NameForma theme for pi-tui and nameforma cli
+ * for displaying status of observables that may
+ * or may not require attention
+ */
+export interface INameFormaTheme {
+  // vertical border
+  colSeparator: string;
+
+  // Primary text, terse
+  nfText(text: string): string;
+
+  // Secondary text, inspectable
+  nfNote(text: string): string;
+
+  // A label for a value
+  nfLabel(text: string): string;
+
+  // Static boundary with peripheral alignment
+  nfBoundary(text: string): string;
+
+  // Attention transition: identifiable and navigable
+  nfLink(text: string): string;
+
+  // Aligned to expectations
+  nfNominal(text: string): string;
+
+  // May requires immediate attention
+  nfWarn(text: string): string;
+
+  // Requires immediate attention
+  nfAttend(text: string): string;
+
+  // Attention fading, ignorable
+  nfAway(text: string): string;
+}
 
 /**
  * NameFormaTheme - A attention-based color palette for pi-coding-agent Theme API.

@@ -56,7 +56,7 @@ export {
   zenoStep,
   type ZenoStep,
 } from './navigable-view.js';
-export type { INameFormaTheme } from './navigable-view.js';
+export type { INameFormaTheme } from './nameforma-theme.js';
 export {
   NameFormaTheme,
   MarkerTheme,
