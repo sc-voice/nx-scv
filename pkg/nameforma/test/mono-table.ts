@@ -486,8 +486,8 @@ describe('mono-table', () => {
       );
       expect(lines).toEqual([
         overflowPrefix + 'text:I saw the',
-        overflowPrefix + 'quick fox jump over',
-        overflowPrefix + 'the lazy dog.',
+        overflowPrefix + 'quick fox jump',
+        overflowPrefix + 'over the lazy dog.',
       ]);
     });
 
@@ -508,8 +508,8 @@ describe('mono-table', () => {
         theme,
       });
       expect(lines[0]).toEqual(overflowPrefix + `${label_}I saw ${the_}`);
-      expect(lines[1]).toEqual(overflowPrefix + `quick fox jump over`);
-      expect(lines[2]).toEqual(overflowPrefix + `${the_} lazy dog.`);
+      expect(lines[1]).toEqual(overflowPrefix + `quick fox jump`);
+      expect(lines[2]).toEqual(overflowPrefix + `over ${the_} lazy dog.`);
     });
 
     it('prefixes every line with colSeparator', () => {

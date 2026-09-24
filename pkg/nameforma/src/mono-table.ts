@@ -668,7 +668,7 @@ export class MonoTable extends TableDefaults {
 
     const content = styledLabel + stringValue;
 
-    const borderWidth = MonoTable.stripAnsi(borderLeft).length;
+    const borderWidth = MonoTable.stripAnsi(overflowPrefix).length;
     const wrapWidth = maxRowWidth - borderWidth;
     logger.info({ ctx, maxRowWidth, wrapWidth });
 
