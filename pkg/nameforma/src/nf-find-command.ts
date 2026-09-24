@@ -249,7 +249,7 @@ export class NfFindCommand {
     // Account for row headers
     const fgRows = 1;
     const bgLines = Math.max(1, tuiHeight - fgLines);
-    const bgRows = detail === 1 ? 0 : Math.floor(bgLines / bgRowLines);
+    const bgRows = detail === 1 ? 1 : Math.floor(bgLines / bgRowLines);
     const totalRows = fgRows + bgRows;
 
     let rowLimit;
@@ -337,7 +337,6 @@ export class NfFindCommand {
       const dataOpts = { ...options, rowLimit: formas.length };
       const valid = this._validateOpts(queries, dataOpts);
       const {
-        detail,
         bgRowLines,
         bgKeys,
         fgKeys,

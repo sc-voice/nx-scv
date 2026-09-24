@@ -2,11 +2,13 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import {
   MonoTable,
   PlainTheme,
+  NameFormaTheme,
   RowGrouper,
   TableDefaults,
 } from '@sc-voice/nameforma/unstable';
 
 const PLAIN_THEME = new PlainTheme();
+const overflowPrefix = '  ';
 
 const TEST_ARRAY = [
   ['color', 'size', 'date'],
@@ -469,24 +471,45 @@ describe('mono-table', () => {
 
   describe('renderOverflowCell', () => {
     it('wraps text to multiple lines respecting maxRowWidth', () => {
-      const rows = [
-        { id: '1', description: 'This is a long description' },
-      ];
-      const tbl = MonoTable.fromRows(rows, { theme: PLAIN_THEME });
-      const header = tbl.headers.find((h) => h.id === 'description')!;
+      const theme = PLAIN_THEME;
+      const rows = [{ id: '1', text: 'This is a long description' }];
+      const tbl = MonoTable.fromRows(rows, { theme });
+      const header = tbl.headers.find((h) => h.id === 'text')!;
       const lines = tbl.renderOverflowCell(
         header,
-        'This is a long description',
+        'I saw the quick fox jump over the lazy dog.',
         {
           maxRowWidth: 20,
           colSeparator: ' | ',
-          theme: PLAIN_THEME,
+          theme,
         },
       );
       expect(lines).toEqual([
-        '|description:This is',
-        '|a long description',
+        overflowPrefix + 'text:I saw the',
+        overflowPrefix + 'quick fox jump over',
+        overflowPrefix + 'the lazy dog.',
       ]);
+    });
+
+    it('wraps formatted text to multiple lines respecting maxRowWidth', () => {
+      const theme = NameFormaTheme.shared;
+      const label = 'text';
+      const label_ = theme.nfLabel(label);
+      const id = '123';
+      const the_ = theme.nfWarn('the');
+      const text = `I saw ${the_} quick fox jump over ${the_} lazy dog.`;
+      const rows = [{ id, [label]: text }];
+      const tbl = MonoTable.fromRows(rows, { theme });
+      const header = tbl.headers.find((h) => h.id === label)!;
+      const bar = theme.nfBoundary('|');
+      const lines = tbl.renderOverflowCell(header, text, {
+        maxRowWidth: 20,
+        colSeparator: ' | ',
+        theme,
+      });
+      expect(lines[0]).toEqual(overflowPrefix + `${label_}I saw ${the_}`);
+      expect(lines[1]).toEqual(overflowPrefix + `quick fox jump over`);
+      expect(lines[2]).toEqual(overflowPrefix + `${the_} lazy dog.`);
     });
 
     it('prefixes every line with colSeparator', () => {
@@ -499,7 +522,7 @@ describe('mono-table', () => {
         colSeparator: ' | ',
         theme: PLAIN_THEME,
       });
-      expect(lines).toEqual([`|aKey:${value}`]);
+      expect(lines).toEqual([overflowPrefix + `aKey:${value}`]);
     });
 
     it('handles unbreakable strings (single word > maxRowWidth)', () => {
@@ -516,7 +539,9 @@ describe('mono-table', () => {
           theme,
         },
       );
-      expect(lines).toEqual(['|Abc:supercalifragilisticexpialidocious']);
+      expect(lines).toEqual([
+        overflowPrefix + 'Abc:supercalifragilisticexpialidocious',
+      ]);
     });
 
     it('overflow key/value', () => {
@@ -529,7 +554,7 @@ describe('mono-table', () => {
         colSeparator: ' | ',
         theme: PLAIN_THEME,
       });
-      expect(lines).toEqual(['|City:San Francisco']);
+      expect(lines).toEqual([overflowPrefix + 'City:San Francisco']);
     });
 
     it('respects maxRowWidth minus colSeparator width', () => {
@@ -664,8 +689,8 @@ describe('mono-table', () => {
       expect(lines[0]).toMatch(/╭Id┄*┄1\/1/);
       expect(lines.slice(1)).toEqual([
         '+123',
-        '+text:Long',
-        '+overflow text',
+        overflowPrefix + 'text:Long',
+        overflowPrefix + 'overflow text',
       ]);
     });
   });

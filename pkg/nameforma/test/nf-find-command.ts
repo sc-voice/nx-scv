@@ -672,7 +672,7 @@ describe('NfFindCommand._validateOpts', () => {
     expect(implicit3d.rowLimit).toBe(15);
     const implicit3e = nfFindCommand._validateOpts(TQ, { detail: 1 });
     expect(implicit3e.detail).toBe(1);
-    expect(implicit3e.rowLimit).toBe(1);
+    expect(implicit3e.rowLimit).toBe(2); // fg:1, bg:1
 
     // set value explicitly
     const rowLimit = 3;

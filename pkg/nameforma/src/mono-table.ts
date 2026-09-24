@@ -10,6 +10,8 @@
 
 import { INameFormaTheme, NameFormaTheme } from './nameforma-theme.js';
 import { RowGrouper, HeaderFun } from './row-grouper.js';
+import { logger } from './file-repository.js';
+import { Unicode } from '@sc-voice/tools/text';
 
 /** A single column definition. */
 export interface Header {
@@ -77,6 +79,8 @@ export interface TableOptions {
   locales?: string[];
   /** Maximum row width in characters (defaults to terminal width). */
   maxRowWidth?: number;
+  /** line prefix for overflow header lines */
+  overflowPrefix?: string;
   /** Accumulate output lines grouped by rows */
   /** Array of row objects. */
   rows?: Row[];
@@ -118,6 +122,7 @@ export class TableDefaults implements TableOptions {
   localeOptions?: object;
   locales?: string[];
   maxRowWidth!: number;
+  overflowPrefix!: string;
   rows!: Row[];
   name?: string;
   titleOfId!: (id: string) => string;
@@ -160,6 +165,7 @@ export class TableDefaults implements TableOptions {
       locales = undefined,
       maxRowWidth = process.stdout.columns ?? 80,
       name = undefined,
+      overflowPrefix = '  ',
       rows = [],
       rowSeparator = undefined,
       summary = undefined,
@@ -198,6 +204,7 @@ export class TableDefaults implements TableOptions {
       locales,
       maxRowWidth,
       name,
+      overflowPrefix,
       rows,
       rowSeparator,
       summary,
@@ -535,6 +542,7 @@ export class MonoTable extends TableDefaults {
     overflowIndex: number;
     headerTemplate: string | undefined;
   } {
+    const ctx = 'MonoTable._calculateLayout';
     let { headers, rows } = this;
     let {
       borderHeaderLeft = this.borderHeaderLeft,
@@ -542,6 +550,7 @@ export class MonoTable extends TableDefaults {
       colSeparator = this.colSeparator,
       emptyCell = this.emptyCell,
       maxRowWidth = this.maxRowWidth,
+      overflowPrefix = this.overflowPrefix,
       titleOfId = this.titleOfId,
     } = opts;
 
@@ -572,7 +581,7 @@ export class MonoTable extends TableDefaults {
 
     for (let i = 0; i < headers.length; i++) {
       const h = headers[i];
-      runningTotal += (i ? borderLeftW : colSepW) + (h.width ?? 0);
+      runningTotal += (i > 1 ? colSepW : 0) + (h.width ?? 0);
       if (runningTotal > maxRowWidth) {
         overflowIndex = i;
         break;
@@ -583,6 +592,32 @@ export class MonoTable extends TableDefaults {
 
     return { overflowIndex, headerTemplate };
   } // _calculateTemplate
+
+  _wrapLine(content: string, wrapWidth: number): string[] {
+    const words = content.split(' ');
+    const linesOut: string[] = [];
+    let currentLine: string = '';
+
+    for (const word of words) {
+      const sep = currentLine === '' ? '' : ' ';
+      const testLine = currentLine + sep + word;
+
+      if (MonoTable.stripAnsi(testLine).length <= wrapWidth) {
+        currentLine = testLine;
+      } else {
+        if (currentLine !== '') {
+          linesOut.push(currentLine);
+        }
+        currentLine = word;
+      }
+    }
+
+    if (currentLine !== '') {
+      linesOut.push(currentLine);
+    }
+
+    return linesOut;
+  }
 
   /**
    * Renders an overflow cell by combining label and value, wrapping to
@@ -597,12 +632,14 @@ export class MonoTable extends TableDefaults {
     value: unknown,
     opts: Partial<TableOptions> = {},
   ): string[] {
+    const ctx = 'MonoTable.renderOverflowCell';
     const {
       maxRowWidth = this.maxRowWidth,
       borderLeft = this.borderLeft,
       colSeparator = this.colSeparator,
       emptyCell = this.emptyCell,
       theme = NameFormaTheme.shared,
+      overflowPrefix = this.overflowPrefix,
     } = opts;
 
     // trim undefined values
@@ -633,6 +670,7 @@ export class MonoTable extends TableDefaults {
 
     const borderWidth = MonoTable.stripAnsi(borderLeft).length;
     const wrapWidth = maxRowWidth - borderWidth;
+    logger.info({ ctx, maxRowWidth, wrapWidth });
 
     if (wrapWidth <= 0) {
       const styledLeft = theme.nfBoundary(borderLeft);
@@ -640,31 +678,15 @@ export class MonoTable extends TableDefaults {
     }
 
     // Split on spaces and greedily fit words to wrapWidth
-    const words = content.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-
-    for (const word of words) {
-      const sep = currentLine === '' ? '' : ' ';
-      const testLine = currentLine + sep + word;
-
-      if (MonoTable.stripAnsi(testLine).length <= wrapWidth) {
-        currentLine = testLine;
-      } else {
-        if (currentLine !== '') {
-          lines.push(currentLine);
-        }
-        currentLine = word;
-      }
-    }
-
-    if (currentLine !== '') {
-      lines.push(currentLine);
-    }
+    const linesIn = content.split('\n');
+    const linesOut = linesIn.reduce<string[]>((a, line) => {
+      a.push(...this._wrapLine(line, wrapWidth));
+      return a;
+    }, []);
 
     // Prefix each line with styled borderLeft
-    const borderLeftThemed = theme.nfBoundary(borderLeft);
-    return lines.map((line) => borderLeftThemed + line);
+    const borderLeftThemed = overflowPrefix;
+    return linesOut.map((line) => borderLeftThemed + line);
   }
 
   /**
