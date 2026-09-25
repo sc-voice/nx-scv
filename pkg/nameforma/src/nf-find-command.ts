@@ -1,6 +1,7 @@
 import { logger } from './file-repository.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
 import { MonoTable } from './mono-table.js';
+import { ViewNamespace } from './view-namespace.js';
 import {
   PlainTheme,
   INameFormaTheme,
@@ -333,6 +334,12 @@ export class NfFindCommand {
       const { rawBgKeys, rowLimit } = this._validateOpts(queries, options);
       const formas = await this._mergeResults(queries, rowLimit);
 
+      // create fg/bg namespace that includes first forma for detail zids
+      const anchorNs = nfProgram.world.mutableNamespace;
+      const firstForma = formas[0] as any;
+      const pivotNs = firstForma?.mutableNamespace;
+      const namespace = pivotNs ? new ViewNamespace(anchorNs, pivotNs) : anchorNs;
+
       // re-validate options again using actual data row count
       const dataOpts = { ...options, rowLimit: formas.length };
       const valid = this._validateOpts(queries, dataOpts);
@@ -349,7 +356,6 @@ export class NfFindCommand {
       dbg && logger.info({ ctx, valid, bgKeys });
 
       const theme = outJson ? new PlainTheme() : NameFormaTheme.shared;
-      const namespace = nfProgram.world.namespace;
       const bgBuilder = new MonoJSONBuilder({
         maxKeys: bgKeys,
         namespace,

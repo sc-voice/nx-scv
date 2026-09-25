@@ -19,43 +19,6 @@ import { ViewNamespace } from './view-namespace.js';
 export { ViewNamespace } from './view-namespace.js';
 
 /**
- * NameForma theme for pi-tui and nameforma cli
- * for displaying status of observables that may
- * or may not require attention
- */
-export interface IOLDNameFormaTheme {
-  // vertical border
-  colSeparator: string;
-
-  // Primary text, terse
-  nfText(text: string): string;
-
-  // Secondary text, inspectable
-  nfNote(text: string): string;
-
-  // A label for a value
-  nfLabel(text: string): string;
-
-  // Static boundary with peripheral alignment
-  nfBoundary(text: string): string;
-
-  // Attention transition: identifiable and navigable
-  nfLink(text: string): string;
-
-  // Aligned to expectations
-  nfNominal(text: string): string;
-
-  // May requires immediate attention
-  nfWarn(text: string): string;
-
-  // Requires immediate attention
-  nfAttend(text: string): string;
-
-  // Attention fading, ignorable
-  nfAway(text: string): string;
-}
-
-/**
  * 3D Spatial Navigation Engine for a fractal semantic space of Forma objects.
  *
  * NameForma information is modelled as a fractal space of IRegistry
