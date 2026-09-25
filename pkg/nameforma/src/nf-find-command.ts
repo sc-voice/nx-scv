@@ -338,7 +338,9 @@ export class NfFindCommand {
       const anchorNs = nfProgram.world.mutableNamespace;
       const firstForma = formas[0] as any;
       const pivotNs = firstForma?.mutableNamespace;
-      const namespace = pivotNs ? new ViewNamespace(anchorNs, pivotNs) : anchorNs;
+      const namespace = pivotNs
+        ? new ViewNamespace(anchorNs, pivotNs)
+        : anchorNs;
 
       // re-validate options again using actual data row count
       const dataOpts = { ...options, rowLimit: formas.length };
