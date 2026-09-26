@@ -29,8 +29,9 @@
  */
 
 import UUID64 from './uuid64.js';
-import { IForma } from './forma.js';
+import { Forma, IForma } from './forma.js';
 import { ZenoStep, ZENO_MAX_ROWS } from './navigable-view.js';
+import { Unicode } from '@sc-voice/tools/text';
 import {
   INameFormaTheme,
   NameFormaTheme,
@@ -40,6 +41,8 @@ import {
   FuzzyNamespace,
   type IReadOnlyNamespace,
 } from './fuzzy-namespace.js';
+
+const { NO_BREAK_SPACE, ELLIPSIS } = Unicode;
 
 /**
  * The fundamental scalar types allowed within a MonoJSON object.
@@ -64,8 +67,6 @@ export interface IMonoJSONFacade {
     opts: Record<string, any>,
   ): MonoJSON;
 }
-
-const ELLIPSIS = '…';
 
 /**
  * Utility functions for implementing the MonoJSON projection logic.
@@ -265,5 +266,53 @@ export class MonoJSONBuilder {
       this.#nArrayElements += value.length;
     }
     return this;
+  }
+
+  /**
+   * Add key with array value. Each array value is tallied as an additional
+   * key-value pair compared against the overall KV budget.
+   * @param key {string} output JSON key
+   * @param value {unknown[]} array value to budget
+   * @param reserved {number} # leave room for additional KV pairs
+   */
+  addArrayValue({
+    key,
+    value,
+    reserved = 0,
+  }: {
+    key: string;
+    value: unknown[];
+    reserved?: number;
+  }): void {
+    const { theme } = this;
+    const availR = this.availableKeys(reserved);
+    if (availR <= 1) {
+      this.addKeyValue(key, value);
+    } else {
+      const itemsShown = value.slice(0, availR);
+      const items: string[] = [];
+      if (itemsShown[0] instanceof Forma) {
+        items.push(
+          ...itemsShown.map((item) =>
+            item instanceof Forma /* runtime verifiable vs. IForma */
+              ? this.zidStringOf(item)
+              : JSON.stringify(item),
+          ),
+        );
+      } else {
+        items.push(JSON.stringify(itemsShown));
+      }
+      const remainder = value.length - availR;
+      if (remainder > 0 || (remainder === 0 && reserved > 0)) {
+        items[items.length - 1] += theme.nfBoundary(
+          NO_BREAK_SPACE + ELLIPSIS,
+        );
+      }
+      const arrayValue = [`[${ELLIPSIS}${value.length}]`, ...items].join(
+        '\n',
+      );
+      this.addKeyValue(key, arrayValue);
+      this.incrementKeyCount(items.length);
+    }
   }
 }

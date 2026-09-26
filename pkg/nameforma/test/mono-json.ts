@@ -372,4 +372,135 @@ describe('mono-json', () => {
       expect(result).toMatch(name);
     });
   }); // zidStringOf
+
+  describe('MonoJSONBuilder.addArrayValue', () => {
+    it('adds empty array with truncation indicator', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      builder.addArrayValue({ key: 'items', value: [] });
+      const result = builder.build();
+
+      expect(result.items).toContain('[…0]');
+    });
+
+    it('adds small array with space available', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      const items = ['a', 'b', 'c'];
+      builder.addArrayValue({ key: 'items', value: items });
+      const result = builder.build();
+
+      expect(result.items).toContain('[…3]');
+      expect(result.items).toContain('a');
+      expect(result.items).toContain('b');
+      expect(result.items).toContain('c');
+    });
+
+    it('truncates array when space is tight', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 2 });
+      const items = ['a', 'b', 'c', 'd', 'e'];
+      // maxKeys=2, availR=2 -> only 'a' and 'b' shown
+      builder.addArrayValue({ key: 'items', value: items, reserved: 0 });
+      const result = builder.build();
+
+      const itemsValue = result.items as string;
+      expect(itemsValue).toContain('[…5]'); // shows total length
+      expect(itemsValue).toContain('a');
+      expect(itemsValue).toContain('b');
+      expect(itemsValue).not.toContain('"c"'); // truncated
+    });
+
+    it('respects reserved space', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 5 });
+      const items = ['x', 'y', 'z'];
+      // maxKeys=5, reserved=2 -> availR=3-2=1 for array
+      builder.addArrayValue({ key: 'items', value: items, reserved: 2 });
+      const result = builder.build();
+
+      const itemsValue = result.items as string;
+      expect(itemsValue).toContain('[…3]');
+      expect(itemsValue).toContain('x');
+      // only first item shown due to reserved space
+    });
+
+    it('adds Forma instances as zidStrings', () => {
+      const namespace = new FuzzyNamespace();
+      const builder = new MonoJSONBuilder({
+        maxKeys: 10,
+        theme,
+        namespace,
+      });
+      namespace.addForma(forma1);
+      namespace.addForma(forma2);
+
+      builder.addArrayValue({ key: 'formas', value: [forma1, forma2] });
+      const result = builder.build();
+
+      const formasValue = result.formas as string;
+      expect(formasValue).toContain('[…2]');
+      expect(formasValue).toContain('name1');
+      expect(formasValue).toContain('name2');
+    });
+
+    it('adds ellipsis when array is truncated', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 3 });
+      const items = ['a', 'b', 'c', 'd', 'e'];
+      builder.addArrayValue({ key: 'items', value: items, reserved: 0 });
+      const result = builder.build();
+
+      const itemsValue = result.items as string;
+      expect(itemsValue).toMatch(/[…]/); // contains ellipsis
+    });
+
+    it('adds ellipsis when reserved space forces truncation', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 5 });
+      const items = ['x', 'y', 'z'];
+      builder.addArrayValue({ key: 'items', value: items, reserved: 3 });
+      const result = builder.build();
+
+      const itemsValue = result.items as string;
+      // With reserved=3 and maxKeys=5, availR=2 but we only show 1, so ellipsis
+      expect(itemsValue).toMatch(/[…]/);
+    });
+
+    it('does not store array when no keys available', () => {
+      const builder = new MonoJSONBuilder({ maxKeys: 2 });
+      builder.addKeyValue('key1', 'value1');
+      builder.addKeyValue('key2', 'value2');
+      // Now no keys left, availR <= 1, and no space to add new key
+      builder.addArrayValue({ key: 'items', value: ['a', 'b', 'c'] });
+      const result = builder.build();
+
+      expect(result.items).toBeUndefined();
+    });
+
+    it('increments key count for displayed items', () => {
+      const namespace = new FuzzyNamespace();
+      const builder = new MonoJSONBuilder({ maxKeys: 10, namespace });
+      namespace.addForma(forma1);
+      namespace.addForma(forma2);
+      const forma3 = new Forma({ name: 'name3' });
+      namespace.addForma(forma3);
+      expect(builder.availableKeys()).toBe(10);
+
+      // With Forma items, each is mapped to zidStringOf (3 items)
+      builder.addArrayValue({
+        key: 'items',
+        value: [forma1, forma2, forma3],
+      });
+
+      // Increments: 1 for array key + 3 for items = 4 total
+      expect(builder.availableKeys()).toBe(6);
+    });
+
+    it('handles non-Forma arrays', () => {
+      const theme = new MarkerTheme();
+      const builder = new MonoJSONBuilder({ maxKeys: 10 });
+      const items = ['aString', 42, true, null, { a: 1 }];
+      builder.addArrayValue({ key: 'mixed', value: items });
+      const result = builder.build();
+
+      const mixedValue = (result.mixed as string).split('\n');
+      expect(mixedValue[0]).toBe(`[…${items.length}]`);
+      expect(mixedValue[1]).toBe(JSON.stringify(items));
+    });
+  }); // addArrayValue
 });

@@ -274,6 +274,9 @@ export class Unicode {
   static get BUL_HYPHEN() {
     return '\u2043';
   }
+  static get NO_BREAK_SPACE() {
+    return '\u00a0';
+  }
   static get LEFT_ARROW() {
     return '\u2190';
   }
@@ -468,6 +471,9 @@ export class Unicode {
   }
   get BUL_HYPHEN() {
     return Unicode.BUL_HYPHEN;
+  }
+  get NO_BREAK_SPACE() {
+    return Unicode.NO_BREAK_SPACE;
   }
   get LEFT_ARROW() {
     return Unicode.LEFT_ARROW;

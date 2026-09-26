@@ -318,39 +318,6 @@ export class Task extends Entity {
     return buf.getRenderData();
   } // renderDataAtZeno
 
-  addArrayValue({
-    builder,
-    key,
-    value,
-    reserved = 0,
-  }: {
-    builder: MonoJSONBuilder;
-    key: string;
-    value: unknown[];
-    reserved?: number;
-  }): void {
-    const availR = builder.availableKeys(reserved);
-    if (availR <= 1) {
-      builder.addKeyValue(key, value);
-    } else {
-      const items = value
-        .slice(0, availR)
-        .map((item) =>
-          item instanceof Forma
-            ? builder.zidStringOf(item)
-            : JSON.stringify(item),
-        );
-      const remainder = value.length - availR;
-      if (remainder) {
-        items[-1] += ELLIPSIS;
-      }
-      const arrayValue = [`[${ELLIPSIS}${value.length}]`, ...items].join(
-        '\n',
-      );
-      builder.addKeyValue(key, arrayValue);
-    }
-  }
-
   /** Add MonoJSON KV pair on behalf of toMonoJSON() */
   override addKeyValues(
     builder: MonoJSONBuilder,
@@ -362,16 +329,14 @@ export class Task extends Entity {
     super.addKeyValues(builder, opts);
     let avail = builder.availableKeys();
     if (avail > 0) {
-      this.addArrayValue({
-        builder,
+      builder.addArrayValue({
         key: 'rawActions',
         value: rawActions,
         reserved: 1, // for rawReferences
       });
     }
     if (avail > 1) {
-      this.addArrayValue({
-        builder,
+      builder.addArrayValue({
         key: 'rawReferences',
         value: rawReferences,
       });
