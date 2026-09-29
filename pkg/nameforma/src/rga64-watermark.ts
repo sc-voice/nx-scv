@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 
 /**
  * RGA64Watermark tracks per-user git commit observations for safe GC in distributed stacks.

@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Forma } from './forma.js';
 import { Schema } from './schema.js';
 import { DBG } from './defines.js';

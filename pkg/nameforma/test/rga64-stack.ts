@@ -2,7 +2,7 @@ import { describe, it, expect } from '@sc-voice/vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '../src/uuid64.js';
 import { User } from '../src/user.js';
 import RGA64Stack from '../src/rga64-stack.js';
 import RGA64Node from '../src/rga64-node.js';

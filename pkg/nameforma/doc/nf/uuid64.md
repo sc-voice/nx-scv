@@ -41,7 +41,7 @@ The `src/uuid64.ts` implementation provides:
 ### Usage Example
 
 ```typescript
-import UUID64 from '@sc-voice/nameforma/uuid64';
+import { UUID64 } from '@sc-voice/nameforma/uuid64';
 
 // Generate a new monotonic ID
 const id = new UUID64();

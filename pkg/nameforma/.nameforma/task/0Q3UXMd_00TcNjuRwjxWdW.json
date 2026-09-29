@@ -1,0 +1,56 @@
+{
+  "forma": "Task",
+  "id": "0Q3UXMd_00TcNjuRwjxWdW",
+  "name": "Implement JIT-ZID (Just-In-Time ZID) Identity Management",
+  "summary": "Refactor FuzzyNamespace to implement a JIT (Just-In-Time) ZID mechanism. \n\nThe goal is to move from a model where every Forma in a namespace must have a computed ZID to a model where ZIDs are materialized only upon first interaction, optimizing for both write performance (O(1) addForma) and read performance (O(1) cached getForma).\n\nKey Requirements:\n1. Refactor `FuzzyNamespace.addForma`: Should only add the Forma to the internal collection. Do NOT compute or cache ZIDs here. This makes `addForma` O(1).\n2. Refactor `FuzzyNamespace.getForma`: Implement lazy materialization.\n   - Check the `FuzzyId -> Forma` cache.\n   - If miss: Use `fuzzyIdOf(forma.id)` to resolve a unique, non-conflicting ZID (performing the O(N) collision check here).\n   - Cache the result.\n3. Refactor `FuzzyNamespace.fuzzyIdOf`: This must be the authoritative, collision-aware resolver. It should take a `Forma` (or ID) and return a unique `FuzzyId` by checking against the current members of the namespace to ensure no ambiguity.\n4. Ensure the `ViewNamespace` (composite namespace) still works correctly by leveraging the updated `FuzzyNamespace` methods.\n5. Maintain the bijective property: Ensure that once a ZID is materialized and cached, the mapping is stable and unambiguous for the duration of the session.",
+  "updateId": "0Q3UXMd_00TcNjuRwjxWdW",
+  "collection": "task",
+  "rawActions": [],
+  "rawReferences": [
+    {
+      "forma": "Reference",
+      "id": "0Q3VNhQR00TcNjuRwjxWdW",
+      "name": "Implementation: FuzzyNamespace",
+      "summary": "Primary target for refactoring addForma, getForma, and fuzzyIdOf to implement lazy ZID materialization.",
+      "updateId": "0Q3VNhQR00TcNjuRwjxWdW",
+      "relevance": 1,
+      "source": "src/fuzzy-namespace.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Q3VNhVw00TcNjuRwjxWdW",
+      "name": "Implementation: ViewNamespace",
+      "summary": "Secondary target to ensure compatibility with updated FuzzyNamespace methods.",
+      "updateId": "0Q3VNhVw00TcNjuRwjxWdW",
+      "relevance": 0.8,
+      "source": "src/view-namespace.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Q3VNhbO00TcNjuRwjxWdW",
+      "name": "Testing: FuzzyNamespace",
+      "summary": "Tests for verifying O(1) addForma and lazy materialization/caching logic.",
+      "updateId": "0Q3VNhbO00TcNjuRwjxWdW",
+      "relevance": 0.9,
+      "source": "test/fuzzy-namespace.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Q3VNhgs00TcNjuRwjxWdW",
+      "name": "Testing: ViewNamespace",
+      "summary": "Tests for ensuring composite namespace behavior remains correct.",
+      "updateId": "0Q3VNhgs00TcNjuRwjxWdW",
+      "relevance": 0.7,
+      "source": "test/view-namespace.ts"
+    },
+    {
+      "forma": "Reference",
+      "id": "0Q3VNhmS00TcNjuRwjxWdW",
+      "name": "Entity Interaction: Entity Namespace Access",
+      "summary": "Check impact on how entities interact with namespaces via mutableNamespace and addToNamespace.",
+      "updateId": "0Q3VNhmS00TcNjuRwjxWdW",
+      "relevance": 0.5,
+      "source": "src/entity.ts"
+    }
+  ]
+}

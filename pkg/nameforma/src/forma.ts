@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Identifiable } from './identifiable.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { IReadOnlyNamespace } from './fuzzy-namespace.js';
@@ -417,13 +417,14 @@ export class LevenshteinMatcher<T extends Forma> {
       : this.searchValue;
 
     const itemId = item.id;
-    let itemIdStr = typeof itemId === 'string' ? itemId : itemId.base64;
+    let itemIdStr: string =
+      typeof itemId === 'string' ? itemId : itemId.base64;
     itemIdStr = this.ignoreCase ? itemIdStr.toLowerCase() : itemIdStr;
 
     // Compare against prefix of same length as search
     const compareStr =
-      s10e.length <= UUID64.TIME_SEQ_CHARS
-        ? itemIdStr.substring(0, UUID64.TIME_SEQ_CHARS)
+      s10e.length <= UUID64.TIME_ID_CHARS
+        ? itemIdStr.substring(0, UUID64.TIME_ID_CHARS)
         : itemIdStr;
     //cc.tag1(msg, "TESTTAG1")
 

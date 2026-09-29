@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import RGA64Watermark from '../src/rga64-watermark.js';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '../src/uuid64.js';
 
 describe('RGA64Watermark', () => {
   it('update records a user UUID64 and returns true', () => {

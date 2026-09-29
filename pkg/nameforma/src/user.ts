@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { createHash } from 'crypto';
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { IGitCLI, GitCLI } from './git-cli.js';
 
 export class User {

@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Schema } from './schema.js';
 import { Text } from '@sc-voice/tools';
 import { Levenshtein } from '@sc-voice/tools/text';
@@ -26,7 +26,7 @@ const { cc } = ColorConsole;
 /**
  * FuzzyId - String ID for fuzzy matching against UUID64 identifiers
  *
- * FuzzyId can be:
+ * FuzzyId (informally "zid") can be:
  * - Full UUID64 base64 string (exact match)
  * - Partial UUID64 string (first N characters)
  * - Fuzzy variant with Levenshtein distance tolerance
@@ -264,14 +264,14 @@ export class Identifiable implements IMonoJSONFacade {
    * Create a filter function for fuzzy ID matching with Levenshtein distance.
    *
    * UUID64 base64 structure (UUID64.CHARS total):
-   * - First UUID64.TIME_SEQ_CHARS chars: 48-bit timestamp + 12-bit sequence
+   * - First UUID64.TIME_ID_CHARS chars: 48-bit timestamp + 12-bit sequence
    * - Last chars: random data
    *
    * @param fuzzyId - The fuzzy ID to search for (can be partial or mutated string)
    * @param levenshtein - Optional fuzzy matching parameter (default: fuzzyId.length):
-   *   - 1 to UUID64.TIME_SEQ_CHARS: Fuzzy match on first UUID64.TIME_SEQ_CHARS chars
-   *     max allowed distance = UUID64.TIME_SEQ_CHARS - levenshtein
-   *   - (UUID64.TIME_SEQ_CHARS + 1) to UUID64.CHARS: Fuzzy match on full UUID64.CHARS chars
+   *   - 1 to UUID64.TIME_ID_CHARS: Fuzzy match on first UUID64.TIME_ID_CHARS chars
+   *     max allowed distance = UUID64.TIME_ID_CHARS - levenshtein
+   *   - (UUID64.TIME_ID_CHARS + 1) to UUID64.CHARS: Fuzzy match on full UUID64.CHARS chars
    *     max allowed distance = UUID64.CHARS - levenshtein
    * @param ignoreCase - If true (default), comparison is case-insensitive
    *
@@ -303,9 +303,9 @@ export class Identifiable implements IMonoJSONFacade {
       let compareStr: string;
       let maxDistance: number;
 
-      if (levenshtein! >= 1 && levenshtein! <= UUID64.TIME_SEQ_CHARS) {
-        compareStr = idStr.substring(0, UUID64.TIME_SEQ_CHARS);
-        maxDistance = UUID64.TIME_SEQ_CHARS - levenshtein!;
+      if (levenshtein! >= 1 && levenshtein! <= UUID64.TIME_ID_CHARS) {
+        compareStr = idStr.substring(0, UUID64.TIME_ID_CHARS);
+        maxDistance = UUID64.TIME_ID_CHARS - levenshtein!;
       } else {
         compareStr = idStr;
         maxDistance = UUID64.CHARS - levenshtein!;

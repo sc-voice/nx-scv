@@ -1,0 +1,10 @@
+{
+  "forma": "Task",
+  "id": "0Q3Vb9qQ002KufXI2DHRtW",
+  "name": "Implement: ZidSpace implements IMutableNamespace",
+  "summary": "ZidSpace is a 'mnemonic identity registry' that relies on a serialized bijective map between zid <-> base64. ZidSpace generates unique short, mnemonic zids on demand using an expandable 'window' into the UUID64.base64 string within the namespace.\nExplore the architectural transition from a hybrid FuzzyNamespace to a layered design using ZidSpace. \n\nThe goal is to decouple Collection Management (BaseNamespace) from Identity Management (ZidSpace).\n\nKey areas of investigation:\n1. Definition of ZidSpace: A session-scoped Identity Mapper that wraps an IEntityRepository. It manages a transient, in-memory bijective Map<base64, FuzzyId>.\n2. The Identity Provider: Refactor fuzzyIdOf(forma) to be the authoritative, collision-aware resolver.\n3. The Sliding Window Algorithm:\n    - Instead of a global namespace mask, implement a \"Minimal Unique Window\" search.\n    - Start with a \"pragmatically terse\" window (e.g., focused on the UUIDv7 timeId).\n    - If a collision is detected in the ZidSpace Registry, progressively expand the window (left, right, or both) until a unique mnemonic is found.\n    - The window scales gracefully from a short mnemonic to the full UUID64 base64 string in the limit of collision density.\n4. Complexity Analysis:\n    - addForma: Must be O(1) (purely a collection insertion).\n    - fuzzyIdOf: O(1) on registry hit; O(collision_density) on miss (progressive window expansion).\n    - getForma: O(1) (Registry lookup followed by Repository fetch).\n5. Stability: Ensuring the bijection is stable for the session; once a window is determined for a Forma, it is committed to the Registry and never re-calculated.",
+  "updateId": "0Q3Vb9qQ002KufXI2DHRtW",
+  "collection": "task",
+  "rawActions": [],
+  "rawReferences": []
+}

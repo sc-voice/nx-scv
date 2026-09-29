@@ -1,7 +1,7 @@
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { Entity } from './entity.js';
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import {
   FuzzyNamespace,
   type IMutableNamespace,

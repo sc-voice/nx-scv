@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { execSync } from 'child_process';
 import { User } from '../src/user.js';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '../src/uuid64.js';
 
 describe('IdCommand --user', () => {
   it('--user Alice signature', () => {

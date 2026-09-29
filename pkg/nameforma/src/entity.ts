@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Forma, type Constructor } from './forma.js';
 import {
   FuzzyNamespace,
@@ -12,7 +12,7 @@ import { EntityRegistry } from './entity-registry.js';
  * Entity - Abstract base class for persistent entities in World
  * Extends Forma with namespace management for child Forma objects (actions, references, etc.)
  */
-export abstract class Entity extends Forma implements IRegistry, IEntity {
+export class Entity extends Forma implements IRegistry, IEntity {
   declare collection: string;
   #namespace?: FuzzyNamespace;
 

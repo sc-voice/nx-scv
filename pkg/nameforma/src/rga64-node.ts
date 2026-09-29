@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import type { UUID64String } from './uuid64.js';
 
 /**

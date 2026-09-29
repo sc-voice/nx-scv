@@ -1,5 +1,16 @@
+/**
+ * FuzzyNamespace - a namespace of Formas whose ids can be abbreviated as FuzzyIds
+ * A FuzzyId (or "zid") is a short mnemonic string that is a substring of the
+ * the full UUID64 22-character base64 Forma id. Since UUID64 is based on UUID version 7,
+ * the id.timeId() provides an ideal low-entropy (i.e., highly compact) source for
+ * generating a FuzzyId. Although there are many ways to generate unique substrings of
+ * a UUID64.base64 string, the canonical way to generate a FuzzyId is with fuzzyIdOf().
+ * The fuzzyIdOf() method generates a FuzzyId of at least 5-characters and is often sufficient
+ * to identify a Forma uniquely in the context of a human/agentic session.
+ */
+
 import { Forma, type Constructor } from './forma.js';
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 
 const MIN_FUZZY_ID = 5;
@@ -195,7 +206,7 @@ export class FuzzyNamespace implements IMutableNamespace {
     }
 
     // Mask the FuzzyId
-    const timeId = plainId.substring(0, UUID64.TIME_SEQ_CHARS);
+    const timeId = plainId.substring(0, UUID64.TIME_ID_CHARS);
     const endIndex = timeId.length - this.#cachedSuffixLen!;
     const masked = timeId.substring(this.#cachedPrefixLen!, endIndex);
 
@@ -231,7 +242,7 @@ export class FuzzyNamespace implements IMutableNamespace {
 
     if (timeIds.length === 1) {
       const suffixLen = 2;
-      const prefixLen = UUID64.TIME_SEQ_CHARS - MIN_FUZZY_ID - suffixLen;
+      const prefixLen = UUID64.TIME_ID_CHARS - MIN_FUZZY_ID - suffixLen;
       this.#cachedPrefixLen = prefixLen;
       this.#cachedSuffixLen = suffixLen;
       return;
@@ -239,7 +250,7 @@ export class FuzzyNamespace implements IMutableNamespace {
 
     // Find common prefix
     let prefixLen = 0;
-    for (let i = 0; i < UUID64.TIME_SEQ_CHARS; i++) {
+    for (let i = 0; i < UUID64.TIME_ID_CHARS; i++) {
       const char = timeIds[0][i];
       if (timeIds.every((id) => id[i] === char)) {
         prefixLen = i + 1;
@@ -250,7 +261,7 @@ export class FuzzyNamespace implements IMutableNamespace {
 
     // Find common suffix
     let suffixLen = 0;
-    for (let i = 1; i <= UUID64.TIME_SEQ_CHARS - prefixLen; i++) {
+    for (let i = 1; i <= UUID64.TIME_ID_CHARS - prefixLen; i++) {
       const char = timeIds[0][timeIds[0].length - i];
       if (timeIds.every((id) => id[id.length - i] === char)) {
         suffixLen = i;
@@ -260,7 +271,7 @@ export class FuzzyNamespace implements IMutableNamespace {
     }
 
     // Ensure minimum FuzzyId length of MIN_FUZZY_ID
-    const resultLen = UUID64.TIME_SEQ_CHARS - prefixLen - suffixLen;
+    const resultLen = UUID64.TIME_ID_CHARS - prefixLen - suffixLen;
     if (resultLen < MIN_FUZZY_ID) {
       const needed = MIN_FUZZY_ID - resultLen;
       if (suffixLen >= needed) {
@@ -272,7 +283,7 @@ export class FuzzyNamespace implements IMutableNamespace {
     }
 
     // Adjust prefix to avoid starting with "-" for any timeId
-    while (prefixLen < UUID64.TIME_SEQ_CHARS) {
+    while (prefixLen < UUID64.TIME_ID_CHARS) {
       if (timeIds.every((id) => id[prefixLen] !== '-')) {
         break;
       }
@@ -339,33 +350,4 @@ function isRecord(value: any): boolean {
   return (
     value !== null && typeof value === 'object' && !Array.isArray(value)
   );
-}
-
-/**
- * @deprecated
- * Return a copy of obj with `zid` siblings inserted before every `id` field,
- * at any depth. Non-mutating; the original is unchanged.
- * @param obj - Source value (record, array, or leaf)
- * @param cfg.namespace - Supplies fuzzyIdOf() for each id found
- * @returns Copy with zid fields inserted next to id fields
- */
-export function zidify(
-  obj: any,
-  cfg: { namespace: IReadOnlyNamespace },
-): any {
-  const { namespace } = cfg;
-  if (Array.isArray(obj)) {
-    return obj.map((v) => zidify(v, cfg));
-  }
-  if (!isRecord(obj)) {
-    return obj;
-  }
-  const result: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (key === 'id') {
-      result.zid = namespace.fuzzyIdOf(value as any);
-    }
-    result[key] = zidify(value, cfg);
-  }
-  return result;
 }

@@ -1,5 +1,5 @@
 import RGA64Stack from './rga64-stack.js';
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Forma } from './forma.js';
 import { User } from './user.js';
 

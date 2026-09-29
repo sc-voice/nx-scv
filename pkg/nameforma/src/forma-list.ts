@@ -1,4 +1,4 @@
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { Forma } from './forma.js';
 import { Entity } from './entity.js';
@@ -323,7 +323,7 @@ export class FormaList<T extends Forma> {
     if (timeIds.length === 1) {
       const suffixLen = 2;
       const prefixLen =
-        UUID64.TIME_SEQ_CHARS -
+        UUID64.TIME_ID_CHARS -
         FormaList.MIN_LIST_ITEM_ID_LENGTH -
         suffixLen;
       this.#cachedPrefixLen = prefixLen;
@@ -333,7 +333,7 @@ export class FormaList<T extends Forma> {
 
     // Find common prefix
     let prefixLen = 0;
-    for (let i = 0; i < UUID64.TIME_SEQ_CHARS; i++) {
+    for (let i = 0; i < UUID64.TIME_ID_CHARS; i++) {
       const char = timeIds[0][i];
       if (timeIds.every((id) => id[i] === char)) {
         prefixLen = i + 1;
@@ -344,7 +344,7 @@ export class FormaList<T extends Forma> {
 
     // Find common suffix
     let suffixLen = 0;
-    for (let i = 1; i <= UUID64.TIME_SEQ_CHARS - prefixLen; i++) {
+    for (let i = 1; i <= UUID64.TIME_ID_CHARS - prefixLen; i++) {
       const char = timeIds[0][timeIds[0].length - i];
       if (timeIds.every((id) => id[id.length - i] === char)) {
         suffixLen = i;
@@ -354,7 +354,7 @@ export class FormaList<T extends Forma> {
     }
 
     // Ensure minimum itemListId length
-    const resultLen = UUID64.TIME_SEQ_CHARS - prefixLen - suffixLen;
+    const resultLen = UUID64.TIME_ID_CHARS - prefixLen - suffixLen;
     if (resultLen < FormaList.MIN_LIST_ITEM_ID_LENGTH) {
       // Need to reduce prefix or suffix to meet minimum length
       const needed = FormaList.MIN_LIST_ITEM_ID_LENGTH - resultLen;

@@ -4,7 +4,7 @@ import sift from 'sift';
 import { pathToFileURL } from 'url';
 import pino from 'pino';
 import { createStream } from 'rotating-file-stream';
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import {
   Filter,
   FilterOperators,

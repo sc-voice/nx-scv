@@ -11,7 +11,7 @@ import { Task } from '../task.js';
 import { Action, ActionStatus, ActionTransitions } from '../action.js';
 import { settings } from './settings.js';
 import { confirm } from './confirm.js';
-import UUID64 from '../uuid64.js';
+import { UUID64 } from '../uuid64.js';
 
 export default class ActionCommand {
   static readonly EXAMPLES: Record<string, string[]> = {

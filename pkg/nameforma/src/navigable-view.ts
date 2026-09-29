@@ -1,7 +1,7 @@
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { FormaField } from './forma-field.js';
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import type { IRegistry } from './registry.js';
 import { INameFormaTheme, NameFormaTheme } from './nameforma-theme.js';
 

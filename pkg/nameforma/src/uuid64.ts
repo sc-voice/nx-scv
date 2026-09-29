@@ -82,7 +82,7 @@ const monotonicityState = new MonotonicityState();
 // UUID64 Class
 // ============================================================================
 
-class UUID64 {
+export class UUID64 {
   // ========================================================================
   // Static Constants
   // ========================================================================
@@ -90,8 +90,12 @@ class UUID64 {
   /** Total characters in base64-encoded UUID64 (128 bits encoded as base64). */
   static readonly CHARS = 22;
 
-  /** Characters in timestamp + sequence portion (60 bits: 48-bit timestamp + 12-bit sequence). Last 12 chars are random data. */
-  static readonly TIME_SEQ_CHARS = 10;
+  /**
+   * Number of characters returned by timeId(), which is the prefix of the UUID64
+   * base64 string. A timeId has 60 bits: 48 for timestamp + 12 for sequence.
+   * The 60 bits are exactly representable with 10 characters of base-64 encoding.
+   */
+  static readonly TIME_ID_CHARS = 10;
 
   /**
    * Register this class's avroSchema into the avro registry and return AvroType.
@@ -125,7 +129,7 @@ class UUID64 {
   // ========================================================================
 
   public readonly uuidv7: Buffer;
-  #base64?: string;
+  #base64?: UUID64String;
 
   // ========================================================================
   // Constructor
@@ -151,7 +155,7 @@ class UUID64 {
   /**
    * Get the base64 representation of this UUID64.
    */
-  get base64(): string {
+  get base64(): UUID64String {
     if (this.#base64 == null) {
       this.#base64 = UUID64.toOrderPreservingBase64(
         UUID64.toUUID64Buffer(this.uuidv7),
@@ -192,10 +196,7 @@ class UUID64 {
    * @returns UUID64 instance with new timestamp and provided signature
    */
   static forSignature(signature: string): UUID64 {
-    const timeStr = new UUID64().base64.substring(
-      0,
-      UUID64.TIME_SEQ_CHARS,
-    );
+    const timeStr = new UUID64().base64.substring(0, UUID64.TIME_ID_CHARS);
     return UUID64.fromString(timeStr + signature);
   }
 
@@ -227,7 +228,7 @@ class UUID64 {
       const out = cli
         .log(`-1 ${commitToUse} --format=%at%n%H`)
         .split('\n');
-      const timestampMs = parseInt(out[0], UUID64.TIME_SEQ_CHARS) * 1000;
+      const timestampMs = parseInt(out[0], UUID64.TIME_ID_CHARS) * 1000;
       const commitHash = out[1];
 
       const uuidv7 = Buffer.alloc(16);
@@ -571,7 +572,7 @@ class UUID64 {
    * @param width minimum string width; preserves leading zeros up to this width (defaults to 3)
    * @returns order-preserving base64 encoding of the time/sequence difference
    */
-  itemId(basis: number = 1, width: number = 3): string {
+  itemId(basis: number = 1, width: number = 3): UUID64String {
     let relation = UUID64.createRelatedId(this);
     let diff = UUID64.extractTimeSeqDiff(relation.uuidv7, this.uuidv7);
 
@@ -583,7 +584,7 @@ class UUID64 {
 
     // Convert difference to 8-byte buffer and encode as order-preserving base64
     const diffBytes = UUID64.bigIntToBytes(diff, 8);
-    let opb64 = UUID64.toOrderPreservingBase64(diffBytes);
+    let opb64: string = UUID64.toOrderPreservingBase64(diffBytes);
 
     // Handle width: pad to width with leading zeros, but strip leading zeros beyond width
     if (opb64.length < width) {
@@ -602,12 +603,12 @@ class UUID64 {
       opb64 = opb64.substring(stripIndex);
     }
 
-    return opb64;
+    return opb64 as UUID64String;
   }
 
   /**
    * Get the time/sequence prefix of the UUID (first 10 base64 characters).
-   * Always returns exactly UUID64.TIME_SEQ_CHARS (10) characters by default.
+   * Always returns exactly UUID64.TIME_ID_CHARS (10) characters by default.
    * Contains 48-bit timestamp + 12-bit sequence bits.
    * Useful for time-based partitioning, sorting, or ID trimming in lists.
    *
@@ -616,9 +617,9 @@ class UUID64 {
    *
    * @returns 10-character base64 string prefix (default) - length invariant
    * @param start index of first character (default 0)
-   * @param end index of last character + 1 (default 10, use UUID64.TIME_SEQ_CHARS)
+   * @param end index of last character + 1 (default 10, use UUID64.TIME_ID_CHARS)
    */
-  timeId(start: number = 0, end: number = UUID64.TIME_SEQ_CHARS): string {
+  timeId(start: number = 0, end: number = UUID64.TIME_ID_CHARS): string {
     return this.base64.substring(start, end);
   }
 
@@ -630,7 +631,7 @@ class UUID64 {
    * @returns 12-character base64 string suffix
    */
   getSignature(): string {
-    return this.base64.substring(UUID64.TIME_SEQ_CHARS);
+    return this.base64.substring(UUID64.TIME_ID_CHARS);
   }
 
   /**
@@ -991,7 +992,7 @@ class UUID64 {
    * @param buffer Buffer to encode
    * @returns order-preserving base64 string
    */
-  static toOrderPreservingBase64(buffer: Buffer): string {
+  static toOrderPreservingBase64(buffer: Buffer): UUID64String {
     let result = '';
     let bits = 0;
     let bitCount = 0;
@@ -1013,7 +1014,7 @@ class UUID64 {
       result += UUID64.OPB64_ALPHABET[index];
     }
 
-    return result;
+    return result as UUID64String;
   }
 
   /**
@@ -1079,5 +1080,3 @@ class UUID64 {
     return Buffer.from(bytes);
   }
 }
-
-export default UUID64;

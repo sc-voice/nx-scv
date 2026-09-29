@@ -7,7 +7,7 @@ import { World } from '../src/world.js';
 import { FormaList } from '../src/forma-list.js';
 import { Forma } from '../src/forma.js';
 import { FileRepository } from '../src/file-repository.js';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '../src/uuid64.js';
 
 /**
  * TestItem - Simple Forma for integration testing

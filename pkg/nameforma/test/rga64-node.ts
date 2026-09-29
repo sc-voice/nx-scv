@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@sc-voice/vitest';
 import { User } from '../src/user.js';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '../src/uuid64.js';
 import RGA64Node from '../src/rga64-node.js';
 
 describe('RGA64Node', () => {

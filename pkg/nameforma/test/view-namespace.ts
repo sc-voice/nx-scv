@@ -3,7 +3,7 @@ import { ViewNamespace } from '../src/view-namespace.js';
 import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 import { Forma } from '../src/forma.js';
 import { Entity } from '../src/entity.js';
-import UUID64 from '../src/uuid64.js';
+import { UUID64 } from '../src/uuid64.js';
 
 class TestEntity extends Entity {
   name: string = '';

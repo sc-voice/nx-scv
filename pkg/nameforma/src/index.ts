@@ -7,7 +7,7 @@ import { IForma, Forma, type Constructor } from './forma.js';
 import { Identifiable, type FuzzyId } from './identifiable.js';
 import { RenderDetail, ZenoCoord } from './navigable-view.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
-import UUID64, { type IUUID64Config } from './uuid64.js';
+import { UUID64, type IUUID64Config } from './uuid64.js';
 export type { FuzzyId, IRegistry };
 import { Rational } from './rational.js';
 import { Reference } from './reference.js';
@@ -25,6 +25,7 @@ import {
   Mutator,
   type ICommandMutable,
 } from './mutator.js';
+import { ZidSpace } from './zid-space.js';
 
 export {
   Action,
@@ -51,6 +52,7 @@ export {
   World,
   Zeno,
   ZenoCoord,
+  ZidSpace,
 };
 export type {
   Constructor,

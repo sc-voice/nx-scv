@@ -8,7 +8,7 @@ import { World } from '../world.js';
 import { Task } from '../task.js';
 import { Forma } from '../forma.js';
 import { User } from '../user.js';
-import UUID64 from '../uuid64.js';
+import { UUID64 } from '../uuid64.js';
 import { TuiList } from './tui-list.js';
 import { confirmDelete } from './confirm.js';
 import { Unicode } from '@sc-voice/tools/text';

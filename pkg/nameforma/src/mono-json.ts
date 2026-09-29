@@ -28,7 +28,7 @@
  * and decreasing level of general relevance.
  */
 
-import UUID64 from './uuid64.js';
+import { UUID64 } from './uuid64.js';
 import { Forma, IForma } from './forma.js';
 import { ZenoStep, ZENO_MAX_ROWS } from './navigable-view.js';
 import { Unicode } from '@sc-voice/tools/text';

@@ -10,7 +10,7 @@ import { validate as validateUUID } from 'uuid';
 import { Identifiable } from '../identifiable.js';
 import { World } from '../world.js';
 import { User } from '../user.js';
-import UUID64 from '../uuid64.js';
+import { UUID64 } from '../uuid64.js';
 import { defaultGitCLI } from '../git-cli.js';
 import { NfProgram } from '../nf-program.js';
 import type { ICommand } from '../nf-program.js';
