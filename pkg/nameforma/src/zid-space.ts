@@ -66,35 +66,39 @@ export class ZidSpace /* implements IMutableNamespace */ {
       }
       if (matches.length > 1) {
         const ids = matches.map((f) => f.id);
-        if (strict) {
-          const m = matches.length;
-          throw new Error(
-            `${ctx}: Z6E070: ambiguous match for "${fuzzyId}": found ${m} matches [${ids}]`,
-          );
-        }
+        const m = matches.length;
+        throw new Error(
+          `${ctx}: Z6E070: not found (ambiguous) "${fuzzyId}": matches [${ids}]`,
+        );
       }
+    }
+    if (forma == null && strict) {
+      throw new Error(`${ctx}: Z6E077: not found: ${fuzzyId}`);
     }
 
     return forma;
   }
 
   /** IReadonlyNamespace implementation */
-  fuzzyIdOf(idInput: UUID64 | string, string?:boolean): string {
+  fuzzyIdOf(idInput: UUID64 | string, string?: boolean): string {
     const ctx = 'ZidSpace.fuzzyIdOf';
     const idString = idInput instanceof UUID64 ? idInput.base64 : idInput;
-    let base64 = idString.length === UUID64.CHARS 
-      ? (idString as UUID64String)
-      : undefined;
+    let base64 =
+      idString.length === UUID64.CHARS
+        ? (idString as UUID64String)
+        : undefined;
 
     // Does base64 map to existing zid?
     let zid = base64 && this._b64ZidMap.get(base64);
-    if (zid != null) { return zid; }
+    if (zid != null) {
+      return zid;
+    }
 
     // is idString an existing zid?
     if (!base64) {
       base64 = this._zidB64Map.get(idString);
       if (base64 != null) {
-        return idString 
+        return idString;
       }
     }
 
@@ -129,27 +133,35 @@ export class ZidSpace /* implements IMutableNamespace */ {
             break;
           }
           end++;
-        } while(conflict1 && end < UUID64.CHARS);
+        } while (conflict1 && end < UUID64.CHARS);
         if (conflict1) {
-          throw new Error(`${ctx} Z6E131: zid ${zid} conflict1: ${base64} ${conflict1}`);
+          throw new Error(
+            `${ctx} Z6E131: zid ${zid} conflict1: ${base64} ${conflict1}`,
+          );
         }
       }
 
       if (zid != null) {
         const conflict2 = this._zidB64Map.get(zid);
         if (conflict2) {
-          throw new Error(`${ctx} Z6E138: zid ${zid} conflict: ${base64} ${conflict2}`);
+          throw new Error(
+            `${ctx} Z6E138: zid ${zid} conflict: ${base64} ${conflict2}`,
+          );
         }
       }
+    }
+
+    if (zid == null) {
+      throw new Error(`${ctx} Z6E152: id not found: ${idString}`);
     }
 
     // register new zid
     this._zidB64Map.set(zid, base64);
     this._b64ZidMap.set(base64, zid);
 
-    if (zid == null) {
-      throw new Error(`${ctx} Z6E152: id not found: ${idString}`);
-    }
+    // Support spoken multi-modal zids as lowercase (e.g., "alpha bravo 1")
+    const mmid = zid.toLowerCase();
+    this._zidB64Map.set(mmid, base64);
 
     return zid;
   }
@@ -182,20 +194,22 @@ export class ZidSpace /* implements IMutableNamespace */ {
 
   /** IMutableNamespace implementation */
   removeForma(fuzzyId: FuzzyId): Forma | undefined {
-    const base64: UUID64String = this._zidB64Map.get(fuzzyId) ?? fuzzyId as UUID64String;
-    const forma = this._b64FormaMap.get(base64); 
+    const base64: UUID64String =
+      this._zidB64Map.get(fuzzyId) ?? (fuzzyId as UUID64String);
+    const forma = this._b64FormaMap.get(base64);
 
     if (forma) {
       const { base64 } = forma.id;
       this._b64FormaMap.delete(base64);
       const zid = this._b64ZidMap.get(base64);
       if (zid) {
+        const mmid = zid.toLowerCase();
         this._b64ZidMap.delete(base64);
         this._zidB64Map.delete(zid);
+        zid !== mmid && this._zidB64Map.delete(mmid);
       }
     }
 
     return forma;
   }
 }
-
