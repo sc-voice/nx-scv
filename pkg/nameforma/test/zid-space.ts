@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Entity, Forma, UUID64, ZidSpace } from '@sc-voice/nameforma';
+import { logger } from '../src/file-repository.js';
 
 describe('ZidSpace', () => {
   const e1 = new Entity({ name: 'entity1', summary: 'e1-summary' });
+  const id1 = e1.id;
   const signature1 = e1.id.getSignature();
   const id1s = UUID64.forSignature(signature1);
   const e1s = new Entity({
@@ -23,6 +25,7 @@ describe('ZidSpace', () => {
     it('ctor defaults', () => {
       const zs = new ZidSpace();
       expect(zs.minChars).toBe(3);
+      expect(zs.size).toBe(0);
     });
     it('ctor custom', () => {
       const minChars = 8;
@@ -40,28 +43,29 @@ describe('ZidSpace', () => {
     it('addForma', () => {
       const zs = new ZidSpace();
       zs.addForma(e1);
+      expect(zs.size).toBe(1);
       zs.addForma(e1s);
+      expect(zs.size).toBe(2);
       zs.addForma(e2);
+      expect(zs.size).toBe(3);
 
       // exact match
       expect(zs.getForma(e1.id.base64)).toBe(e1);
       expect(zs.getForma(e1s.id.base64)).toBe(e1s);
       expect(zs.getForma(e2.id.base64)).toBe(e2);
-
-      // timeId generated on same computer is exact match
-      expect(zs.getForma(e1.id.timeId())).toBe(e1);
-      expect(zs.getForma(e1s.id.timeId())).toBe(e1s);
-
-      // forma not in ZidSpace returns undefined
-      expect(zs.getForma(e3.id.base64)).toBe(undefined);
-      expect(zs.getForma('badid')).toBe(undefined);
-
-      // ambiguous match throws message documenting duplicates
-      expect(() => zs.getForma(signature1, true)).toThrow('ambiguous');
-      expect(() => zs.getForma(signature1, true)).toThrow(signature1);
     });
   });
   describe('fuzzyIdOf(uuid64) returns a short zid for entity retrieval', () => {
+    const ansiColor = '\x1b[33m';
+
+    it('zid of external id is the external id', () => {
+      const zs = ZidSpace.fromFormas(e1, e2);
+      expect(zs.fuzzyIdOf(e3.id)).toBe(e3.id.base64);
+      expect(zs.fuzzyIdOf(e3.id.base64)).toBe(e3.id.base64);
+      const unknownStr = 'unknown-string';
+      expect(zs.fuzzyIdOf(unknownStr)).toBe(unknownStr);
+      expect(zs.fuzzyIdOf(ansiColor + unknownStr)).toBe(unknownStr);
+    });
     it('getForma(zid) unique entity bound to zid', () => {
       const zs = ZidSpace.fromFormas(e1, e2);
       const { minChars } = zs;
@@ -72,8 +76,7 @@ describe('ZidSpace', () => {
       expect(zs.getForma(zid2)).toBe(e2);
 
       // not found
-      expect(() => zs.fuzzyIdOf(e3.id)).toThrow('ZidSpace has no Forma');
-      expect(() => zs.fuzzyIdOf(e3.id)).toThrow(e3.id.base64);
+      expect(zs.fuzzyIdOf(e3.id)).toBe(e3.id.base64);
     });
     it('zids can distinguish between ids with same signature', () => {
       const zs = ZidSpace.fromFormas(e1, e1s);
@@ -166,32 +169,64 @@ describe('ZidSpace', () => {
       expect(kvs).toHaveLength(3);
     });
   });
-  describe('removeForma() removes a Forma from namespace', () => {
-    let zs, idUp, zidUp, mmidUp, id2;
-
-    beforeEach(() => {
-      zs = ZidSpace.fromFormas(eUp, e2, e3);
-      idUp = eUp.id.base64;
-      id2 = e2.id.base64;
-      zidUp = zs.fuzzyIdOf(idUp);
-      mmidUp = zidUp.toLowerCase();
-      console.log({ zidUp, mmidUp });
-    });
+  describe('getForma() returns Forma', () => {
+    const idUp = eUp.id.base64;
+    const id2 = e2.id.base64;
+    const id3 = e3.id.base64;
 
     it('getForma() returns Forma', () => {
+      const zs = ZidSpace.fromFormas(eUp, e2, e3);
+      const zidUp = zs.fuzzyIdOf(idUp);
+      const mmidUp = zidUp.toLowerCase();
+
       expect(zs.getForma(id2)).toBe(e2);
       expect(zs.getForma(zidUp)).toBe(eUp);
       expect(zs.getForma(mmidUp)).toBe(eUp);
     });
-    it('removeForma() removes a Forma from namespace', () => {
-      zs.removeForma(idUp);
+    it('getForma() does not return Forma', () => {
+      const zs = ZidSpace.fromFormas(e1, e1s, e2);
 
-      expect(zs.getForma(id2)).toBe(e2);
+      // External id
+      expect(zs.getForma(id3)).toBeUndefined();
+
+      // non-zid substring match throws helpful error
+      const mightBe = new RegExp(`might be.*${e2.id.base64}`);
+      expect(() => zs.getForma(e2.id.timeId())).toThrow(mightBe);
+      expect(() => zs.getForma(e2.id.getSignature())).toThrow(mightBe);
+      expect(() => zs.getForma(e2.id.getSignature())).toThrow(mightBe);
+
+      // ambiguous substring match throws helpful error
+      const ambiguous = new RegExp(
+        `ambiguous.*${e1.id.base64},${e1s.id.base64}`,
+      );
+      expect(() => zs.getForma(signature1)).toThrow(ambiguous);
+    });
+  });
+  describe('removeForma() removes a Forma from namespace', () => {
+    const idUp = eUp.id.base64;
+    const id2 = e2.id.base64;
+    const id3 = e3.id.base64;
+
+    it('removeForma() removes a Forma from namespace', () => {
+      const zs = ZidSpace.fromFormas(eUp, e2, e3);
+      const zidUp = zs.fuzzyIdOf(idUp);
+      const mmidUp = zidUp.toLowerCase();
+
+      expect(zs.size).toBe(3);
+      zs.removeForma(idUp);
+      expect(zs.size).toBe(2);
+
       expect(() => zs.getForma(idUp, true)).toThrow('not found');
       expect(() => zs.getForma(zidUp, true)).toThrow('not found');
       expect(() => zs.getForma(mmidUp, true)).toThrow('not found');
+      expect(zs.getForma(id2)).toBe(e2);
+      expect(zs.getForma(id3)).toBe(e3);
     });
     it('removeForma() removes a multi-modal zid from namespace', () => {
+      const zs = ZidSpace.fromFormas(eUp, e2, e3);
+      const zidUp = zs.fuzzyIdOf(idUp);
+      const mmidUp = zidUp.toLowerCase();
+
       zs.removeForma(zidUp);
 
       expect(zs.getForma(id2)).toBe(e2);
@@ -200,12 +235,53 @@ describe('ZidSpace', () => {
       expect(() => zs.getForma(mmidUp, true)).toThrow('not found');
     });
     it('removeForma() removes a multi-modal zid from namespace', () => {
-      zs.removeForma(mmidUp);
+      const ctx = 'zid-space:238';
+      const zs = ZidSpace.fromFormas(eUp, e2, e3);
+      const zid2 = zs.fuzzyIdOf(id2);
+      const mmid2 = zid2.toLowerCase();
+      const zidUp = zs.fuzzyIdOf(idUp);
+      const mmidUp = zidUp.toLowerCase();
+
+      // zids are mutually unique independent of case
+      expect(mmid2).not.toBe(mmidUp);
+      expect(mmid2).not.toBe(zidUp);
+      expect(zid2).not.toBe(zidUp);
 
       expect(zs.getForma(id2)).toBe(e2);
+      zs.removeForma(zidUp);
+
       expect(() => zs.getForma(idUp, true)).toThrow('not found');
       expect(() => zs.getForma(zidUp, true)).toThrow('not found');
       expect(() => zs.getForma(mmidUp, true)).toThrow('not found');
+    });
+
+    it('should not match deleted short zids via substring search', () => {
+      const zs = new ZidSpace();
+      const id1 = new UUID64();
+      const str1 = id1.base64;
+      const startSeq = UUID64.TIME_ID_CHARS - 2;
+      const id2Str =
+        str1.substring(0, startSeq) + 'xx' + str1.substring(startSeq + 2);
+      const id2 = UUID64.fromString(id2Str);
+      const e1 = new Entity({ id: id1, name: 'e1' });
+      const e2 = new Entity({ id: id2, name: 'e2' });
+
+      zs.addForma(e1);
+      zs.addForma(e2);
+
+      const zid1 = zs.fuzzyIdOf(e1.id);
+      const zid2 = zs.fuzzyIdOf(e2.id);
+      expect(zid2).toBe(zid1 + 'x');
+
+      // Verify before deletion
+      expect(zs.getForma(zid1)).toBe(e1);
+      expect(zs.getForma(zid2)).toBe(e2);
+
+      // Delete e1 using short zid
+      zs.removeForma(zid1);
+
+      // After deletion, zid1 should NOT match e2 via substring search
+      expect(() => zs.getForma(zid1)).toThrow(id2.base64);
     });
   });
 });

@@ -3,6 +3,8 @@ import { Forma } from './forma.js';
 import { Entity } from './entity.js';
 import { UUID64, UUID64String } from './uuid64.js';
 import { FuzzyId } from './identifiable.js';
+import { logger } from './file-repository.js';
+import { DBG } from './defines.js';
 import {
   FuzzyNamespace,
   type IMutableNamespace,
@@ -11,17 +13,11 @@ import {
 type Constructor<T> = new (...args: any[]) => T;
 
 /**
- * NavigableView provides session context for a view.
- * Since a Navigable may comprise multiple namespaces, it must
- * dynamically merge those namespaces into a single namespace facade
- * for presentation.
- * ViewNamespace also maintains an Entity stack that
- * tracks relevant context during a session.
- * The ViewNamespace facade is specifically designed to provide
- * a namespace context that is:
- * - dynamically compacted,
- * - resumable
- * - mutable
+ * ZidSpace is a namespace that allocates a case-insensitive zid
+ * (typically 3 or more chars) for each UUID64 (22 chars) tracked
+ * by the namespace. The case-insensitivity of a zid allows it
+ * it be spoken/heard unambiguously: "aB1" spoken as "Alpha Bravo 1"
+ * is guaranteed to be unique.
  */
 export class ZidSpace /* implements IMutableNamespace */ {
   private _zidB64Map = new Map<FuzzyId, UUID64String>();
@@ -44,45 +40,75 @@ export class ZidSpace /* implements IMutableNamespace */ {
     return [...this._b64FormaMap.values()];
   }
 
-  /** IReadonlytNamespace implementation  */
+  get size(): number {
+    return this._b64FormaMap.size;
+  }
+
+  /**
+   * IReadonlytNamespace implementation
+   * @returns Forma iff fuzzyId exactly matches a registered string (i.e., base64, zid or mmid)
+   */
   getForma(fuzzyId: FuzzyId, strict?: boolean): Forma | undefined {
     const ctx = 'ZidSpace.getForma';
-    let forma = this._b64FormaMap.get(fuzzyId as UUID64String);
+    const dbg = DBG.ZID_SPACE.GET_FORMA;
+    const fuzzyId64 =
+      fuzzyId.length === UUID64.CHARS
+        ? (fuzzyId as UUID64String)
+        : undefined;
+    let forma =
+      fuzzyId64 != null ? this._b64FormaMap.get(fuzzyId64!) : undefined;
 
-    if (forma == null) {
-      const b64 = this._zidB64Map.get(fuzzyId);
-      if (b64) {
-        forma = this._b64FormaMap.get(b64);
+    // is it possibly a zid
+    if (fuzzyId64 == null) {
+      if (forma == null) {
+        dbg && logger.info({ ctx, line: 68 }, 'fuzzyId64/forma null');
+        const b64 = this._zidB64Map.get(fuzzyId);
+        if (b64) {
+          forma = this._b64FormaMap.get(b64);
+        }
       }
-    }
 
-    if (forma == null) {
-      const { _formas } = this;
+      if (forma == null) {
+        const { _formas } = this;
+        dbg && logger.info({ ctx, line: 77 }, 'fuzzyId64/forma null');
 
-      // TimeId filter exact match of fuzzyIdOf
-      const matches = _formas.filter((f) => f.id.base64.includes(fuzzyId));
-      if (matches.length === 1) {
-        forma = matches[0];
-      }
-      if (matches.length > 1) {
-        const ids = matches.map((f) => f.id);
-        const m = matches.length;
-        throw new Error(
-          `${ctx}: Z6E070: not found (ambiguous) "${fuzzyId}": matches [${ids}]`,
+        // substring match for possible candidates
+        const matches = _formas.filter((_f) =>
+          _f.id.base64.includes(fuzzyId),
         );
+        if (matches.length === 1) {
+          const msg = `Z6E078: '${fuzzyId}' might be '${matches[0].id}'?`;
+          dbg && logger.info({ ctx }, msg);
+          throw new Error(`${ctx}: ${msg}`);
+        }
+        if (matches.length > 1) {
+          const ids = Array.from(this._b64FormaMap.keys());
+          const m = matches.length;
+          const msg = `Z6E085: not found (ambiguous) '${fuzzyId}': matches [${ids.join(',')}]`;
+          dbg && logger.info({ ctx }, msg);
+          throw new Error(`${ctx}: ${msg}`);
+        }
       }
-    }
-    if (forma == null && strict) {
-      throw new Error(`${ctx}: Z6E077: not found: ${fuzzyId}`);
+    } // !fuzzyId64
+
+    if (forma == null) {
+      const ids = Array.from(this._b64FormaMap.keys());
+      const idList = ids.join(',');
+      dbg &&
+        logger.info({ ctx, dbg: fuzzyId }, `ids${ids.length}:` + idList);
+      if (strict) {
+        throw new Error(`${ctx}: Z6E077: not found: ${fuzzyId}`);
+      }
     }
 
     return forma;
   }
 
   /** IReadonlyNamespace implementation */
-  fuzzyIdOf(idInput: UUID64 | string, string?: boolean): string {
+  fuzzyIdOf(id: UUID64 | string, string?: boolean): string {
     const ctx = 'ZidSpace.fuzzyIdOf';
-    const idString = idInput instanceof UUID64 ? idInput.base64 : idInput;
+    const idString =
+      id instanceof UUID64 ? id.base64 : id.replace(/\x1B\[[0-9;]*m/g, ''); // strip ANSII
     let base64 =
       idString.length === UUID64.CHARS
         ? (idString as UUID64String)
@@ -102,10 +128,10 @@ export class ZidSpace /* implements IMutableNamespace */ {
       }
     }
 
-    // Forma must be in ZidSpace
+    // Forma may not be in namespace
     const forma = base64 && this._b64FormaMap.get(base64);
     if (forma == null) {
-      throw new Error(`${ctx} ZidSpace has no Forma id: ${idString}`);
+      return idString; // we cannot construct a zid if Forma is not in namespace
     }
     base64 = forma.id.base64;
 
@@ -123,12 +149,14 @@ export class ZidSpace /* implements IMutableNamespace */ {
           : timeId.substring(start, endSeconds);
 
       // zid collision case #1: extend zid to right to resolve
-      let conflict1 = this._zidB64Map.get(zid);
+      //let conflict1 = this._zidB64Map.get(zid);
+      let conflict1 = !this._zidAvailable(zid);
       if (conflict1) {
         let end = endSeconds + 1;
         do {
           zid = timeId.substring(start, end);
-          conflict1 = this._zidB64Map.get(zid);
+          //conflict1 = this._zidB64Map.get(zid);
+          conflict1 = !this._zidAvailable(zid);
           if (conflict1 == null) {
             break;
           }
@@ -166,6 +194,14 @@ export class ZidSpace /* implements IMutableNamespace */ {
     return zid;
   }
 
+  _zidAvailable(zid: string): boolean {
+    const zidB64 = this._zidB64Map.get(zid);
+    const mmid = zid.toLowerCase();
+    const mmidB64 = this._zidB64Map.get(mmid);
+
+    return zidB64 == null && mmidB64 == null;
+  }
+
   /** IMutableNamespace implementation */
   [Symbol.iterator](): Iterator<[string, Forma]> {
     return this._b64FormaMap[Symbol.iterator]();
@@ -189,7 +225,9 @@ export class ZidSpace /* implements IMutableNamespace */ {
 
   /** IMutableNamespace implementation */
   addForma(forma: Forma): void {
-    this._b64FormaMap.set(forma.id.base64, forma);
+    const { base64 } = forma.id;
+    this._b64FormaMap.set(base64, forma);
+    const zid = this.fuzzyIdOf(base64);
   }
 
   /** IMutableNamespace implementation */

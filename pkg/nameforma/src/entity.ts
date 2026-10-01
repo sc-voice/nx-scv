@@ -5,6 +5,7 @@ import {
   type IReadOnlyNamespace,
   type IMutableNamespace,
 } from './fuzzy-namespace.js';
+import { ZidSpace } from './zid-space.js';
 import { IRegistry } from './registry.js';
 import { EntityRegistry } from './entity-registry.js';
 
@@ -14,7 +15,7 @@ import { EntityRegistry } from './entity-registry.js';
  */
 export class Entity extends Forma implements IRegistry, IEntity {
   declare collection: string;
-  #namespace?: FuzzyNamespace;
+  #namespace?: IMutableNamespace;
 
   /**
    * Entity ids are mutually independent and unrelated to one another.

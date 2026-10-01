@@ -175,6 +175,11 @@ const ZENO_STEP = {
   VERIFY: 0,
 };
 
+const ZID_SPACE = {
+  ANY: Math.max(NF_CLI, NF_PI_CLI),
+  GET_FORMA: 0,
+};
+
 export const DBG = {
   ACTION,
   CLOCK,
@@ -202,4 +207,5 @@ export const DBG = {
   TIMERS,
   WORLD,
   ZENO_STEP,
+  ZID_SPACE,
 };
