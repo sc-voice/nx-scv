@@ -1,9 +1,8 @@
 import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
-import { Entity } from './entity.js';
 import { UUID64, UUID64String } from './uuid64.js';
 import { FuzzyId } from './identifiable.js';
-import { logger } from './file-repository.js';
+import { logger } from './logger.js';
 import { DBG } from './defines.js';
 import {
   FuzzyNamespace,

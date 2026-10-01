@@ -5,6 +5,7 @@ import { FileRepository } from '../../file-repository.js';
 import { WorldView } from '../../world-view.js';
 import { ZenoCoord } from '../../navigable-view.js';
 import type { NfWatch } from './nf-watch.js';
+import { findWorld } from '../../defines.js';
 
 /**
  * NfSession stores shared context for the nf-pi extension.
@@ -56,7 +57,7 @@ export class NfSession extends EventEmitter {
     }
     let world: World | undefined;
     try {
-      const worldPath = FileRepository.findWorld();
+      const worldPath = findWorld();
       if (worldPath) {
         world = await FileRepository.worldFromPath(worldPath);
       }

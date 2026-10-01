@@ -1,4 +1,4 @@
-import { logger } from './file-repository.js';
+import { logger } from './logger.js';
 import { Zeno, type ZenoStep } from './zeno-step.js';
 import { MonoTable } from './mono-table.js';
 import { ViewNamespace } from './view-namespace.js';

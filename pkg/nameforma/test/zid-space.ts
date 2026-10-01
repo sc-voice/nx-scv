@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Entity, Forma, UUID64, ZidSpace } from '@sc-voice/nameforma';
-import { logger } from '../src/file-repository.js';
+import { logger } from '../src/logger.js';
 
 describe('ZidSpace', () => {
   const e1 = new Entity({ name: 'entity1', summary: 'e1-summary' });

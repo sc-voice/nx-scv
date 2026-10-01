@@ -11,7 +11,7 @@ import { NfWatch } from './nf-watch.js';
 import { NameFormaTheme } from '../../nameforma-theme.js';
 import { NfProgram, ICommand } from '../../nf-program.js';
 import { DBG } from '../../defines.js';
-import { logger } from '../../file-repository.js';
+import { logger } from '../../logger.js';
 
 const theme = NameFormaTheme.shared;
 

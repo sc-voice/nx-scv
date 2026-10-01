@@ -209,3 +209,31 @@ export const DBG = {
   ZENO_STEP,
   ZID_SPACE,
 };
+
+import fs from 'fs';
+import path from 'path';
+import { Text } from '@sc-voice/tools';
+const { ColorConsole } = Text;
+const { cc } = ColorConsole;
+
+export function findWorld(
+  startPath: string = process.cwd(),
+): string | null {
+  const msg = 'findWorld';
+  const dbg = DBG.WORLD.FIND_WORLD;
+
+  let currentPath = path.resolve(startPath);
+  const root = path.parse(currentPath).root;
+
+  while (currentPath !== root) {
+    const worldPath = path.join(currentPath, '.nameforma');
+    if (fs.existsSync(worldPath)) {
+      dbg && cc.ok1(msg, `found ${worldPath}`);
+      return worldPath;
+    }
+    currentPath = path.dirname(currentPath);
+  }
+
+  dbg && cc.ok1(msg, `not found from ${startPath}`);
+  return null;
+}

@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import { Text } from '@sc-voice/tools';
 import { UUID64 } from './uuid64.js';
 import { DBG } from './defines.js';
-import { logger } from './file-repository.js';
+import { logger } from './logger.js';
 import {
   Entity,
   type IEntity,

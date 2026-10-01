@@ -1,6 +1,7 @@
 import path from 'path';
 import os from 'os';
 import { FileRepository } from './file-repository.js';
+import { findWorld } from './defines.js';
 
 export class NfUrl {
   private input: string;
@@ -142,7 +143,7 @@ export class NfUrl {
   }
 
   private findWorldRoot(): string {
-    const worldPath = FileRepository.findWorld();
+    const worldPath = findWorld();
     if (!worldPath) {
       throw new Error('World root (.nameforma) not found');
     }

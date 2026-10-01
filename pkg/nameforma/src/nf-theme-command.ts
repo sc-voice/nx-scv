@@ -1,4 +1,4 @@
-import { logger } from './file-repository.js';
+import { logger } from './logger.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { MonoTable } from './mono-table.js';
 import type { NfProgram, ICommand } from './nf-program.js';

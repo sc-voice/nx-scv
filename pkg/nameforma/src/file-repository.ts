@@ -2,8 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import sift from 'sift';
 import { pathToFileURL } from 'url';
-import pino from 'pino';
-import { createStream } from 'rotating-file-stream';
 import { UUID64 } from './uuid64.js';
 import {
   Filter,
@@ -17,7 +15,7 @@ import {
 import { EntityRegistry } from './entity-registry.js';
 import { EntityCursor } from './entity-cursor.js';
 import { World } from './world.js';
-import { DBG } from './defines.js';
+import { DBG, findWorld } from './defines.js';
 import { NfUrl } from './nf-url.js';
 import { Text } from '@sc-voice/tools';
 const { ColorConsole } = Text;
@@ -364,25 +362,6 @@ export class FileRepository implements IEntityRepository {
    * @param {string} startPath - Starting directory
    * @returns {string|null} - Path to .nameforma/ or null if not found
    */
-  static findWorld(startPath: string = process.cwd()): string | null {
-    const msg = 'world.findWorld';
-    const dbg = DBG.WORLD.FIND_WORLD;
-
-    let currentPath = path.resolve(startPath);
-    const root = path.parse(currentPath).root;
-
-    while (currentPath !== root) {
-      const worldPath = path.join(currentPath, '.nameforma');
-      if (fs.existsSync(worldPath)) {
-        dbg && cc.ok1(msg, `found ${worldPath}`);
-        return worldPath;
-      }
-      currentPath = path.dirname(currentPath);
-    }
-
-    dbg && cc.ok1(msg, `not found from ${startPath}`);
-    return null;
-  }
 
   /** @deprecated
    * Load or create World from path
@@ -507,41 +486,3 @@ export class FileRepository implements IEntityRepository {
     return world;
   }
 }
-
-export const logger = (() => {
-  if (!DBG.PINO) {
-    return {
-      info: () => {},
-      error: () => {},
-      debug: () => {},
-      warn: () => {},
-      fatal: () => {},
-      trace: () => {},
-    };
-  }
-
-  const worldPath = FileRepository.findWorld() || process.cwd();
-  const logDir = worldPath;
-
-  // Ensure log directory exists
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-
-  const stream = createStream(
-    (time) => {
-      const dt =
-        time instanceof Date ? time : new Date(time || Date.now());
-      const year = String(dt.getFullYear()).slice(-2);
-      const month = String(dt.getMonth() + 1).padStart(2, '0');
-      const day = String(dt.getDate()).padStart(2, '0');
-      return path.join(logDir, `nf.${year}${month}${day}.log`);
-    },
-    {
-      size: '10M',
-      maxFiles: 10,
-    },
-  );
-
-  return pino(stream);
-})();

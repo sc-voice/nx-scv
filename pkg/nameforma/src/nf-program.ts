@@ -1,4 +1,5 @@
-import { FileRepository, logger } from './file-repository.js';
+import { FileRepository } from './file-repository.js';
+import { logger } from './logger.js';
 import { World } from './world.js';
 import { Forma } from './forma.js';
 import { Entity, IEntity } from './entity.js';
@@ -14,7 +15,7 @@ import path from 'path';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { readFileSync, realpathSync } from 'fs';
-import { DBG } from './defines.js';
+import { DBG, findWorld } from './defines.js';
 
 const Hjson = HJSON_CJS as any;
 const USER = process.env.CLAUDECODE ? 'Claude' : 'Standard';
@@ -150,7 +151,7 @@ export class NfProgram {
   static async resolveWorld(worldPath?: string): Promise<World> {
     let resolvedPath = worldPath;
     if (!resolvedPath) {
-      resolvedPath = FileRepository.findWorld() || undefined;
+      resolvedPath = findWorld() || undefined;
       if (!resolvedPath) {
         throw new Error(
           `No world found. Run 'nf init' in your project directory to create one.`,

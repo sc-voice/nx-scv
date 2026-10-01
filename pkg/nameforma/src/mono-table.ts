@@ -10,7 +10,7 @@
 
 import { INameFormaTheme, NameFormaTheme } from './nameforma-theme.js';
 import { RowGrouper, HeaderFun } from './row-grouper.js';
-import { logger } from './file-repository.js';
+import { logger } from './logger.js';
 import { Unicode } from '@sc-voice/tools/text';
 
 /** A single column definition. */
