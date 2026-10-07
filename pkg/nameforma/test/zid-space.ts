@@ -212,9 +212,19 @@ describe('ZidSpace', () => {
       const zidUp = zs.fuzzyIdOf(idUp);
       const mmidUp = zidUp.toLowerCase();
 
+      //console.log('idUp:        ', idUp);
+      //console.log('e2.id.base64:', e2.id.base64);
+      //console.log('e3.id.base64:', e3.id.base64);
+      //console.log('zidUp: ', zidUp);
+      //console.log('mmidUp:', mmidUp);
+
       expect(zs.size).toBe(3);
       zs.removeForma(idUp);
       expect(zs.size).toBe(2);
+
+      expect(zs.getForma(idUp)).toBeUndefined();
+      expect(zs.getForma(zidUp)).toBeUndefined();
+      expect(zs.getForma(mmidUp)).toBeUndefined();
 
       expect(() => zs.getForma(idUp, true)).toThrow('not found');
       expect(() => zs.getForma(zidUp, true)).toThrow('not found');
@@ -274,14 +284,14 @@ describe('ZidSpace', () => {
       expect(zid2).toBe(zid1 + 'x');
 
       // Verify before deletion
-      expect(zs.getForma(zid1)).toBe(e1);
-      expect(zs.getForma(zid2)).toBe(e2);
+      expect(zs.getForma(zid1)?.id.base64).toEqual(e1.id.base64);
+      expect(zs.getForma(zid2)?.id.base64).toEqual(e2.id.base64);
 
       // Delete e1 using short zid
       zs.removeForma(zid1);
 
       // After deletion, zid1 should NOT match e2 via substring search
-      expect(() => zs.getForma(zid1)).toThrow(id2.base64);
+      expect(() => zs.getForma(zid1, true)).toThrow(id1.base64);
     });
   });
 });

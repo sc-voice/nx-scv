@@ -56,6 +56,11 @@ export class Entity extends Forma implements IRegistry, IEntity {
 
   clearNamespace() {
     this.#namespace = new FuzzyNamespace();
+    /* FUTURE:
+      this.#namespace = this.#namespace
+      ? this.#namespace
+      : new ZidSpace({ minChars: 5 });
+    */
   }
 
   override copyFrom(that: Entity): void {

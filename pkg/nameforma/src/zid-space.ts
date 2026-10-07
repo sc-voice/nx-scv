@@ -50,17 +50,27 @@ export class ZidSpace /* implements IMutableNamespace */ {
   getForma(fuzzyId: FuzzyId, strict?: boolean): Forma | undefined {
     const ctx = 'ZidSpace.getForma';
     const dbg = DBG.ZID_SPACE.GET_FORMA;
-    const fuzzyId64 =
+    const b64 =
       fuzzyId.length === UUID64.CHARS
         ? (fuzzyId as UUID64String)
-        : undefined;
-    let forma =
-      fuzzyId64 != null ? this._b64FormaMap.get(fuzzyId64!) : undefined;
+        : this._zidB64Map.get(fuzzyId);
+    let forma = b64 != null ? this._b64FormaMap.get(b64!) : undefined;
+
+    if (b64 && !forma) {
+      // deleted
+      dbg && logger.info({ ctx }, `Z6E062 ${fuzzyId} ${!!forma}`);
+      if (strict) {
+        const msg = `Z6E064: not found '${fuzzyId}': ${b64} (deleted)`;
+        dbg && logger.info({ ctx }, msg);
+        throw new Error(`${ctx}: ${msg}`);
+      }
+      return undefined;
+    }
 
     // is it possibly a zid
-    if (fuzzyId64 == null) {
+    if (b64 == null) {
       if (forma == null) {
-        dbg && logger.info({ ctx, line: 68 }, 'fuzzyId64/forma null');
+        dbg && logger.info({ ctx }, 'Z6E073: b64:null forma:null');
         const b64 = this._zidB64Map.get(fuzzyId);
         if (b64) {
           forma = this._b64FormaMap.get(b64);
@@ -69,28 +79,28 @@ export class ZidSpace /* implements IMutableNamespace */ {
 
       if (forma == null) {
         const { _formas } = this;
-        dbg && logger.info({ ctx, line: 77 }, 'fuzzyId64/forma null');
+        dbg && logger.info({ ctx }, 'Z6E082: forma:null');
 
         // substring match for possible candidates
-        const matches = _formas.filter((_f) =>
-          _f.id.base64.includes(fuzzyId),
-        );
+        const matches: Forma[] = _formas.filter(
+          (_f) => _f && _f.id.base64.includes(fuzzyId),
+        ) as Forma[];
         if (matches.length === 1) {
-          const msg = `Z6E078: '${fuzzyId}' might be '${matches[0].id}'?`;
+          const msg = `Z6E089: '${fuzzyId}' might be '${matches[0].id}'?`;
           dbg && logger.info({ ctx }, msg);
           throw new Error(`${ctx}: ${msg}`);
         }
         if (matches.length > 1) {
-          const ids = Array.from(this._b64FormaMap.keys());
+          const ids = [...this._b64FormaMap.keys()];
           const m = matches.length;
-          const msg = `Z6E085: not found (ambiguous) '${fuzzyId}': matches [${ids.join(',')}]`;
+          const msg = `Z6E096: not found (ambiguous) '${fuzzyId}': matches [${ids.join(',')}]`;
           dbg && logger.info({ ctx }, msg);
           throw new Error(`${ctx}: ${msg}`);
         }
       }
-    } // !fuzzyId64
+    } // !b64
 
-    if (forma == null) {
+    if (forma == null && strict) {
       const ids = Array.from(this._b64FormaMap.keys());
       const idList = ids.join(',');
       dbg &&
@@ -241,9 +251,9 @@ export class ZidSpace /* implements IMutableNamespace */ {
       const zid = this._b64ZidMap.get(base64);
       if (zid) {
         const mmid = zid.toLowerCase();
-        this._b64ZidMap.delete(base64);
-        this._zidB64Map.delete(zid);
-        zid !== mmid && this._zidB64Map.delete(mmid);
+        //this._b64ZidMap.delete(base64);
+        //this._zidB64Map.delete(zid);
+        //zid !== mmid && this._zidB64Map.delete(mmid);
       }
     }
 
