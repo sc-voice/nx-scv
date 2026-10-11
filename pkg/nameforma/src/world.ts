@@ -3,17 +3,14 @@ import { Text } from '@sc-voice/tools';
 import { UUID64 } from './uuid64.js';
 import { DBG } from './defines.js';
 import { logger } from './logger.js';
-import {
-  Entity,
-  type IEntity,
-  type IEntityRepository,
-  validateEntity,
-} from './entity.js';
+import { Entity, type IEntity, validateEntity } from './entity.js';
+import type { IRepository } from './repository.js';
 import { Task } from './task.js';
 import { NameFormaTheme } from './nameforma-theme.js';
 import { Identifiable } from './identifiable.js';
 import { FuzzyNamespace, IReadOnlyNamespace } from './fuzzy-namespace.js';
 import { Forma, type Constructor, type IFormaMutator } from './forma.js';
+import { Session } from './session.js';
 import { Command } from './mutator.js';
 import { FormaField } from './forma-field.js';
 import { User } from './user.js';
@@ -56,7 +53,7 @@ const theme = NameFormaTheme.shared;
 
 /**
  * World is a singleton that manages persistent entity storage
- * using IEntityRepository
+ * using IRepository
  *
  * Implements IEventBus to receive FormaList mutation events and
  * automatically persist changes to disk.
@@ -64,7 +61,7 @@ const theme = NameFormaTheme.shared;
 export class World extends Entity implements IEventBus {
   static #lastWorld: World | undefined;
 
-  #repository: IEntityRepository;
+  #repository: IRepository;
   #worldPath: string;
   #gitCLI: GitCLI;
   #numeronym: Map<string, string> = new Map();
@@ -82,12 +79,12 @@ export class World extends Entity implements IEventBus {
    * Create a World at the given path with optional config (internal use only)
    * Use FileRepository.worldFromPath() to get or create a World instance.
    * @param {string} worldPath - Path to .nameforma/ directory
-   * @param {IEntityRepository} repository - Entity repository implementation
+   * @param {IRepository} repository - Entity repository implementation
    * @param {Partial<World>} cfg - Configuration with optional id, name, summary
    */
   constructor(
     worldPath: string,
-    repository: IEntityRepository,
+    repository: IRepository,
     cfg: Partial<World> = {},
   ) {
     const ctx = 'World.ctor';
@@ -403,7 +400,7 @@ export class World extends Entity implements IEventBus {
    * instance needs to stay current with external writes.
    */
   async syncRepository(): Promise<void> {
-    let freshWorld = (await this.#repository.loadWorld()) as World;
+    let freshWorld = await this.#repository.loadWorld();
     this.copyFrom(freshWorld);
   }
 
@@ -421,29 +418,6 @@ export class World extends Entity implements IEventBus {
   ): Promise<ReturnType<T['fromJson']> | null> {
     const idStr = typeof id === 'string' ? id : id.toString();
     return await this.#repository.findOne(EntityClass, { id: idStr });
-  }
-
-  /**
-   * Load any forma from world storage using fuzzy id matching
-   * Tries all registered entity types and returns first match
-   * @param {string} match - Partial or fuzzy id string to match
-   * @param {number} levenshtein - Optional fuzzy matching parameter (see Identifiable.idFilter)
-   * @returns {any} - Matching forma instance, or null if not found
-   *
-   * @example
-   * const forma = await await world.loadFuzzyForma("partial-id"); // Could be Task, Action, etc.
-   */
-  async loadFuzzyForma(match: string, levenshtein?: number): Promise<any> {
-    for (const entityName of this.getEntityNames()) {
-      const EntityClass = this.entityClassOfName(entityName);
-      if (!EntityClass) continue;
-      try {
-        return await this.loadFuzzy(EntityClass, match, levenshtein);
-      } catch {
-        // Not found in this type, try next
-      }
-    }
-    return null;
   }
 
   /**
@@ -467,32 +441,14 @@ export class World extends Entity implements IEventBus {
     const dbg = WORLD?.LOAD;
 
     const entityType = EntityClass.collection;
-    const ids = await this.#repository.distinct<string>('id', {
-      collection: entityType,
-    });
-
-    if (ids.length === 0) {
-      dbg && cc.ok1(msg, `no entities for ${entityType}`);
-      return null;
-    }
-
-    // Create filter function for id matching
-    const filter = Identifiable.idFilter(match, levenshtein);
-    const matchingIds = ids.filter(filter);
-
-    if (matchingIds.length === 0) {
+    const forma = this.mutableNamespace.getForma(match);
+    if (!forma) {
       dbg && cc.ok1(msg, `no match for ${match} in ${entityType}`);
       return null;
     }
 
-    if (matchingIds.length > 1) {
-      throw new Error(
-        `${msg}: ambiguous match for "${match}": found ${matchingIds.length} matches [${matchingIds.join(', ')}]`,
-      );
-    }
-
     // Load the matching entity via repository
-    const id = matchingIds[0];
+    const id = forma.id.base64;
     const typedEntity = await this.#repository.findOne(EntityClass, {
       id,
     });
@@ -638,9 +594,9 @@ export class World extends Entity implements IEventBus {
 
   /**
    * Get the repository used to serialize the world
-   * @returns {IEntityRepository}
+   * @returns {IRepository}
    */
-  get repository(): IEntityRepository {
+  get repository(): IRepository {
     return this.#repository;
   }
   /**
@@ -786,7 +742,7 @@ export class World extends Entity implements IEventBus {
    */
   static fromJson(
     data: any,
-    repository: IEntityRepository,
+    repository: IRepository,
     baseDir?: string,
   ): World {
     const msg = 'W3D.fromJson';

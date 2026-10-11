@@ -5,6 +5,7 @@ import { logger } from '../src/logger.js';
 describe('ZidSpace', () => {
   const e1 = new Entity({ name: 'entity1', summary: 'e1-summary' });
   const id1 = e1.id;
+  const idb1 = id1.base64;
   const signature1 = e1.id.getSignature();
   const id1s = UUID64.forSignature(signature1);
   const e1s = new Entity({
@@ -14,12 +15,6 @@ describe('ZidSpace', () => {
   });
   const e2 = new Entity({ name: 'entity2', summary: 'e2-summary' });
   const e3 = new Entity({ name: 'entity3', summary: 'e3-summary' });
-  const idUp = new UUID64().base64.toUpperCase();
-  const eUp = new Entity({
-    id: idUp,
-    name: 'eUp-name',
-    summary: 'eUp-summary',
-  });
 
   describe('construction', () => {
     it('ctor defaults', () => {
@@ -31,14 +26,6 @@ describe('ZidSpace', () => {
       const minChars = 8;
       const zs = new ZidSpace({ minChars });
       expect(zs.minChars).toBe(minChars);
-    });
-    it('fromFormas', () => {
-      const zs = ZidSpace.fromFormas(e1, e2, e3);
-
-      // exact match
-      expect(zs.getForma(e1.id.base64)).toBe(e1);
-      expect(zs.getForma(e2.id.base64)).toBe(e2);
-      expect(zs.getForma(e3.id.base64)).toBe(e3);
     });
     it('addForma', () => {
       const zs = new ZidSpace();
@@ -59,7 +46,8 @@ describe('ZidSpace', () => {
     const ansiColor = '\x1b[33m';
 
     it('zid of external id is the external id', () => {
-      const zs = ZidSpace.fromFormas(e1, e2);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2);
       expect(zs.fuzzyIdOf(e3.id)).toBe(e3.id.base64);
       expect(zs.fuzzyIdOf(e3.id.base64)).toBe(e3.id.base64);
       const unknownStr = 'unknown-string';
@@ -67,7 +55,8 @@ describe('ZidSpace', () => {
       expect(zs.fuzzyIdOf(ansiColor + unknownStr)).toBe(unknownStr);
     });
     it('getForma(zid) unique entity bound to zid', () => {
-      const zs = ZidSpace.fromFormas(e1, e2);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2);
       const { minChars } = zs;
       const zid1 = zs.fuzzyIdOf(e1.id);
       const zid2 = zs.fuzzyIdOf(e2.id);
@@ -79,7 +68,8 @@ describe('ZidSpace', () => {
       expect(zs.fuzzyIdOf(e3.id)).toBe(e3.id.base64);
     });
     it('zids can distinguish between ids with same signature', () => {
-      const zs = ZidSpace.fromFormas(e1, e1s);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e1s);
       const zid1 = zs.fuzzyIdOf(e1.id);
       const zid1s = zs.fuzzyIdOf(e1s.id);
       expect(zs.getForma(zid1)).toBe(e1);
@@ -113,7 +103,8 @@ describe('ZidSpace', () => {
         name: 'eZ-name',
         summary: 'eZ-summary',
       });
-      const zs = ZidSpace.fromFormas(e1, eX, eY, eZ);
+      const zs = new ZidSpace();
+      zs.addForma(e1, eX, eY, eZ);
       const zid1 = zs.fuzzyIdOf(e1.id);
       const zidX = zs.fuzzyIdOf(eX.id);
       const zidY = zs.fuzzyIdOf(eY.id);
@@ -145,7 +136,8 @@ describe('ZidSpace', () => {
   });
   it('findByClass', () => {
     const f1 = new Forma({ name: 'forma1', summary: 'forma1-summary' });
-    const zs = ZidSpace.fromFormas(f1, e1, e2);
+    const zs = new ZidSpace();
+    zs.addForma(f1, e1, e2);
     class Dummy extends Forma {}
     expect([...zs.findByClass(Dummy)]).toEqual([]);
     expect([...zs.findByClass(Forma)]).toEqual([f1, e1, e2]);
@@ -159,7 +151,8 @@ describe('ZidSpace', () => {
     });
 
     it('iterates over multiple forma', () => {
-      const zs = ZidSpace.fromFormas(e1, e2, e3);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2, e3);
       const kvs = Array.from(zs);
       const ids = kvs.map((kv) => kv[0]);
       const formas = kvs.map((kv) => kv[1]);
@@ -170,21 +163,25 @@ describe('ZidSpace', () => {
     });
   });
   describe('getForma() returns Forma', () => {
-    const idUp = eUp.id.base64;
+    const id1 = e1.id.base64;
     const id2 = e2.id.base64;
     const id3 = e3.id.base64;
 
     it('getForma() returns Forma', () => {
-      const zs = ZidSpace.fromFormas(eUp, e2, e3);
-      const zidUp = zs.fuzzyIdOf(idUp);
-      const mmidUp = zidUp.toLowerCase();
+      const zs = new ZidSpace({ minChars: 8 });
+      zs.addForma(e1, e2, e3);
+      const zid1 = zs.fuzzyIdOf(id1);
+      const mmidUp = zid1.toUpperCase();
+      const mmidDn = zid1.toLowerCase();
 
-      expect(zs.getForma(id2)).toBe(e2);
-      expect(zs.getForma(zidUp)).toBe(eUp);
-      expect(zs.getForma(mmidUp)).toBe(eUp);
+      expect(zs.getForma(idb1)).toBe(e1);
+      expect(zs.getForma(zid1)).toBe(e1);
+      expect(zs.getForma(mmidDn)).toBe(e1);
+      expect(zs.getForma(mmidUp)).toBe(e1);
     });
     it('getForma() does not return Forma', () => {
-      const zs = ZidSpace.fromFormas(e1, e1s, e2);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e1s, e2);
 
       // External id
       expect(zs.getForma(id3)).toBeUndefined();
@@ -203,66 +200,63 @@ describe('ZidSpace', () => {
     });
   });
   describe('removeForma() removes a Forma from namespace', () => {
-    const idUp = eUp.id.base64;
+    const id1 = e1.id.base64;
     const id2 = e2.id.base64;
     const id3 = e3.id.base64;
 
     it('removeForma() removes a Forma from namespace', () => {
-      const zs = ZidSpace.fromFormas(eUp, e2, e3);
-      const zidUp = zs.fuzzyIdOf(idUp);
-      const mmidUp = zidUp.toLowerCase();
-
-      //console.log('idUp:        ', idUp);
-      //console.log('e2.id.base64:', e2.id.base64);
-      //console.log('e3.id.base64:', e3.id.base64);
-      //console.log('zidUp: ', zidUp);
-      //console.log('mmidUp:', mmidUp);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2, e3);
+      const zid1 = zs.fuzzyIdOf(id1);
+      const mmid1 = zid1.toLowerCase();
 
       expect(zs.size).toBe(3);
-      zs.removeForma(idUp);
+      zs.removeForma(idb1);
       expect(zs.size).toBe(2);
 
-      expect(zs.getForma(idUp)).toBeUndefined();
-      expect(zs.getForma(zidUp)).toBeUndefined();
-      expect(zs.getForma(mmidUp)).toBeUndefined();
+      expect(zs.getForma(id1)).toBeUndefined();
+      expect(zs.getForma(zid1)).toBeUndefined();
+      expect(zs.getForma(mmid1)).toBeUndefined();
 
-      expect(() => zs.getForma(idUp, true)).toThrow('not found');
-      expect(() => zs.getForma(zidUp, true)).toThrow('not found');
-      expect(() => zs.getForma(mmidUp, true)).toThrow('not found');
+      expect(() => zs.getForma(id1, true)).toThrow('not found');
+      expect(() => zs.getForma(zid1, true)).toThrow('not found');
+      expect(() => zs.getForma(mmid1, true)).toThrow('not found');
       expect(zs.getForma(id2)).toBe(e2);
       expect(zs.getForma(id3)).toBe(e3);
     });
     it('removeForma() removes a multi-modal zid from namespace', () => {
-      const zs = ZidSpace.fromFormas(eUp, e2, e3);
-      const zidUp = zs.fuzzyIdOf(idUp);
-      const mmidUp = zidUp.toLowerCase();
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2, e3);
+      const zid1 = zs.fuzzyIdOf(id1);
+      const mmid1 = zid1.toLowerCase();
 
-      zs.removeForma(zidUp);
+      zs.removeForma(zid1);
 
       expect(zs.getForma(id2)).toBe(e2);
-      expect(() => zs.getForma(idUp, true)).toThrow('not found');
-      expect(() => zs.getForma(zidUp, true)).toThrow('not found');
-      expect(() => zs.getForma(mmidUp, true)).toThrow('not found');
+      expect(() => zs.getForma(id1, true)).toThrow('not found');
+      expect(() => zs.getForma(zid1, true)).toThrow('not found');
+      expect(() => zs.getForma(mmid1, true)).toThrow('not found');
     });
     it('removeForma() removes a multi-modal zid from namespace', () => {
       const ctx = 'zid-space:238';
-      const zs = ZidSpace.fromFormas(eUp, e2, e3);
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2, e3);
       const zid2 = zs.fuzzyIdOf(id2);
       const mmid2 = zid2.toLowerCase();
-      const zidUp = zs.fuzzyIdOf(idUp);
-      const mmidUp = zidUp.toLowerCase();
+      const zid1 = zs.fuzzyIdOf(id1);
+      const mmid1 = zid1.toLowerCase();
 
       // zids are mutually unique independent of case
-      expect(mmid2).not.toBe(mmidUp);
-      expect(mmid2).not.toBe(zidUp);
-      expect(zid2).not.toBe(zidUp);
+      expect(mmid2).not.toBe(mmid1);
+      expect(mmid2).not.toBe(zid1);
+      expect(zid2).not.toBe(zid1);
 
       expect(zs.getForma(id2)).toBe(e2);
-      zs.removeForma(zidUp);
+      zs.removeForma(zid1);
 
-      expect(() => zs.getForma(idUp, true)).toThrow('not found');
-      expect(() => zs.getForma(zidUp, true)).toThrow('not found');
-      expect(() => zs.getForma(mmidUp, true)).toThrow('not found');
+      expect(() => zs.getForma(id1, true)).toThrow('not found');
+      expect(() => zs.getForma(zid1, true)).toThrow('not found');
+      expect(() => zs.getForma(mmid1, true)).toThrow('not found');
     });
 
     it('should not match deleted short zids via substring search', () => {
@@ -292,6 +286,117 @@ describe('ZidSpace', () => {
 
       // After deletion, zid1 should NOT match e2 via substring search
       expect(() => zs.getForma(zid1, true)).toThrow(id1.base64);
+    });
+  });
+  describe('ids differ only in time sequence', () => {
+    const millis = Date.now();
+    const id = UUID64.create({ millis });
+    const seqIndex = UUID64.TIME_ID_CHARS - 2;
+    const tid = id.timeId().substring(0, seqIndex);
+    const sig = id.getSignature();
+    const id1 = UUID64.fromString(tid + '01' + sig);
+    const id2 = UUID64.fromString(tid + '02' + sig);
+    const id3 = UUID64.fromString(tid + '03' + sig);
+    const e1 = new Entity({
+      id: id1,
+      name: 'e1-name',
+      summary: 'e1-summary',
+    });
+    const e2 = new Entity({
+      id: id2,
+      name: 'e1-name',
+      summary: 'e1-summary',
+    });
+    const e3 = new Entity({
+      id: id3,
+      name: 'e1-name',
+      summary: 'e1-summary',
+    });
+
+    it('zids depend on insertion order', () => {
+      const zsA = new ZidSpace();
+      zsA.addForma(e1, e2, e3);
+      const zid1A = zsA.fuzzyIdOf(e1.id);
+      const zid2A = zsA.fuzzyIdOf(e2.id);
+      const zid3A = zsA.fuzzyIdOf(e3.id);
+      console.log(id1.base64, id2.base64, id3.base64);
+      console.log({ zid1A, zid2A, zid3A });
+
+      // same insertion order
+      const zsB = new ZidSpace();
+      zsB.addForma(e1, e2, e3);
+      const e1B = zsB.getForma(zid1A);
+      const e2B = zsB.getForma(zid2A);
+      const e3B = zsB.getForma(zid3A);
+      expect(e1B?.id.base64).toEqual(e1.id.base64);
+      expect(e2B?.id.base64).toEqual(e2.id.base64);
+      expect(e3B?.id.base64).toEqual(e3.id.base64);
+
+      // different insertion order
+      const zsC = new ZidSpace();
+      zsC.addForma(e2, e3, e1);
+      const zid1C = zsC.fuzzyIdOf(e1.id);
+      const zid2C = zsC.fuzzyIdOf(e2.id);
+      const zid3C = zsC.fuzzyIdOf(e3.id);
+      const e1C = zsC.getForma(zid1C);
+      const e2C = zsC.getForma(zid2C);
+      const e3C = zsC.getForma(zid3C);
+      expect(e1C?.id.base64).toEqual(e1.id.base64);
+      expect(e2C?.id.base64).toEqual(e2.id.base64);
+      expect(e3C?.id.base64).toEqual(e3.id.base64);
+      expect(zid1C).not.toEqual(zid1A);
+      expect(zid2C).not.toEqual(zid2A);
+      expect(zid3C).not.toEqual(zid3A);
+    });
+  });
+  describe('toJSON()/fromJSON() retains zid tables', () => {
+    const roundTrip = (zs: ZidSpace) =>
+      ZidSpace.fromJSON(JSON.parse(JSON.stringify(zs.toJSON())));
+
+    it('reuses saved zids for Formas re-added after load', () => {
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2, e3);
+      const zid1 = zs.fuzzyIdOf(e1.id);
+      const zid2 = zs.fuzzyIdOf(e2.id);
+      const zid3 = zs.fuzzyIdOf(e3.id);
+
+      const zsLoaded = roundTrip(zs);
+
+      // zids are reloaded but not bound to formas
+      expect(zsLoaded.minChars).toBe(zs.minChars);
+      expect(zsLoaded.fuzzyIdOf(e2.id)).toBe(zid2);
+      expect(zsLoaded.fuzzyIdOf(e1.id)).toBe(zid1);
+      expect(zsLoaded.fuzzyIdOf(e3.id)).toBe(zid3);
+      expect(zsLoaded.getForma(zid1)).toBe(undefined);
+
+      // reload formas in any order to rebind zids
+      zsLoaded.addForma(e2, e1);
+      expect(zsLoaded.fuzzyIdOf(e1.id)).toBe(zid1);
+      expect(zsLoaded.fuzzyIdOf(e2.id)).toBe(zid2);
+      expect(zsLoaded.getForma(zid1)).toBe(e1);
+      expect(zsLoaded.getForma(zid2.toLowerCase())).toBe(e2);
+    });
+    it('keeps zids of removed Formas as deleted', () => {
+      const zs = new ZidSpace();
+      zs.addForma(e1, e2);
+      const zid1 = zs.fuzzyIdOf(e1.id);
+      zs.removeForma(zid1);
+
+      const zsLoaded = roundTrip(zs);
+      zsLoaded.addForma(e2);
+      expect(() => zsLoaded.getForma(zid1, true)).toThrow('deleted');
+      expect(zsLoaded.getForma(e2.id.base64)).toBe(e2);
+    });
+    it('allocates a fresh zid for Formas added after save', () => {
+      const zs = new ZidSpace();
+      zs.addForma(e1);
+      zs.fuzzyIdOf(e1.id);
+
+      const zsLoaded = roundTrip(zs);
+      zsLoaded.addForma(e3);
+      const zid3 = zsLoaded.fuzzyIdOf(e3.id);
+      expect(zid3).not.toBe(e3.id.base64);
+      expect(zsLoaded.getForma(zid3)).toBe(e3);
     });
   });
 });

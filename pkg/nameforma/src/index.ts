@@ -1,5 +1,6 @@
 import { Action } from './action.js';
-import { Entity, type TObject, type IEntityRepository } from './entity.js';
+import { Entity, type TObject } from './entity.js';
+import type { IRepository } from './repository.js';
 import { EntityScope } from './entity-scope.js';
 import { ArrayEntityCursor } from './entity-cursor.js';
 import { FileRepository } from './file-repository.js';
@@ -26,6 +27,7 @@ import {
   type ICommandMutable,
 } from './mutator.js';
 import { ZidSpace } from './zid-space.js';
+import { WorldRepository } from './world-repository.js';
 
 export {
   Action,
@@ -50,13 +52,14 @@ export {
   User,
   UUID64,
   World,
+  WorldRepository,
   Zeno,
   ZenoCoord,
   ZidSpace,
 };
 export type {
   Constructor,
-  IEntityRepository,
+  IRepository,
   ICommandMutable,
   IForma,
   IUUID64Config,

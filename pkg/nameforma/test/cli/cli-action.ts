@@ -295,8 +295,6 @@ describe('CLI: action command', () => {
   });
 
   it('action delete by index', async () => {
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-
     // Create and focus a task
     await testCmd('task', 'add', 'Test Task');
 
@@ -326,6 +324,7 @@ describe('CLI: action command', () => {
     output = [];
     await testCmd('action', 'delete', action1Id);
 
+    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
     let task = await world.loadFuzzy(Task, taskId);
     expect(task).toBeTruthy();
     expect(task!.rawActions.length).toBe(1);

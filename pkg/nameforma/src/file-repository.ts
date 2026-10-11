@@ -8,18 +8,15 @@ import {
   FilterOperators,
   TObject,
   type IEntity,
-  IEntityRepository,
   IEntityCursor,
   Entity,
 } from './entity.js';
+import { type IRepository } from './repository.js';
 import { EntityRegistry } from './entity-registry.js';
 import { EntityCursor } from './entity-cursor.js';
 import { World } from './world.js';
-import { DBG, findWorld } from './defines.js';
-import { NfUrl } from './nf-url.js';
-import { Text } from '@sc-voice/tools';
-const { ColorConsole } = Text;
-const { cc } = ColorConsole;
+import { findWorld } from './defines.js';
+import { WorldRepository } from './world-repository.js';
 
 class FileEntityCursor<T extends IEntity> extends EntityCursor<T> {
   #asyncGen: AsyncGenerator<T>;
@@ -36,16 +33,12 @@ class FileEntityCursor<T extends IEntity> extends EntityCursor<T> {
   }
 }
 
-export class FileRepository implements IEntityRepository {
-  #worldPath: string;
+export class FileRepository implements IRepository {
   #entityRegistry: EntityRegistry;
+  #worldRepo: WorldRepository;
 
-  constructor(worldPath: string) {
-    const msg = 'FileRepository.ctor';
-    if (!worldPath.includes('.nameforma')) {
-      throw new Error(`${msg} invalid worldPath: ${worldPath}`);
-    }
-    this.#worldPath = worldPath;
+  constructor(worldRepo: WorldRepository) {
+    this.#worldRepo = worldRepo;
     this.#entityRegistry = new EntityRegistry();
   }
 
@@ -54,12 +47,12 @@ export class FileRepository implements IEntityRepository {
   }
 
   get projectUrl(): URL {
-    const projectPath = path.dirname(this.#worldPath);
+    const projectPath = path.dirname(this.#worldRepo.worldPath);
     return pathToFileURL(projectPath);
   }
 
   static async create(worldPath: string): Promise<FileRepository> {
-    return new FileRepository(worldPath);
+    return new FileRepository(new WorldRepository(worldPath));
   }
 
   async upsertOne<T extends IEntity>(
@@ -90,7 +83,7 @@ export class FileRepository implements IEntityRepository {
     }
     const id = (filter as any).id;
     const filePath = path.join(
-      this.#worldPath,
+      this.#worldRepo.worldPath,
       (EntityClass as any).collection,
       `${id}.json`,
     );
@@ -110,7 +103,7 @@ export class FileRepository implements IEntityRepository {
   async *#findAllGenerator(filter: Filter<TObject>): AsyncGenerator<any> {
     const f = filter as any;
     const fc = f.collection;
-    const wp = this.#worldPath;
+    const wp = this.#worldRepo.worldPath;
     let entityNames: string[];
 
     // Filter entityNames by collection if present in filter
@@ -272,12 +265,14 @@ export class FileRepository implements IEntityRepository {
       const dirs: string[] = f.collection
         ? [f.collection]
         : fs
-            .readdirSync(this.#worldPath, { withFileTypes: true })
+            .readdirSync(this.#worldRepo.worldPath, {
+              withFileTypes: true,
+            })
             .filter((d) => d.isDirectory())
             .map((d) => d.name);
       for (const dirName of dirs) {
         const filePath = path.join(
-          this.#worldPath,
+          this.#worldRepo.worldPath,
           dirName,
           `${f.id}.json`,
         );
@@ -290,7 +285,7 @@ export class FileRepository implements IEntityRepository {
     }
 
     if (f?.collection) {
-      const entityDir = path.join(this.#worldPath, f.collection);
+      const entityDir = path.join(this.#worldRepo.worldPath, f.collection);
       const values = new Set<R>();
       for await (const { file, filePath } of this.#matchingFiles(
         entityDir,
@@ -312,49 +307,20 @@ export class FileRepository implements IEntityRepository {
   }
 
   async delete(entityType: string, id: string): Promise<void> {
-    const filePath = path.join(this.#worldPath, entityType, `${id}.json`);
+    const filePath = path.join(
+      this.#worldRepo.worldPath,
+      entityType,
+      `${id}.json`,
+    );
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   }
 
-  async saveWorld(world: Record<string, any>): Promise<void> {
-    const msg = 'f12y.save';
-    const dbg = DBG.WORLD.SAVE;
-
-    // Ensure .nameforma directory exists
-    if (!fs.existsSync(this.#worldPath)) {
-      fs.mkdirSync(this.#worldPath, { recursive: true });
-      dbg && cc.ok1(msg, `created ${this.#worldPath}`);
-    }
-
-    const worldFile = path.join(this.#worldPath, 'world.json');
-    const data = JSON.stringify(world.toJSON(), null, 2);
-    fs.writeFileSync(worldFile, data, 'utf8');
-
-    dbg && cc.ok1(msg, `saved ${worldFile}`);
+  async saveWorld(world: World): Promise<void> {
+    return this.#worldRepo.saveWorld(world);
   }
 
   async loadWorld(): Promise<World> {
-    return await FileRepository.loadWorld(this.#worldPath);
-  }
-
-  #save(entityType: string, entity: any): void {
-    const entityDir = path.join(this.#worldPath, entityType);
-    if (!fs.existsSync(entityDir))
-      fs.mkdirSync(entityDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(entityDir, `${entity.id}.json`),
-      JSON.stringify(entity, null, 2),
-      'utf8',
-    );
-  }
-
-  #load<T extends IEntity>(
-    EntityClass: T,
-    filePath: string,
-  ): ReturnType<T['fromJson']> {
-    const entity = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    if (entity.id) entity.id = UUID64.fromString(entity.id);
-    return EntityClass.fromJson(entity) as ReturnType<T['fromJson']>;
+    return this.#worldRepo.loadWorld(this);
   }
 
   /**
@@ -371,20 +337,8 @@ export class FileRepository implements IEntityRepository {
    * @throws {Error} - If world not found and create is not true
    */
   static async worldFromPath(worldPath: string): Promise<World> {
-    const msg = 'world.fromPath';
-    const dbg = DBG.WORLD.LOAD;
-
-    const worldFile = path.join(worldPath, 'world.json');
-
-    let world: World | undefined;
-
-    if (fs.existsSync(worldFile)) {
-      world = await this.loadWorld(worldPath);
-    } else {
-      world = await this.createWorld(worldPath);
-    }
-
-    return world;
+    const worldRepo = new WorldRepository(worldPath);
+    return worldRepo.worldFromPath(new FileRepository(worldRepo));
   }
 
   /**
@@ -395,58 +349,8 @@ export class FileRepository implements IEntityRepository {
    * @throws {Error} - If world not found and create is not true
    */
   static async createWorld(worldPath: string): Promise<World> {
-    const msg = 'f12y.createWorld';
-    const dbg = DBG.WORLD.CTOR;
-
-    const worldFile = path.join(worldPath, 'world.json');
-
-    let world: World | undefined;
-
-    if (fs.existsSync(worldFile)) {
-      throw new Error(`World exists at ${worldPath}`);
-    }
-
-    // Compute name and summary defaults for new world
-    const worldRoot = path.dirname(worldPath);
-    let name: string | undefined;
-    let summary: string | undefined;
-    try {
-      const packageJsonPath = path.join(worldRoot, 'package.json');
-      if (fs.existsSync(packageJsonPath)) {
-        const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-        name = pkg.name;
-        summary = pkg.description;
-      }
-    } catch (err) {
-      // Silently ignore package.json read errors
-    }
-
-    // Fallback to path-based defaults
-    if (!name) {
-      const nfUrl = new NfUrl(worldRoot, '~');
-      name = nfUrl.uri;
-    }
-    if (!summary) {
-      summary = worldPath;
-    }
-
-    // Ensure .nameforma directory exists
-    if (!fs.existsSync(worldPath)) {
-      fs.mkdirSync(worldPath, { recursive: true });
-      dbg && cc.ok1(msg, `created ${worldPath}`);
-    }
-
-    // Create new World only if create flag is true
-    const repository = new FileRepository(worldPath);
-    world = new World(worldPath, repository, { name, summary });
-    await world.initialize();
-
-    // Save world.json with generated id
-    const worldData = JSON.stringify(world.toJSON(), null, 2);
-    fs.writeFileSync(worldFile, worldData, 'utf8');
-    dbg && cc.ok1(msg, `created ${worldFile}`);
-
-    return world;
+    const worldRepo = new WorldRepository(worldPath);
+    return worldRepo.createWorld(new FileRepository(worldRepo));
   }
 
   /**
@@ -457,32 +361,27 @@ export class FileRepository implements IEntityRepository {
    * @throws {Error} - If world not found and create is not true
    */
   static async loadWorld(worldPath: string): Promise<World> {
-    const msg = 'f12y.load';
-    const dbg = DBG.WORLD.LOAD;
+    const worldRepo = new WorldRepository(worldPath);
+    return worldRepo.loadWorld(new FileRepository(worldRepo));
+  }
 
-    const worldFile = path.join(worldPath, 'world.json');
-    if (!fs.existsSync(worldFile)) {
-      throw new Error(
-        `World not found at ${worldPath}. Run 'nf init ${worldPath}' to create one.`,
-      );
-    }
+  #save(entityType: string, entity: any): void {
+    const entityDir = path.join(this.#worldRepo.worldPath, entityType);
+    if (!fs.existsSync(entityDir))
+      fs.mkdirSync(entityDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(entityDir, `${entity.id}.json`),
+      JSON.stringify(entity, null, 2),
+      'utf8',
+    );
+  }
 
-    let world: World | undefined;
-    const data = fs.readFileSync(worldFile, 'utf8');
-    const json = JSON.parse(data);
-    dbg && cc.ok1(msg, `loaded ${worldFile}`);
-    const repository = new FileRepository(worldPath);
-    world = World.fromJson(json, repository, worldPath);
-    // Synchronize watermark with current git HEAD and persist if advanced
-    const watermarkAdvanced = world.syncWatermark();
-    const isValid = world.validate();
-    if (!isValid || watermarkAdvanced) {
-      await repository.saveWorld(world);
-      dbg && cc.ok1(msg, `saved`);
-    }
-
-    await world.initialize();
-
-    return world;
+  #load<T extends IEntity>(
+    EntityClass: T,
+    filePath: string,
+  ): ReturnType<T['fromJson']> {
+    const entity = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    if (entity.id) entity.id = UUID64.fromString(entity.id);
+    return EntityClass.fromJson(entity) as ReturnType<T['fromJson']>;
   }
 }

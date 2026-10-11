@@ -4,12 +4,15 @@ import { UUID64, UUID64String } from './uuid64.js';
 import { FuzzyId } from './identifiable.js';
 import { logger } from './logger.js';
 import { DBG } from './defines.js';
-import {
-  FuzzyNamespace,
-  type IMutableNamespace,
-} from './fuzzy-namespace.js';
+import { type IMutableNamespace } from './fuzzy-namespace.js';
 
 type Constructor<T> = new (...args: any[]) => T;
+
+/** Serialized zid tables produced by ZidSpace.toJSON() */
+export type ZidSpaceJSON = {
+  minChars: number;
+  zids: [UUID64String, string][];
+};
 
 /**
  * ZidSpace is a namespace that allocates a case-insensitive zid
@@ -18,7 +21,7 @@ type Constructor<T> = new (...args: any[]) => T;
  * it be spoken/heard unambiguously: "aB1" spoken as "Alpha Bravo 1"
  * is guaranteed to be unique.
  */
-export class ZidSpace /* implements IMutableNamespace */ {
+export class ZidSpace implements IMutableNamespace {
   private _zidB64Map = new Map<FuzzyId, UUID64String>();
   private _b64ZidMap = new Map<UUID64String, FuzzyId>();
   private _b64FormaMap = new Map<UUID64String, Forma>();
@@ -27,12 +30,6 @@ export class ZidSpace /* implements IMutableNamespace */ {
 
   constructor(cfg: Partial<ZidSpace> = {}) {
     this.minChars = cfg.minChars ?? 3;
-  }
-
-  static fromFormas(...args: Forma[]): ZidSpace {
-    const zs = new ZidSpace();
-    args.forEach((f) => zs.addForma(f));
-    return zs;
   }
 
   protected get _formas(): Forma[] {
@@ -69,9 +66,10 @@ export class ZidSpace /* implements IMutableNamespace */ {
 
     // is it possibly a zid
     if (b64 == null) {
+      const mmid = String(fuzzyId).toLowerCase();
       if (forma == null) {
         dbg && logger.info({ ctx }, 'Z6E073: b64:null forma:null');
-        const b64 = this._zidB64Map.get(fuzzyId);
+        const b64 = this._zidB64Map.get(mmid);
         if (b64) {
           forma = this._b64FormaMap.get(b64);
         }
@@ -92,7 +90,6 @@ export class ZidSpace /* implements IMutableNamespace */ {
         }
         if (matches.length > 1) {
           const ids = [...this._b64FormaMap.keys()];
-          const m = matches.length;
           const msg = `Z6E096: not found (ambiguous) '${fuzzyId}': matches [${ids.join(',')}]`;
           dbg && logger.info({ ctx }, msg);
           throw new Error(`${ctx}: ${msg}`);
@@ -105,9 +102,7 @@ export class ZidSpace /* implements IMutableNamespace */ {
       const idList = ids.join(',');
       dbg &&
         logger.info({ ctx, dbg: fuzzyId }, `ids${ids.length}:` + idList);
-      if (strict) {
-        throw new Error(`${ctx}: Z6E077: not found: ${fuzzyId}`);
-      }
+      throw new Error(`${ctx}: Z6E077: not found: ${fuzzyId}`);
     }
 
     return forma;
@@ -145,7 +140,7 @@ export class ZidSpace /* implements IMutableNamespace */ {
     base64 = forma.id.base64;
 
     // Forma in namespace
-    const timeId = forma!.id.timeId();
+    const timeId = forma.id.timeId();
 
     if (zid == null) {
       // Create a new zid
@@ -158,15 +153,13 @@ export class ZidSpace /* implements IMutableNamespace */ {
           : timeId.substring(start, endSeconds);
 
       // zid collision case #1: extend zid to right to resolve
-      //let conflict1 = this._zidB64Map.get(zid);
       let conflict1 = !this._zidAvailable(zid);
       if (conflict1) {
         let end = endSeconds + 1;
         do {
           zid = timeId.substring(start, end);
-          //conflict1 = this._zidB64Map.get(zid);
           conflict1 = !this._zidAvailable(zid);
-          if (conflict1 == null) {
+          if (!conflict1) {
             break;
           }
           end++;
@@ -233,10 +226,14 @@ export class ZidSpace /* implements IMutableNamespace */ {
   }
 
   /** IMutableNamespace implementation */
-  addForma(forma: Forma): void {
+  _addForma(forma: Forma): FuzzyId {
     const { base64 } = forma.id;
     this._b64FormaMap.set(base64, forma);
-    const zid = this.fuzzyIdOf(base64);
+    return this.fuzzyIdOf(base64);
+  }
+
+  addForma(...formas: Forma[]): void {
+    formas.forEach((f) => this._addForma(f));
   }
 
   /** IMutableNamespace implementation */
@@ -248,15 +245,33 @@ export class ZidSpace /* implements IMutableNamespace */ {
     if (forma) {
       const { base64 } = forma.id;
       this._b64FormaMap.delete(base64);
-      const zid = this._b64ZidMap.get(base64);
-      if (zid) {
-        const mmid = zid.toLowerCase();
-        //this._b64ZidMap.delete(base64);
-        //this._zidB64Map.delete(zid);
-        //zid !== mmid && this._zidB64Map.delete(mmid);
-      }
     }
 
     return forma;
+  }
+
+  /**
+   * Serialize zid tables (including zids of removed Formas).
+   * Formas are not included; persist them separately.
+   */
+  toJSON(): ZidSpaceJSON {
+    return {
+      minChars: this.minChars,
+      zids: [...this._b64ZidMap.entries()],
+    };
+  }
+
+  /**
+   * Restore zid tables exactly as saved. Add Formas afterward with addForma();
+   * saved zids are reused and new Formas get fresh zids.
+   */
+  static fromJSON(json: ZidSpaceJSON): ZidSpace {
+    const zs = new ZidSpace({ minChars: json.minChars });
+    for (const [b64, zid] of json.zids) {
+      zs._b64ZidMap.set(b64, zid);
+      zs._zidB64Map.set(zid, b64);
+      zs._zidB64Map.set(zid.toLowerCase(), b64);
+    }
+    return zs;
   }
 }

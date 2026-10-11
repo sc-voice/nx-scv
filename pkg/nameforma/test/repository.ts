@@ -8,7 +8,12 @@ import {
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { Entity, UUID64, Schema } from '@sc-voice/nameforma';
+import {
+  Entity,
+  FileRepository,
+  UUID64,
+  Schema,
+} from '@sc-voice/nameforma';
 
 class TestEntity extends Entity {
   static collection = 'testentity';
@@ -148,3 +153,19 @@ export function defineRepositoryContractTests(
     });
   });
 }
+
+/**
+ * Repository contract test suite for FileRepository.
+ * Verifies that findAll() and findMany() return results in global descending ID order.
+ *
+ * This test is defined at the top level and should be replicated for all new
+ * repository implementations (MongoRepository, SQLRepository, etc) by calling
+ * defineRepositoryContractTests() with the implementation's factory function.
+ */
+defineRepositoryContractTests(
+  'FileRepository',
+  async (worldPath: string) => {
+    fs.mkdirSync(worldPath, { recursive: true });
+    return FileRepository.create(worldPath);
+  },
+);

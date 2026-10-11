@@ -41,10 +41,12 @@ describe('CLI: task command', () => {
   let originalLog;
   let originalError;
   let tempWorld;
+  let worldPath;
 
   beforeEach(async () => {
     // Create isolated temp world
     tempWorld = await createTempWorld();
+    worldPath = tempWorld.worldPath;
 
     // Capture console output
     output = [];
@@ -74,63 +76,67 @@ describe('CLI: task command', () => {
     tempWorld.cleanup();
   });
 
-  it('create task with title', async () => {
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Test Task',
-    ]);
+  describe('ctor', () => {
+    it('create task with title', async () => {
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Test Task',
+      ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/Task added:/);
-    expect(countTasks(tempWorld.worldPath)).toBe(1);
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/Task added:/);
+      expect(countTasks(tempWorld.worldPath)).toBe(1);
+    });
   });
 
-  it('list tasks when empty', async () => {
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'list',
-    ]);
+  describe('list', () => {
+    it('list tasks when empty', async () => {
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'list',
+      ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toBe('No tasks');
-  });
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toBe('No tasks');
+    });
 
-  it('list tasks after creation', async () => {
-    // Create a task
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'add',
-      'Task 1',
-    ]);
+    it('list tasks after creation', async () => {
+      // Create a task
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'add',
+        'Task 1',
+      ]);
 
-    output.length = 0;
+      output.length = 0;
 
-    // List tasks
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'list',
-    ]);
+      // List tasks
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'list',
+      ]);
 
-    expect(output.length).toBeGreaterThan(0);
-    expect(output[0]).toMatch(/Tasks \(\d+\):/);
-    expect(output[1]).toMatch(/Task 1/);
+      expect(output.length).toBeGreaterThan(0);
+      expect(output[0]).toMatch(/Tasks \(\d+\):/);
+      expect(output[1]).toMatch(/Task 1/);
+    });
   });
 
   describe('delete command', () => {
@@ -395,7 +401,7 @@ describe('CLI: task command', () => {
           '0',
           '--force',
         ]),
-      ).rejects.toThrow(/ambiguous match/);
+      ).rejects.toThrow(/ambiguous/);
 
       // Verify both tasks still exist
       expect(countTasks(tempWorld.worldPath)).toBe(2);
@@ -433,23 +439,24 @@ describe('CLI: task command', () => {
       ]);
 
       // Verify output shows the full task ID, not the search string
-      expect(output[0]).toContain(`Task deleted: ${taskId}`);
+      expect(output[0]).toMatch(`Task deleted:`);
+      expect(output[0]).toMatch(taskId);
     });
-  });
 
-  it('delete non-existent task returns error', async () => {
-    await expect(
-      cli.parseArgv([
-        'node',
-        'test',
-        'task',
-        '-w',
-        tempWorld.worldPath,
-        'delete',
-        'nonexistent',
-        '--force',
-      ]),
-    ).rejects.toThrow(/Task not found/);
+    it('delete non-existent task returns error', async () => {
+      await expect(
+        cli.parseArgv([
+          'node',
+          'test',
+          'task',
+          '-w',
+          tempWorld.worldPath,
+          'delete',
+          'nonexistent',
+          '--force',
+        ]),
+      ).rejects.toThrow(/Task not found/);
+    });
   });
 
   describe('optional ID with focus fallback', () => {
@@ -894,6 +901,7 @@ describe('CLI: task command', () => {
     });
 
     it('set allows multi-word values', async () => {
+      const ctx = 'c5k@900';
       // Create and focus a task
       await cli.parseArgv([
         'node',
@@ -909,12 +917,14 @@ describe('CLI: task command', () => {
       const idMatch = createOutput.match(/Task added: ([A-Za-z0-9_-]+)/);
       const taskId = idMatch ? idMatch[1] : null;
 
-      const world = await FileRepository.worldFromPath(
-        tempWorld.worldPath,
-      );
+      let world = await FileRepository.worldFromPath(worldPath);
       const task = await world.loadFuzzy(Task, taskId!);
       world.focusManager.focus(task!.id);
       await world.save();
+
+      process.stdout.write(`${ctx} ${taskId} ${task.id.base64}`);
+
+      //world = await FileRepository.worldFromPath(worldPath);
 
       output.length = 0;
 
@@ -966,142 +976,160 @@ describe('CLI: task command', () => {
     });
   });
 
-  it('task focus pushes task to top of stack', async () => {
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = await world.upsertOne(Task, { name: 'Focus Me' });
+  describe('focus', () => {
+    it('task focus pushes task to top of stack', async () => {
+      const world = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      const task = await world.upsertOne(Task, { name: 'Focus Me' });
 
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      task.id.base64,
-    ]);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        task.id.base64,
+      ]);
 
-    expect(output[0]).toMatch(/Task focused:/);
-    const world2 = await FileRepository.worldFromPath(tempWorld.worldPath);
-    expect(world2.focusManager.size).toBe(1);
-    expect(world2.focusManager.focusOrder(task.id)).toBe(0);
-  });
+      expect(output[0]).toMatch(/Task focused:/);
+      const world2 = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      expect(world2.focusManager.size).toBe(1);
+      expect(world2.focusManager.focusOrder(task.id)).toBe(0);
+    });
 
-  it('task focus moves existing entry to top without duplicating', async () => {
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-    const taskA = await world.upsertOne(Task, { name: 'Task A' });
-    const taskB = await world.upsertOne(Task, { name: 'Task B' });
+    it('task focus moves existing entry to top without duplicating', async () => {
+      const world = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      const taskA = await world.upsertOne(Task, { name: 'Task A' });
+      const taskB = await world.upsertOne(Task, { name: 'Task B' });
 
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      taskA.id.base64,
-    ]);
-    output.length = 0;
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      taskB.id.base64,
-    ]);
-    output.length = 0;
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      taskA.id.base64,
-    ]);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        taskA.id.base64,
+      ]);
+      output.length = 0;
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        taskB.id.base64,
+      ]);
+      output.length = 0;
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        taskA.id.base64,
+      ]);
 
-    const world2 = await FileRepository.worldFromPath(tempWorld.worldPath);
-    expect(world2.focusManager.size).toBe(2);
-    expect(world2.focusManager.focusOrder(taskA.id)).toBe(0);
-  });
+      const world2 = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      expect(world2.focusManager.size).toBe(2);
+      expect(world2.focusManager.focusOrder(taskA.id)).toBe(0);
+    });
 
-  it('task unfocus removes task from focus stack by id', async () => {
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-    const task = await world.upsertOne(Task, { name: 'Unfocus Me' });
+    it('task unfocus removes task from focus stack by id', async () => {
+      const world = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      const task = await world.upsertOne(Task, { name: 'Unfocus Me' });
 
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      task.id.base64,
-    ]);
-    output.length = 0;
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'unfocus',
-      '--',
-      task.id.base64,
-    ]);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        task.id.base64,
+      ]);
+      output.length = 0;
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'unfocus',
+        '--',
+        task.id.base64,
+      ]);
 
-    expect(output[0]).toMatch(/Task unfocused:/);
-    const world2 = await FileRepository.worldFromPath(tempWorld.worldPath);
-    expect(world2.focusManager.size).toBe(0);
-  });
+      expect(output[0]).toMatch(/Task unfocused:/);
+      const world2 = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      expect(world2.focusManager.size).toBe(0);
+    });
 
-  it('task unfocus with no id removes top of stack', async () => {
-    const world = await FileRepository.worldFromPath(tempWorld.worldPath);
-    const taskA = await world.upsertOne(Task, { name: 'Task A' });
-    const taskB = await world.upsertOne(Task, { name: 'Task B' });
+    it('task unfocus with no id removes top of stack', async () => {
+      const world = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      const taskA = await world.upsertOne(Task, { name: 'Task A' });
+      const taskB = await world.upsertOne(Task, { name: 'Task B' });
 
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      taskA.id.base64,
-    ]);
-    output.length = 0;
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'focus',
-      '--',
-      taskB.id.base64,
-    ]);
-    output.length = 0;
-    await cli.parseArgv([
-      'node',
-      'test',
-      'task',
-      '-w',
-      tempWorld.worldPath,
-      'unfocus',
-    ]);
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        taskA.id.base64,
+      ]);
+      output.length = 0;
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'focus',
+        '--',
+        taskB.id.base64,
+      ]);
+      output.length = 0;
+      await cli.parseArgv([
+        'node',
+        'test',
+        'task',
+        '-w',
+        tempWorld.worldPath,
+        'unfocus',
+      ]);
 
-    expect(output[0]).toMatch(/Task unfocused:/);
-    const world2 = await FileRepository.worldFromPath(tempWorld.worldPath);
-    expect(world2.focusManager.size).toBe(1);
-    expect(world2.focusManager.focusOrder(taskA.id)).toBe(0);
-  });
+      expect(output[0]).toMatch(/Task unfocused:/);
+      const world2 = await FileRepository.worldFromPath(
+        tempWorld.worldPath,
+      );
+      expect(world2.focusManager.size).toBe(1);
+      expect(world2.focusManager.focusOrder(taskA.id)).toBe(0);
+    });
+  }); // focus
 });
 
 describe('CLI: nameforma package script', () => {

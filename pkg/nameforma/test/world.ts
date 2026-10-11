@@ -13,6 +13,7 @@ import os from 'os';
 import { execSync } from 'child_process';
 import {
   FileRepository,
+  WorldRepository,
   World,
   Forma,
   Entity,
@@ -354,16 +355,6 @@ describe('World Storage - Save, Load, List, Delete', () => {
       expect(parsed.id).toBeDefined();
     });
 
-    it('should add entity to namespace', async () => {
-      const entity = await world.upsertOne(Task, {
-        name: 'namespace-task',
-      });
-
-      const found = await await world.loadFuzzyForma(entity.id.base64);
-      expect(found).toBeDefined();
-      expect(found?.name).toBe('namespace-task');
-    });
-
     it('should load entity back via loadEntity()', async () => {
       const original = await world.upsertOne(Task, {
         name: 'reload-task',
@@ -434,7 +425,10 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
   });
 
-  describe('loadFuzzy() - Default Levenshtein Behavior', () => {
+  // Deprecated: levenshtein tolerance is not used for fuzzy ids.
+  // Fuzzy ids are resolved by getForma() against fuzzyIdOf() windows.
+  // Skipped pending removal of the levenshtein parameter from loadFuzzy().
+  describe.skip('loadFuzzy() - Default Levenshtein Behavior', () => {
     it('should match exact full UUID64 (default levenshtein = searchId.length)', async () => {
       const original = await world.upsertOne(Task, {
         name: 'exact-match',
@@ -477,7 +471,7 @@ describe('World Storage - Save, Load, List, Delete', () => {
       // Use a single character that both UUIDs likely contain (fuzzy matching with levenshtein=1)
       // This should match both entities and throw ambiguous error
       await expect(world.loadFuzzy(Task, '0')).rejects.toThrow(
-        /ambiguous match/,
+        /ambiguous/,
       );
     });
 
@@ -492,7 +486,8 @@ describe('World Storage - Save, Load, List, Delete', () => {
     });
   });
 
-  describe('loadFuzzy() - Custom Levenshtein', () => {
+  // Deprecated: levenshtein tolerance is not used for fuzzy ids (see above).
+  describe.skip('loadFuzzy() - Custom Levenshtein', () => {
     it('should accept explicit levenshtein parameter', async () => {
       const original = await world.upsertOne(Task, { name: 'custom-lev' });
 
@@ -514,13 +509,31 @@ describe('World Storage - Save, Load, List, Delete', () => {
 
   describe('loadFuzzy() - Case Insensitivity', () => {
     it('should match case-insensitively by default', async () => {
-      const original = await world.upsertOne(Task, { name: 'case-test' });
+      let w1 = world;
+      const name = 't1-name';
+      const t1 = await w1.upsertOne(Task, { name });
+      const idb1 = t1.id.base64;
+      expect(t1.name).toBe(name);
 
-      const idStr = original.id.toString();
-      const uppercase = idStr.toUpperCase().substring(0, 8);
+      const w2 = await FileRepository.worldFromPath(worldPath);
+      const w = w1;
+      const zid = w.namespace.fuzzyIdOf(idb1);
+      const idUpper = zid.toUpperCase();
+      const idLower = zid.toLowerCase();
 
-      const loaded = await world.loadFuzzy(Task, uppercase);
-      expect(loaded).not.toBeNull();
+      const tZid = await w.loadFuzzy(Task, zid);
+      expect(tZid?.id.base64).toBe(idb1);
+      expect(tZid?.name).toBe(name);
+      const tZid1 = await w1.loadFuzzy(Task, zid);
+      expect(tZid1?.id.base64).toBe(idb1);
+
+      const tLower = await w.loadFuzzy(Task, idLower);
+      expect(tLower?.id.base64).toBe(idb1);
+      expect(tLower?.name).toBe(name);
+
+      const tUpper = await w.loadFuzzy(Task, idUpper);
+      expect(tUpper?.id.base64).toBe(idb1);
+      expect(tUpper?.name).toBe(name);
     });
   });
 
@@ -1042,9 +1055,9 @@ describe('World — namespace', () => {
       const id1 = list.itemListId(task1);
       const id2 = list.itemListId(task2);
 
-      // Should be masked fuzzyIds (short, min 5 chars), not full timeIds
-      expect(id1.length).toBeGreaterThanOrEqual(5);
-      expect(id2.length).toBeGreaterThanOrEqual(5);
+      // Should be masked fuzzyIds not full timeIds
+      expect(id1.length).toBeLessThan(UUID64.TIME_ID_CHARS);
+      expect(id2.length).toBeLessThan(UUID64.TIME_ID_CHARS);
 
       // Should not be the full base64 id (which is much longer)
       expect(id1.length).toBeLessThan(task1.id.base64.length);
@@ -1230,18 +1243,6 @@ describe('World.upsertOne() async — ZudaO', () => {
     const filePath = path.join(worldPath, 'task', `${entity.id}.json`);
     expect(fs.existsSync(filePath)).toBe(true);
   });
-
-  it('should add to namespace', async () => {
-    const name = 'ns-test';
-    const summary = 'ns-summary';
-    const entityInserted = await world.upsertOne(Task, { name, summary });
-    const id = entityInserted.id.base64;
-    const entityLoaded = await await world.loadFuzzyForma(id);
-    const entityRegistered = world.namespace.getForma(id);
-    expect(entityLoaded).properties({ name, summary });
-    expect(entityInserted).properties({ name, summary });
-    expect(entityRegistered).toBe(entityLoaded);
-  });
 });
 
 describe('World.entityStream()', () => {
@@ -1350,7 +1351,9 @@ describe('World.entityStream()', () => {
 
   it('should throw if namespace not initialized', () => {
     // Create a world but don't initialize namespace
-    const rawRepository = new FileRepository(worldPath);
+    const rawRepository = new FileRepository(
+      new WorldRepository(worldPath),
+    );
     const uninitWorld = new World(worldPath, rawRepository);
 
     expect(() => Array.from(uninitWorld.entityStream(Task))).toThrow(

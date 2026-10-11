@@ -5,6 +5,8 @@ export {
 } from './action.js';
 export { Clock } from './clock.js';
 export { Focus } from './focus.js';
+export { Session } from './session.js';
+export { ZidSpace } from './zid-space.js';
 export { LevenshteinMatcher } from './forma.js';
 export { FormaField } from './forma-field.js';
 export { FormaList } from './forma-list.js';

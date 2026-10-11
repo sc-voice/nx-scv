@@ -3,18 +3,20 @@
  * Supports: add, list, show, update, delete
  */
 
-import { nfTui } from './nf-tui.js';
+import { logger } from '../logger.js';
 import { World } from '../world.js';
 import { Task } from '../task.js';
 import { Forma } from '../forma.js';
 import { User } from '../user.js';
 import { UUID64 } from '../uuid64.js';
-import { TuiList } from './tui-list.js';
-import { confirmDelete } from './confirm.js';
-import { Unicode } from '@sc-voice/tools/text';
 import { NfProgram } from '../nf-program.js';
 import { FormaList } from '../forma-list.js';
 import type { ICommand } from '../nf-program.js';
+
+import { nfTui } from './nf-tui.js';
+import { TuiList } from './tui-list.js';
+import { confirmDelete } from './confirm.js';
+import { Unicode } from '@sc-voice/tools/text';
 const { GREEN_CHECKBOX } = Unicode;
 const { BRIGHT_GREEN, NO_COLOR: UNC } = Unicode.LINUX_COLOR;
 const UOK = BRIGHT_GREEN + GREEN_CHECKBOX + ' ';
@@ -274,7 +276,8 @@ export default class TaskCommand {
 
           const task = await world.upsertOne(Task, taskConfig);
 
-          nfTui.log(`✓ Task added: ${world.namespace.fuzzyIdOf(task.id)}`);
+          const zid = world.namespace.fuzzyIdOf(task.id);
+          nfTui.log(`✓ Task added: ${zid} ${task.id}`);
           nfTui.log(`  ${task.toString()}`);
         },
       );
@@ -422,8 +425,9 @@ export default class TaskCommand {
         }
 
         const taskFuzzyId = world.namespace.fuzzyIdOf(task.id);
-        await world.delete('task', task.id.toString());
-        nfTui.log(`✓ Task deleted: ${taskFuzzyId}`);
+        const base64 = task.id.base64;
+        await world.delete('task', base64);
+        nfTui.log(`✓ Task deleted: ${taskFuzzyId} ${base64}`);
       });
 
     // task focus
