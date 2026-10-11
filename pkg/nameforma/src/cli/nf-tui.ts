@@ -1,5 +1,6 @@
 import {
-  TUI,
+  type TUI,
+  TuiMainScreen,
   Text,
   Input,
   ProcessTerminal,
@@ -106,7 +107,7 @@ export class ReplRenderer implements IReplRenderer {
     this.watchText = new Text('(watch...)', 0);
     this.errorText = new Text('', 0);
     this.promptInput = new PromptInput('nf');
-    this.tui = new TUI(new ProcessTerminal());
+    this.tui = new TuiMainScreen(new ProcessTerminal());
     this.tui.addChild(this.scrollText);
     this.tui.addChild(this.watchText);
     this.tui.addChild(this.errorText);
