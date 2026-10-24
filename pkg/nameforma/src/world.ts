@@ -75,6 +75,8 @@ export class World extends Entity implements IEventBus {
   // Export Focus class for use elsewhere
   static Focus = Focus;
 
+  session: Session | undefined;
+
   /**
    * Create a World at the given path with optional config (internal use only)
    * Use FileRepository.worldFromPath() to get or create a World instance.

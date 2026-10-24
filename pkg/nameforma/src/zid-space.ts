@@ -1,4 +1,3 @@
-import { Identifiable } from './identifiable.js';
 import { Forma } from './forma.js';
 import { UUID64, UUID64String } from './uuid64.js';
 import { FuzzyId } from './identifiable.js';
@@ -26,7 +25,7 @@ export class ZidSpace implements IMutableNamespace {
   private _b64ZidMap = new Map<UUID64String, FuzzyId>();
   private _b64FormaMap = new Map<UUID64String, Forma>();
 
-  readonly minChars;
+  readonly minChars: number;
 
   constructor(cfg: Partial<ZidSpace> = {}) {
     this.minChars = cfg.minChars ?? 3;
@@ -109,7 +108,7 @@ export class ZidSpace implements IMutableNamespace {
   }
 
   /** IReadonlyNamespace implementation */
-  fuzzyIdOf(id: UUID64 | string, string?: boolean): string {
+  fuzzyIdOf(id: UUID64 | string): string {
     const ctx = 'ZidSpace.fuzzyIdOf';
     const idString =
       id instanceof UUID64 ? id.base64 : id.replace(/\x1B\[[0-9;]*m/g, ''); // strip ANSII

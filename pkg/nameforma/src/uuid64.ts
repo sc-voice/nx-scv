@@ -181,9 +181,6 @@ export class UUID64 {
     millis: number = Date.now(),
   ): UUID64 {
     const uuidv7 = UUID64.createBufferUUIDV7(millis, relation.uuidv7);
-    const base64 = UUID64.toOrderPreservingBase64(
-      UUID64.toUUID64Buffer(uuidv7),
-    );
     return new UUID64(uuidv7);
   }
 
@@ -228,7 +225,7 @@ export class UUID64 {
       const out = cli
         .log(`-1 ${commitToUse} --format=%at%n%H`)
         .split('\n');
-      const timestampMs = parseInt(out[0], UUID64.TIME_ID_CHARS) * 1000;
+      const timestampMs = parseInt(out[0], 10) * 1000;
       const commitHash = out[1];
 
       const uuidv7 = Buffer.alloc(16);
@@ -796,17 +793,6 @@ export class UUID64 {
   // Static Methods (Private)
   // ========================================================================
 
-  /**
-   * Generate a 3-character user abbreviation from a name string.
-   * Rules:
-   * - If name ≤ 3 chars: use name directly (padded to 3 if needed)
-   * - If exactly 3 words: use first letter of each word (TLA)
-   * - Otherwise: first letter of first word + 2 chars from last word
-   *   where we prefer consonants but continue scanning for any char if needed
-   *
-   * @param user User name string
-   * @returns 3-character abbreviation
-   */
   /**
    * Create a UUID64 buffer with timestamp, sequence, and optional random bytes.
    *
