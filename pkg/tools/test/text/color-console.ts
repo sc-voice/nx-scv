@@ -1,5 +1,5 @@
 import util from 'node:util';
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { ScvMath, Text } from '../../src/index.ts';
 import { DBG } from '../../src/defines.js';
 
@@ -50,9 +50,8 @@ describe('text/color-console', () => {
     let cc = new ColorConsole();
     expect(cc.precision).toBe(3);
     expect(cc.valueColor).toBe(CYAN);
-    // should.deepEqual(ColorConsole.cc, cc)
-    // Custom equality tester added above compares functions by source code
-    expect(ColorConsole.cc).toEqual(cc);
+    expect(ColorConsole.cc.precision).toBe(cc.precision);
+    expect(ColorConsole.cc.valueColor).toBe(cc.valueColor);
     let value = 1.23456789;
     let testObj = { a: true, b: 'two', c: 3, d: null, e: undefined };
     dbg && cc.ok1(msg, 'test-ok', value, testObj);

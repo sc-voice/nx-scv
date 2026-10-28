@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 const { promises: fsp } = fs;
 import path from 'node:path';
 import { Text } from '../../src/index.ts';

@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 import { Text } from '../../src/index.ts';
 

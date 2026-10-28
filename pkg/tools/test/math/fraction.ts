@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { ScvMath, Text } from '../../src/index.ts';
 import { DBG } from '../../src/defines.js';
 const { Fraction } = ScvMath;

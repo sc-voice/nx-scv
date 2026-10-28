@@ -5,7 +5,7 @@ const { Unicode, ColorConsole } = Text;
 const { RIGHT_ARROW: URA } = Unicode;
 const { cc } = ColorConsole;
 
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 
 const dbg = 0;
 const units = new Units();

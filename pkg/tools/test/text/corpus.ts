@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { Text } from '../../src/index.ts';
 
 const { Corpus } = Text;
