@@ -242,7 +242,7 @@ describe('FileRepository.createWorld()', () => {
 
   it('throws if world.json already exists', async () => {
     await FileRepository.createWorld(worldPath);
-    expect(() => FileRepository.createWorld(worldPath)).rejects.toThrow(
+    await expect(FileRepository.createWorld(worldPath)).rejects.toThrow(
       /World exists at/,
     );
   });
@@ -265,7 +265,7 @@ describe('FileRepository.loadWorld()', () => {
   });
 
   it('throws if world.json does not exist', async () => {
-    expect(() => FileRepository.loadWorld(worldPath)).rejects.toThrow(
+    await expect(FileRepository.loadWorld(worldPath)).rejects.toThrow(
       /World not found at/,
     );
   });
