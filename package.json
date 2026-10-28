@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w @sc-voice/tools && npm run build -w @sc-voice/nameforma",
     "clean": "rm -rf tsconfig.tsbuildinfo && npm run clean --workspaces --if-present",
-    "test": "npm run test --workspaces",
+    "test": "npm run build && npm run test --workspaces",
     "container:build": "scripts/container-build.sh",
     "container:bash": "scripts/container-shell.sh bash",
     "container:test": "scripts/container-test.sh"

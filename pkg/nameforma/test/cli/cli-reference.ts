@@ -52,6 +52,10 @@ describe('CLI: reference command', () => {
 
     referenceCmd = program.command('reference');
     ReferenceCommand.registerCommand(referenceCmd, nfProgram);
+    nfProgram.registerFindCommand();
+    program.configureOutput({
+      writeOut: (str: string) => output.push(...str.split('\n')),
+    });
   });
 
   afterEach(() => {
@@ -328,12 +332,12 @@ describe('CLI: reference command', () => {
 
     // Show reference by ID
     output = [];
-    await testCmd('reference', 'show', referenceId);
+    await testCmd('find', '-j', referenceId);
 
-    const nonEmptyOutput = output.filter((line) => line.trim());
-    expect(nonEmptyOutput[1]).toMatch(/1\. Test Reference/);
-    expect(nonEmptyOutput[2]).toMatch(/Test summary/);
-    expect(nonEmptyOutput[3]).toMatch(/0\.7/);
+    const [json] = output.filter((line) => line.trim());
+    const reference = JSON.parse(json);
+    expect(reference.name).toBe('Test Reference');
+    expect(reference.summary).toBe('Test summary');
   });
 
   it('reference json single reference', async () => {

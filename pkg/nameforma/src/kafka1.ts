@@ -332,7 +332,7 @@ export class Consumer extends Role {
     } = cfg;
     super({ tla: 'c6r', kafka });
     // biome-ignore format:
-    dbg > 1 && cc.ok( msg + UOK, ...cc.props({ groupId, _msIdle }));
+    dbg > 1 && cc.ok(msg + UOK, ...cc.props({ groupId, _msIdle }));
 
     Object.assign(this, {
       groupId,
