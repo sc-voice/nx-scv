@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from '@sc-voice/vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { NameFormaTheme } from '../dist/nameforma-theme.js';
 import type { INameFormaTheme } from '../dist/navigable-view.js';
 

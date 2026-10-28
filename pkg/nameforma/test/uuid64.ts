@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { UUID64 } from '@sc-voice/nameforma';
 import { v7 as uuidv7 } from 'uuid';
 import { execSync } from 'child_process';

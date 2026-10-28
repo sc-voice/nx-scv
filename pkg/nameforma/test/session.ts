@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { UUID64, Forma } from '@sc-voice/nameforma';
 import { DBG, Session, ZidSpace } from '@sc-voice/nameforma/unstable';
 

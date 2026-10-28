@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { UUID64, Schema, Action } from '@sc-voice/nameforma';
 import {
   ActionStatus,

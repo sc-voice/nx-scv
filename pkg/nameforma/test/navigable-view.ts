@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@sc-voice/vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   NavigableView,
   ZenoCoord,

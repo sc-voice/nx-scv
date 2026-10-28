@@ -1,11 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  vi,
-} from '@sc-voice/vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FileRepository, World, Task, UUID64 } from '@sc-voice/nameforma';
 import { TuiList } from '@sc-voice/nameforma/unstable';
 import { Unicode } from '@sc-voice/tools/text';

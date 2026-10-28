@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { UUID64, Schema, Reference } from '@sc-voice/nameforma';
 import avro from 'avro-js';
 import { Text } from '@sc-voice/tools';
@@ -28,7 +28,7 @@ describe('Reference', () => {
     const source = 'https://example.com';
     const ref = new Reference({ name, summary, relevance, source });
     expect(ref.id.validate()).toBe(true);
-    expect(ref).properties({ name, summary, relevance, source });
+    expect(ref).toMatchObject({ name, summary, relevance, source });
     expect(ref.updateId).toEqual(ref.id);
   });
 
@@ -38,7 +38,7 @@ describe('Reference', () => {
     const ref = new Reference({ id, name });
 
     expect(ref.id.base64).toBe(id.base64);
-    expect(ref).properties({ id, name });
+    expect(ref).toMatchObject({ id, name });
     expect(ref.name).toBe(name);
     expect(ref.updateId).toEqual(id);
   });
@@ -80,7 +80,7 @@ describe('Reference', () => {
       `Expect ${ref.id.base64} < ${ref.updateId.base64}`,
     ).toBe(true);
 
-    expect(p2).properties({ name, summary, relevance, source });
+    expect(p2).toMatchObject({ name, summary, relevance, source });
   });
 
   it('replace updates fields', () => {

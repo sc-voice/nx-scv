@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import {
   UUID64,
   Schema,
@@ -117,12 +117,12 @@ describe('Forma', () => {
     expect(f3a.id).toBe(id);
     expect(f3a.name).toBe('name2');
     expect(f3a.summary).toBe('summary3');
-    expect(p3).properties({ summary: summary0 }); // only summary changed from default
+    expect(p3).toMatchObject({ summary: summary0 }); // only summary changed from default
     dbg && cc.tag1(msg + UOK, 'summary is mutable');
 
     // patch ignores irrelevant properties
     const p4 = f3a.patch({ summary: 'summary4', color: 'red' });
-    expect(p4).properties({ summary: 'summary3' });
+    expect(p4).toMatchObject({ summary: 'summary3' });
     expect(f3a.name).toBe('name2');
     expect(f3a.summary).toBe('summary4');
   });

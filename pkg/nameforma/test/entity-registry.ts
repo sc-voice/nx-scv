@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@sc-voice/vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { EntityRegistry } from '../src/entity-registry.js';
 import { IEntity } from '../src/entity.js';
 

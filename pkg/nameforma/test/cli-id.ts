@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { execSync } from 'child_process';
 import { User } from '../src/user.js';
 import { UUID64 } from '../src/uuid64.js';

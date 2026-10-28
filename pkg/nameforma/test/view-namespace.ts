@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@sc-voice/vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ViewNamespace } from '../src/view-namespace.js';
 import { FuzzyNamespace } from '../src/fuzzy-namespace.js';
 import { Forma } from '../src/forma.js';

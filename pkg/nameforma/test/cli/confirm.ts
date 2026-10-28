@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { Readable, Writable } from 'stream';
 import { confirm, confirmDelete } from '../../src/cli/confirm.js';
 

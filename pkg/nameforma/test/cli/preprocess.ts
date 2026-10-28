@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 
 // Copy of preprocessArgv logic for testing without importing nameforma.ts
 function preprocessArgv(argv: string[]): string[] {

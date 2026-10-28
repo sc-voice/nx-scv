@@ -1,10 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-} from '@sc-voice/vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Command } from 'commander';
 import { NameForma } from '../../index.mjs';
 import TaskCommand from '../../src/cli/commands/task.mjs';

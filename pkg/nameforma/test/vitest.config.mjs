@@ -1,4 +1,4 @@
-import { defineConfig } from '@sc-voice/vitest/config';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -15,7 +15,7 @@ export default defineConfig({
             'test/**/*.helpers.ts',
             'test/**/*.integration.ts',
           ],
-          setupFiles: [],
+          setupFiles: ['test/vitest-setup.helpers.ts'],
         },
       },
       {

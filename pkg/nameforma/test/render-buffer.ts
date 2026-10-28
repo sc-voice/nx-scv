@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import { RenderBuffer } from '../src/render-buffer.js';
 import type { IView } from '../src/navigable-view.js';
 

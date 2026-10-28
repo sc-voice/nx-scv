@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@sc-voice/vitest';
+import { describe, it, expect } from 'vitest';
 import RGA64Watermark from '../src/rga64-watermark.js';
 import { UUID64 } from '../src/uuid64.js';
 

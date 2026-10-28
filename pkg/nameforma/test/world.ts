@@ -6,7 +6,7 @@ import {
   afterEach,
   beforeAll,
   afterAll,
-} from '@sc-voice/vitest';
+} from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
