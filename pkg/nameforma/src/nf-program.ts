@@ -195,7 +195,7 @@ export class NfProgram {
 
     this.rootCmd
       .name('nf')
-      .option('-t, --tui', 'Output in Terminal User Interface format')
+      .option('--tui', 'Output in Terminal User Interface format')
       .option('-j, --out-json', 'Output as JSON')
       .version(version)
       .description(

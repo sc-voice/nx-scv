@@ -52,6 +52,32 @@ export default class IdCommand {
   }
 
   /**
+   * Decode a timeId prefix (1-8 OPB64 chars) to the earliest millisecond it denotes.
+   * The 8 characters are the 48-bit ms timestamp, so 8 chars is exact to 1ms.
+   * Shorter prefixes are padded with '0', giving the start of their range.
+   * @param prefix - 1 to 8 OPB64 characters
+   * @returns Unix time in milliseconds
+   * @throws Error if the prefix is 0 or more than 8 characters, or not OPB64
+   */
+  static timeIdPrefixToMillis(prefix: string): number {
+    if (prefix.length < 1 || prefix.length > 8) {
+      throw new Error(`timeId prefix must be 1-8 characters: ${prefix}`);
+    }
+    const buf = UUID64.bufferFromOPB64(prefix.padEnd(8, '0'));
+    return buf.readUIntBE(0, 6);
+  }
+
+  /**
+   * Time resolution of a timeId prefix: each OPB64 char fixes 6 of the 48
+   * timestamp bits, so the remaining 48 - 6n bits span 2^(48 - 6n) ms.
+   * @param chars - Number of prefix characters, 1 to 8
+   * @returns Resolution in milliseconds (8 chars = 1, 7 chars = 64)
+   */
+  static timeIdResolutionMs(chars: number): number {
+    return 2 ** (48 - 6 * chars);
+  }
+
+  /**
    * Register id command
    * @param {Command} cmd - Commander command object
    * @param {Function} getGlobalOpts - Closure that returns global options
@@ -77,6 +103,10 @@ export default class IdCommand {
       .option(
         '--file-mod <path>',
         'Return timeId() of the file modification time of PATH',
+      )
+      .option(
+        '-t, --time',
+        'Interpret STRING as a timeId prefix (truncated to 8 chars) and print its start time',
       )
       .action(async (words: string[], options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
@@ -122,6 +152,20 @@ export default class IdCommand {
               millis: Math.floor(mtimeMs),
             }).timeId();
             nfTui.log(timeId);
+            return;
+          }
+
+          // If --time flag is set, decode a timeId prefix to its start time
+          if (options.time) {
+            if (!words || words.length !== 1) {
+              nfTui.error('✗ Error: Single timeId prefix expected');
+              process.exit(1);
+            }
+            const prefix = words[0].slice(0, 8);
+            const millis = IdCommand.timeIdPrefixToMillis(prefix);
+            const resolution = IdCommand.timeIdResolutionMs(prefix.length);
+            nfTui.log(new Date(millis).toISOString());
+            nfTui.log(`resolution: ${(resolution / 1000).toFixed(3)}s`);
             return;
           }
 

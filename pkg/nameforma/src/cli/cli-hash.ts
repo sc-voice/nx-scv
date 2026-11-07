@@ -34,17 +34,15 @@ export default class HashCommand {
    * @param nfProgram - Program instance (unused: hash needs no world)
    */
   static registerCommand(cmd: ICommand, nfProgram: NfProgram) {
-    cmd
-      .argument('<file>', 'File to hash')
-      .action(async (file: string) => {
-        try {
-          nfTui.log(await HashCommand.hashFile(file));
-        } catch (err) {
-          nfTui.error(
-            `✗ Error: ${err instanceof Error ? err.message : String(err)}`,
-          );
-          process.exitCode = 1;
-        }
-      });
+    cmd.argument('<file>', 'File to hash').action(async (file: string) => {
+      try {
+        nfTui.log(await HashCommand.hashFile(file));
+      } catch (err) {
+        nfTui.error(
+          `✗ Error: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        process.exitCode = 1;
+      }
+    });
   }
 }

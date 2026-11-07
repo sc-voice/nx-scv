@@ -13,6 +13,45 @@ import {
 import IdCommand from '../../src/cli/cli-id.js';
 import { createTestProgram } from './helpers.js';
 
+describe('IdCommand.timeIdResolutionMs', () => {
+  it('gives 1ms at 8 chars and 64ms at 7 chars', () => {
+    expect(IdCommand.timeIdResolutionMs(8)).toBe(1);
+    expect(IdCommand.timeIdResolutionMs(7)).toBe(64);
+    expect(IdCommand.timeIdResolutionMs(4)).toBe(2 ** 24);
+  });
+});
+
+describe('IdCommand.timeIdPrefixToMillis', () => {
+  it('recovers the exact millisecond from an 8-char timeId prefix', () => {
+    for (const millis of [0, 1700000000999, 1763000000123]) {
+      const id = UUID64.create({ millis });
+      expect(IdCommand.timeIdPrefixToMillis(id.timeId(0, 8))).toBe(millis);
+    }
+  });
+
+  it('returns the start of the range for a shorter prefix', () => {
+    const millis = 1763000000123;
+    const prefix = UUID64.create({ millis }).timeId(0, 3);
+    const start = IdCommand.timeIdPrefixToMillis(prefix);
+    expect(start).toBeLessThanOrEqual(millis);
+    // 3 chars = 18 bits fixed, so the range spans 2^30 ms
+    expect(millis - start).toBeLessThan(2 ** 30);
+  });
+
+  it('rejects empty and over-long prefixes', () => {
+    expect(() => IdCommand.timeIdPrefixToMillis('')).toThrow(/1-8/);
+    expect(() => IdCommand.timeIdPrefixToMillis('123456789')).toThrow(
+      /1-8/,
+    );
+  });
+
+  it('rejects characters outside the OPB64 alphabet', () => {
+    expect(() => IdCommand.timeIdPrefixToMillis('a!')).toThrow(
+      /Invalid OPB64/,
+    );
+  });
+});
+
 describe('CLI: id command', () => {
   let program: Command;
   let idCmd: Command;
