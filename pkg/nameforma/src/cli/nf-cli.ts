@@ -10,7 +10,7 @@ import { nfTui, ReplRenderer } from './nf-tui.js';
 import { USER } from './env.js';
 import { settings } from './settings.js';
 import { stdin as input, stdout as output } from 'process';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import TaskCommand from './cli-task.js';
 import { readFileSync, realpathSync } from 'fs';
@@ -21,13 +21,60 @@ import ActionCommand from './cli-action.js';
 import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
+import HashCommand from './cli-hash.js';
 import InitCommand from './cli-init.js';
 import { World } from '../world.js';
 import { NfProgram } from '../nf-program.js';
 import { IS_CLAUDE } from './env.js';
 import type { IReplRenderer } from './nf-tui.js';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+/**
+ * Split a REPL input line into argv words without invoking a shell.
+ * Supports whitespace separation, single quotes (literal), double quotes
+ * (with \" and \\ escapes), and backslash escapes outside quotes.
+ * @throws Error if a quote is unterminated or the line ends in a backslash
+ */
+export function splitArgs(line: string): string[] {
+  const words: string[] = [];
+  let word = '';
+  let inWord = false;
+  let quote: '"' | "'" | null = null;
+
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quote === "'") {
+      if (c === "'") quote = null;
+      else word += c;
+    } else if (quote === '"') {
+      if (c === '"') quote = null;
+      else if (
+        c === '\\' &&
+        (line[i + 1] === '"' || line[i + 1] === '\\')
+      ) {
+        word += line[++i];
+      } else word += c;
+    } else if (/\s/.test(c)) {
+      if (inWord) words.push(word);
+      word = '';
+      inWord = false;
+      continue;
+    } else if (c === '"' || c === "'") {
+      quote = c;
+    } else if (c === '\\') {
+      if (i + 1 >= line.length) throw new Error('trailing backslash');
+      word += line[++i];
+    } else {
+      word += c;
+    }
+    inWord = true;
+  }
+
+  if (quote) throw new Error(`unterminated ${quote} quote`);
+  if (inWord) words.push(word);
+  return words;
+}
 
 export type GlobalOpts = {
   world: World;
@@ -109,7 +156,8 @@ export class REPL {
 
         let stdout = '';
         try {
-          ({ stdout } = await execAsync(`nf --args ${trimmed}`));
+          const words = splitArgs(trimmed);
+          ({ stdout } = await execFileAsync('nf', ['--args', ...words]));
         } catch (err: any) {
           try {
             const msg = String(
@@ -219,14 +267,15 @@ export class NfCLI extends NfProgram {
         '--test-runner',
         'Run as test runner (for vitest/jest integration)',
       )
-      .hook('preAction', async (thisCommand: any) => {
+      .hook('preAction', async (thisCommand: any, actionCommand: any) => {
         const opts = thisCommand.optsWithGlobals();
         const cmdName = thisCommand._name || thisCommand.name?.();
         const isInitCommand =
           cmdName === 'init' || process.argv.includes('init');
+        const isHashCommand = actionCommand?.name?.() === 'hash';
 
         let world: World | undefined;
-        if (!isInitCommand) {
+        if (!isInitCommand && !isHashCommand) {
           try {
             world = await NfProgram.resolveWorld(opts.world);
           } catch (err) {
@@ -286,6 +335,12 @@ export class NfCLI extends NfProgram {
       program
         .command('doc')
         .description('Display TUI-formatted documentation'),
+      this,
+    );
+    HashCommand.registerCommand(
+      program
+        .command('hash')
+        .description('Print OPB64 encoding of the SHA-256 of FILE'),
       this,
     );
 

@@ -5,6 +5,7 @@
  * Validates ID types
  */
 
+import { statSync } from 'fs';
 import { nfTui } from './nf-tui.js';
 import { validate as validateUUID } from 'uuid';
 import { Identifiable } from '../identifiable.js';
@@ -73,6 +74,10 @@ export default class IdCommand {
         '--git-observed <commit>',
         'Generate UUID64 for git commit observation',
       )
+      .option(
+        '--file-mod <path>',
+        'Return timeId() of the file modification time of PATH',
+      )
       .action(async (words: string[], options: any, cmd: any) => {
         if (!nfProgram.world) throw new Error('World not initialized');
         const world = nfProgram.world;
@@ -107,6 +112,16 @@ export default class IdCommand {
           if (options.gitObserved) {
             const json = UUID64.forGitObserved(options.gitObserved);
             nfTui.log(JSON.stringify(json));
+            return;
+          }
+
+          // If --file-mod flag is set, return timeId of file modification time
+          if (options.fileMod) {
+            const mtimeMs = statSync(options.fileMod).mtimeMs;
+            const timeId = UUID64.create({
+              millis: Math.floor(mtimeMs),
+            }).timeId();
+            nfTui.log(timeId);
             return;
           }
 

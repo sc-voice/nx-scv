@@ -528,4 +528,53 @@ describe('CLI: id command', () => {
       }
     });
   });
+
+  describe('File modification time (--file-mod)', () => {
+    let fileDir: string;
+
+    beforeEach(() => {
+      fileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'id-file-mod-'));
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(fileDir)) {
+        fs.rmSync(fileDir, { recursive: true, force: true });
+      }
+    });
+
+    it('returns timeId() of the file modification time', async () => {
+      const filePath = path.join(fileDir, 'sample.txt');
+      fs.writeFileSync(filePath, 'hello');
+      const millis = 1705320000123;
+      fs.utimesSync(filePath, new Date(millis), new Date(millis));
+      expect(fs.statSync(filePath).mtimeMs).toBe(millis);
+
+      await program.parseAsync([
+        'node',
+        'test',
+        'id',
+        '--file-mod',
+        filePath,
+      ]);
+
+      expect(output).toEqual([UUID64.create({ millis }).timeId()]);
+      expect(output[0].length).toBe(UUID64.TIME_ID_CHARS);
+    });
+
+    it('errors when file does not exist', async () => {
+      const missing = path.join(fileDir, 'missing.txt');
+      try {
+        await program.parseAsync([
+          'node',
+          'test',
+          'id',
+          '--file-mod',
+          missing,
+        ]);
+      } catch (err: any) {
+        // Commander throws on exit(1)
+      }
+      expect(errors.some((e) => e.includes('ENOENT'))).toBe(true);
+    });
+  });
 });
