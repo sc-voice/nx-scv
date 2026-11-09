@@ -14,13 +14,82 @@ import * as HJSON_CJS from 'hjson';
 import path from 'path';
 import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { readFileSync, realpathSync } from 'fs';
+import { existsSync, readFileSync, realpathSync, writeFileSync } from 'fs';
 import { DBG, findWorld } from './defines.js';
+import { UUID64 } from './uuid64.js';
 
 const Hjson = HJSON_CJS as any;
 const USER = process.env.CLAUDECODE ? 'Claude' : 'Standard';
 const IS_CLAUDE = USER === 'Claude';
 const theme = NameFormaTheme.shared;
+
+/** Default agent_instructions header value for `nf markdown` */
+export const DEFAULT_AGENT_INSTRUCTIONS =
+  'Maintain synchronous awareness without a persistent urge to solve or fix anything until a consensus call to action emerges.';
+
+/** Default title for `nf markdown` */
+export const DEFAULT_MARKDOWN_TITLE = 'Sample Markdown Document';
+
+/** Placeholder for an unset `nf markdown` header field */
+export const NO_VALUE = '(none)';
+
+/** Default description header value for `nf markdown` */
+export const DEFAULT_MARKDOWN_DESCRIPTION = NO_VALUE;
+
+/** Default status header value for `nf markdown` */
+export const DEFAULT_MARKDOWN_STATUS = 'draft';
+
+/** Default tags header value for `nf markdown` */
+export const DEFAULT_MARKDOWN_TAGS = NO_VALUE;
+
+/** Default type header value for `nf markdown` */
+export const DEFAULT_MARKDOWN_TYPE = 'nameforma.md';
+
+/** Default body of the References section for `nf markdown` */
+export const DEFAULT_MARKDOWN_REFERENCES = NO_VALUE;
+
+/**
+ * Author from the nearest package.json at or above startDir.
+ * @returns the package.json author (string or `name`), or NO_VALUE
+ */
+export function markdownAuthor(startDir: string = process.cwd()): string {
+  let dir = startDir;
+  for (;;) {
+    const pkgPath = join(dir, 'package.json');
+    if (existsSync(pkgPath)) {
+      try {
+        const { author } = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+        if (typeof author === 'string') return author;
+        return author?.name ?? NO_VALUE;
+      } catch {
+        return NO_VALUE;
+      }
+    }
+    const parent = dirname(dir);
+    if (parent === dir) return NO_VALUE;
+    dir = parent;
+  }
+}
+
+/** @returns local date as YYYY-MM-DD */
+export function localDateString(d: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** Header and body fields of an `nf markdown` article */
+export interface IMarkdownFields {
+  type: string;
+  title: string;
+  description: string;
+  status: string;
+  tags: string;
+  author: string;
+  agentInstructions: string;
+  references: string;
+  zuid: string;
+  updated: string;
+}
 
 export interface IOutputConfiguration {
   writeOut?(str: string): void;
@@ -487,6 +556,125 @@ Examples:
         );
       });
   } // registerSystemCommand
+
+  /**
+   * Identifying title of an article: first 6 zuid characters, then the
+   * title words joined with underscores. It is the YAML title and the
+   * file name without the .md suffix, as in the iapapo articles folder.
+   * @returns e.g. "0Q71Oh_Sample_Markdown_Document"
+   */
+  markdownStem(title: string, zuid: string): string {
+    const slug = title
+      .trim()
+      .replace(/[^A-Za-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    return `${zuid.slice(0, 6)}_${slug}`;
+  }
+
+  /**
+   * Build a nameforma Markdown article: YAML header, a heading with the
+   * human-readable title, and an Overview section.
+   * JSON.stringify yields valid YAML double-quoted scalars for the values.
+   * @param f header and body fields; title is shown in the body
+   * @returns Markdown text without a trailing newline
+   */
+  markdownArticle(f: IMarkdownFields): string {
+    const stem = this.markdownStem(f.title, f.zuid);
+    return [
+      '---',
+      `type: ${JSON.stringify(f.type)}`,
+      'collection: world',
+      `zuid: ${f.zuid}`,
+      `title: ${JSON.stringify(stem)}`,
+      `description: ${JSON.stringify(f.description)}`,
+      `status: ${JSON.stringify(f.status)}`,
+      `tags: ${JSON.stringify(f.tags)}`,
+      `author: ${JSON.stringify(f.author)}`,
+      `updated: ${f.updated}`,
+      `agent_instructions: ${JSON.stringify(f.agentInstructions)}`,
+      '---',
+      '',
+      `# ${f.title}`,
+      '',
+      '## Overview',
+      '',
+      '## References',
+      '',
+      f.references,
+    ].join('\n');
+  }
+
+  /** Action handler for @see registerMarkdownCommand */
+  nfMarkdown(title: string, options: any): void {
+    const zuid = UUID64.create().base64;
+    const markdown = this.markdownArticle({
+      type: options.type,
+      title,
+      description: options.description,
+      status: options.status,
+      tags: options.tags,
+      author: options.author ?? markdownAuthor(),
+      agentInstructions: options.agent_instructions,
+      references: options.references,
+      zuid,
+      updated: localDateString(),
+    });
+    if (!options.out) {
+      this.writeOut(markdown);
+      return;
+    }
+    const stem = this.markdownStem(title, zuid);
+    const filePath = join(options.out, `${stem}.md`);
+    writeFileSync(filePath, markdown + '\n', { flag: 'wx' });
+    this.writeOut(filePath);
+  }
+
+  registerMarkdownCommand(): void {
+    const nfp = this;
+    this.rootCmd
+      .command('markdown')
+      .description('Print a nameforma Markdown article with a YAML header')
+      .argument(
+        '[title...]',
+        'Article title: unquoted words, joined by spaces',
+      )
+      .option('--type <text>', 'type header value', DEFAULT_MARKDOWN_TYPE)
+      .option(
+        '--description <text>',
+        'description header value',
+        DEFAULT_MARKDOWN_DESCRIPTION,
+      )
+      .option(
+        '--status <text>',
+        'status header value',
+        DEFAULT_MARKDOWN_STATUS,
+      )
+      .option('--tags <text>', 'tags header value', DEFAULT_MARKDOWN_TAGS)
+      .option(
+        '--author <text>',
+        'author header value (default: package.json author, if any)',
+      )
+      .option(
+        '--references <text>',
+        'References section body',
+        DEFAULT_MARKDOWN_REFERENCES,
+      )
+      .option(
+        '--agent_instructions <text>',
+        'agent_instructions header value',
+        DEFAULT_AGENT_INSTRUCTIONS,
+      )
+      .option(
+        '--out <dir>',
+        'Write the article to a new file in DIR instead of stdout',
+      )
+      .action((titleWords: string[] | undefined, options: any) =>
+        nfp.nfMarkdown(
+          titleWords?.join(' ') || DEFAULT_MARKDOWN_TITLE,
+          options,
+        ),
+      );
+  }
 
   registerThemeCommand(): void {
     this.themeCommand.register(this.rootCmd);
