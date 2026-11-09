@@ -11,6 +11,8 @@ import { Zeno, type ZenoStep } from './zeno-step.js';
 import { UUID64, type IUUID64Config } from './uuid64.js';
 export type { FuzzyId, IRegistry };
 import { Rational } from './rational.js';
+import { OPB63_64 } from './opb63_64.js';
+import { ZUID } from './zuid.js';
 import { Reference } from './reference.js';
 import { Schema } from './schema.js';
 import { Task } from './task.js';
@@ -40,7 +42,9 @@ export {
   Identifiable,
   Mutator,
   NfProgram,
+  OPB63_64,
   PopCommand,
+  ZUID,
   PushCommand,
   Rational,
   Reference,

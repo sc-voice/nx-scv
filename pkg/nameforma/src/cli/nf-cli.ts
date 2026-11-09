@@ -22,6 +22,7 @@ import ReferenceCommand from './cli-reference.js';
 import WatchCommand from './cli-watch.js';
 import DocCommand from './cli-doc.js';
 import HashCommand from './cli-hash.js';
+import ZuidCommand from './cli-zuid.js';
 import InitCommand from './cli-init.js';
 import { World } from '../world.js';
 import { NfProgram } from '../nf-program.js';
@@ -272,10 +273,12 @@ export class NfCLI extends NfProgram {
         const cmdName = thisCommand._name || thisCommand.name?.();
         const isInitCommand =
           cmdName === 'init' || process.argv.includes('init');
-        const isHashCommand = actionCommand?.name?.() === 'hash';
+        const isNoWorldCommand = ['hash', 'zuid'].includes(
+          actionCommand?.name?.(),
+        );
 
         let world: World | undefined;
-        if (!isInitCommand && !isHashCommand) {
+        if (!isInitCommand && !isNoWorldCommand) {
           try {
             world = await NfProgram.resolveWorld(opts.world);
           } catch (err) {
@@ -341,6 +344,12 @@ export class NfCLI extends NfProgram {
       program
         .command('hash')
         .description('Print OPB64 encoding of the SHA-256 of FILE'),
+      this,
+    );
+    ZuidCommand.registerCommand(
+      program
+        .command('zuid')
+        .description('Print a new ZUID for the current time'),
       this,
     );
 

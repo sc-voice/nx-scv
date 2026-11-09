@@ -914,3 +914,29 @@ describe('UUID64.compareBase64', () => {
     expect(sorted).toEqual(expected);
   });
 });
+
+describe('UUID64 OPB64 known values', () => {
+  const samples = [
+    '0Q71U-sX004eepjTU_BiNW',
+    '0Q71V0-J00yf3d3SKpVR7W',
+    '0Q71V3V400HNZv-xxMOKNW',
+  ];
+
+  // Test: each known OPB64 value round-trips through buffer decode/encode
+  it('round-trips known OPB64 values', () => {
+    for (const opb64 of samples) {
+      expect(opb64.length).toBe(22);
+      const buf = UUID64.bufferFromOPB64(opb64);
+      expect(buf.length).toBe(16);
+      expect(UUID64.toOrderPreservingBase64(buf)).toBe(opb64);
+    }
+  });
+
+  // Test: string order of known values matches byte order of decoded buffers
+  it('known OPB64 values sort in numeric order', () => {
+    const bufs = samples.map((s) => UUID64.bufferFromOPB64(s));
+    expect(Buffer.compare(bufs[0], bufs[1])).toBe(-1);
+    expect(Buffer.compare(bufs[1], bufs[2])).toBe(-1);
+    expect([...samples].sort()).toEqual(samples);
+  });
+});

@@ -15,6 +15,7 @@ const { cc } = ColorConsole;
  * Enforces type-safe id handling at compile-time with zero runtime cost.
  * Validation happens at boundaries (Identifiable.fromString, etc).
  */
+/** @deprecated Superseded by {@link ZUIDString}; see {@link UUID64}. */
 export type UUID64String = string & { readonly __brand: 'UUID64String' };
 
 // ============================================================================
@@ -82,6 +83,12 @@ const monotonicityState = new MonotonicityState();
 // UUID64 Class
 // ============================================================================
 
+/**
+ * @deprecated Superseded by {@link ZUID}. The 22-character OPB64 form uses a
+ * hyphen, which causes problems in CLI arguments and file names. ZUID uses a
+ * hyphen-free base-63 form and keeps the same API shape. Callers will move
+ * over module by module.
+ */
 export class UUID64 {
   // ========================================================================
   // Static Constants
@@ -609,7 +616,7 @@ export class UUID64 {
    * Contains 48-bit timestamp + 12-bit sequence bits.
    * Useful for time-based partitioning, sorting, or ID trimming in lists.
    *
-   * The first character changes every ~84 years.
+   * The first character changes every 2^42 ms (~139 years).
    * The last two characters encode the 12-bit millisecond sequence numbers.
    *
    * @returns 10-character base64 string prefix (default) - length invariant

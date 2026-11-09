@@ -16,7 +16,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'fs';
 import { DBG, findWorld } from './defines.js';
-import { UUID64 } from './uuid64.js';
+import { ZUID } from './zuid.js';
 
 const Hjson = HJSON_CJS as any;
 const USER = process.env.CLAUDECODE ? 'Claude' : 'Standard';
@@ -606,7 +606,7 @@ Examples:
 
   /** Action handler for @see registerMarkdownCommand */
   nfMarkdown(title: string, options: any): void {
-    const zuid = UUID64.create().base64;
+    const zuid = ZUID.create().toString();
     const markdown = this.markdownArticle({
       type: options.type,
       title,
