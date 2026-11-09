@@ -559,16 +559,17 @@ Examples:
 
   /**
    * Identifying title of an article: first 6 zuid characters, then the
-   * title words joined with underscores. It is the YAML title and the
-   * file name without the .md suffix, as in the iapapo articles folder.
-   * @returns e.g. "0Q71Oh_Sample_Markdown_Document"
+   * title words joined with hyphens. Hyphens are outside the ZUID alphabet,
+   * so the stem never reads as a longer ZUID, and they are URL safe.
+   * It is the YAML title and the file name without the .md suffix.
+   * @returns e.g. "0Q71Oh-Sample-Markdown-Document"
    */
   markdownStem(title: string, zuid: string): string {
     const slug = title
       .trim()
-      .replace(/[^A-Za-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-    return `${zuid.slice(0, 6)}_${slug}`;
+      .replace(/[^A-Za-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return `${zuid.slice(0, 6)}-${slug}`;
   }
 
   /**

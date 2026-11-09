@@ -1,4 +1,12 @@
-import { describe, it, expect, vi, afterEach, beforeAll, afterAll } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import { mkdtempSync, writeFileSync, utimesSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
@@ -23,11 +31,11 @@ describe('ZuidCommand (nf zuid)', () => {
   }> {
     const logged: string[] = [];
     const errors: string[] = [];
-    vi.spyOn(nfTui, 'log').mockImplementation((msg: string) => {
-      logged.push(msg);
+    vi.spyOn(nfTui, 'log').mockImplementation((msg: unknown) => {
+      logged.push(String(msg));
     });
-    vi.spyOn(nfTui, 'error').mockImplementation((msg: string) => {
-      errors.push(msg);
+    vi.spyOn(nfTui, 'error').mockImplementation((msg: unknown) => {
+      errors.push(String(msg));
     });
     const program = new Command();
     ZuidCommand.registerCommand(program.command('zuid'), null as any);
@@ -65,7 +73,9 @@ describe('ZuidCommand (nf zuid)', () => {
       const prefix = z.toString().slice(0, 8);
       const { logged } = await runZuid(['--time', prefix]);
       expect(logged).toHaveLength(2);
-      expect(logged[0]).toBe(new Date(ZUID.timeRangeOf(prefix).start).toISOString());
+      expect(logged[0]).toBe(
+        new Date(ZUID.timeRangeOf(prefix).start).toISOString(),
+      );
       expect(logged[1]).toMatch(/^resolution: \d+\.\d{3}s$/);
     });
 
@@ -111,11 +121,12 @@ describe('ZuidCommand (nf zuid)', () => {
       expect(process.exitCode).toBe(1);
     });
 
-    it('rejects an OPB64 prefix with a hyphen and exits 1', async () => {
+    it('uses only the leading OPB64 run of a prefix containing a hyphen', async () => {
       const { logged, errors } = await runZuid(['--time', '0Q71U-sX0']);
-      expect(logged).toHaveLength(0);
-      expect(errors[0]).toMatch(/Invalid ZUID character/);
-      expect(process.exitCode).toBe(1);
+      expect(errors).toHaveLength(0);
+      expect(logged).toHaveLength(2);
+      expect(logged[1]).toMatch(/^resolution: /);
+      expect(process.exitCode).not.toBe(1);
     });
   });
 });
@@ -137,11 +148,17 @@ describe('nf zuid --file-mod <path>', () => {
   });
 
   /** Run `nf zuid [args]` and collect what it writes. */
-  async function run(args: string[]): Promise<{ logged: string[]; errors: string[] }> {
+  async function run(
+    args: string[],
+  ): Promise<{ logged: string[]; errors: string[] }> {
     const logged: string[] = [];
     const errors: string[] = [];
-    vi.spyOn(nfTui, 'log').mockImplementation((msg: string) => logged.push(msg));
-    vi.spyOn(nfTui, 'error').mockImplementation((msg: string) => errors.push(msg));
+    vi.spyOn(nfTui, 'log').mockImplementation((msg: unknown) =>
+      logged.push(String(msg)),
+    );
+    vi.spyOn(nfTui, 'error').mockImplementation((msg: unknown) =>
+      errors.push(String(msg)),
+    );
     const program = new Command();
     ZuidCommand.registerCommand(program.command('zuid'), null as any);
     await program.parseAsync(['node', 'nf', 'zuid', ...args]);
@@ -189,7 +206,10 @@ describe('nf zuid --file-mod <path>', () => {
   });
 
   it('reports a missing file and exits 1', async () => {
-    const { logged, errors } = await run(['--file-mod', path.join(dir, 'missing')]);
+    const { logged, errors } = await run([
+      '--file-mod',
+      path.join(dir, 'missing'),
+    ]);
     expect(logged).toHaveLength(0);
     expect(errors[0]).toMatch(/ENOENT/);
     expect(process.exitCode).toBe(1);

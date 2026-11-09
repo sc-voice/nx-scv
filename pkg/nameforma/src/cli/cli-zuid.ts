@@ -52,50 +52,55 @@ export default class ZuidCommand {
           words: string[] = [],
           options: { time?: boolean; fileMod?: string },
         ) => {
-        if (options.fileMod !== undefined) {
+          if (options.fileMod !== undefined) {
+            try {
+              // Sequence 0 makes the output a stable function of the file's mtime.
+              const millis = Math.floor(statSync(options.fileMod).mtimeMs);
+              const z = ZUID.create(
+                millis,
+                0,
+                ZuidCommand.nameSignature(options.fileMod),
+              );
+              nfTui.log(z.timeId());
+              nfTui.log(z.toString());
+            } catch (err) {
+              nfTui.error(
+                `✗ Error: ${err instanceof Error ? err.message : String(err)}`,
+              );
+              process.exitCode = 1;
+            }
+            return;
+          }
+          if (!options.time) {
+            if (words.length > 0) {
+              nfTui.error('✗ Error: Prefix arguments require --time');
+              process.exitCode = 1;
+              return;
+            }
+            nfTui.log(ZUID.create().toString());
+            return;
+          }
+          if (words.length !== 1) {
+            nfTui.error('✗ Error: Single ZUID prefix expected');
+            process.exitCode = 1;
+            return;
+          }
           try {
-            // Sequence 0 makes the output a stable function of the file's mtime.
-            const millis = Math.floor(statSync(options.fileMod).mtimeMs);
-            const z = ZUID.create(
-              millis,
-              0,
-              ZuidCommand.nameSignature(options.fileMod),
+            // Keep the leading run of OPB63_64 characters (0-9, A-Z, _, a-z),
+            // then only its 11-character time block; a full ZUID is accepted.
+            const alphabetRun = /^[0-9A-Za-z_]*/.exec(words[0])?.[0] ?? '';
+            const { start, end } = ZUID.timeRangeOf(
+              alphabetRun.slice(0, 11),
             );
-            nfTui.log(z.timeId());
-            nfTui.log(z.toString());
+            nfTui.log(new Date(start).toISOString());
+            nfTui.log(`resolution: ${((end - start) / 1000).toFixed(3)}s`);
           } catch (err) {
             nfTui.error(
               `✗ Error: ${err instanceof Error ? err.message : String(err)}`,
             );
             process.exitCode = 1;
           }
-          return;
-        }
-        if (!options.time) {
-          if (words.length > 0) {
-            nfTui.error('✗ Error: Prefix arguments require --time');
-            process.exitCode = 1;
-            return;
-          }
-          nfTui.log(ZUID.create().toString());
-          return;
-        }
-        if (words.length !== 1) {
-          nfTui.error('✗ Error: Single ZUID prefix expected');
-          process.exitCode = 1;
-          return;
-        }
-        try {
-          // A full ZUID is accepted: keep only its 11-character time block.
-          const { start, end } = ZUID.timeRangeOf(words[0].slice(0, 11));
-          nfTui.log(new Date(start).toISOString());
-          nfTui.log(`resolution: ${((end - start) / 1000).toFixed(3)}s`);
-        } catch (err) {
-          nfTui.error(
-            `✗ Error: ${err instanceof Error ? err.message : String(err)}`,
-          );
-          process.exitCode = 1;
-        }
-      });
+        },
+      );
   }
 }

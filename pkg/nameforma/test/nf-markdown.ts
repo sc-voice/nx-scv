@@ -33,7 +33,7 @@ describe('nf markdown', () => {
       '  IaPapo  Wakeword, Training! ',
       '0Q71Oh1234567890ABCDEF',
     );
-    expect(stem).toBe('0Q71Oh_IaPapo_Wakeword_Training');
+    expect(stem).toBe('0Q71Oh-IaPapo-Wakeword-Training');
   });
 
   it('uses the sample title and default header values when no words are given', async () => {
@@ -41,7 +41,7 @@ describe('nf markdown', () => {
     expect(md).toMatch(/^---\n/);
     expect(md).toMatch(/^type: "nameforma\.md"$/m);
     expect(md).toMatch(
-      /^title: "[A-Za-z0-9]{6}_Sample_Markdown_Document"$/m,
+      /^title: "[A-Za-z0-9]{6}-Sample-Markdown-Document"$/m,
     );
     expect(md).toMatch(/^status: "draft"$/m);
     expect(md).toMatch(/^tags: "\(none\)"$/m);
@@ -64,7 +64,7 @@ describe('nf markdown', () => {
     expect(md).toMatch(/^type: "Reference"$/m);
     expect(md).toMatch(/^status: "active"$/m);
     expect(md).toMatch(
-      /^title: "[A-Za-z0-9]{6}_IaPapo_Wakeword_Training"$/m,
+      /^title: "[A-Za-z0-9]{6}-IaPapo-Wakeword-Training"$/m,
     );
   });
 
@@ -74,7 +74,7 @@ describe('nf markdown', () => {
     const written = out.trim();
     expect(path.dirname(written)).toBe(dir);
     expect(path.basename(written)).toMatch(
-      /^[A-Za-z0-9]{6}_IaPapo_Wakeword\.md$/,
+      /^[A-Za-z0-9]{6}-IaPapo-Wakeword\.md$/,
     );
 
     const content = fs.readFileSync(written, 'utf-8');
