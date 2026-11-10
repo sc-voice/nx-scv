@@ -30,7 +30,8 @@ const SIGNATURE_MASK = (1n << 62n) - 1n;
  *   for 22 characters with no hyphens. The version nibble is 15 in text only.
  * - Time block (hi): 48-bit Unix ms, 4-bit version, 12-bit sequence.
  *   The version sits below the timestamp, so it never changes a prefix's
- *   time window. This is why {@link ZUID.timeRangeOf} is exact to 1 ms.
+ *   time window. This is why {@link ZUID.timeRangeOf} is within 1 ms of the
+ *   exact bounds.
  * - Signature (lo): 62 free bits; the top 2 bits are the pinned variant `10`.
  *
  * @example
